@@ -18,7 +18,7 @@ end
 
 ---@param args {text: string, font: JM.Font.Font, format: JM.Font.FormatOptions}
 function Word:__constructor__(args)
-    assert(EffectManager, "\n>Class EffectManager not loaded!")
+    --assert(EffectManager, "\n>Class EffectManager not loaded!")
 
     self.text = args.text
     self.__font = args.font

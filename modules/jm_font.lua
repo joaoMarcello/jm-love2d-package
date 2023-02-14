@@ -9,7 +9,8 @@ do
     ---@type JM.Font.Generator
     local Generator = require(path:gsub("jm_font", "jm_font_generator"))
 
-    local glyphs = [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢<>¨¬~$&^--dots----trav--]]
+    local glyphs =
+    [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢<>¨¬~$&^--dots----trav--]]
 
     -- local glyphs_bold = [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&]]
 
@@ -23,7 +24,7 @@ do
     --     glyphs = glyphs
     -- })
 
-    -- Font.fonts[2] = Generator:new({
+    -- Font.fonts[1] = Generator:new({
     --     name = "book antiqua",
     --     font_size = 12,
     --     tab_size = 4,
@@ -42,7 +43,7 @@ do
         tab_size = 4
     })
 
-    -- Font.fonts[2] = Generator:new_by_ttf({
+    -- Font.fonts[1] = Generator:new_by_ttf({
     --     path = "/data/font/Cyrodiil.otf",
     --     path_bold = "/data/font/Cyrodiil Bold.otf",
     --     path_italic = "/data/font/Cyrodiil Italic.otf",
@@ -52,15 +53,15 @@ do
     --     tab_size = 4
     -- })
 
-    Font.fonts[2] = Generator:new_by_ttf({
-        path = "/data/font/Garamond Premier Pro Regular.ttf",
-        -- path_bold = "/data/font/Cyrodiil Bold.otf",
-        path_italic = "/data/font/Garamond Premier Pro_italic.otf",
-        dpi = 64,
-        name = "garamond premier",
-        font_size = 12,
-        tab_size = 4
-    })
+    -- Font.fonts[1] = Generator:new_by_ttf({
+    --     path = "/data/font/Garamond Premier Pro Regular.ttf",
+    --     -- path_bold = "/data/font/Cyrodiil Bold.otf",
+    --     path_italic = "/data/font/Garamond Premier Pro_italic.otf",
+    --     dpi = 64,
+    --     name = "garamond premier",
+    --     font_size = 12,
+    --     tab_size = 4
+    -- })
 
     -- Font.fonts[3] = Generator:new_by_ttf({
     --     path = "/data/font/Retro Gaming.ttf",
