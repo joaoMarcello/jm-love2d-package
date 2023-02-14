@@ -1,7 +1,6 @@
 --[[
     This modules need the 'jm_camera.lua' to work.
 ]]
-
 local path = (...)
 
 local set_canvas = love.graphics.setCanvas
@@ -19,7 +18,7 @@ local love_mouse_position = love.mouse.getPosition
 local math_abs = math.abs
 local love_set_scissor = love.graphics.setScissor
 
----@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string}
+---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean}
 
 local function round(value)
     local absolute = math.abs(value)
@@ -87,13 +86,12 @@ function Scene:new(x, y, w, h, canvas_w, canvas_h, bounds)
 end
 
 function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
-
     bounds = bounds or {
-        left = -32 * 0,
-        right = 32 * 60,
-        top = -32 * 0,
-        bottom = 32 * 12,
-    }
+            left = -32 * 0,
+            right = 32 * 60,
+            top = -32 * 0,
+            bottom = 32 * 12,
+        }
 
     -- cam_config = cam_config or {
     --     color = { 1, 1, 1, 1 },
@@ -139,7 +137,6 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
             y = 0,
             w = self.screen_w - self.x * 0,
             h = self.screen_h - self.y * 0,
-
             -- world bounds
             bounds = {
                 left = self.world_left,
@@ -147,28 +144,19 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
                 top = self.world_top,
                 bottom = self.world_bottom
             },
-
             -- Device screen's dimensions
             device_width = self.dispositive_w,
             device_height = self.dispositive_h - math.abs(self.dispositive_h - self.h + self.y),
-
             -- The in-game screen's dimensions
             desired_canvas_w = self.screen_w,
             desired_canvas_h = self.screen_h,
-
             tile_size = self.tile_size_x,
-
             color = { 43 / 255, 78 / 255, 108 / 255, 1 },
-
             border_color = { 1, 1, 0, 1 },
-
             scale = 1.0,
-
             type = "metroid",
-
             show_grid = true,
             grid_tile_size = self.tile_size_x * 2,
-
             show_world_bounds = true
         }
 
@@ -202,9 +190,8 @@ function Scene:add_camera(config, name)
 
     assert(not self.cameras_list[self.amount_cameras + 1])
 
-    local Camera
-    ---@type JM.Camera.Camera
-    Camera = require(string.gsub(path, "jm_scene", "jm_camera"))
+    ---@type JM.Camera.Camera|nil
+    local Camera = require(string.gsub(path, "jm_scene", "jm_camera"))
 
     assert(
         Camera,
@@ -345,6 +332,9 @@ function Scene:fadein(duration, color, delay, action, endAction)
     if self.fadein_time then return end
 
     self.fadeout_time = nil
+    self.fadeout_action = nil
+    self.fadeout_end_action = nil
+
     self.fadein_time = 0.0
     self.fadein_delay = delay or 0
     self.fadein_duration = duration or 0.3
@@ -421,18 +411,18 @@ local function generic(callback)
 
     result =
     ---@param scene JM.Scene
-    (function(scene, ...)
-        if scene.time_pause or scene.fadeout_time then
-            return
-        end
+        (function(scene, ...)
+            if scene.time_pause or scene.fadeout_time then
+                return
+            end
 
-        if (...) then
-            local r = callback and callback(unpack { ... })
-        else
-            local r = callback and callback()
-        end
-        return true
-    end)
+            if (...) then
+                local r = callback and callback(unpack { ... })
+            else
+                local r = callback and callback()
+            end
+            return true
+        end)
 
     if callback then memo[callback] = result end
 
@@ -498,12 +488,10 @@ function Scene:implements(param)
                 layer.name = layer.name or ("layer " .. name)
                 name = name + 1
             end
-
         end
     end
 
     self.update = function(self, dt)
-
         if self.time_pause then
             self.time_pause = self.time_pause - dt
 
@@ -613,7 +601,7 @@ function Scene:implements(param)
                         camera:draw_background()
                     end
 
-                    camera:attach()
+                    camera:attach(layer.lock_shake)
 
                     push()
 
@@ -647,9 +635,9 @@ function Scene:implements(param)
                     camera:detach()
 
                     if condition then
-                        love.graphics.setScissor(camera:get_viewport())
+                        love_set_scissor(camera:get_viewport())
                         camera:draw_info()
-                        love.graphics.setScissor()
+                        love_set_scissor()
                     end
 
                     -- camera:set_shader()
@@ -675,9 +663,9 @@ function Scene:implements(param)
 
                 camera:detach()
 
-                love.graphics.setScissor(camera:get_viewport())
+                love_set_scissor(camera:get_viewport())
                 camera:draw_info()
-                love.graphics.setScissor()
+                love_set_scissor()
             end
 
             camera = nil
@@ -746,7 +734,6 @@ function Scene:implements(param)
 
         local r = param.keyreleased and param.keyreleased(key, scancode)
     end
-
 end
 
 function Scene:set_background_draw(action)

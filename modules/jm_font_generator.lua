@@ -155,7 +155,7 @@ function Font:__constructor__(args)
         [FontFormat.bold_italic] = {}
     }
 
-    local dir = path:gsub("modules.jm_font_generator", "data/font/")
+    local dir = path:gsub("modules.jm_font_generator", "/data/font/")
         .. "%s/%s.png"
 
     self:load_characters(args.regular_data

@@ -89,10 +89,8 @@ local function chase_target(self, dt, chase_x_axis, chase_y_axis)
             if (cos_r > 0 and self.x >= self.target.x)
                 or (cos_r < 0 and self.x <= self.target.x)
             then
-
                 self:set_position(self.target.x)
                 self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
-
             end
 
             -- if self.infinity_chase_x then
@@ -151,7 +149,6 @@ local function chase_target(self, dt, chase_x_axis, chase_y_axis)
 
             reach_objective_y = self.y == self.target.y
         end
-
     end
 
     return reach_objective_x and reach_objective_y
@@ -192,7 +189,7 @@ local function dynamic_x_offset(self, dt)
         local objective = chase_target_x(self, dt)
 
         self:set_lock_x_axis(objective
-            and self.target.direction_x ~= self.target.last_direction_x
+        and self.target.direction_x ~= self.target.last_direction_x
         )
     else
         self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
@@ -252,7 +249,7 @@ local function dynamic_y_offset(self, dt)
         local objective = chase_target_y(self, dt)
 
         self:set_lock_y_axis(objective
-            and self.target.direction_y ~= self.target.last_direction_y
+        and self.target.direction_y ~= self.target.last_direction_y
         )
     else
         self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
@@ -268,7 +265,6 @@ local function dynamic_y_offset(self, dt)
             then
                 self:set_lock_y_axis(false)
             end
-
         elseif self.target.direction_y < 0 then
             local top = self.y - deadzone_h / 2
             top = self:y_screen_to_world(top)
@@ -461,7 +457,6 @@ local function show_focus(self)
         love.graphics.circle("fill", self.viewport_x + px,
             self.viewport_y + py,
             7)
-
     end
 
     -- Camera's focus
@@ -538,7 +533,6 @@ local function show_focus(self)
             self.viewport_y + self.focus_y + self.deadzone_h / 2,
             corner_length,
             corner_esp)
-
     end
 
 
@@ -597,13 +591,12 @@ end
 ---@param self JM.Camera.Camera
 local function shake_update(self, dt)
     if self.shaking_in_x then
-
         self.shake_rad_x = self.shake_rad_x
             + (math.pi * 2)
             / self.shake_speed_x * dt
 
         self.shake_offset_x = round(self.shake_amplitude_x * self.scale
-            * cos(self.shake_rad_x - math.pi * self.shake_y_factor))
+        * cos(self.shake_rad_x - math.pi * self.shake_y_factor))
 
         if self.shake_duration_x then
             self.shake_time_x = self.shake_time_x + dt
@@ -621,13 +614,12 @@ local function shake_update(self, dt)
     end
 
     if self.shaking_in_y then
-
         self.shake_rad_y = self.shake_rad_y
             + (math.pi * 2)
             / self.shake_speed_y * dt
 
         self.shake_offset_y = round(self.shake_amplitude_y * self.scale
-            * cos(self.shake_rad_y - math.pi * self.shake_y_factor))
+        * cos(self.shake_rad_y - math.pi * self.shake_y_factor))
 
         if self.shake_duration_y then
             self.shake_time_y = self.shake_time_y + dt
@@ -643,7 +635,6 @@ local function shake_update(self, dt)
         end
         self.shake_rad_y = self.shake_rad_y % (math.pi * 2)
     end
-
 end
 
 ---@enum JM.Camera.Type
@@ -689,7 +680,6 @@ function Camera:__constructor__(
     tile_size, color, scale, type_,
     allow_grid, grid_tile_size, show_world_bounds, border_color
 )
-
     self.device_width = device_width or love.graphics.getWidth()
     self.device_height = device_height or love.graphics.getHeight()
 
@@ -889,7 +879,6 @@ function Camera:set_type(s)
         self:set_focus_x(self.desired_left_focus)
 
         self.use_deadzone = true
-
     elseif s == "metroid" or s == CAMERA_TYPES.Metroid then
         self.type = CAMERA_TYPES.Metroid
         self.movement_x = chase_target_x
@@ -897,7 +886,6 @@ function Camera:set_type(s)
 
         self:set_focus_y(self.viewport_h * 0.5)
         self:set_focus_x(self.viewport_w * 0.5)
-
     elseif s == "metroidvania" or s == CAMERA_TYPES.Metroidvania then
         self.type = CAMERA_TYPES.Metroidvania
         self.movement_x = chase_target_x
@@ -907,17 +895,14 @@ function Camera:set_type(s)
         self:set_focus_y(self.viewport_h * 0.5)
 
         -- self.desired_bottom_focus = self.viewport_h * 0.8
-
     elseif s == "modern metroidvania" then
         self:set_type("metroidvania")
         self.delay_y = 0.1
-
     elseif s == "follow boss" then
         self.movement_x = dynamic_x_offset
         self.invert_dynamic_focus_x = true
 
         self.movement_y = chase_target_y
-
     else
         self.movement_x = chase_target_x --dynamic_x_offset
         self.movement_y = chase_target_y
@@ -1211,9 +1196,7 @@ function Camera:update(dt)
         local r
         r = self.movement_x and self.movement_x(self, dt)
         r = self.movement_y and self.movement_y(self, dt)
-        r = nil
     end
-
 
     -- if self.is_shaking then
     shake_update(self, dt)
@@ -1254,34 +1237,6 @@ function Camera:update(dt)
 
     self.x = round(px)
     self.y = round(py)
-    -- --=====================================
-
-    --[[lock = self.lock_x
-    if px < left then
-        local x = self:world_to_screen(left)
-        self:set_lock_x_axis(false)
-        self:set_position(x)
-        self:set_lock_x_axis(lock)
-    elseif px > right then
-        local x = self:world_to_screen(right)
-        self:set_lock_x_axis(false)
-        self:set_position(x)
-        self:set_lock_x_axis(lock)
-    end
-
-    lock = self.lock_y
-    if py < top then
-        local y = self:y_world_to_screen(top)
-        self:set_lock_y_axis(false)
-        self:set_position(nil, y)
-        self:set_lock_y_axis(lock)
-    elseif py > bottom then
-        local y = self:y_world_to_screen(bottom)
-        self:set_lock_y_axis(false)
-        self:set_position(nil, y)
-        self:set_lock_y_axis(lock)
-    end --]]
-
 end
 
 ---@param duration any
@@ -1326,13 +1281,13 @@ end
 
 ---@param self JM.Camera.Camera
 local function debbug(self)
-
     --Drawing a yellow rectangle
     if not self:hit_border() then
         love_set_color(1, 1, 0, 1)
     else
         love_set_color(1, 1, 0, 0.5)
     end
+
     local border_len = self.tile_size * self.scale * self.desired_scale
     do
         love.graphics.rectangle("line",
@@ -1409,18 +1364,22 @@ function Camera:set_shader(shader)
     self.shader = shader
 end
 
-function Camera:attach()
+function Camera:attach(lock_shake)
     love_set_scissor(self:get_viewport())
 
     love_push()
     love_scale(self.scale)
     love_scale(self.desired_scale, self.desired_scale)
+
+    local shake_x = (not lock_shake and self.shaking_in_x and self.shake_offset_x) or 0
+
+    local shake_y = (not lock_shake and self.shaking_in_y and self.shake_offset_y) or 0
+
     love_translate(
         -self.x + (self.viewport_x / self.desired_scale / self.scale)
-        + ((self.shaking_in_x and self.shake_offset_x or 0)),
-
+        + shake_x,
         -self.y + (self.viewport_y / self.desired_scale / self.scale)
-        + ((self.shaking_in_y and self.shake_offset_y or 0))
+        + shake_y
     )
 end
 
@@ -1469,8 +1428,11 @@ function Camera:draw_info()
 end
 
 function Camera:toggle_grid()
-    if self.is_showing_grid then self.is_showing_grid = false
-    else self.is_showing_grid = true end
+    if self.is_showing_grid then
+        self.is_showing_grid = false
+    else
+        self.is_showing_grid = true
+    end
 end
 
 function Camera:toggle_debug()
@@ -1484,8 +1446,11 @@ function Camera:toggle_debug()
 end
 
 function Camera:toggle_world_bounds()
-    if self.show_world_boundary then self.show_world_boundary = false
-    else self.show_world_boundary = true end
+    if self.show_world_boundary then
+        self.show_world_boundary = false
+    else
+        self.show_world_boundary = true
+    end
 end
 
 function Camera:scissor_transform(x, y, w, h)
@@ -1497,7 +1462,7 @@ function Camera:scissor_transform(x, y, w, h)
 
     --- The object scissor
     local sx, sy, sw, sh =
-    (self.viewport_x / self.desired_scale / self.scale - self.x + x) * self.scale * self.desired_scale,
+        (self.viewport_x / self.desired_scale / self.scale - self.x + x) * self.scale * self.desired_scale,
         (self.viewport_y / self.desired_scale / self.scale - self.y + y) * self.scale * self.desired_scale,
         w * self.scale * self.desired_scale,
         h * self.scale * self.desired_scale
