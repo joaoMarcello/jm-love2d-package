@@ -20,7 +20,7 @@ do
 
     ---@param path string
     ---@param name string
-    ---@param volume number
+    ---@param volume number|nil
     ---@param type "stream"|"static"|"queue"
     function Audio:new(path, name, volume, type)
         local obj = setmetatable({}, self)
@@ -56,7 +56,6 @@ do
     end
 end
 --==========================================================================
-
 
 ---@class JM.Sound
 local Sound = {}
