@@ -39,5 +39,8 @@ JM.Physics = require(string.gsub(path, "init", "modules.jm_physics"))
 ---@type JM.GUI
 JM.GUI = require(string.gsub(path, "init", "modules.jm_gui"))
 
+---@type JM.Sound
+JM.Sound = require(string.gsub(path, "init", "modules.jm_sound"))
+
 JM_Love2D_Package = JM
 return JM
