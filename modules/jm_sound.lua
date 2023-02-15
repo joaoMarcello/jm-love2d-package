@@ -3,9 +3,15 @@ local list_song = {}
 local volume_sfx = 1
 local volume_song = 1
 
+---@type JM.Sound.Audio|nil
+local current_song = nil
+
+--==========================================================================
+
 local function clamp(value, min, max)
     return math.min(math.max(value, min), max)
 end
+--==========================================================================
 
 ---@class JM.Sound.Audio
 local Audio = {}
@@ -30,13 +36,27 @@ do
         self.source = love.audio.newSource(path, type)
         self.name = name:lower()
         self.volume = volume
-        list_sfx[name] = self
+
+        if type == "static" then
+            list_sfx[name] = self
+        else
+            list_song[name] = self
+        end
     end
 
-    function Audio:play()
-        self.source:play()
+    function Audio:set_volume(value)
+        value = clamp(value, 0, 1)
+        local type_ = self.source:getType()
+
+        self.volume = value
+
+        local global_volume = type_ == "static" and volume_sfx or volume_song
+
+        self.source:setVolume(value * global_volume)
     end
 end
+--==========================================================================
+
 
 ---@class JM.Sound
 local Sound = {}
@@ -85,6 +105,10 @@ function Sound:get_song(name)
     return list_song[name]
 end
 
+function Sound:get_current_song()
+    return current_song
+end
+
 function Sound:play_song(name)
     ---@type JM.Sound.Audio|nil
     local audio = list_song[name]
@@ -97,6 +121,7 @@ function Sound:play_song(name)
         audio.source:stop()
     end
 
+    current_song = audio
     return audio.source:play()
 end
 
@@ -107,6 +132,15 @@ function Sound:play_sfx(name)
 
     if not audio.source:isPlaying() then
         audio.source:play()
+    end
+end
+
+function Sound:pause()
+    for _, audio in pairs(list_sfx) do
+        ---@type JM.Sound.Audio
+        audio = audio
+
+        audio.source:pause()
     end
 end
 
