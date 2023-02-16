@@ -42,5 +42,10 @@ JM.GUI = require(string.gsub(path, "init", "modules.jm_gui"))
 ---@type JM.Sound
 JM.Sound = require(string.gsub(path, "init", "modules.jm_sound"))
 
+function JM:update(dt)
+    self.Sound:update(dt)
+end
+
 JM_Love2D_Package = JM
+
 return JM
