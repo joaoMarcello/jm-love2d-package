@@ -1057,6 +1057,12 @@ function Camera:target_on_focus()
     return self.x == round(self.target.x) and self.y == round(self.target.y)
 end
 
+function Camera:target_on_focus_x()
+    if not self.target then return false end
+    if not self.target.x then return false end
+    return self.x == round(self.target.x)
+end
+
 function Camera:set_focus_x(value)
     value = round(value)
     if self.focus_x ~= value then
