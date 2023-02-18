@@ -133,10 +133,11 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
         -- main camera's default configuration
         local config = {
             -- camera's viewport in desired game screen coordinates
-            x = 0, --self.screen_w * 0,
+            x = 0,
             y = 0,
             w = self.screen_w - self.x * 0,
             h = self.screen_h - self.y * 0,
+            --
             -- world bounds
             bounds = {
                 left = self.world_left,
@@ -144,19 +145,28 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
                 top = self.world_top,
                 bottom = self.world_bottom
             },
+            --
             -- Device screen's dimensions
             device_width = self.dispositive_w,
             device_height = self.dispositive_h - math.abs(self.dispositive_h - self.h + self.y),
+            --
             -- The in-game screen's dimensions
             desired_canvas_w = self.screen_w,
             desired_canvas_h = self.screen_h,
+            --
+            --
             tile_size = self.tile_size_x,
             color = { 43 / 255, 78 / 255, 108 / 255, 1 },
             border_color = { 1, 1, 0, 1 },
+            --
+            --
             scale = 1.0,
             type = "metroid",
+            --
+            --
             show_grid = true,
             grid_tile_size = self.tile_size_x * 2,
+            --
             show_world_bounds = true
         }
 

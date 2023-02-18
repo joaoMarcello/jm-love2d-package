@@ -728,9 +728,11 @@ function Camera:__constructor__(
     self.acc_x = self.tile_size * 13
     self.acc_y = self.acc_x
 
+    ---@type number|boolean
     self.follow_speed_x = (self.tile_size * 8)
     self.follow_speed_y = (self.tile_size * 8)
 
+    ---@type number|boolean
     self.max_speed_x = false --sqrt(2 * self.acc_x * self.tile_size * 5)
     self.max_speed_y = false --sqrt(2 * self.acc_y * self.tile_size * 5)
 
