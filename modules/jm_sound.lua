@@ -178,12 +178,17 @@ function Sound:play_song(name)
     return audio.source:play()
 end
 
-function Sound:play_sfx(name)
+function Sound:play_sfx(name, force)
     ---@type JM.Sound.Audio|nil
     local audio = list_sfx[name]
     if not audio then return false end
 
     if not audio.source:isPlaying() then
+        audio.source:play()
+    end
+
+    if force then
+        audio.source:stop()
         audio.source:play()
     end
 end

@@ -1349,7 +1349,7 @@ function Font:generate_phrase(text, x, y, right, align)
     local fr = self.buffer__[text][index]
     fr:set_bounds(nil, nil, right)
 
-    return fr
+    return fr, fr:width(fr:get_lines(fr.x)), fr:text_height(fr:get_lines(fr.x))
 end
 
 ---@param text any
