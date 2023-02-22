@@ -1203,7 +1203,7 @@ end
 function Camera:update(dt)
     assert(self.scale and self.scale ~= 0, ">> Error: Scale cannot be zero or nil !!!")
 
-    local px, py = self.x, self.y
+    local last_x, last_y = self.x, self.y
 
     if self.target then
         local r
@@ -1251,8 +1251,8 @@ function Camera:update(dt)
     self.x = round(px)
     self.y = round(py)
 
-    self.dx = self.x - px
-    self.dy = self.y - py
+    self.dx = self.x - last_x
+    self.dy = self.y - last_y
 end
 
 ---@param duration any
