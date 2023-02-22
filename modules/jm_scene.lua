@@ -581,6 +581,8 @@ function Scene:implements(param)
         -- set_blend_mode("alpha")
         -- set_color_draw(1, 1, 1, 1)
 
+        local sx, sy, sw, sh = love.graphics.getScissor()
+
         love_set_scissor(self.x + self.offset_x, self.y, self.w - self.x - self.offset_x * 2, self.h - self.y)
         if self:get_color() then
             clear_screen(self:get_color())
@@ -705,6 +707,8 @@ function Scene:implements(param)
                 self.fadein_duration,
                 true)
         end
+
+        love_set_scissor(sx, sy, sw, sh)
 
         -- love.graphics.setColor(1, 1, 1, 1)
         -- love.graphics.rectangle("line", self.x, self.y, self.w - self.x, self.h - self.y)
