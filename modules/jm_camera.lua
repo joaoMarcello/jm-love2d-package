@@ -706,6 +706,9 @@ function Camera:__constructor__(
     self.x = 0
     self.y = 0
 
+    self.dx = 0
+    self.dy = 0
+
     self.angle = 0
 
     ---@type JM.Camera.Target
@@ -1200,6 +1203,8 @@ end
 function Camera:update(dt)
     assert(self.scale and self.scale ~= 0, ">> Error: Scale cannot be zero or nil !!!")
 
+    local px, py = self.x, self.y
+
     if self.target then
         local r
         r = self.movement_x and self.movement_x(self, dt)
@@ -1245,6 +1250,9 @@ function Camera:update(dt)
 
     self.x = round(px)
     self.y = round(py)
+
+    self.dx = self.x - px
+    self.dy = self.y - py
 end
 
 ---@param duration any

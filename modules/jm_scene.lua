@@ -70,6 +70,7 @@ end
 ---@field keyreleased function
 ---@field mousepressed function
 ---@field mousereleased function
+---@field mousemoved function
 ---@field finish function
 local Scene = {}
 Scene.__index = Scene
@@ -440,7 +441,7 @@ local function generic(callback)
 end
 
 ---
----@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, layers:table}
+---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table}
 ---
 function Scene:implements(param)
     assert(param, "\n>> Error: No parameter passed to method.")
@@ -727,6 +728,15 @@ function Scene:implements(param)
         x, y = self:get_mouse_position()
 
         local r = param.mousereleased and param.mousereleased(x, y, button, istouch, presses)
+    end
+
+    self.mousemoved = function(self, x, y, dx, dy, istouch)
+        if self.time_pause then
+            return
+        end
+
+        x, y = self:get_mouse_position()
+        local r = param.mousemoved and param.mousemoved(x, y, dx, dy, istouch)
     end
 
     self.keypressed = function(self, key, scancode, isrepeat)
