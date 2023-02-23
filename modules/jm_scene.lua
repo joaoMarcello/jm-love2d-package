@@ -182,7 +182,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
 
     self.n_layers = 0
 
-    -- self.canvas = love.graphics.newCanvas(self.w, self.h)
+    -- self.canvas = love.graphics.newCanvas(self.dispositive_w, self.dispositive_h * self.camera.desired_scale)
 
     self.shader = nil
 
@@ -577,7 +577,7 @@ function Scene:implements(param)
     end
 
     self.draw = function(self)
-        --set_canvas(self.canvas)
+        -- set_canvas(self.canvas)
         -- set_blend_mode("alpha")
         -- set_color_draw(1, 1, 1, 1)
 
@@ -690,10 +690,11 @@ function Scene:implements(param)
         -- )
         -- set_canvas()
         -- set_color_draw(1, 1, 1, 1)
-        -- set_shader(self.shader)
+        -- -- set_shader(self.shader)
         -- set_blend_mode("alpha", "premultiplied")
+        -- self.canvas:setFilter("nearest", "nearest")
         -- love_draw(self.canvas)
-        -- set_shader()
+        -- -- set_shader()
         -- set_blend_mode("alpha")
         -- love.graphics.setScissor()
 
