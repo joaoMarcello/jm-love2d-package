@@ -2,7 +2,6 @@
 
     Copyright (c) 2022, Joao Moreira.
 ]]
-
 ---@type string
 local path = (...)
 
@@ -119,7 +118,6 @@ do
             img:getWidth(), img:getHeight()
         )
     end
-
 end
 --===========================================================================
 
@@ -155,7 +153,7 @@ Anima.__index = Anima
 ---
 --- Animation class constructor.
 ---
---- @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number}  # A table containing the following fields:
+--- @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number, min_filter: string, max_filter:string}  # A table containing the following fields:
 -- * img (Required): The source image for animation (could be a Love.Image or a string containing the file path).
 -- * frames: The amount of frames in the animation.
 -- * speed: Time in seconds to update frame.
@@ -173,7 +171,7 @@ end
 ---
 --- Internal method for constructor.
 ---
---- @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number}  # A table containing the follow fields:
+--- @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number, min_filter: string, max_filter:string}  # A table containing the follow fields:
 ---
 function Anima:__constructor__(args)
     self.args = args
@@ -257,7 +255,6 @@ end
 ---@param n integer
 ---@param config {left:number, right:number, top:number, bottom:number, speed:number, ox:number, oy:number}
 function Anima:config_frame(n, config)
-
     ---@type JM.Anima.Frame|nil
     local frame = self.frames_list[n]
 
@@ -360,7 +357,7 @@ function Anima:set_img(file_name)
     else
         self.img = file_name
     end
-    self.img:setFilter("linear", "nearest")
+    self.img:setFilter(self.args.min_filter or "linear", self.args.max_filter or "nearest")
     return self.img
 end
 
@@ -375,11 +372,11 @@ function Anima:set_flip_y(flip)
 end
 
 function Anima:toggle_flip_x()
-    self.flip_x = self.flip_x * (-1)
+    self.flip_x = self.flip_x * ( -1)
 end
 
 function Anima:toggle_flip_y()
-    self.flip_y = self.flip_y * (-1)
+    self.flip_y = self.flip_y * ( -1)
 end
 
 ---@param x number|nil
@@ -456,10 +453,8 @@ function Anima:set_state(state)
 
     if state == "random" then
         self.current_state = ANIMA_STATES.random
-
     elseif state == "back and forth"
         or state == "back_and_forth" then
-
         self.current_state = ANIMA_STATES.back_and_forth
     elseif state == "repeat last n" then
         self.current_state = ANIMA_STATES.repeating_last_n_frames
@@ -525,7 +520,6 @@ function Anima:update(dt)
     if self.__is_paused
     -- or (self.max_cycle and self.cycle_count >= self.max_cycle)
     then
-
         self.time_paused = (self.time_paused + dt) % 5000000
         return
     end
@@ -536,7 +530,6 @@ function Anima:update(dt)
     self.time_frame = self.time_frame + dt
 
     if self.time_frame >= speed then
-
         self.time_frame = self.time_frame - speed
 
         -- dispatch_event(self, Event.frame_change)
@@ -560,9 +553,7 @@ function Anima:update(dt)
         self.current_frame = self.current_frame + (1 * self.direction)
 
         if is_in_normal_direction(self) then
-
             if self.current_frame > self.__amount_frames then
-
                 if is_in_looping_state(self) then
                     self.current_frame = 1
                     self.cycle_count = (self.cycle_count + 1) % 600000
@@ -571,13 +562,10 @@ function Anima:update(dt)
                     --     self.current_frame = self.__amount_frames
                     --     self:pause()
                     -- end
-
                 elseif is_in_repeating_last_n_state(self) then
                     self.current_frame = self.current_frame - self.__N__
                     self.cycle_count = (self.cycle_count + 1)
-
                 else -- ELSE: animation is in "back and forth" state
-
                     self.current_frame = self.__amount_frames
                     self.time_frame = self.time_frame + speed
                     self.direction = -self.direction
@@ -593,13 +581,9 @@ function Anima:update(dt)
                     --     self:pause()
                     -- end
                 end -- END ELSE animation in "back and forth" state
-
             end -- END ELSE if animation is repeating
-
         else -- ELSE direction is negative
-
             if self.current_frame < 1 then
-
                 if is_in_looping_state(self) then
                     self.current_frame = self.__amount_frames
                     self.cycle_count = (self.cycle_count + 1) % 600000
@@ -608,15 +592,13 @@ function Anima:update(dt)
                     --     self.current_frame = 1
                     --     self:pause()
                     -- end
-
                 elseif is_in_repeating_last_n_state(self) then
                     self.current_frame = self.__N__
                     self.cycle_count = (self.cycle_count + 1)
-
                 else -- ELSE animation is not repeating
                     self.current_frame = 1
                     self.time_frame = self.time_frame + speed
-                    self.direction = self.direction * (-1)
+                    self.direction = self.direction * ( -1)
 
                     if self.direction == self.initial_direction then
                         self.cycle_count = (self.cycle_count + 1) % 600000
@@ -627,11 +609,9 @@ function Anima:update(dt)
 
                     --     self:pause()
                     -- end
-
                 end -- END ELSE animation is not repeating
             end
         end -- END if in normal direction (positive direction)
-
     end -- END IF time update bigger than speed
 
     if last_frame ~= self.current_frame then
@@ -649,7 +629,6 @@ function Anima:update(dt)
         self.current_frame = last_frame
         self:pause()
     end
-
 end -- END update function
 
 ---
@@ -696,7 +675,6 @@ end
 --- Draws the animation without apply any effect.
 --
 function Anima:__draw_with_no_effects__()
-
     local current_frame
     current_frame = self:get_current_frame()
 
