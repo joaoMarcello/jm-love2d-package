@@ -558,7 +558,7 @@ local function load_by_tff(name, path, dpi)
         end
     end
 
-    font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
+    --font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
 
     return font_imgdata, glyphs, quad_pos
 end
@@ -678,7 +678,7 @@ function Font:set_font_size(value)
 end
 
 ---@param nickname string
---- @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number}
+-- --- @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number}
 function Font:add_nickname_animated(nickname, args)
     assert(is_valid_nickname(nickname),
         "\nError: Invalid nickname. The nickname should start and ending with '--'. \nExamples: --icon--, --emoji--.")
