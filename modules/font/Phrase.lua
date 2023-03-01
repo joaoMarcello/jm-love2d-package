@@ -501,7 +501,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
                 self.__font:pop()
                 return result_tx, ty, result_char
             end
-            ::continue::
+            -- ::continue::
         end
 
         tx = x

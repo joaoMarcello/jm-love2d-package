@@ -87,8 +87,11 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
     if not endp then endp = #self.__characters end
     if not offset then offset = 0 end
 
+
     for i = startp, endp, 1 do
+        local skip = false
         local eff
+
         ---@type JM.Font.Glyph
         local glyph = self.__characters[i] --self:__get_char_by_index(i)
 
@@ -98,15 +101,17 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
                 speed = 0.15,
                 rad = math.pi * (i % 4) + offset
             })
-
         elseif effect_type == "pump" then
             eff = EffectManager:generate_effect("jelly")
-
         elseif effect_type == "wave" then
             rad_wave = rad_wave - (math.pi * 2 * 0.1)
-            if glyph.__id == " " then goto continue end
-            eff = EffectManager:generate_effect("float", { range = 2, rad = rad_wave, speed = 0.5 })
 
+            if glyph.__id == " " then
+                skip = true
+            else
+                eff = EffectManager:generate_effect("float", { range = 2, rad = rad_wave, speed = 0.5 })
+                -- goto continue
+            end
         elseif effect_type == "goddess" then
             glyph:set_color2(nil, nil, nil, 0)
             if eff_args and eff_args.delay then
@@ -118,7 +123,6 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
             if i == endp then
                 fadein_delay = fadein_delay + 0.1 * (endp - startp + 1)
             end
-
         elseif effect_type == "scream" then
             local speed_x = 0.25 --math.random() > 0.5 and 0.3 or 0.4
 
@@ -136,14 +140,16 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
             eff = EffectManager:generate_effect(effect_type, eff_args)
         end
 
-        if not eff then break end
+        if not skip then
+            if not eff then break end
 
-        if glyph and glyph:is_animated() then
-            eff:apply(glyph.__anima, true)
-        else
-            eff:apply(glyph, true)
+            if glyph and glyph:is_animated() then
+                eff:apply(glyph.__anima, true)
+            else
+                eff:apply(glyph, true)
+            end
         end
-        ::continue::
+        -- ::continue::
     end
 end
 
@@ -165,7 +171,6 @@ end
 --- Change the word color
 ---@param color JM.Color
 function Word:set_color(color, startp, endp)
-
     if not startp then startp = 1 end
     if not endp then endp = #self.__characters end
 
@@ -235,7 +240,6 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
     local N = self.__N_characters
 
     for i = 1, N do
-
         ---@type JM.Font.Glyph
         cur_char = self.__characters[i]
 
@@ -243,7 +247,6 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
         cur_char:set_scale(font.__scale)
 
         if not cur_char:is_animated() then
-
             local px, py
             -- py = bottom - cur_char.h / 2 * cur_char.sy
             -- px = tx + cur_char.w / 2 * cur_char.sx

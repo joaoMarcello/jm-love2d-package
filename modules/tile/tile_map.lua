@@ -50,7 +50,6 @@ end
 
 ---@param filter function|nil
 function TileMap:load_map(filter, regions, keep)
-
     JM_Map_Cells = keep and self.cells_by_pos or nil
     JM_Map_Filter = filter
     JM_World_Region = regions --or { "desert" }
@@ -68,7 +67,6 @@ end
 
 ---@param self JM.TileMap
 local function draw_with_bounds(self, left, top, right, bottom)
-
     self.__bound_left = left
     self.__bound_top = top
     self.__bound_right = right
@@ -83,32 +81,30 @@ local function draw_with_bounds(self, left, top, right, bottom)
     left = clamp(left, self.min_x, left)
 
     for j = top, bottom, self.tile_size do
-
-        if left > self.max_x or top > self.max_y then goto end_function end
+        if left > self.max_x or top > self.max_y then
+            -- goto end_function
+            return
+        end
 
         for i = left, right, self.tile_size do
-
             ---@type JM.TileMap.Cell
             local cell = self.cells_by_pos[j] and self.cells_by_pos[j][i]
 
             if cell then
-
                 local tile = self.tile_set:get_tile(cell.id)
 
                 if tile then
                     self.sprite_batch:add(tile.quad, cell.x, cell.y)
                 end
             end
-
         end
-
     end
 
 
     love_set_color(1, 1, 1, 1)
     love_draw(self.sprite_batch)
 
-    ::end_function::
+    -- ::end_function::
     -- Font:print("" .. (self.n_cells), 32 * 15, 32 * 8)
 end
 
@@ -142,9 +138,7 @@ end
 
 ---@param camera JM.Camera.Camera|nil
 function TileMap:draw(camera)
-
     if camera then
-
         local x, y, w, h = camera:get_viewport_in_world_coord()
         local right, bottom = x + w, y + h
 
