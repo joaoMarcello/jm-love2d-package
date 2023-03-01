@@ -42,17 +42,19 @@ local negative = [[
     extern number alpha_value;
     vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords){
         vec4 pixel = Texel(texture, texture_coords );
-        
-        return vec4(pixel.r + 1 * alpha_value, 
-        pixel.g + 1 * alpha_value * 0.7, 
-        pixel.b + 1 * alpha_value * 0.4, 
+
+        return vec4(pixel.r + 1.0 * alpha_value,
+        pixel.g + 1.0 * alpha_value * 0.7,
+        pixel.b + 1.0 * alpha_value * 0.4,
         pixel.a);
     }
   ]]
 
-local myShader = love.graphics.newShader(negative)
+local myShader --= love.graphics.newShader(negative)
 
 function Sample:new(object, args)
+    myShader = myShader or love.graphics.newShader(negative)
+
     local obj = Effect:new(object, args)
     setmetatable(obj, self)
 
