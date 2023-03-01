@@ -1,8 +1,9 @@
 import shutil
 import os
+import re
 from glob import glob
 
-path_to_game = "WIRES - copy"
+path_to_game = "WIRES"
 path_temp = path_to_game + " temp/"
 ignore = ["icon", "screenshots"]
 
@@ -25,9 +26,8 @@ def get_extension(str):
 
 def to_ignore(str):
     for value in ignore:
-        dir = str[len(path_to_game) + 1:][:len(value)]
-        print(dir)
-        if dir == value:
+        result = re.search(value, str)
+        if not result is None:
             return True
     return False
 
@@ -35,13 +35,13 @@ def to_ignore(str):
 def create_dirs_in_temp(files_in_dir):
     for file in files_in_dir:
         ext = get_extension(file)
-        if ext != ".aseprite" and ext != ".clip" and ext != ".git" and ext != ".vscode" and ext != ".love":
+        if ext != ".aseprite" and ext != ".clip" and ext != ".git" and ext != ".vscode" and ext != ".love" and ext != ".py":
             try:
                 shutil.copy(file, path_temp + file[len(path_to_game):])
             except:
                 try:
                     dir = path_temp + "/" + file[len(path_to_game):]
-                    if not os.path.exists(dir):
+                    if not os.path.exists(dir) and not to_ignore(file):
                         os.makedirs(dir)
                 except:
                     b = 1
@@ -75,7 +75,7 @@ def create_and_copy_game_love():
 def create_exe(path):
     os.chdir(path)
     os.system('copy /b love.exe+game.love supergame.exe')
-    os.remove('game.love')
+    # os.remove('game.love')
     #
     files_love = glob("*.*")
     # print(files_love)
@@ -83,7 +83,7 @@ def create_exe(path):
     if not os.path.exists(save_exe):
         os.makedirs(save_exe)
     for file in files_love:
-        if file != "love.exe" and file != "love.ico" and file != "lovec.exe":
+        if file != "love.exe" and file != "love.ico" and file != "lovec.exe" and file != "game.love" and file != "game.zip":
             shutil.copy(file, save_exe)
     os.remove('supergame.exe')
 
@@ -139,3 +139,5 @@ shutil.move(path_to_game + "-win64", "- build exe")
 # Erasing temp folder
 os.chdir(last_cwd)
 # shutil.rmtree(path_temp)
+
+print(">> SUCCESS!!!")
