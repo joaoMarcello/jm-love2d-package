@@ -46,10 +46,10 @@ function Phrase:__constructor__(args)
 
     for i = 1, #self.__separated_string do
         local w = Word:new({
-                text = self.__separated_string[i],
-                font = self.__font,
-                format = self.__font:get_format_mode()
-            })
+            text = self.__separated_string[i],
+            font = self.__font,
+            format = self.__font:get_format_mode()
+        })
 
         local tag_values = self:__verify_commands(w.text)
 
@@ -227,83 +227,82 @@ function Phrase:get_lines(x)
                     table.remove(lines[cur_line], #lines[cur_line])
                 end
             end
+            -- goto skip_word
+            --
+        else
+            do
+                local tags = self.word_to_tag[prev_word]
+                    or self.word_to_tag["first"]
 
-            goto skip_word
-        end
+                if tags then
+                    for i = 1, #tags do
+                        local tag = tags[i]
+                        local tag_name = tag["tag_name"]
 
-        do
-            local tags = self.word_to_tag[prev_word]
-                or self.word_to_tag["first"]
+                        if tag_name == "<effect>" then
+                            effect = effect or {}
+                            table_insert(effect, tag['effect'])
 
-            if tags then
-                for i = 1, #tags do
-                    local tag = tags[i]
-                    local tag_name = tag["tag_name"]
-
-                    if tag_name == "<effect>" then
-                        effect = effect or {}
-                        table_insert(effect, tag['effect'])
-
-                        eff_args = eff_args or {}
-                        table_insert(eff_args, tag)
-                    elseif tag_name == "</effect>" then
-                        effect = nil
-                        eff_args = nil
+                            eff_args = eff_args or {}
+                            table_insert(eff_args, tag)
+                        elseif tag_name == "</effect>" then
+                            effect = nil
+                            eff_args = nil
+                        end
                     end
                 end
             end
-        end
 
-        prev_word = current_word
+            prev_word = current_word
 
-        if effect and eff_args then
-            for i = 1, #effect do
-                local eff = effect[i]
-                local args = eff_args[i]
-                current_word:apply_effect(nil, nil, eff, nil, args)
+            if effect and eff_args then
+                for i = 1, #effect do
+                    local eff = effect[i]
+                    local args = eff_args[i]
+                    current_word:apply_effect(nil, nil, eff, nil, args)
+                end
             end
-        end
 
 
-        if tx + r > self.__bounds.right
-            or current_word.text:match("\n ?") then
-            tx = x
+            if tx + r > self.__bounds.right
+                or current_word.text:match("\n ?") then
+                tx = x
 
-            -- Try remove the last added space word
-            ---@type JM.Font.Word
-            local last_added = lines[cur_line] and lines[cur_line][#(lines[cur_line])]
+                -- Try remove the last added space word
+                ---@type JM.Font.Word
+                local last_added = lines[cur_line] and lines[cur_line][#(lines[cur_line])]
 
-            if last_added and last_added.text == " " then
-                table.remove(lines[cur_line], #lines[cur_line])
+                if last_added and last_added.text == " " then
+                    table.remove(lines[cur_line], #lines[cur_line])
+                end
+                --=========================================================
+
+                if not lines[cur_line] then lines[cur_line] = {} end
+                cur_line = cur_line + 1
+                if not lines[cur_line] then lines[cur_line] = {} end
             end
-            --=========================================================
 
             if not lines[cur_line] then lines[cur_line] = {} end
-            cur_line = cur_line + 1
-            if not lines[cur_line] then lines[cur_line] = {} end
-        end
 
-        if not lines[cur_line] then lines[cur_line] = {} end
-
-        if current_word.text ~= "\n" then
-            table_insert(lines[cur_line], current_word)
-        else
-            if lines[cur_line - 1] then
-                table_insert(lines[cur_line - 1], current_word)
+            if current_word.text ~= "\n" then
+                table_insert(lines[cur_line], current_word)
+            else
+                if lines[cur_line - 1] then
+                    table_insert(lines[cur_line - 1], current_word)
+                end
             end
+
+            if i ~= #(self.__words)
+                and current_word.text ~= "\t"
+                and current_word.text ~= "\n"
+                and next_word and next_word.text ~= "\t"
+            then
+                table_insert(lines[cur_line], word_char)
+            end
+
+            tx = tx + r
         end
-
-        if i ~= #(self.__words)
-            and current_word.text ~= "\t"
-            and current_word.text ~= "\n"
-            and next_word and next_word.text ~= "\t"
-        then
-            table_insert(lines[cur_line], word_char)
-        end
-
-        tx = tx + r
-
-        ::skip_word::
+        -- ::skip_word::
     end
 
     table_insert(
@@ -383,22 +382,21 @@ function Phrase:get_glyph(n, lines)
             local word = lines[i][j]
 
             if is_command_tag(self.__font, word.text) then
-                goto next_word
+                -- goto next_word
+            else
+                local N = #(word.__characters)
+                count = count + N
+
+                if count >= n then
+                    local exceed = count - n
+
+                    ---@type JM.Font.Glyph
+                    local glyph = word.__characters[N - exceed]
+
+                    return glyph, word, count == n
+                end
             end
-
-            local N = #(word.__characters)
-            count = count + N
-
-            if count >= n then
-                local exceed = count - n
-
-                ---@type JM.Font.Glyph
-                local glyph = word.__characters[N - exceed]
-
-                return glyph, word, count == n
-            end
-
-            ::next_word::
+            -- ::next_word::
         end
     end
 end
@@ -464,18 +462,22 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
                 q = 100
             end
 
+            local skip_just = true
             if i == #lines or (i == 1 and #lines == 1) then
                 --q = q + 10
                 tx = x
                 space = 0
-                goto skip_justify
+                skip_just = false
+                -- goto skip_justify
             end
 
-            if q == 0 then q = 1 end
-            space = (self.__bounds.right - x - total) / (q)
+            if skip_just then
+                if q == 0 then q = 1 end
+                space = (self.__bounds.right - x - total) / (q)
 
-            tx = tx
-            ::skip_justify::
+                tx = tx
+            end
+            -- ::skip_justify::
         end
 
         for j = 1, #lines[i] do
@@ -485,7 +487,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
             local current_word = lines[i][j]
 
             local first = apply_commands(self, (i == 1 and j == 1 and "first")
-                or nil, init_font_size)
+            or nil, init_font_size)
 
             local r = current_word:get_width() + space
 
@@ -546,10 +548,10 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     self:update(dt or love.timer.getDelta())
 
     return self:draw_lines(
-            self:get_lines(x),
-            x, y, align,
-            nil, __max_char__
-        )
+        self:get_lines(x),
+        x, y, align,
+        nil, __max_char__
+    )
 
     -- love.graphics.setColor(0.4, 0.4, 0.4, 1)
     -- love.graphics.line(self.__bounds.right, 0, self.__bounds.right, 600)
