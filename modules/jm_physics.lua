@@ -652,7 +652,7 @@ do
                     local bd = col.items[i]
 
                     if bd.is_slope then
-                        local temp = bd.is_floor and ( -self.h - 0.05) or (0.05)
+                        local temp = bd.is_floor and (-self.h - 0.05) or (0.05)
                         slope = bd
                         final_x = col.goal_x
                         final_y = bd:get_y(col.goal_x, self.y, self.w, self.h) + temp
@@ -823,7 +823,7 @@ do
 
                     if col.n > 0 then -- had collision!
                         obj:resolve_collisions_x(col)
-                    else -- no collisions
+                    else              -- no collisions
                         if obj.wall_left then
                             dispatch_event(obj, BodyEvents.leaving_wall_left)
                         end
@@ -862,6 +862,11 @@ do
 
             obj.force_x = 0.0
             obj.force_y = 0.0
+
+            if self.holder then
+                self.holder.x = obj.x
+                self.holder.y = obj.y
+            end
         end --end if body is dynamic
 
         obj = nil
@@ -1149,7 +1154,7 @@ do
                     cell = nil
                 end -- End For Columns
             end
-        end -- End for rows
+        end         -- End for rows
 
         return items
     end
