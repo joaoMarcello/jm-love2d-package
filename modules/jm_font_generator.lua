@@ -116,7 +116,7 @@ local Font = {
 }
 
 ---@overload fun(self: table, args: JM.AvailableFonts)
----@param args {name: JM.AvailableFonts, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any}
+---@param args {name: JM.AvailableFonts, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string}
 ---@return JM.Font.Font new_Font
 function Font:new(args)
     local obj = {}
@@ -129,7 +129,7 @@ function Font:new(args)
 end
 
 ---@overload fun(self: table, args: JM.AvailableFonts)
----@param args {name: JM.AvailableFonts, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any}
+---@param args {name: JM.AvailableFonts, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string}
 function Font:__constructor__(args)
     if type(args) == "string" then
         local temp_table = {}
@@ -159,17 +159,21 @@ function Font:__constructor__(args)
         .. "%s/%s.png"
 
     self:load_characters(args.regular_data
-    or string.format(dir, args.name, args.name),
+        or string.format(dir, args.name, args.name),
         FontFormat.normal, find_nicks(get_glyphs(args.glyphs)),
-        args.regular_quads
+        args.regular_quads,
+        args.min_filter,
+        args.max_filter
     )
 
 
     if not args.regular_data or args.bold_data then
         self:load_characters(args.bold_data
-        or string.format(dir, args.name, args.name .. "_bold"),
+            or string.format(dir, args.name, args.name .. "_bold"),
             FontFormat.bold, find_nicks(get_glyphs(args.glyphs_bold or args.glyphs)),
-            args.bold_quads
+            args.bold_quads,
+            args.min_filter,
+            args.max_filter
         )
     else
         self.__characters[FontFormat.bold] = self.__characters[FontFormat.normal]
@@ -178,9 +182,11 @@ function Font:__constructor__(args)
 
     if (not args.regular_data or args.italic_data) then
         self:load_characters(args.italic_data
-        or string.format(dir, args.name, args.name .. "_italic"),
+            or string.format(dir, args.name, args.name .. "_italic"),
             FontFormat.italic, find_nicks(get_glyphs(args.glyphs_italic or args.glyphs)),
-            args.italic_quads
+            args.italic_quads,
+            args.min_filter,
+            args.max_filter
         )
     else
         self.__characters[FontFormat.italic] = self.__characters[FontFormat.normal]
@@ -232,12 +238,12 @@ function Font:__constructor__(args)
 
     self.batches = {
         [FontFormat.normal] = self.__imgs[FontFormat.normal] and
-        love.graphics.newSpriteBatch(self.__imgs[FontFormat.normal])
-        or nil,
+            love.graphics.newSpriteBatch(self.__imgs[FontFormat.normal])
+            or nil,
         [FontFormat.bold] = self.__imgs[FontFormat.bold] and
-        love.graphics.newSpriteBatch(self.__imgs[FontFormat.bold]) or nil,
+            love.graphics.newSpriteBatch(self.__imgs[FontFormat.bold]) or nil,
         [FontFormat.italic] = self.__imgs[FontFormat.italic] and
-        love.graphics.newSpriteBatch(self.__imgs[FontFormat.italic]) or nil
+            love.graphics.newSpriteBatch(self.__imgs[FontFormat.italic]) or nil
     }
 end
 
@@ -295,7 +301,7 @@ end
 ---@param path any
 ---@param format JM.Font.FormatOptions
 ---@param glyphs table
-function Font:load_characters(path, format, glyphs, quads_pos)
+function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_filter)
     -- try load the img data
     local success, img_data = pcall(
         function()
@@ -334,7 +340,7 @@ function Font:load_characters(path, format, glyphs, quads_pos)
             end
         end
         img = love.graphics.newImage(data)
-        img:setFilter("linear", "linear")
+        img:setFilter(min_filter or "linear", max_filter or "linear")
         data:release()
     end
 
@@ -548,7 +554,7 @@ local function load_by_tff(name, path, dpi)
                 w = glyphDataWidth + 2,
                 h = glyphDataHeight + 2,
                 bottom = (posR_y >= 0 and posR_y <= data_h - 1 and posR_y)
-                or nil,
+                    or nil,
                 right = (posBlue >= 0 and posBlue <= data_w - 1 and posBlue) or nil
             }
 
@@ -1000,21 +1006,21 @@ local get_words
 do
     get_char_obj =
     ---@return JM.Font.Glyph
-    function(param)
-        return param
-    end
+        function(param)
+            return param
+        end
 
     len =
     ---@param args table
     ---@return number width
-    function(self, args)
-        local width = 0
-        for _, obj in ipairs(args) do
-            local char_obj = get_char_obj(args[_])
-            width = width + char_obj:get_width() + self.__character_space
+        function(self, args)
+            local width = 0
+            for _, obj in ipairs(args) do
+                local char_obj = get_char_obj(args[_])
+                width = width + char_obj:get_width() + self.__character_space
+            end
+            return width - self.__character_space
         end
-        return width - self.__character_space
-    end
 
     print =
     ---@param self JM.Font.Font
@@ -1023,115 +1029,115 @@ do
     ---@param ty number
     ---@param index_action table
     ---@param current_color {[1]:JM.Color}
-    function(self, word_list, tx, ty, index_action, exceed_space, current_color)
-        exceed_space = exceed_space or 0
+        function(self, word_list, tx, ty, index_action, exceed_space, current_color)
+            exceed_space = exceed_space or 0
 
-        if ty > self.__bounds.bottom
-            or ty + self.__ref_height * self.__scale * 1.5 < self.__bounds.top
-        then
-            return
-        end
+            if ty > self.__bounds.bottom
+                or ty + self.__ref_height * self.__scale * 1.5 < self.__bounds.top
+            then
+                return
+            end
 
-        for _, batch in pairs(self.batches) do
-            batch:clear()
-        end
+            for _, batch in pairs(self.batches) do
+                batch:clear()
+            end
 
-        for k, word in ipairs(word_list) do
+            for k, word in ipairs(word_list) do
+                if index_action then
+                    for _, action in ipairs(index_action) do
+                        if action.i == k then
+                            action.action()
+                        end
+                    end
+                end
+
+                for i = 1, #(word) do
+                    ---@type JM.Font.Glyph
+                    local char_obj = word[i] --get_char_obj(word[i])
+                    if char_obj then
+                        char_obj:set_color2(Utils:unpack_color(current_color[1]))
+
+                        char_obj:set_scale(self.__scale)
+
+                        if char_obj:is_animated() then
+                            char_obj:set_color2(1, 1, 1, 1)
+
+                            char_obj.__anima:set_size(
+                                nil, self.__font_size * 1.4,
+                                nil, char_obj.__anima:get_current_frame().h
+                            )
+
+                            char_obj:draw(tx + char_obj.w / 2 * char_obj.sx,
+                                ty + char_obj.h / 2 * char_obj.sy
+                            )
+                        else
+                            local quad = char_obj:get_quad()
+                            local x, y
+
+                            x = tx
+                            y = ty + self.__font_size
+                                - (char_obj.h) * char_obj.sy
+
+                            if quad then
+                                self.batches[char_obj.format]:setColor(unpack(char_obj.color))
+                                self.batches[char_obj.format]:add(quad, x, y, 0, char_obj.sx, char_obj.sy, 0,
+                                    0)
+                            end
+
+                            --char_obj:draw(x, y)
+                        end
+
+                        tx = tx + char_obj:get_width()
+                            + self.__character_space
+                    end
+                end
+
+                tx = tx + exceed_space
+            end
+
+            love_set_color(1, 1, 1, 1)
+            for _, batch in pairs(self.batches) do
+                local r = batch:getCount() > 0 and love_draw(batch)
+            end
+
             if index_action then
                 for _, action in ipairs(index_action) do
-                    if action.i == k then
+                    if action.i > #word_list then
                         action.action()
                     end
                 end
             end
-
-            for i = 1, #(word) do
-                ---@type JM.Font.Glyph
-                local char_obj = word[i] --get_char_obj(word[i])
-                if char_obj then
-                    char_obj:set_color2(Utils:unpack_color(current_color[1]))
-
-                    char_obj:set_scale(self.__scale)
-
-                    if char_obj:is_animated() then
-                        char_obj:set_color2(1, 1, 1, 1)
-
-                        char_obj.__anima:set_size(
-                            nil, self.__font_size * 1.4,
-                            nil, char_obj.__anima:get_current_frame().h
-                        )
-
-                        char_obj:draw(tx + char_obj.w / 2 * char_obj.sx,
-                            ty + char_obj.h / 2 * char_obj.sy
-                        )
-                    else
-                        local quad = char_obj:get_quad()
-                        local x, y
-
-                        x = tx
-                        y = ty + self.__font_size
-                            - (char_obj.h) * char_obj.sy
-
-                        if quad then
-                            self.batches[char_obj.format]:setColor(unpack(char_obj.color))
-                            self.batches[char_obj.format]:add(quad, x, y, 0, char_obj.sx, char_obj.sy, 0,
-                                0)
-                        end
-
-                        --char_obj:draw(x, y)
-                    end
-
-                    tx = tx + char_obj:get_width()
-                        + self.__character_space
-                end
-            end
-
-            tx = tx + exceed_space
         end
-
-        love_set_color(1, 1, 1, 1)
-        for _, batch in pairs(self.batches) do
-            local r = batch:getCount() > 0 and love_draw(batch)
-        end
-
-        if index_action then
-            for _, action in ipairs(index_action) do
-                if action.i > #word_list then
-                    action.action()
-                end
-            end
-        end
-    end
 
 
     line_width =
     ---@param self JM.Font.Font
     ---@param line table
     ---@return number
-    function(self, line)
-        local total = 0
-        for _, word in ipairs(line) do
-            total = total + len(self, word) + self.__character_space
+        function(self, line)
+            local total = 0
+            for _, word in ipairs(line) do
+                total = total + len(self, word) + self.__character_space
+            end
+            return total
         end
-        return total
-    end
 
     next_not_command_index =
     ---@param self JM.Font.Font
     ---@param index number
     ---@param separated table
     ---@return number|nil
-    function(self, index, separated)
-        local current_index = index + 1
+        function(self, index, separated)
+            local current_index = index + 1
 
-        while (separated[current_index]
-            and self:__is_a_command_tag(separated[current_index])) do
-            current_index = current_index + 1
+            while (separated[current_index]
+                and self:__is_a_command_tag(separated[current_index])) do
+                current_index = current_index + 1
+            end
+
+            if not separated[current_index] then return nil end
+            return current_index
         end
-
-        if not separated[current_index] then return nil end
-        return current_index
-    end
 
     local results_get_word = setmetatable({}, { __mode = 'kv' })
 
