@@ -34,9 +34,8 @@ do
 
     Font.fonts[1] = Generator:new_by_ttf({
         path = "/data/font/Komika Text Regular.ttf",
-        path_bold = "/data/font/Komika Text Bold.ttf",
-        path_italic = "/data/font/Komika Text Italic.ttf",
-        -- path_bold_italic = "/data/font/Garamond Premier Pro_bold_italic.otf",
+        -- path_bold = "/data/font/Komika Text Bold.ttf",
+        -- path_italic = "/data/font/Komika Text Italic.ttf",
         dpi = 64,
         name = "komika text 2",
         font_size = 12,

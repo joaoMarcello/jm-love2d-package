@@ -564,7 +564,7 @@ local function load_by_tff(name, path, dpi)
         end
     end
 
-    --font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
+    -- font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
 
     return font_imgdata, glyphs, quad_pos
 end
