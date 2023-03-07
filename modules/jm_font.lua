@@ -36,7 +36,7 @@ do
         path = "/data/font/Komika Text Regular.ttf",
         -- path_bold = "/data/font/Komika Text Bold.ttf",
         -- path_italic = "/data/font/Komika Text Italic.ttf",
-        dpi = 64,
+        dpi = 48,
         name = "komika text 2",
         font_size = 12,
         tab_size = 4
