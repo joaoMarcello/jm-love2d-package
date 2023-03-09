@@ -2,8 +2,6 @@ local love_set_color = love.graphics.setColor
 local love_draw = love.graphics.draw
 local math_floor, math_min, math_max = math.floor, math.min, math.max
 
-local Font = _G.JM_Font
-
 ---@alias JM.TileMap.Cell {x:number, y:number, id:number}
 
 ---@type JM.TileSet

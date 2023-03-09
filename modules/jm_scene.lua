@@ -88,11 +88,11 @@ end
 
 function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
     bounds = bounds or {
-            left = -32 * 0,
-            right = 32 * 60,
-            top = -32 * 0,
-            bottom = 32 * 12,
-        }
+        left = -32 * 0,
+        right = 32 * 60,
+        top = -32 * 0,
+        bottom = 32 * 12,
+    }
 
     -- cam_config = cam_config or {
     --     color = { 1, 1, 1, 1 },
@@ -189,7 +189,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
     -- used when scene is in frame skip mode
     self.__skip = nil
 
-    self:implements({})
+    self:implements {}
 end
 
 ---@param config table
@@ -479,6 +479,9 @@ function Scene:implements(param)
         "wheelmoved",
         "quit",
     }
+
+    param.draw = param.draw or (function()
+    end)
 
     for _, callback in ipairs(love_callbacks) do
         self[callback] = generic(param[callback])
