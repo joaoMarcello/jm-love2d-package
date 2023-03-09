@@ -42,6 +42,12 @@ JM.GUI = require(string.gsub(path, "init", "modules.jm_gui"))
 ---@type JM.Sound
 JM.Sound = require(string.gsub(path, "init", "modules.jm_sound"))
 
+---@type JM.TileSet
+JM.TileSet = require(string.gsub(path, "init", "modules.tile.tile_set"))
+
+---@type JM.TileMap
+JM.TileMap = require(string.gsub(path, "init", "modules.tile.tile_map"))
+
 function JM:update(dt)
     self.Sound:update(dt)
 end

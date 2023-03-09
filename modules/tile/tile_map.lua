@@ -1,5 +1,6 @@
 local love_set_color = love.graphics.setColor
 local love_draw = love.graphics.draw
+local love_file_load = love.filesystem.load
 local math_floor, math_min, math_max = math.floor, math.min, math.max
 
 ---@alias JM.TileMap.Cell {x:number, y:number, id:number}
@@ -12,12 +13,13 @@ local function clamp(value, A, B)
 end
 
 --==========================================================================
+-- Entry x - y - id
 
 ---@class JM.TileMap
 local TileMap = {}
 TileMap.__index = TileMap
 
----@param path_map string
+---@param path_map string|any
 ---@param path_tileset string
 ---@param tile_size number
 ---@param filter function|nil
@@ -28,7 +30,7 @@ function TileMap:new(path_map, path_tileset, tile_size, filter, regions)
     return obj
 end
 
----@param path_map string
+---@param path_map string|any
 ---@param path_tileset string
 ---@param tile_size number
 ---@param filter function|nil
@@ -46,21 +48,58 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.__bound_bottom = math.huge
 end
 
+local filter_default = function(x, y, id)
+    return true
+end
+
+
 ---@param filter function|nil
-function TileMap:load_map(filter, regions, keep)
-    JM_Map_Cells = keep and self.cells_by_pos or nil
-    JM_Map_Filter = filter
-    JM_World_Region = regions --or { "desert" }
-    local data = dofile(self.path)
+function TileMap:load_map(filter, regions)
+    -- regions = { "beach", "desert", "none" }
 
-    -- will store the cells indexed by cell position
-    self.cells_by_pos = data.cells
+    self.cells_by_pos = {}
+    self.min_x = math.huge
+    self.min_y = self.min_x
+    self.max_x = -self.min_x
+    self.max_y = -self.min_x
+    self.n_cells = 0
 
-    self.min_x = data.min_x
-    self.min_y = data.min_y
-    self.max_x = data.max_x
-    self.max_y = data.max_y
-    self.n_cells = data.n_cells
+    _G.Entry = function(x, y, id, ...)
+        local filter_ = filter or filter_default
+
+        if ((...) and filter_(x, y, id, unpack { ... }))
+            or filter_(x, y, id)
+        then
+            --
+            self.n_cells = self.n_cells + 1
+
+            self.cells_by_pos[y] = self.cells_by_pos[y] or {}
+            self.cells_by_pos[y][x] = { x = x, y = y, id = id }
+
+            self.min_x = x < self.min_x and x or self.min_x
+            self.min_y = y < self.min_y and y or self.min_y
+
+            self.max_x = x > self.max_x and x or self.max_x
+            self.max_y = y > self.max_y and y or self.max_y
+        end
+    end
+
+    _G.Region = function(id)
+        if type(regions) == "table" then
+            for i = 1, #regions do
+                if regions[i] == id then return true end
+            end
+        else
+            return not regions or regions == id
+        end
+    end
+
+    local data = type(self.path) == "string" and love_file_load(self.path)
+        or self.path
+    data()
+
+    _G.Entry = nil
+    _G.Region = nil
 end
 
 ---@param self JM.TileMap
@@ -79,8 +118,8 @@ local function draw_with_bounds(self, left, top, right, bottom)
     left = clamp(left, self.min_x, left)
 
     for j = top, bottom, self.tile_size do
+        --
         if left > self.max_x or top > self.max_y then
-            -- goto end_function
             return
         end
 
@@ -101,30 +140,9 @@ local function draw_with_bounds(self, left, top, right, bottom)
 
     love_set_color(1, 1, 1, 1)
     love_draw(self.sprite_batch)
-
-    -- ::end_function::
     -- Font:print("" .. (self.n_cells), 32 * 15, 32 * 8)
 end
 
--- ---@param self JM.TileMap
--- local function draw_without_bounds(self)
---     self.sprite_batch:clear()
-
---     for i = 1, #(self.map) do
-
---         ---@type JM.TileMap.Cell
---         local cell = self.map[i]
-
---         local tile = self.tile_set:get_tile(cell.id)
-
---         if tile then
---             self.sprite_batch:add(tile.quad, cell.x, cell.y)
---         end
---     end
-
---     love_set_color(1, 1, 1, 1)
---     love_draw(self.sprite_batch)
--- end
 
 ---@param self JM.TileMap
 local function bounds_changed(self, left, top, right, bottom)
@@ -140,8 +158,8 @@ function TileMap:draw(camera)
         local x, y, w, h = camera:get_viewport_in_world_coord()
         local right, bottom = x + w, y + h
 
-        x, y = x + 32, y + 32
-        right, bottom = right - 32, bottom - 32
+        x, y = x, y
+        right, bottom = right, bottom
 
         if bounds_changed(self, x, y, right, bottom) then
             draw_with_bounds(self, x, y, right, bottom)
