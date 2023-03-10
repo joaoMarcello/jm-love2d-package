@@ -58,10 +58,10 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.__bound_right = math.huge
     self.__bound_bottom = math.huge
 
-    local func = setfenv(self.load_map, env_load_map)
-    func(self, filter, regions, env_load_map)
+    -- local func = setfenv(self.load_map, env_load_map)
+    -- func(self, filter, regions, env_load_map)
 
-    -- self:load_map(filter, regions, env_load_map)
+    self:load_map(filter, regions, env_load_map)
 end
 
 ---@param filter function|nil
@@ -75,7 +75,7 @@ function TileMap:load_map(filter, regions, env)
     self.max_y = -self.min_x
     self.n_cells = 0
 
-    Entry = function(x, y, id, ...)
+    local Entry = function(x, y, id, ...)
         local filter_ = filter or filter_default
 
         if ((...) and filter_(x, y, id, unpack { ... }))
@@ -95,7 +95,7 @@ function TileMap:load_map(filter, regions, env)
         end
     end
 
-    Region = function(id)
+    local Region = function(id)
         if type(regions) == "table" then
             for i = 1, #regions do
                 if regions[i] == id then return true end
@@ -108,8 +108,9 @@ function TileMap:load_map(filter, regions, env)
     local data = type(self.path) == "string" and love_file_load(self.path)
         or self.path
 
-    local func = setfenv(data, { Entry = Entry, Region = Region })
+    local func = setfenv(data, { Entry = Entry, Region = Region, _G = _G })
     func()
+    -- data()
 end
 
 ---@param self JM.TileMap
