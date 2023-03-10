@@ -189,7 +189,7 @@ local function dynamic_x_offset(self, dt)
         local objective = chase_target_x(self, dt)
 
         self:set_lock_x_axis(objective
-        and self.target.direction_x ~= self.target.last_direction_x
+            and self.target.direction_x ~= self.target.last_direction_x
         )
     else
         self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
@@ -249,7 +249,7 @@ local function dynamic_y_offset(self, dt)
         local objective = chase_target_y(self, dt)
 
         self:set_lock_y_axis(objective
-        and self.target.direction_y ~= self.target.last_direction_y
+            and self.target.direction_y ~= self.target.last_direction_y
         )
     else
         self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
@@ -596,7 +596,7 @@ local function shake_update(self, dt)
             / self.shake_speed_x * dt
 
         self.shake_offset_x = round(self.shake_amplitude_x * self.scale
-        * cos(self.shake_rad_x - math.pi * self.shake_y_factor))
+            * cos(self.shake_rad_x - math.pi * self.shake_y_factor))
 
         if self.shake_duration_x then
             self.shake_time_x = self.shake_time_x + dt
@@ -619,7 +619,7 @@ local function shake_update(self, dt)
             / self.shake_speed_y * dt
 
         self.shake_offset_y = round(self.shake_amplitude_y * self.scale
-        * cos(self.shake_rad_y - math.pi * self.shake_y_factor))
+            * cos(self.shake_rad_y - math.pi * self.shake_y_factor))
 
         if self.shake_duration_y then
             self.shake_time_y = self.shake_time_y + dt
@@ -1381,11 +1381,11 @@ function Camera:set_shader(shader)
 end
 
 function Camera:attach(lock_shake)
-    love_set_scissor(self:get_viewport())
+    -- love_set_scissor(self:get_viewport())
 
     love_push()
     love_scale(self.scale)
-    love_scale(self.desired_scale, self.desired_scale)
+    -- love_scale(self.desired_scale, self.desired_scale)
 
     local shake_x = (not lock_shake and self.shaking_in_x and self.shake_offset_x) or 0
 

@@ -34,15 +34,6 @@ function TileMap:new(path_map, path_tileset, tile_size, filter, regions)
     return obj
 end
 
-local env_load_map = {
-    unpack = unpack,
-    type = type,
-    filter_default = filter_default,
-    love_file_load = love_file_load,
-    math = math,
-    setfenv = setfenv
-}
-
 ---@param path_map string|any
 ---@param path_tileset string
 ---@param tile_size number
@@ -61,11 +52,11 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     -- local func = setfenv(self.load_map, env_load_map)
     -- func(self, filter, regions, env_load_map)
 
-    self:load_map(filter, regions, env_load_map)
+    self:load_map(filter, regions)
 end
 
 ---@param filter function|nil
-function TileMap:load_map(filter, regions, env)
+function TileMap:load_map(filter, regions)
     -- regions = { "beach", "desert", "none" }
 
     self.cells_by_pos = {}

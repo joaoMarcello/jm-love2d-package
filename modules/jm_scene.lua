@@ -63,6 +63,13 @@ local function draw_tile(self)
     end
 end
 
+local function create_canvas(width, height, filter, subpixel)
+    local canvas = love.graphics.newCanvas(width * subpixel, height * subpixel)
+    canvas:setFilter(filter, filter)
+    return canvas
+end
+--===========================================================================
+
 ---@class JM.Scene
 ---@field load function
 ---@field init function
@@ -188,6 +195,11 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
 
     -- used when scene is in frame skip mode
     self.__skip = nil
+
+    self.subpixel = 4
+    self.canvas = create_canvas(self.screen_w, self.screen_h,
+        'linear', self.subpixel
+    )
 
     self:implements {}
 end
@@ -580,13 +592,18 @@ function Scene:implements(param)
     end
 
     self.draw = function(self)
-        -- set_canvas(self.canvas)
-        -- set_blend_mode("alpha")
-        -- set_color_draw(1, 1, 1, 1)
+        love.graphics.push()
+        set_canvas(self.canvas)
+        love.graphics.clear(.2, .2, .2)
+        love.graphics.translate(-(self.camera.viewport_x) / self.camera.desired_scale * self.subpixel, 0)
+        love.graphics.scale(self.subpixel, self.subpixel)
+        set_blend_mode("alpha")
+        set_color_draw(1, 1, 1, 1)
 
         local sx, sy, sw, sh = love.graphics.getScissor()
 
-        love_set_scissor(self.x + self.offset_x, self.y, self.w - self.x - self.offset_x * 2, self.h - self.y)
+        -- love_set_scissor(self.x + self.offset_x, self.y, self.w - self.x - self.offset_x * 2, self.h - self.y)
+
         if self:get_color() then
             clear_screen(self:get_color())
         else
@@ -686,6 +703,22 @@ function Scene:implements(param)
 
             camera = nil
         end
+
+        love.graphics.pop()
+        love.graphics.setCanvas()
+
+        local windowWidth, windowHeight = love.graphics.getDimensions()
+        local canvasWidth, canvasHeight = self.canvas:getDimensions()
+
+        local canvasScale               = math.min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+
+        local canvasWidthScaled         = canvasWidth * canvasScale
+        local canvasHeightScaled        = canvasHeight * canvasScale
+
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.setBlendMode("alpha", 'premultiplied')
+        love.graphics.draw(self.canvas, self.x + self.offset_x, 0, 0, canvasScale)
+        love.graphics.setBlendMode("alpha")
 
         -- love.graphics.setScissor(self.x,
         --     math_abs(self.h - self.dispositive_h),
