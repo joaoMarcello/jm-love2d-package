@@ -1,3 +1,6 @@
+local love_setColor = love.graphics.setColor
+local love_draw = love.graphics.draw
+
 ---@class JM.Tile
 local Tile = {}
 Tile.__index = Tile
@@ -24,8 +27,8 @@ function Tile:__constructor__(id, img, px, py, size_x, size_y)
 end
 
 function Tile:draw(x, y)
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(self.img, self.quad, x, y)
+    love_setColor(1, 1, 1, 1)
+    love_draw(self.img, self.quad, x, y)
 end
 
 return Tile

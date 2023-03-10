@@ -15,7 +15,6 @@ local function check_empty(self, img_data, x, y)
             else
                 return false
             end
-
         end
     end
 
@@ -25,7 +24,6 @@ end
 ---@param self JM.TileSet
 ---@param img_data love.ImageData
 local function load_tiles(self, img_data)
-
     local qx = math.floor(self.img_width / self.tile_size)
     local qy = math.floor(self.img_height / self.tile_size)
     local current_id = 1
@@ -60,11 +58,19 @@ end
 local TileSet = {}
 TileSet.__index = TileSet
 
+local tilesets = setmetatable({}, { __mode = 'v' })
+
 ---@param tile_size number|nil
 ---@return JM.TileSet
 function TileSet:new(path, tile_size)
+    --
+    local result = tilesets[path]
+    if result then return result end
+
     local obj = setmetatable({}, self)
     TileSet.__constructor__(obj, path, tile_size)
+
+    tilesets[path] = obj
     return obj
 end
 

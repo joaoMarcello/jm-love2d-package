@@ -12,6 +12,10 @@ local function clamp(value, A, B)
     return math_min(math_max(value, A), B)
 end
 
+local filter_default = function(x, y, id)
+    return true
+end
+
 --==========================================================================
 -- Entry x - y - id
 
@@ -30,6 +34,15 @@ function TileMap:new(path_map, path_tileset, tile_size, filter, regions)
     return obj
 end
 
+local env_load_map = {
+    unpack = unpack,
+    type = type,
+    filter_default = filter_default,
+    love_file_load = love_file_load,
+    math = math,
+    setfenv = setfenv
+}
+
 ---@param path_map string|any
 ---@param path_tileset string
 ---@param tile_size number
@@ -40,21 +53,19 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.tile_set = TileSet:new(path_tileset, self.tile_size)
     self.sprite_batch = love.graphics.newSpriteBatch(self.tile_set.img)
 
-    self:load_map(filter, regions)
-
     self.__bound_left = -math.huge
     self.__bound_top = -math.huge
     self.__bound_right = math.huge
     self.__bound_bottom = math.huge
-end
 
-local filter_default = function(x, y, id)
-    return true
-end
+    local func = setfenv(self.load_map, env_load_map)
+    func(self, filter, regions, env_load_map)
 
+    -- self:load_map(filter, regions, env_load_map)
+end
 
 ---@param filter function|nil
-function TileMap:load_map(filter, regions)
+function TileMap:load_map(filter, regions, env)
     -- regions = { "beach", "desert", "none" }
 
     self.cells_by_pos = {}
@@ -64,7 +75,7 @@ function TileMap:load_map(filter, regions)
     self.max_y = -self.min_x
     self.n_cells = 0
 
-    _G.Entry = function(x, y, id, ...)
+    Entry = function(x, y, id, ...)
         local filter_ = filter or filter_default
 
         if ((...) and filter_(x, y, id, unpack { ... }))
@@ -84,7 +95,7 @@ function TileMap:load_map(filter, regions)
         end
     end
 
-    _G.Region = function(id)
+    Region = function(id)
         if type(regions) == "table" then
             for i = 1, #regions do
                 if regions[i] == id then return true end
@@ -96,10 +107,9 @@ function TileMap:load_map(filter, regions)
 
     local data = type(self.path) == "string" and love_file_load(self.path)
         or self.path
-    data()
 
-    _G.Entry = nil
-    _G.Region = nil
+    local func = setfenv(data, { Entry = Entry, Region = Region })
+    func()
 end
 
 ---@param self JM.TileMap
@@ -135,6 +145,7 @@ local function draw_with_bounds(self, left, top, right, bottom)
                 end
             end
         end
+        --
     end
 
 
