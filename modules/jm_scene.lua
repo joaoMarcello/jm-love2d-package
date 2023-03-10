@@ -720,6 +720,8 @@ function Scene:implements(param)
         love.graphics.draw(self.canvas, self.x + self.offset_x, 0, 0, canvasScale)
         love.graphics.setBlendMode("alpha")
 
+
+
         -- love.graphics.setScissor(self.x,
         --     math_abs(self.h - self.dispositive_h),
         --     self.w, self.h
