@@ -187,19 +187,21 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
     end
 
 
-    self.n_layers = 0
+    self.n_layers                   = 0
 
-    -- self.canvas = love.graphics.newCanvas(self.dispositive_w, self.dispositive_h * self.camera.desired_scale)
-
-    self.shader = nil
+    self.shader                     = nil
 
     -- used when scene is in frame skip mode
-    self.__skip = nil
+    self.__skip                     = nil
 
-    self.subpixel = 4
-    self.canvas = create_canvas(self.screen_w, self.screen_h,
+    self.subpixel                   = 4
+    self.canvas                     = create_canvas(self.screen_w, self.screen_h,
         'linear', self.subpixel
     )
+
+    local canvasWidth, canvasHeight = self.canvas:getDimensions()
+
+    self.canvas_scale               = math.min(self.dispositive_w / canvasWidth, self.dispositive_h / canvasHeight)
 
     self:implements {}
 end
@@ -592,10 +594,19 @@ function Scene:implements(param)
     end
 
     self.draw = function(self)
+        local last_canvas = love.graphics.getCanvas()
+
         love.graphics.push()
+
         set_canvas(self.canvas)
         love.graphics.clear(.2, .2, .2)
-        love.graphics.translate(-(self.camera.viewport_x) / self.camera.desired_scale * self.subpixel, 0)
+
+        love.graphics.translate(
+            -(self.camera.viewport_x) / self.camera.desired_scale
+            * self.subpixel,
+            0
+        )
+
         love.graphics.scale(self.subpixel, self.subpixel)
         set_blend_mode("alpha")
         set_color_draw(1, 1, 1, 1)
@@ -705,21 +716,12 @@ function Scene:implements(param)
         end
 
         love.graphics.pop()
-        love.graphics.setCanvas()
-
-        local windowWidth, windowHeight = love.graphics.getDimensions()
-        local canvasWidth, canvasHeight = self.canvas:getDimensions()
-
-        local canvasScale               = math.min(windowWidth / canvasWidth, windowHeight / canvasHeight)
-
-        local canvasWidthScaled         = canvasWidth * canvasScale
-        local canvasHeightScaled        = canvasHeight * canvasScale
+        love.graphics.setCanvas(last_canvas)
 
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.setBlendMode("alpha", 'premultiplied')
-        love.graphics.draw(self.canvas, self.x + self.offset_x, 0, 0, canvasScale)
+        love.graphics.draw(self.canvas, self.x + self.offset_x, 0, 0, self.canvas_scale)
         love.graphics.setBlendMode("alpha")
-
 
 
         -- love.graphics.setScissor(self.x,
@@ -748,9 +750,6 @@ function Scene:implements(param)
         end
 
         love_set_scissor(sx, sy, sw, sh)
-
-        -- love.graphics.setColor(1, 1, 1, 1)
-        -- love.graphics.rectangle("line", self.x, self.y, self.w - self.x, self.h - self.y)
     end
 
     self.mousepressed = function(self, x, y, button, istouch, presses)
