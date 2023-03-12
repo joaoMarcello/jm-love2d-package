@@ -15,7 +15,7 @@ local love_draw = love.graphics.draw
 local set_shader = love.graphics.setShader
 local get_delta_time = love.timer.getDelta
 local love_mouse_position = love.mouse.getPosition
-local math_abs = math.abs
+local math_abs, math_min, math_floor = math.abs, math.min, math.floor
 local love_get_scissor = love.graphics.getScissor
 local love_set_scissor = love.graphics.setScissor
 
@@ -46,8 +46,11 @@ end
 ---@param self  JM.Scene
 local function draw_tile(self)
     local tile, qx, qy
+    local ds = math.min((self.w - self.x) / self.screen_w, (self.h - self.y) / (self.screen_h))
+    -- ds = ds / self.subpixel
+    ds = self.canvas_scale
 
-    tile = self.tile_size_x * 4 * self.camera.scale * self.camera.desired_scale
+    tile = self.tile_size_x * 4 * self.camera.scale * ds
     qx = (self.w - self.x) / tile
     qy = (self.h - self.y) / tile
 
@@ -55,11 +58,11 @@ local function draw_tile(self)
     set_color_draw(0.9, 0.9, 0.9, 0.3)
 
     for i = 0, qx, 2 do
-        local x = self.x + tile * i + self.offset_x
+        local x = self.x + tile * i --+ self.offset_x
 
         for j = 0, qy, 2 do
-            love.graphics.rectangle("fill", x, self.y + tile * j, tile, tile)
-            love.graphics.rectangle("fill", x + tile, self.y + tile * j + tile, tile, tile)
+            love.graphics.rectangle("fill", x, self.y * 0 + tile * j, tile, tile)
+            love.graphics.rectangle("fill", x + tile, self.y * 0 + tile * j + tile, tile, tile)
         end
     end
 end
@@ -286,7 +289,7 @@ end
 ---@return integer y Mouse position in y-axis in world coordinates.
 function Scene:get_mouse_position()
     local x, y = love_mouse_position()
-    local ds = self.camera.desired_scale
+    local ds --= self.camera.desired_scale
 
     ds = math.min((self.w - self.x) / self.screen_w,
         (self.h - self.y) / self.screen_h
@@ -307,7 +310,12 @@ end
 function Scene:to_camera_screen(x, y)
     x, y = x or 0, y or 0
 
-    local ds = self.camera.desired_scale
+    local ds --= self.camera.desired_scale
+
+    ds = math.min((self.w - self.x) / self.screen_w,
+        (self.h - self.y) / self.screen_h
+    )
+
     x, y = x / ds, y / ds
     --x, y = x - self.x, y - self.y
 
@@ -526,6 +534,18 @@ function Scene:implements(param)
     end
 
     self.update = function(self, dt)
+        do
+            local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
+            local canvasWidth, canvasHeight = self.canvas:getDimensions()
+            self.canvas_scale               = math_min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+
+            local canvasWidthScaled         = canvasWidth * self.canvas_scale
+            local canvasHeightScaled        = canvasHeight * self.canvas_scale
+
+            self.offset_x                   = math_floor((windowWidth - canvasWidthScaled) / 2)
+            self.offset_y                   = math_floor((windowHeight - canvasHeightScaled) / 2)
+        end
+
         if self.time_pause then
             self.time_pause = self.time_pause - dt
 
@@ -601,7 +621,6 @@ function Scene:implements(param)
 
     self.draw = function(self)
         local last_canvas = love.graphics.getCanvas()
-
         push()
 
         set_canvas(self.canvas)
@@ -615,7 +634,7 @@ function Scene:implements(param)
 
         -- love_set_scissor(self.x + self.offset_x, self.y, self.w - self.x - self.offset_x * 2, self.h - self.y)
 
-        if self:get_color() then
+        if self:get_color() and false then
             -- clear_screen(self:get_color())
         else
             draw_tile(self)
@@ -718,15 +737,15 @@ function Scene:implements(param)
         pop()
         set_canvas(last_canvas)
 
-        local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
-        local canvasWidth, canvasHeight = self.canvas:getDimensions()
-        self.canvas_scale               = math.min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+        -- local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
+        -- local canvasWidth, canvasHeight = self.canvas:getDimensions()
+        -- self.canvas_scale               = math.min(windowWidth / canvasWidth, windowHeight / canvasHeight)
 
-        local canvasWidthScaled         = canvasWidth * self.canvas_scale
-        local canvasHeightScaled        = canvasHeight * self.canvas_scale
+        -- local canvasWidthScaled         = canvasWidth * self.canvas_scale
+        -- local canvasHeightScaled        = canvasHeight * self.canvas_scale
 
-        self.offset_x                   = math.floor((windowWidth - canvasWidthScaled) / 2)
-        self.offset_y                   = math.floor((windowHeight - canvasHeightScaled) / 2)
+        -- self.offset_x                   = math.floor((windowWidth - canvasWidthScaled) / 2)
+        -- self.offset_y                   = math.floor((windowHeight - canvasHeightScaled) / 2)
 
         set_color_draw(1, 1, 1, 1)
         set_blend_mode("alpha", 'premultiplied')

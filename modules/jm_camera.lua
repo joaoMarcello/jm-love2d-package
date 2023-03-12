@@ -812,7 +812,6 @@ function Camera:set_device_screen(w, h)
     if w ~= self.device_width or h ~= self.device_height then
         self.device_width = w
         self.device_height = h
-        
     end
 end
 
