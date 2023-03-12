@@ -39,7 +39,9 @@ do
         dpi = 48,
         name = "komika text 2",
         font_size = 12,
-        tab_size = 4
+        tab_size = 4,
+        min_filter = "linear",
+        max_filter = "nearest"
     })
 
     -- Font.fonts[1] = Generator:new_by_ttf({
