@@ -185,6 +185,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
         self.camera = self:add_camera(config, "main")
 
         self.offset_x = (self.w - self.x - self.camera.viewport_w) / 2.0
+        self.offset_y = (self.h - self.y - self.camera.viewport_h) / 2
     end
 
 
@@ -201,7 +202,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
 
     local canvasWidth, canvasHeight = self.canvas:getDimensions()
 
-    self.canvas_scale               = math.min(self.w / canvasWidth, (self.h - self.y) / canvasHeight)
+    self.canvas_scale               = math.min((self.w - self.x) / canvasWidth, (self.h - self.y) / canvasHeight)
 
     self:implements {}
 end
@@ -287,11 +288,16 @@ function Scene:get_mouse_position()
     local x, y = love_mouse_position()
     local ds = self.camera.desired_scale
 
-    local offset = self.offset_x
+    ds = math.min((self.w - self.x) / self.screen_w,
+        (self.h - self.y) / self.screen_h
+    )
+
+    local offset_x = self.offset_x
+    local off_y = self.offset_y
 
     -- turning the mouse position into Camera's screen coordinates
     x, y = x / ds, y / ds
-    x, y = x - (self.x + offset) / ds, y - self.y / ds
+    x, y = x - (self.x + offset_x) / ds, y - (self.y + off_y) / ds
 
     x, y = self.camera:screen_to_world(x, y)
 
@@ -712,9 +718,19 @@ function Scene:implements(param)
         pop()
         set_canvas(last_canvas)
 
+        local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
+        local canvasWidth, canvasHeight = self.canvas:getDimensions()
+        self.canvas_scale               = math.min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+
+        local canvasWidthScaled         = canvasWidth * self.canvas_scale
+        local canvasHeightScaled        = canvasHeight * self.canvas_scale
+
+        self.offset_x                   = math.floor((windowWidth - canvasWidthScaled) / 2)
+        self.offset_y                   = math.floor((windowHeight - canvasHeightScaled) / 2)
+
         set_color_draw(1, 1, 1, 1)
         set_blend_mode("alpha", 'premultiplied')
-        love_draw(self.canvas, self.x + self.offset_x, self.y, 0, self.canvas_scale)
+        love_draw(self.canvas, self.x + self.offset_x, self.y + self.offset_y, 0, self.canvas_scale)
         set_blend_mode("alpha")
 
         set_color_draw(1, 1, 1, 1)
