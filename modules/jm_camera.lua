@@ -687,7 +687,7 @@ function Camera:__constructor__(
     self.desired_canvas_h = desired_canvas_h or self.device_height
 
     self.scale = scale or 1.0
-    self.desired_scale = (self.device_height) / self.desired_canvas_h
+    self.desired_scale = 1 --(self.device_height) / self.desired_canvas_h
 
     --- Viewport in real-screen coordinates
     self.viewport_x = x or 0
