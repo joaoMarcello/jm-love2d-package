@@ -1380,9 +1380,18 @@ function Camera:set_shader(shader)
     self.shader = shader
 end
 
-function Camera:attach(lock_shake)
-    -- local x, y, w, h = self:get_viewport()
-    -- love_set_scissor(x, y, w * self.desired_scale, h * self.desired_scale)
+function Camera:attach(lock_shake, subpixel)
+    local x, y, w, h = self:get_viewport()
+
+    if subpixel then
+        local mult = self.desired_scale * subpixel
+        x = (x / self.desired_scale) * subpixel
+        y = (y / self.desired_scale) * subpixel
+        h = (h / self.desired_scale) * subpixel
+        w = (w / self.desired_scale) * subpixel
+    end
+
+    love_set_scissor(x, y, w, h)
 
     love_push()
     love_scale(self.scale)

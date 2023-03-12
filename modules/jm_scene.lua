@@ -16,6 +16,7 @@ local set_shader = love.graphics.setShader
 local get_delta_time = love.timer.getDelta
 local love_mouse_position = love.mouse.getPosition
 local math_abs = math.abs
+local love_get_scissor = love.graphics.getScissor
 local love_set_scissor = love.graphics.setScissor
 
 ---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean}
@@ -168,7 +169,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
             border_color = { 1, 1, 0, 1 },
             --
             --
-            scale = 1.0,
+            scale = 1,
             type = "metroid",
             --
             --
@@ -188,7 +189,6 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
 
 
     self.n_layers                   = 0
-
     self.shader                     = nil
 
     -- used when scene is in frame skip mode
@@ -201,7 +201,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
 
     local canvasWidth, canvasHeight = self.canvas:getDimensions()
 
-    self.canvas_scale               = math.min(self.dispositive_w / canvasWidth, self.dispositive_h / canvasHeight)
+    self.canvas_scale               = math.min(self.w / canvasWidth, (self.h - self.y) / canvasHeight)
 
     self:implements {}
 end
@@ -241,7 +241,7 @@ function Scene:add_camera(config, name)
 
         config.tile_size = self.camera.tile_size
 
-        config.x = config.x + self.offset_x / self.camera.desired_scale
+        -- config.x = config.x + self.offset_x / self.camera.desired_scale
     end
 
     local camera = Camera:new(config)
@@ -251,8 +251,8 @@ function Scene:add_camera(config, name)
     local w = (self.w - self.x - camera.viewport_w) / 2
     if name ~= "main" then w = 0 end
 
-    camera.viewport_x = camera.viewport_x + (self.x + w)
-    camera.viewport_y = camera.viewport_y + (self.y)
+    -- camera.viewport_x = camera.viewport_x + (self.x + w)
+    -- camera.viewport_y = camera.viewport_y + (self.y)
     camera:set_bounds()
 
     --camera:set_viewport(nil, nil, nil, self.screen_h - self.y / camera.desired_scale)
@@ -596,27 +596,21 @@ function Scene:implements(param)
     self.draw = function(self)
         local last_canvas = love.graphics.getCanvas()
 
-        love.graphics.push()
+        push()
 
         set_canvas(self.canvas)
-        love.graphics.clear(.2, .2, .2)
+        clear_screen(.2, .2, .2)
 
-        love.graphics.translate(
-            -(self.camera.viewport_x) / self.camera.desired_scale
-            * self.subpixel,
-            0
-        )
-
-        love.graphics.scale(self.subpixel, self.subpixel)
+        scale(self.subpixel, self.subpixel)
         set_blend_mode("alpha")
         set_color_draw(1, 1, 1, 1)
 
-        local sx, sy, sw, sh = love.graphics.getScissor()
+        local sx, sy, sw, sh = love_get_scissor()
 
         -- love_set_scissor(self.x + self.offset_x, self.y, self.w - self.x - self.offset_x * 2, self.h - self.y)
 
         if self:get_color() then
-            clear_screen(self:get_color())
+            -- clear_screen(self:get_color())
         else
             draw_tile(self)
         end
@@ -645,7 +639,7 @@ function Scene:implements(param)
                         camera:draw_background()
                     end
 
-                    camera:attach(layer.lock_shake)
+                    camera:attach(layer.lock_shake, self.subpixel)
 
                     push()
 
@@ -698,7 +692,7 @@ function Scene:implements(param)
                     camera:draw_background()
                 end
 
-                camera:attach()
+                camera:attach(nil, self.subpixel)
 
                 r = param.draw and param.draw(camera)
 
@@ -715,13 +709,17 @@ function Scene:implements(param)
             camera = nil
         end
 
-        love.graphics.pop()
-        love.graphics.setCanvas(last_canvas)
+        pop()
+        set_canvas(last_canvas)
 
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.setBlendMode("alpha", 'premultiplied')
-        love.graphics.draw(self.canvas, self.x + self.offset_x, 0, 0, self.canvas_scale)
-        love.graphics.setBlendMode("alpha")
+        set_color_draw(1, 1, 1, 1)
+        set_blend_mode("alpha", 'premultiplied')
+        love_draw(self.canvas, self.x + self.offset_x, self.y, 0, self.canvas_scale)
+        set_blend_mode("alpha")
+
+        set_color_draw(1, 1, 1, 1)
+        love.graphics.rectangle('line', self.x, self.y, self.w - self.x, self.h - self.y)
+
 
 
         -- love.graphics.setScissor(self.x,
