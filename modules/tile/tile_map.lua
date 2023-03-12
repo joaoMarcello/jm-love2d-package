@@ -161,8 +161,8 @@ function TileMap:draw(camera)
         local x, y, w, h = camera:get_viewport_in_world_coord()
         local right, bottom = x + w, y + h
 
-        x, y = x, y
-        right, bottom = right - 33, bottom
+        x, y = x + 32, y + 32
+        right, bottom = right - 33, bottom - 32
 
         if bounds_changed(self, x, y, right, bottom) then
             draw_with_bounds(self, x, y, right, bottom)

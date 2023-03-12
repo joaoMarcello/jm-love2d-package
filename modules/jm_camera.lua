@@ -1394,7 +1394,6 @@ function Camera:attach(lock_shake, subpixel)
     local x, y, w, h = self:get_viewport()
 
     if subpixel then
-        local mult = self.desired_scale * subpixel
         x = (x / self.desired_scale) * subpixel
         y = (y / self.desired_scale) * subpixel
         h = (h / self.desired_scale) * subpixel

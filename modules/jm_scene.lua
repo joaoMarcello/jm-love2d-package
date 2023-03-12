@@ -159,8 +159,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
             },
             --
             -- Device screen's dimensions
-            device_width = self.dispositive_w,
-            device_height = self.dispositive_h - math.abs(self.dispositive_h - self.h + self.y),
+            device_width = self.w - self.x,  --self.dispositive_w,
+            device_height = self.h - self.y, --self.dispositive_h - math.abs(self.dispositive_h - self.h + self.y),
             --
             -- The in-game screen's dimensions
             desired_canvas_w = self.screen_w,
@@ -624,7 +624,8 @@ function Scene:implements(param)
         push()
 
         set_canvas(self.canvas)
-        clear_screen(.2, .2, .2)
+
+        clear_screen(.3, .3, .3)
 
         scale(self.subpixel, self.subpixel)
         set_blend_mode("alpha")
@@ -634,8 +635,8 @@ function Scene:implements(param)
 
         -- love_set_scissor(self.x + self.offset_x, self.y, self.w - self.x - self.offset_x * 2, self.h - self.y)
 
-        if self:get_color() and false then
-            -- clear_screen(self:get_color())
+        if self:get_color() then
+            clear_screen(self:get_color())
         else
             draw_tile(self)
         end
@@ -736,16 +737,6 @@ function Scene:implements(param)
 
         pop()
         set_canvas(last_canvas)
-
-        -- local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
-        -- local canvasWidth, canvasHeight = self.canvas:getDimensions()
-        -- self.canvas_scale               = math.min(windowWidth / canvasWidth, windowHeight / canvasHeight)
-
-        -- local canvasWidthScaled         = canvasWidth * self.canvas_scale
-        -- local canvasHeightScaled        = canvasHeight * self.canvas_scale
-
-        -- self.offset_x                   = math.floor((windowWidth - canvasWidthScaled) / 2)
-        -- self.offset_y                   = math.floor((windowHeight - canvasHeightScaled) / 2)
 
         set_color_draw(1, 1, 1, 1)
         set_blend_mode("alpha", 'premultiplied')
