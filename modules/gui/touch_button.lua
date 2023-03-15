@@ -3,6 +3,9 @@ local Component = require(string.gsub(..., "touch_button", "component"))
 
 local font = _G.JM_Font.current
 
+local mouse_get_position = love.mouse.getPosition
+local love_setColor, love_circle = love.graphics.setColor, love.graphics.circle
+
 ---@class JM.GUI.TouchButton : JM.GUI.Component
 local Button = setmetatable({}, Component)
 Button.__index = Button
@@ -26,13 +29,15 @@ function Button:__constructor__(args)
     self.w = args.w or 64
     self.h = args.h or 64
 
+    self.font_size = math.floor(self.h * 0.5)
+
     self.radius = args.radius or (self.w / 2)
     self.use_radius = args.use_radius
 
     if args.text then
         font:push()
         font:set_color(self.color)
-        self.fontObj = font:generate_phrase(args.text, self.x, self.y, self.x + self.w, "center")
+        self.font_obj = font:generate_phrase(args.text, self.x, self.y, self.x + self.w, "center")
         font:pop()
     end
 end
@@ -83,7 +88,8 @@ end
 function Button:update(dt)
     Component.update(self, dt)
 
-    local mx, my = love.mouse.getPosition()
+    local mx, my = mouse_get_position()
+
     if self:check_collision(mx, my, 0, 0) then
 
     else
@@ -95,23 +101,32 @@ function Button:update(dt)
 end
 
 function Button:__custom_draw__()
-    love.graphics.setColor(self.color)
-    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
-    love.graphics.circle("line", self.x + self.w / 2, self.y + self.h / 2, self.radius)
-    love.graphics.circle("line", self.x + self.w / 2, self.y + self.h / 2, self.radius + 1)
-    love.graphics.circle("line", self.x + self.w / 2, self.y + self.h / 2, self.radius + 2)
+    love_setColor(self.color)
 
-    if self.fontObj then
+    if not self.use_radius then
+        love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+    else
+        local px, py = self.x + self.w / 2, self.y + self.h / 2
+        love_setColor(0, 0, 0, 0.4)
+        love_circle("fill", px, py, self.radius)
+
+        love_setColor(self.color)
+        love_circle("line", px, py, self.radius)
+        love_circle("line", px, py, self.radius + 1)
+        -- love.graphics.circle("line", px, py, self.radius + 2)
+    end
+
+    if self.font_obj then
         font:push()
-        font:set_font_size(math.floor(self.h * 0.6))
-        self.fontObj.__bounds.right = self.x + self.w
-        self.fontObj:draw(self.x, self.y + self.h / 2 - (font.__font_size + 2) / 2, "center")
+        font:set_font_size(self.font_size)
+        self.font_obj.__bounds.right = self.x + self.w
+        self.font_obj:draw(self.x, self.y + self.h / 2 - (font.__font_size + 2) / 2, "center")
         font:pop()
     end
 end
 
-function Button:draw()
-    Component.draw(self)
-end
+-- function Button:draw()
+--     Component.draw(self)
+-- end
 
 return Button

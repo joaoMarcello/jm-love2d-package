@@ -67,7 +67,8 @@ local function dispatch_event(gc, type_)
     evt = nil
 end
 
-local generic_func = function(self, args) end
+local generic_func = function(self, args)
+end
 
 ---@class JM.GUI.Component: JM.Template.Affectable
 local Component = {
@@ -77,6 +78,7 @@ local Component = {
 }
 setmetatable(Component, Affectable)
 Component.__index = Component
+Component.MODES = MODES
 
 ---@param args {x:number, y:number, w:number, h:number}|nil
 ---@return table
@@ -102,12 +104,11 @@ function Component:__constructor__(args)
 
     self.is_visible = true
     self.is_enable = true
-    self.on_focus = false
+    self.on_focus = args.on_focus
     self.type_obj = TYPES_.generic
     self.TYPE = TYPES_
     self.Utils = Utils
     self.mode = MODES.mouse
-    self.MODE = MODES
 
     self:refresh_corners()
     self.events = {}
@@ -122,7 +123,7 @@ end
 function Component:init()
     self.is_enable = true
     self.is_visible = true
-    self.on_focus = false
+    -- self.on_focus = false
     self.remove_ = false
 
     self.__mouse_pressed = false
@@ -169,7 +170,6 @@ function Component:key_released(key, scancode)
 end
 
 function Component:mouse_pressed(x, y, button, istouch, presses)
-
     if not self.on_focus then return end
 
     local check = self:check_collision(x, y, 0, 0)
@@ -229,7 +229,6 @@ function Component:update(dt)
 end
 
 function Component:draw()
-
     Affectable.draw(self, self.__custom_draw__)
 
     self:__pos_draw__()

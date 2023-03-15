@@ -88,16 +88,16 @@ Scene.__index = Scene
 
 ---@param self JM.Scene
 ---@return JM.Scene
-function Scene:new(x, y, w, h, canvas_w, canvas_h, bounds)
+function Scene:new(x, y, w, h, canvas_w, canvas_h, bounds, config)
     local obj = {}
     setmetatable(obj, self)
 
-    Scene.__constructor__(obj, x, y, w, h, canvas_w, canvas_h, bounds)
+    Scene.__constructor__(obj, x, y, w, h, canvas_w, canvas_h, bounds, config)
 
     return obj
 end
 
-function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
+function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     bounds = bounds or {
         left = -32 * 0,
         right = 32 * 60,
@@ -105,14 +105,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
         bottom = 32 * 12,
     }
 
-    -- cam_config = cam_config or {
-    --     color = { 1, 1, 1, 1 },
-    --     border_color = { 0, 1, 1, 1 },
-    --     scale = 1.0,
-    --     show_grid = true,
-    --     show_world_bounds = true,
-    --     debug = true
-    -- }
+    conf = conf or {}
 
     -- the dispositive's screen dimensions
     self.dispositive_w = love.graphics.getWidth()
@@ -133,8 +126,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
     self.screen_w = canvas_w or self.w
     self.screen_h = canvas_h or self.h
 
-    self.tile_size_x = 32
-    self.tile_size_y = 32
+    self.tile_size_x = conf.tile or 32
+    self.tile_size_y = conf.tile or 32
 
     self.world_left = bounds.left or 0
     self.world_right = bounds.right or 0
@@ -159,8 +152,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
             },
             --
             -- Device screen's dimensions
-            device_width = self.w - self.x,  --self.dispositive_w,
-            device_height = self.h - self.y, --self.dispositive_h - math.abs(self.dispositive_h - self.h + self.y),
+            device_width = self.w - self.x,
+            device_height = self.h - self.y,
             --
             -- The in-game screen's dimensions
             desired_canvas_w = self.screen_w,
@@ -172,14 +165,14 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
             border_color = { 1, 1, 0, 1 },
             --
             --
-            scale = 1,
+            scale = conf.cam_scale or 1,
             type = "metroid",
             --
             --
-            show_grid = true,
+            show_grid = conf.cam_show_grid or false,
             grid_tile_size = self.tile_size_x * 2,
             --
-            show_world_bounds = true
+            show_world_bounds = conf.cam_show_world_bounds or false
         }
 
         self.cameras_list = {}
@@ -198,9 +191,12 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds)
     -- used when scene is in frame skip mode
     self.__skip                     = nil
 
-    self.subpixel                   = 4
-    self.canvas                     = create_canvas(self.screen_w, self.screen_h,
-        'linear', self.subpixel
+    self.subpixel                   = conf.subpixel or 4
+    self.canvas                     = create_canvas(
+        self.screen_w,
+        self.screen_h,
+        conf.canvas_filter or 'linear',
+        self.subpixel
     )
 
     local canvasWidth, canvasHeight = self.canvas:getDimensions()
@@ -259,12 +255,6 @@ function Scene:add_camera(config, name)
     -- camera.viewport_y = camera.viewport_y + (self.y)
     camera:set_bounds()
 
-    --camera:set_viewport(nil, nil, nil, self.screen_h - self.y / camera.desired_scale)
-    -- camera:set_viewport(nil, nil, self.screen_w / camera.desired_scale, nil)
-
-    -- camera.viewport_x = self.x / camera.desired_scale
-    -- camera.viewport_y = self.y / camera.desired_scale
-
     self.cameras_list[self.amount_cameras] = camera
 
     self.cameras_list[name] = camera
@@ -285,9 +275,12 @@ function Scene:set_color(r, g, b, a)
 end
 
 --- Converts the mouse position to Camera's World coordinates.
+---@param camera JM.Camera.Camera|nil
 ---@return integer x Mouse position in x-axis in world coordinates.
 ---@return integer y Mouse position in y-axis in world coordinates.
-function Scene:get_mouse_position()
+function Scene:get_mouse_position(camera)
+    camera = camera or self.camera
+
     local x, y = love_mouse_position()
     local ds --= self.camera.desired_scale
 
@@ -302,7 +295,7 @@ function Scene:get_mouse_position()
     x, y = x / ds, y / ds
     x, y = x - (self.x + offset_x) / ds, y - (self.y + off_y) / ds
 
-    x, y = self.camera:screen_to_world(x, y)
+    x, y = camera:screen_to_world(x, y)
 
     return x, y
 end
