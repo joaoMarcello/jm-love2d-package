@@ -82,6 +82,7 @@ function Stick:get_direction()
     end
 
     local value = self.dist / self.max_dist
+
     return value * (math.cos(self.angle) > 0 and 1 or -1), value * (math.sin(self.angle) > 0 and 1 or -1)
 end
 
@@ -125,6 +126,7 @@ function Stick:draw()
 
     font:push()
     font:set_font_size(32)
+    ---@type string|number, string|number
     local dx, dy = self:get_direction()
     dx = string.format("%.2f", dx)
     dy = string.format("%.2f", dy)
