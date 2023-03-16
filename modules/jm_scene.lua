@@ -83,6 +83,9 @@ end
 ---@field mousereleased function
 ---@field mousemoved function
 ---@field finish function
+---@field touchpressed function
+---@field touchreleased function
+---@field touchmoved function
 local Scene = {}
 Scene.__index = Scene
 

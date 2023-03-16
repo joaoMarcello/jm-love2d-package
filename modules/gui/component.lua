@@ -35,7 +35,10 @@ local EVENTS = {
     mouse_released = 6,
     gained_focus = 7,
     lose_focus = 8,
-    remove = 9
+    remove = 9,
+    touch_pressed = 10,
+    touch_released = 11,
+    touch_moved = 12
 }
 
 ---@enum JM.GUI.Modes
@@ -47,7 +50,7 @@ local MODES = {
     overall = 5
 }
 
----@alias JM.GUI.EventNames "update"|"draw"|"key_pressed"|"key_released"|"mouse_pressed"|"mouse_released"|"gained_focus"|"lose_focus"|"remove"
+---@alias JM.GUI.EventNames "update"|"draw"|"key_pressed"|"key_released"|"mouse_pressed"|"mouse_released"|"gained_focus"|"lose_focus"|"remove"|"touch_pressed"|"touch_released"|"touch_moved"
 
 ---@alias JM.GUI.Event {action:function, args:any}
 
@@ -79,6 +82,7 @@ local Component = {
 setmetatable(Component, Affectable)
 Component.__index = Component
 Component.MODES = MODES
+Component.collision = collision
 
 ---@param args {x:number, y:number, w:number, h:number}|nil
 ---@return table
@@ -180,7 +184,6 @@ function Component:mouse_pressed(x, y, button, istouch, presses)
     local r = evt and evt.action(x, y, button, istouch, presses, evt.args)
 
     self.__mouse_pressed = true
-    evt = nil
 end
 
 function Component:mouse_released(x, y, button, istouch, presses)
@@ -190,7 +193,37 @@ function Component:mouse_released(x, y, button, istouch, presses)
     ---@type JM.GUI.Event|nil
     local evt = self.events[EVENTS.mouse_released]
     local r = evt and evt.action(x, y, button, istouch, presses, evt.args)
-    evt = nil
+end
+
+function Component:touch_pressed(id, x, y, dx, dy, pressure)
+    if not self.on_focus then return false end
+
+    local check = self:check_collision(x, y, 0, 0)
+    if not check then return false end
+
+    ---@type JM.GUI.Event|nil
+    local evt = self.events[EVENTS.touch_pressed]
+    local r = evt and evt.action(id, x, y, dx, dy, pressure)
+
+    self.__touch_pressed = true
+end
+
+function Component:touch_released(id, x, y, dx, dy, pressure)
+    if not self.on_focus or not self.__touch_pressed then return end
+
+    ---@type JM.GUI.Event|nil
+    local evt = self.events[EVENTS.touch_released]
+    local r = evt and evt.action(id, x, y, dx, dy, pressure)
+
+    self.__touch_pressed = false
+end
+
+function Component:touch_moved(id, x, y, dx, dy, pressure)
+    if not self.on_focus then return end
+
+    ---@type JM.GUI.Event|nil
+    local evt = self.events[EVENTS.touch_moved]
+    local r = evt and evt.action(id, x, y, dx, dy, pressure)
 end
 
 ---@param self JM.GUI.Component

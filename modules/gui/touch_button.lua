@@ -112,7 +112,7 @@ function Button:__custom_draw__()
 
         love_setColor(self.color)
         love_circle("line", px, py, self.radius)
-        love_circle("line", px, py, self.radius + 1)
+        -- love_circle("line", px, py, self.radius + 1)
         -- love.graphics.circle("line", px, py, self.radius + 2)
     end
 
