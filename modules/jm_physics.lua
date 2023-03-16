@@ -721,6 +721,10 @@ do
                 goaly = obj.y + (obj.speed_y * dt)
                     + (obj.acc_y * dt * dt) / 2.0
 
+                -- if obj.speed_y >= 0 and abs(goaly - obj.y) < 1 then
+                --     -- goaly = obj.y + 1
+                -- end
+
                 -- speed up with acceleration
                 obj.speed_y = obj.speed_y + obj.acc_y * dt
 
@@ -747,8 +751,10 @@ do
                     obj:refresh(nil, goaly)
                     -- goto skip_collision_y
                 else
+                    local ex = obj.speed_y >= 0 and 1 or 0
+
                     ---@type JM.Physics.Collisions
-                    local col = obj:check(nil, goaly, colliders_filter)
+                    local col = obj:check(nil, goaly + ex, colliders_filter)
 
                     if col.n > 0 then -- collision!
                         obj:resolve_collisions_y(col)
