@@ -6,6 +6,7 @@ local font = _G.JM_Font.current
 local Utils = _G.JM_Utils
 
 local math_abs, math_sin, math_cos = math.abs, math.sin, math.cos
+local math_atan2, math_sqrt = math.atan2, math.sqrt
 
 ---@class JM.GUI.VirtualStick : JM.GUI.Component
 local Stick = setmetatable({}, Component)
@@ -44,7 +45,7 @@ function Stick:__constructor__(args)
     self.init_x = self.x
     self.init_y = self.y
 
-    self.opacity = 0.3
+    self.opacity = args.opacity or 1
 end
 
 function Stick:set_position(x, y, capture)
@@ -92,7 +93,7 @@ function Stick:mouse_pressed(x, y, button, istouch, presses)
 
     local dx = x - (self.half_x)
     local dy = y - (self.half_y)
-    local dist = math.sqrt(dx ^ 2 + dy ^ 2)
+    local dist = math_sqrt(dx ^ 2 + dy ^ 2)
 
     if dist <= self.radius then
         Component.mouse_pressed(self, x, y, button, istouch, presses)
@@ -172,16 +173,6 @@ end
 function Stick:get_angle2()
     local angle = self.angle or 0
     angle = angle * 180 / math.pi
-    if angle >= 0 and angle <= 90 then
-        -- return -angle
-    elseif angle <= 180 then
-        -- return angle
-    end
-
-    -- angle = math.abs(angle)
-    -- angle = angle >= 180 and (angle - 180) or angle
-    -- angle = angle >= 90 and (angle - 90) or angle
-
     return angle
 end
 
@@ -190,19 +181,19 @@ function Stick:update(dt)
 
     local mx, my = love.mouse.getPosition()
 
-    if self:is_pressed() and not love.mouse.isDown(1) then
+    if self.__mouse_pressed and not love.mouse.isDown(1) then
         self:release()
     end
 
     if self:is_pressed() then
         local dx = mx - self.half_x
         local dy = my - self.half_y
-        local angle = math.atan2(dy, dx)
-        local dist = math.sqrt(dx ^ 2 + dy ^ 2)
+        local angle = math_atan2(dy, dx)
+        local dist = math_sqrt(dx ^ 2 + dy ^ 2)
         dist = Utils:clamp(dist, 0, self.max_dist)
 
-        self.cx = self.half_x + dist * math.cos(angle)
-        self.cy = self.half_y + dist * math.sin(angle)
+        self.cx = self.half_x + dist * math_cos(angle)
+        self.cy = self.half_y + dist * math_sin(angle)
 
         self.angle = angle
         self.dist = dist

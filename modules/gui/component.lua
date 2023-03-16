@@ -188,11 +188,25 @@ end
 
 function Component:mouse_released(x, y, button, istouch, presses)
     if not self.on_focus or not self.__mouse_pressed then return end
+    self.__mouse_released = self.__mouse_pressed and true or false
     self.__mouse_pressed = false
 
     ---@type JM.GUI.Event|nil
     local evt = self.events[EVENTS.mouse_released]
     local r = evt and evt.action(x, y, button, istouch, presses, evt.args)
+
+    return self.__mouse_released
+end
+
+function Component:touch_is_active()
+    if not self.__touch_pressed then return false end
+    local touches = love.touch.getTouches()
+
+    for _, id in ipairs(touches) do
+        if id == self.__touch_pressed then return true end
+    end
+
+    return false
 end
 
 function Component:touch_pressed(id, x, y, dx, dy, pressure)
@@ -205,21 +219,29 @@ function Component:touch_pressed(id, x, y, dx, dy, pressure)
     local evt = self.events[EVENTS.touch_pressed]
     local r = evt and evt.action(id, x, y, dx, dy, pressure)
 
-    self.__touch_pressed = true
+    self.__touch_pressed = id
 end
 
 function Component:touch_released(id, x, y, dx, dy, pressure)
-    if not self.on_focus or not self.__touch_pressed then return end
+    if not self.on_focus
+        or not self.__touch_pressed
+        or id ~= self.__touch_pressed
+    then
+        return
+    end
 
     ---@type JM.GUI.Event|nil
     local evt = self.events[EVENTS.touch_released]
     local r = evt and evt.action(id, x, y, dx, dy, pressure)
 
+    self.__touch_released = self.__touch_pressed and true or false
     self.__touch_pressed = false
+
+    return self.__touch_released
 end
 
 function Component:touch_moved(id, x, y, dx, dy, pressure)
-    if not self.on_focus then return end
+    if not self.on_focus or not self.__touch_pressed then return end
 
     ---@type JM.GUI.Event|nil
     local evt = self.events[EVENTS.touch_moved]
