@@ -241,7 +241,7 @@ function Component:touch_released(id, x, y, dx, dy, pressure)
 end
 
 function Component:touch_moved(id, x, y, dx, dy, pressure)
-    if not self.on_focus or not self.__touch_pressed then return end
+    if not self.on_focus or not self.__touch_pressed or id ~= self.__touch_pressed then return end
 
     ---@type JM.GUI.Event|nil
     local evt = self.events[EVENTS.touch_moved]
@@ -279,6 +279,9 @@ function Component:update(dt)
     -- if self.mode == MODES.mouse then
     --     mode_mouse_update(self, dt)
     -- end
+
+    if self.__touch_released then self.__touch_released = false end
+    if self.__mouse_released then self.__mouse_released = false end
 
     return
 end

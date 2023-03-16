@@ -110,18 +110,52 @@ function Stick:mouse_released(x, y, button, istouch, presses)
     Component.mouse_released(self, x, y, button, istouch, presses)
 end
 
+function Stick:touch_pressed(id, x, y, dx, dy, pressure)
+    if self.__touch_pressed then return false end
+
+    if self.is_mobile then
+        local r = Component.collision(x, y, 0, 0,
+            self.bounds_left, self.bounds_top,
+            self.bounds_width, self.bounds_height
+        )
+
+        if r then
+            self:set_position(x - self.w / 2, y - self.h / 2)
+        end
+    end
+
+    local distx = x - (self.x + self.w / 2)
+    local disty = y - (self.y + self.h / 2)
+    local dist = math.sqrt(distx ^ 2 + disty ^ 2)
+
+    if dist <= self.radius then
+        Component.touch_pressed(self, id, x, y, dx, dy, pressure)
+        if self:is_pressed() then self:grow() end
+    end
+end
+
+function Stick:touch_released(id, x, y, dx, dy, pressure)
+    if id ~= self.__touch_pressed then return false end
+
+    if self:is_pressed() then
+        self:release()
+    end
+    Component.touch_released(self, id, x, y, dx, dy, pressure)
+end
+
 function Stick:release()
     self:shrink()
     self:set_position(self.init_x, self.init_y)
     self.cx = self.half_x
     self.cy = self.half_y
     self.__mouse_pressed = false
+    self.__touch_pressed = false
     self.angle = 0
     self.dist = 0
 end
 
 function Stick:is_pressed()
-    return self.__mouse_pressed
+    return self.__mouse_pressed or self.__touch_pressed
 end
 
 ---@param direction "left"|"right"|"up"|"down"
@@ -176,10 +210,32 @@ function Stick:get_angle2()
     return angle
 end
 
+-- function Stick:touch_moved(id, x, y, dx, dy, pressure)
+--     if id ~= self.__touch_pressed then return false end
+
+--     local distx = x - self.half_x
+--     local disty = y - self.half_y
+--     local angle = math_atan2(disty, distx)
+--     local dist = math_sqrt(dx ^ 2 + dy ^ 2)
+--     dist = Utils:clamp(dist, 0, self.max_dist)
+
+--     self.cx = self.half_x + dist * math_cos(angle)
+--     self.cy = self.half_y + dist * math_sin(angle)
+
+--     self.angle = angle
+--     self.dist = dist
+-- end
+
 function Stick:update(dt)
     Component.update(self, dt)
 
     local mx, my = love.mouse.getPosition()
+
+    if self:touch_is_active() then
+        mx, my = love.touch.getPosition(self.__touch_pressed)
+    elseif self.__touch_pressed then
+        self:release()
+    end
 
     if self.__mouse_pressed and not love.mouse.isDown(1) then
         self:release()
@@ -212,7 +268,7 @@ function Stick:draw()
     Component.draw(self)
 
     love.graphics.setColor(1, 1, 1, self.opacity)
-    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+    -- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
     love.graphics.circle("fill", self.cx, self.cy, self.radius * 0.7)
     love.graphics.setColor(.3, .3, .3, .2)
     local rm = self.radius * 0.7 * 0.6
@@ -224,8 +280,8 @@ function Stick:draw()
     love.graphics.circle("fill", self.cx + rm + 3, self.cy, 4)
     love.graphics.circle("fill", self.cx, self.cy + rm + 3, 4)
 
-    love.graphics.setColor(1, 1, 0)
-    love.graphics.rectangle("line", self.bounds_left, self.bounds_top, self.bounds_width, self.bounds_height)
+    -- love.graphics.setColor(1, 1, 0)
+    -- love.graphics.rectangle("line", self.bounds_left, self.bounds_top, self.bounds_width, self.bounds_height)
 
     -- font:push()
     -- font:set_font_size(32)
