@@ -246,6 +246,8 @@ do
         self.events = {}
 
         self:extra_collisor_filter(default_filter)
+
+        self.colls = {}
     end
 
     ---@param holder table|nil
@@ -451,10 +453,15 @@ do
 
         local items = self.world:get_items_in_cell_obj(x, y, w, h)
 
-        ---@type JM.Physics.Collisions
-        local collisions = {}
+        if not items then
+            self.colls.n = 0
+            return self.colls
+        end
 
-        local col_items = {}
+        ---@type JM.Physics.Collisions
+        local collisions = self.colls --{}
+
+        local col_items               --= {}
         local n_collisions, has_slope = 0, nil
         local most_left, most_right
         local most_up, most_bottom
@@ -485,6 +492,8 @@ do
 
                 and self.extra_filter(self, item)
             then
+                col_items = col_items or {}
+
                 table_insert(col_items, item)
 
                 if not has_slope then
@@ -1138,9 +1147,10 @@ do
     ---@param y number
     ---@param w number
     ---@param h number
+    ---@return table|nil
     function World:get_items_in_cell_obj(x, y, w, h)
         local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
-        local items = {}
+        local items --= {}
 
         for cy = ct, (ct + ch - 1) do
             local row = self.grid[cy]
@@ -1152,6 +1162,8 @@ do
                     cell = row[cx]
 
                     if cell and cell.count > 0 then
+                        items = items or {}
+
                         for item, _ in pairs(cell.items) do
                             items[item] = true
                         end
