@@ -18,52 +18,121 @@ function Transition:__constructor__(scene, args)
     self.color = args.color or { 0, 0, 0, 1 }
     self.segment = args.segment or 6
 
-    self.acc = 4 --self.scene.screen_w / 0.15
+    self.acc = 4
     self.speed = 0
-    self.width = 0
     self.mult = 0
+
+    self.right_to_left = args.type and args.type == "right-left" or false
+
+    self.up_to_down = args.type and args.type == "up-down" or false
+    self.axis = args.axis or "x"
+end
+
+function Transition:finished()
+    return self.mult >= 2
 end
 
 function Transition:update(dt)
-    -- self.mult = (self.speed * dt + self.acc * dt * dt) / 2.0
-
     self.mult = self.mult + self.speed * dt + self.acc * dt * dt / 2
-
-    self.width = self.scene.screen_w * self.mult
-    self.width = Utils:clamp(self.width, 0, self.scene.screen_w)
-
     self.speed = self.speed + self.acc * dt
 end
 
 function Transition:draw()
     love.graphics.setColor(self.color)
+
     if self.mode_out then
-        local px = 0
-        local py = 0
-        local size = (self.scene.screen_h / self.segment)
+        if self.axis == "x" then
+            local size = (self.scene.screen_h / self.segment)
 
-        for i = 1, self.segment do
-            px = -(i - 1) * size * 1.5
-            py = (i - 1) * size
+            if not self.right_to_left then
+                for i = 1, self.segment do
+                    local px = -(i - 1) * size * 1.5
+                    local py = (i - 1) * size
 
-            local w = self.scene.screen_w * self.mult
-            w = Utils:clamp(w, 0, self.scene.screen_w - px)
-            love.graphics.rectangle("fill", px, py, w, size)
+                    local w = self.scene.screen_w * self.mult
+                    w = Utils:clamp(w, 0, self.scene.screen_w * 2)
+                    love.graphics.rectangle("fill", px, py, w, size)
+                end
+            else
+                for i = 1, self.segment do
+                    local w = self.scene.screen_w * self.mult
+                    w = Utils:clamp(w, 0, self.scene.screen_w * 2)
+
+                    local py = (i - 1) * size
+
+                    love.graphics.rectangle("fill", self.scene.screen_w - w + (i - 1) * size * 1.5, py, w, size)
+                end
+            end
+        else
+            local size = self.scene.screen_w / self.segment
+
+            if self.up_to_down then
+                for i = 0, self.segment do
+                    local px = i * size
+                    local hh = self.scene.screen_h * self.mult
+                    hh = Utils:clamp(hh, 0, self.scene.screen_h + size * self.segment)
+
+                    love.graphics.rectangle("fill", px, 0, size, hh - size * i)
+                end
+            else
+                for i = 0, self.segment - 1 do
+                    local px = i * size
+                    local hh = self.scene.screen_h * self.mult
+                    hh = Utils:clamp(hh, 0, self.scene.screen_h + size * self.segment)
+
+                    love.graphics.rectangle("fill", px, self.scene.screen_h - hh + i * size, size, hh)
+                end
+            end
         end
     else
-        local size = (self.scene.screen_h / self.segment)
+        if self.axis == "x" then
+            local size = (self.scene.screen_h / self.segment)
 
-        for i = 1, self.segment do
-            local px = -(i - 1) * size * 1.5
-            local py = (i - 1) * size
+            if not self.right_to_left then
+                for i = 1, self.segment do
+                    local px = -(i - 1) * size * 1.5
+                    local py = (i - 1) * size
 
-            local w = self.scene.screen_w * self.mult
-            w = Utils:clamp(w, 0, self.scene.screen_w * 2)
+                    local w = self.scene.screen_w * self.multi
+                    w = Utils:clamp(w, 0, self.scene.screen_w * 2)
 
-            love.graphics.rectangle("fill", w + px, py, self.scene.screen_w * 2, size)
+                    love.graphics.rectangle("fill", w + px, py, self.scene.screen_w * 2, size)
+                end
+            else
+                for i = 1, self.segment do
+                    local w = (self.scene.screen_w) * self.mult
+                    w = Utils:clamp(w, 0, self.scene.screen_w * 5)
+
+                    local py = (i - 1) * size
+
+                    love.graphics.rectangle("fill", 0, py, self.scene.screen_w - w + (i - 1) * size * 1.5, size)
+                end
+            end
+        else
+            local size = self.scene.screen_w / self.segment
+
+            if not self.up_to_down then
+                for i = 0, self.segment do
+                    local px = i * size
+                    local hh = self.scene.screen_h * self.mult
+                    hh = Utils:clamp(hh, 0, self.scene.screen_h + size * self.segment)
+
+                    love.graphics.rectangle("fill", px, 0, size, self.scene.screen_h - hh + i * size)
+                end
+            else
+                for i = 0, self.segment do
+                    local px = i * size
+                    local hh = self.scene.screen_h * self.mult
+                    hh = Utils:clamp(hh, 0, self.scene.screen_h + size * self.segment)
+
+                    love.graphics.rectangle("fill", px, hh - i * size, size, self.scene.screen_h + self.segment * size)
+                end
+            end
         end
-        -- love.graphics.rectangle("fill", self.width, 0, self.scene.screen_w - self.width, self.scene.screen_h)
     end
+
+    local font = JM_Font.current
+    font:print("<color, 1, 1, 1>" .. tostring(self:finished()), 100, 100)
 end
 
 return Transition
