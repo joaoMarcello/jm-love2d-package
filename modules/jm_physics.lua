@@ -1113,6 +1113,7 @@ do
         local row = self.grid[cy]
 
         row[cx] = row[cx] or { count = 0, x = cx, y = cy, items = setmetatable({}, { __mode = 'k' }) }
+
         local cell = row[cx]
         self.non_empty_cells[cell] = true
 
@@ -1157,9 +1158,8 @@ do
 
             if row then
                 for cx = cl, (cl + cw - 1) do
-                    local cell
                     ---@type JM.Physics.Cell
-                    cell = row[cx]
+                    local cell = row[cx]
 
                     if cell and cell.count > 0 then
                         items = items or {}
@@ -1168,8 +1168,6 @@ do
                             items[item] = true
                         end
                     end
-
-                    cell = nil
                 end -- End For Columns
             end
         end         -- End for rows
@@ -1211,10 +1209,8 @@ do
 
     function World:update(dt)
         for i = self.bodies_number, 1, -1 do
-            local obj
-
-            ---@type JM.Physics.Body
-            obj = self.bodies[i]
+            ---@type JM.Physics.Body|any
+            local obj = self.bodies[i]
 
             if obj.__remove then
                 self:remove(obj, i)
@@ -1228,8 +1224,6 @@ do
             if obj and obj.is_enabled then
                 obj:update(dt)
             end
-
-            obj = nil
         end
     end
 
@@ -1241,18 +1235,6 @@ do
             local r = obj.draw and obj:draw()
         end
     end
-
-    -- ---@param obj JM.Physics.Body
-    -- function World:check(obj)
-    --     -- local cl, ct, cw, ch = self:rect_to_cell(obj:rect())
-    --     local items = self:get_items_in_cell_obj(obj:rect())
-
-    --     for item, _ in pairs(items) do
-    --         if item ~= obj and not item.__remove and obj:check_collision(item) then
-    --             return item
-    --         end
-    --     end
-    -- end
 end
 --=============================================================================
 
