@@ -46,9 +46,8 @@ end
 ---@param self  JM.Scene
 local function draw_tile(self)
     local tile, qx, qy
-    local ds = math.min((self.w - self.x) / self.screen_w, (self.h - self.y) / (self.screen_h))
-    -- ds = ds / self.subpixel
-    ds = self.canvas_scale
+    -- local ds = math.min((self.w - self.x) / self.screen_w, (self.h - self.y) / (self.screen_h))
+    local ds = self.canvas_scale * self.subpixel / 2
 
     tile = self.tile_size_x * 4 * self.camera.scale * ds
     qx = (self.w - self.x) / tile
@@ -387,6 +386,25 @@ local function fadein_out_draw(self, color, time, duration, fadein)
     love.graphics.rectangle("fill", 0, 0, self.dispositive_w, self.dispositive_h)
 end
 
+function Scene:add_transition(type_, mode, config)
+    type_ = type_ or "fade"
+    mode = mode or "out"
+    config = config or {}
+    config.mode = config.mode or mode
+
+    local Tran
+
+    if type_ == "fade" then
+        Tran = require 'jm-love2d-package.modules.transitions.fade'
+    elseif type_ == "tile" then
+        Tran = require 'jm-love2d-package.modules.transitions.tile'
+    end
+
+    if Tran then
+        self.transition = Tran:new(self, config)
+    end
+end
+
 ---@param skip integer
 ---@param duration number|nil
 ---@param on_skip_action function|nil
@@ -555,6 +573,10 @@ function Scene:implements(param)
                 local r = self.pause_action and self.pause_action(dt)
                 return
             end
+        end
+
+        if self.transition then
+            self.transition:update(dt)
         end
 
         if self.fadeout_time then
@@ -734,6 +756,10 @@ function Scene:implements(param)
             camera = nil
         end
 
+        if self.transition then
+            self.transition:draw()
+        end
+
         pop()
         set_canvas(last_canvas)
 
@@ -771,6 +797,8 @@ function Scene:implements(param)
                 self.fadein_duration,
                 true)
         end
+
+
 
         love_set_scissor(sx, sy, sw, sh)
     end

@@ -51,9 +51,6 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.__bound_right = math.huge
     self.__bound_bottom = math.huge
 
-    -- local func = setfenv(self.load_map, env_load_map)
-    -- func(self, filter, regions, env_load_map)
-
     self:load_map(filter, regions)
 end
 
