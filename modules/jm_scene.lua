@@ -398,8 +398,8 @@ function Scene:add_transition(type_, mode, config, camera)
         Tran = require 'jm-love2d-package.modules.transitions.fade'
     elseif type_ == "tile" then
         Tran = require 'jm-love2d-package.modules.transitions.tile'
-    elseif type_ == "mask" then
-        Tran = require 'jm-love2d-package.modules.transitions.mask'
+    elseif type_ == "cartoon" then
+        Tran = require 'jm-love2d-package.modules.transitions.cartoon'
     end
 
     if Tran then

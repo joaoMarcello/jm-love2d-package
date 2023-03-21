@@ -1,5 +1,5 @@
 ---@type JM.Transition
-local Transition = require((...):gsub("mask", "transition"))
+local Transition = require((...):gsub("cartoon", "transition"))
 
 local Utils = _G.JM_Utils
 
@@ -29,19 +29,19 @@ local love_pop = love.graphics.pop
 local shader
 
 ---@class JM.Transition.Mask : JM.Transition
-local Masker = setmetatable({}, Transition)
-Masker.__index = Masker
+local Cartoon = setmetatable({}, Transition)
+Cartoon.__index = Cartoon
 
-function Masker:new(args, x, y, w, h)
+function Cartoon:new(args, x, y, w, h)
     shader = shader or love.graphics.newShader(shader_code)
 
     local obj = Transition:new(args, x, y, w, h)
     setmetatable(obj, self)
-    Masker.__constructor__(obj, args)
+    Cartoon.__constructor__(obj, args)
     return obj
 end
 
-function Masker:__constructor__(args)
+function Cartoon:__constructor__(args)
     self.color = args.color or { 0, 0, 0, 1 }
 
     self.px = args.px or (self.w / 2)
@@ -69,7 +69,7 @@ function Masker:__constructor__(args)
     self.enabled = true
 end
 
-function Masker:finished()
+function Cartoon:finished()
     if self.mode_out then
         return self.mult <= 0
     else
@@ -78,7 +78,7 @@ function Masker:finished()
     return false
 end
 
-function Masker:update(dt)
+function Cartoon:update(dt)
     if not self.enabled then return end
 
     self.time = self.time + dt * self.direction
@@ -89,7 +89,7 @@ function Masker:update(dt)
     self.radius = Utils:clamp(self.radius, 0, self.max_radius)
 end
 
-function Masker:draw()
+function Cartoon:draw()
     local last_shader = love_getShader()
     local last_canvas = love_getCanvas()
 
@@ -114,4 +114,4 @@ function Masker:draw()
     -- font:print(self:finished(), 100, 100)
 end
 
-return Masker
+return Cartoon
