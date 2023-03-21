@@ -27,7 +27,7 @@ function Tile:__constructor__(args)
     self.right_to_left = args.type and args.type == "right-left" or false
 
     self.up_to_down = args.type and args.type == "up-down" or false
-    self.axis = args.axis or "x"
+    self.axis = args.axis or "y"
 end
 
 function Tile:finished()
@@ -75,20 +75,30 @@ function Tile:draw()
             local size = self.w / self.segment
 
             if self.up_to_down then
-                for i = 0, self.segment do
-                    local px = i * size
+                for i = 0, self.segment - 1 do
+                    local px = self.x + i * size
                     local hh = self.h * self.mult
-                    hh = Utils:clamp(hh, 0, self.h + size * self.segment)
+                    hh = Utils:clamp(hh, 0, self.h + size * self.segment * 1.5)
 
-                    love.graphics.rectangle("fill", px, 0, size, hh - size * i)
+                    love.graphics.rectangle("fill",
+                        px,
+                        self.y,
+                        size,
+                        Utils:clamp(hh - size * i * 1.5, 0, self.h))
                 end
             else
                 for i = 0, self.segment - 1 do
-                    local px = i * size
+                    local px = self.x + i * size
                     local hh = self.h * self.mult
-                    hh = Utils:clamp(hh, 0, self.h + size * self.segment)
+                    hh = Utils:clamp(hh, 0, self.h + size * self.segment * 1.5)
 
-                    love.graphics.rectangle("fill", px, self.h - hh + i * size, size, hh)
+                    local py = Utils:clamp(self.y + self.h - hh + i * size * 1.5, self.y, self.y + self.h)
+
+                    love.graphics.rectangle("fill",
+                        px,
+                        py,
+                        size,
+                        self.y + self.h - py)
                 end
             end
         end
@@ -96,7 +106,7 @@ function Tile:draw()
         if self.axis == "x" then
             local size = (self.h / self.segment)
 
-            if not self.right_to_left and false then
+            if not self.right_to_left then
                 for i = 0, self.segment - 1 do
                     local py = self.y + i * size
 
@@ -128,21 +138,31 @@ function Tile:draw()
         else
             local size = self.w / self.segment
 
-            if not self.up_to_down then
-                for i = 0, self.segment do
-                    local px = i * size
+            if not self.up_to_down and false then
+                for i = 0, self.segment - 1 do
+                    local px = self.x + i * size
                     local hh = self.h * self.mult
-                    hh = Utils:clamp(hh, 0, self.h + size * self.segment)
+                    hh = Utils:clamp(hh, 0, self.h + size * self.segment * 1.5)
 
-                    love.graphics.rectangle("fill", px, 0, size, self.h - hh + i * size)
+                    love.graphics.rectangle("fill",
+                        px,
+                        self.y,
+                        size,
+                        Utils:clamp(self.y + self.h - hh + i * size * 1.5, 0, self.h))
                 end
             else
-                for i = 0, self.segment do
-                    local px = i * size
+                for i = 0, self.segment - 1 do
+                    local px = self.x + i * size
                     local hh = self.h * self.mult
-                    hh = Utils:clamp(hh, 0, self.h + size * self.segment)
+                    hh = Utils:clamp(hh, 0, self.h + size * self.segment * 1.5)
 
-                    love.graphics.rectangle("fill", px, hh - i * size, size, self.h + self.segment * size)
+                    local py = Utils:clamp(self.y + hh - i * size * 1.5, self.y, self.y + self.h)
+
+                    love.graphics.rectangle("fill",
+                        px,
+                        py,
+                        size,
+                        self.y + self.h - py)
                 end
             end
         end

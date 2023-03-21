@@ -386,7 +386,7 @@ local function fadein_out_draw(self, color, time, duration, fadein)
     love.graphics.rectangle("fill", 0, 0, self.dispositive_w, self.dispositive_h)
 end
 
-function Scene:add_transition(type_, mode, config)
+function Scene:add_transition(type_, mode, config, camera)
     type_ = type_ or "fade"
     mode = mode or "out"
     config = config or {}
@@ -398,10 +398,13 @@ function Scene:add_transition(type_, mode, config)
         Tran = require 'jm-love2d-package.modules.transitions.fade'
     elseif type_ == "tile" then
         Tran = require 'jm-love2d-package.modules.transitions.tile'
+    elseif type_ == "mask" then
+        Tran = require 'jm-love2d-package.modules.transitions.mask'
     end
 
     if Tran then
-        local x, y, w, h = self:get_camera("cam2"):get_viewport()
+        local x, y, w, h = (camera or self:get_camera("cam2")):get_viewport()
+        config.subpixel = self.subpixel
         self.transition = Tran:new(config, x, y, w, h)
     end
 end
@@ -757,10 +760,10 @@ function Scene:implements(param)
             camera = nil
         end
 
+
         if self.transition then
             self.transition:draw()
         end
-
         pop()
         set_canvas(last_canvas)
 
