@@ -1,18 +1,18 @@
-local Transition = {}
-Transition.__index = Transition
+---@type JM.Transition
+local Transition = require((...):gsub("fade", "transition"))
 
----@param scene JM.Scene
-function Transition:new(scene, args)
-    local obj = {}
+---@class JM.Transition.Fade : JM.Transition
+local Fade = setmetatable({}, Transition)
+Fade.__index = Fade
+
+function Fade:new(args, x, y, w, h)
+    local obj = Transition:new(args, x, y, w, h)
     setmetatable(obj, self)
-    Transition.__constructor__(obj, scene, args)
+    Fade.__constructor__(obj, args)
     return obj
 end
 
----@param scene JM.Scene
-function Transition:__constructor__(scene, args)
-    self.mode_out = args.mode == "out"
-    self.scene = scene
+function Fade:__constructor__(args)
     self.color = args.color or { 0, 0, 0, 1 }
 
     self.time = 0
@@ -23,7 +23,7 @@ function Transition:__constructor__(scene, args)
     end
 end
 
-function Transition:finished()
+function Fade:finished()
     if self.mode_out then
         return self.time / self.duration >= 1
     else
@@ -31,7 +31,7 @@ function Transition:finished()
     end
 end
 
-function Transition:update(dt)
+function Fade:update(dt)
     if self.mode_out then
         self.time = self.time + dt
     else
@@ -39,16 +39,14 @@ function Transition:update(dt)
     end
 end
 
-function Transition:draw()
+function Fade:draw()
     local r, g, b = unpack(self.color)
-    local w = self.scene.screen_w
-    local h = self.scene.screen_h
 
     love.graphics.setColor(r, g, b, self.time / self.duration)
-    love.graphics.rectangle("fill", 0, 0, w, h)
+    love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
 
     local font = JM_Font.current
     font:print("<color, 1, 1, 1>" .. tostring(self:finished()), 100, 100)
 end
 
-return Transition
+return Fade

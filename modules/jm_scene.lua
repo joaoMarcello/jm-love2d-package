@@ -401,7 +401,8 @@ function Scene:add_transition(type_, mode, config)
     end
 
     if Tran then
-        self.transition = Tran:new(self, config)
+        local x, y, w, h = self:get_camera("cam2"):get_viewport()
+        self.transition = Tran:new(config, x, y, w, h)
     end
 end
 
