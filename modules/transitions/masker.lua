@@ -3,12 +3,6 @@ local Transition = require((...):gsub("masker", "transition"))
 
 local Utils = _G.JM_Utils
 
-local Anima = _G.JM_Anima
-
-local img = love.graphics.newImage('/data/image/baiacu.png')
-local anima = Anima:new { img = img }
-anima:apply_effect("clockWise", { speed = 2 })
-
 local shader_code = [[
 extern vec4 mask_color;
 
@@ -116,7 +110,10 @@ function Masker:draw()
     love.graphics.scale(1 / self.subpixel, 1 / self.subpixel)
 
     if self.anima then
-        self.anima:set_size(self.max_radius * 3 * (self.mult >= 0.05 and self.mult or 0))
+        local ex = self.mode_out and 3 or 3.5
+
+        self.anima:set_size(self.max_radius * ex
+            * (self.mult >= 0.05 and self.mult or 0))
         self.anima:draw(self.px, self.py)
     end
 
@@ -134,9 +131,6 @@ function Masker:draw()
     love_draw(self.canvas, self.x, self.y)
 
     love_setShader(last_shader)
-
-    -- local font = JM_Font
-    -- font:print(self:finished(), 100, 100)
 end
 
 return Masker

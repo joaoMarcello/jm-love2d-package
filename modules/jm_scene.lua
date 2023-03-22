@@ -392,6 +392,7 @@ function Scene:add_transition(type_, mode, config, camera)
     config = config or {}
     config.mode = config.mode or mode
 
+    ---@type JM.Transition
     local Tran
 
     if type_ == "fade" then
@@ -402,10 +403,12 @@ function Scene:add_transition(type_, mode, config, camera)
         Tran = require 'jm-love2d-package.modules.transitions.cartoon'
     elseif type_ == "masker" then
         Tran = require "jm-love2d-package.modules.transitions.masker"
+    elseif type_ == "pass" then
+        Tran = require "jm-love2d-package.modules.transitions.pass"
     end
 
     if Tran then
-        local x, y, w, h = (camera or self:get_camera("main")):get_viewport()
+        local x, y, w, h = (camera or self:get_camera("cam2")):get_viewport()
         config.subpixel = self.subpixel
         config.anima = JM_Anima:new { img = '/data/image/baiacu.png' }
         config.anima:apply_effect("clockWise", { speed = 3 })
