@@ -405,6 +405,8 @@ function Scene:add_transition(type_, mode, config, camera)
         Tran = require "jm-love2d-package.modules.transitions.masker"
     elseif type_ == "pass" then
         Tran = require "jm-love2d-package.modules.transitions.pass"
+    elseif type_ == "door" then
+        Tran = require "jm-love2d-package.modules.transitions.door"
     end
 
     if Tran then
@@ -413,7 +415,10 @@ function Scene:add_transition(type_, mode, config, camera)
         config.anima = JM_Anima:new { img = '/data/image/baiacu.png' }
         config.anima:apply_effect("clockWise", { speed = 3 })
 
-        self.transition = Tran:new(config, x, y, w, h)
+        local transition = Tran:new(config, x, y, w, h)
+        self.transition = transition
+
+        return transition
     end
 end
 

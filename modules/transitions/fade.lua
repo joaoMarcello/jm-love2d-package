@@ -16,7 +16,7 @@ function Fade:__constructor__(args)
     self.color = args.color or { 0, 0, 0, 1 }
 
     self.time = 0
-    self.duration = args.duration or 2
+    self.duration = args.duration or 1
 
     if not self.mode_out then
         self.time = self.duration
