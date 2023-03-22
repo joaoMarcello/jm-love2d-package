@@ -13,8 +13,8 @@ function Transition:__constructor__(args, x, y, w, h)
     self.mode_out = args.mode == "out"
     self.x = x or 0
     self.y = y or 0
-    self.w = w or 1366
-    self.h = h or 768
+    self.w = w or love.graphics.getWidth()
+    self.h = h or love.graphics.getHeight()
 end
 
 function Transition:finished()

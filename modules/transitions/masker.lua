@@ -1,18 +1,26 @@
 ---@type JM.Transition
-local Transition = require((...):gsub("cartoon", "transition"))
+local Transition = require((...):gsub("masker", "transition"))
 
 local Utils = _G.JM_Utils
 
+local Anima = _G.JM_Anima
+
+local img = love.graphics.newImage('/data/image/baiacu.png')
+local anima = Anima:new { img = img }
+anima:apply_effect("clockWise", { speed = 2 })
+
 local shader_code = [[
+extern vec4 mask_color;
+
 vec4 effect(vec4 color, Image tex, vec2 tex_coords, vec2 screen_coords)
 {
 	vec4 pix = Texel(tex, tex_coords);
 
-    if(pix.r == 1.0 && pix.g == 1.0 && pix.b == 0.0)
+    if(pix.a != 0.0)
     {
-        pix.a = 0.0;
+        return vec4(0.0, 0.0, 0.0, 0.0);
     }
-	return pix;
+	return mask_color;
 }
 ]]
 
@@ -26,26 +34,33 @@ local love_clear = love.graphics.clear
 local love_push = love.graphics.push
 local love_pop = love.graphics.pop
 
+---@type love.Shader
 local shader
 
----@class JM.Transition.Cartoon : JM.Transition
-local Cartoon = setmetatable({}, Transition)
-Cartoon.__index = Cartoon
+---@class JM.Transition.Masker : JM.Transition
+local Masker = setmetatable({}, Transition)
+Masker.__index = Masker
 
-function Cartoon:new(args, x, y, w, h)
+function Masker:new(args, x, y, w, h)
     shader = shader or love.graphics.newShader(shader_code)
 
     local obj = Transition:new(args, x, y, w, h)
     setmetatable(obj, self)
-    Cartoon.__constructor__(obj, args)
+    Masker.__constructor__(obj, args)
     return obj
 end
 
-function Cartoon:__constructor__(args)
-    self.color = args.color or { 0, 0, 0, 1 }
+function Masker:__constructor__(args)
+    self.color = args.color or Utils:get_rgba(0, 0, 0, 1)
 
     self.px = args.px or (self.w / 2)
     self.py = args.py or (self.h / 2)
+
+    ---@type JM.Anima
+    self.anima = args.anima
+
+    ---@type function
+    self.custom_draw = args.draw or args.custom_draw
 
     self.radius = math.max(self.w - self.px, self.h - self.py) * 1.25
     self.max_radius = self.radius
@@ -62,14 +77,14 @@ function Cartoon:__constructor__(args)
     end
 
     self.canvas = love.graphics.newCanvas(self.w, self.h)
-    self.canvas:setFilter("nearest", "nearest")
+    self.canvas:setFilter("linear", "nearest")
 
-    self.subpixel = args.subpixel or 4
+    self.subpixel = args.subpixel or 1
 
     self.enabled = true
 end
 
-function Cartoon:finished()
+function Masker:finished()
     if self.mode_out then
         return self.mult <= 0
     else
@@ -77,8 +92,10 @@ function Cartoon:finished()
     end
 end
 
-function Cartoon:update(dt)
+function Masker:update(dt)
     if not self.enabled then return end
+
+    if self.anima then self.anima:update(dt) end
 
     self.time = self.time + dt * self.direction
 
@@ -88,22 +105,31 @@ function Cartoon:update(dt)
     self.radius = Utils:clamp(self.radius, 0, self.max_radius)
 end
 
-function Cartoon:draw()
+function Masker:draw()
     local last_shader = love_getShader()
     local last_canvas = love_getCanvas()
 
     love_setCanvas(self.canvas)
-    love_clear(self.color)
+    love_clear(0, 0, 0, 0)
     love_setColor(1, 1, 0)
     love_push()
     love.graphics.scale(1 / self.subpixel, 1 / self.subpixel)
 
-    love.graphics.circle("fill", self.px, self.py, self.radius)
+    if self.anima then
+        self.anima:set_size(self.max_radius * 3 * (self.mult >= 0.05 and self.mult or 0))
+        self.anima:draw(self.px, self.py)
+    end
+
+    if self.custom_draw then
+        self:custom_draw()
+    end
 
     love_pop()
     love_setCanvas(last_canvas)
 
     love_setShader(shader)
+    shader:sendColor("mask_color", self.color)
+
     love_setColor(1, 1, 1, 1)
     love_draw(self.canvas, self.x, self.y)
 
@@ -113,4 +139,4 @@ function Cartoon:draw()
     -- font:print(self:finished(), 100, 100)
 end
 
-return Cartoon
+return Masker

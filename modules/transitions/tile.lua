@@ -16,7 +16,6 @@ end
 
 function Tile:__constructor__(args)
     self.mode_out = args.mode == "out"
-    -- self.scene = scene
     self.color = args.color or { 0, 0, 0, 1 }
     self.segment = args.segment or 6
 
