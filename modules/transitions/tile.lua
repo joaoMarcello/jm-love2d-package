@@ -137,7 +137,7 @@ function Tile:draw()
         else
             local size = self.w / self.segment
 
-            if not self.up_to_down and false then
+            if not self.up_to_down then
                 for i = 0, self.segment - 1 do
                     local px = self.x + i * size
                     local hh = self.h * self.mult
@@ -167,8 +167,8 @@ function Tile:draw()
         end
     end
 
-    local font = JM_Font.current
-    font:print("<color, 1, 1, 1>" .. tostring(self:finished()), 100, 100)
+    -- local font = JM_Font.current
+    -- font:print("<color, 1, 1, 1>" .. tostring(self:finished()), 100, 100)
 end
 
 return Tile

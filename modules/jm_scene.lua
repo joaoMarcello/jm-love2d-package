@@ -407,10 +407,12 @@ function Scene:add_transition(type_, mode, config, camera)
         Tran = require "jm-love2d-package.modules.transitions.pass"
     elseif type_ == "door" then
         Tran = require "jm-love2d-package.modules.transitions.door"
+    elseif type_ == "stripe" then
+        Tran = require "jm-love2d-package.modules.transitions.stripe"
     end
 
     if Tran then
-        local x, y, w, h = (camera or self:get_camera("cam2")):get_viewport()
+        local x, y, w, h = (camera or self:get_camera("main")):get_viewport()
         config.subpixel = self.subpixel
         config.anima = JM_Anima:new { img = '/data/image/baiacu.png' }
         config.anima:apply_effect("clockWise", { speed = 3 })
