@@ -75,7 +75,7 @@ function Masker:__constructor__(args)
 
     self.subpixel = args.subpixel or 1
 
-    self.enabled = true
+    self.is_enabled = true
 end
 
 function Masker:finished()
@@ -87,7 +87,7 @@ function Masker:finished()
 end
 
 function Masker:update(dt)
-    if not self.enabled then return end
+    if not self.is_enabled then return end
 
     if self.anima then self.anima:update(dt) end
 

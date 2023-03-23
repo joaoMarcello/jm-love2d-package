@@ -29,6 +29,7 @@ function Door:__constructor__(args)
     end
 
     self.axis = args.axis or "y"
+    self.mult = math.sin(self.rad)
 end
 
 function Door:finished()

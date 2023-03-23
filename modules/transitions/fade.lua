@@ -45,8 +45,8 @@ function Fade:draw()
     love.graphics.setColor(r, g, b, self.time / self.duration)
     love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
 
-    local font = JM_Font.current
-    font:print("<color, 1, 1, 1>" .. tostring(self:finished()), 100, 100)
+    -- local font = JM_Font.current
+    -- font:print("<color, 1, 1, 1>" .. tostring(self:finished()), 100, 100)
 end
 
 return Fade

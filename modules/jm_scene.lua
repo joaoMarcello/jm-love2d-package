@@ -418,6 +418,8 @@ function Scene:add_transition(type_, mode, config, camera)
         config.anima:apply_effect("clockWise", { speed = 3 })
 
         local transition = Tran:new(config, x, y, w, h)
+
+        ---@type JM.Transition
         self.transition = transition
 
         return transition
@@ -595,7 +597,18 @@ function Scene:implements(param)
         end
 
         if self.transition then
-            self.transition:update(dt)
+            self.transition:__update__(dt)
+
+            local r = not self.transition:is_paused()
+                and self.transition:update(dt)
+
+            if self.transition:is_mode_in() and self.transition:finished() then
+                self.transition = nil
+            end
+
+            if self.transition and self.transition.pause_scene then
+                return
+            end
         end
 
         if self.fadeout_time then
@@ -734,6 +747,7 @@ function Scene:implements(param)
                     if condition then
                         camera:draw_grid()
                         camera:draw_world_bounds()
+                        -- camera:draw_info()
                     end
 
                     camera:detach()
@@ -852,7 +866,9 @@ function Scene:implements(param)
     end
 
     self.keypressed = function(self, key, scancode, isrepeat)
-        if self.time_pause then
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
             return
         end
 
@@ -860,7 +876,9 @@ function Scene:implements(param)
     end
 
     self.keyreleased = function(self, key, scancode)
-        if self.time_pause then
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
             return
         end
 

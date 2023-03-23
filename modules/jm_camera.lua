@@ -573,7 +573,7 @@ local function show_border(self)
     -- Drawind a border in the camera's viewport
     love_set_color(self.border_color)
 
-    local vx, vy, vw, vh = self:get_viewport()
+    local vx, vy, vw, vh = self:get_viewport_in_world_coord()
 
     -- left
     love_rect("fill", vx, vy, 3, vh)
@@ -585,7 +585,7 @@ local function show_border(self)
     love_rect("fill", vx, vy, vw, 3)
 
     -- -- Bottom
-    love_rect("fill", self.viewport_x, self.viewport_y + self.viewport_h - 3, self.viewport_w, 3)
+    love_rect("fill", vx, vy + vh - 3, vw, 3)
 end
 
 ---@param self JM.Camera.Camera
@@ -1314,44 +1314,46 @@ local function debbug(self)
         love_set_color(1, 1, 0, 0.5)
     end
 
-    local border_len = self.tile_size * self.scale * self.desired_scale
+    local border_len = self.tile_size --/ self.scale
+
+    local vx, vy, vw, vh = self:get_viewport_in_world_coord()
     do
         love.graphics.rectangle("line",
-            self.viewport_x + border_len,
-            self.viewport_y + border_len,
-            self.viewport_w - border_len * 2,
-            self.viewport_h - border_len * 2
+            vx + border_len,
+            vy + border_len,
+            vw - border_len * 2,
+            vh - border_len * 2
         )
 
         -- Top-Middle
         love.graphics.line(
-            self.viewport_x + self.viewport_w / 2,
-            self.viewport_y,
-            self.viewport_x + self.viewport_w / 2,
-            self.viewport_y + border_len
+            vx + vw / 2,
+            vy,
+            vx + vw / 2,
+            vy + border_len
         )
 
         --Bottom-Middle
         love.graphics.line(
-            self.viewport_x + self.viewport_w / 2,
-            self.viewport_y + self.viewport_h - border_len,
-            self.viewport_x + self.viewport_w / 2,
-            self.viewport_y + self.viewport_h
+            vx + vw / 2,
+            vy + vh - border_len,
+            vx + vw / 2,
+            vy + vh
         )
 
         --Left-Middle
         love.graphics.line(
-            self.viewport_x,
-            self.viewport_y + self.viewport_h / 2,
-            self.viewport_x + border_len,
-            self.viewport_y + self.viewport_h / 2
+            vx,
+            vy + vh / 2,
+            vx + border_len,
+            vy + vh / 2
         )
 
         love.graphics.line(
-            self.viewport_x + self.viewport_w - border_len,
-            self.viewport_y + self.viewport_h / 2,
-            self.viewport_x + self.viewport_w,
-            self.viewport_y + self.viewport_h / 2
+            vx + vw - border_len,
+            vy + vh / 2,
+            vx + vw,
+            vy + vh / 2
         )
     end
     --===========================================================
@@ -1365,24 +1367,24 @@ local function debbug(self)
     love_set_color(r, g, b, a)
 
     if Font then
-        --Font.current:push()
-        --Font.current:set_font_size(clamp(round(12 * self.scale), 10, 14))
+        Font.current:push()
+        Font.current:set_font_size(8)
         local state = '<color>' .. self:get_state()
         Font:print(state,
-            self.viewport_x + border_len + 2,
-            self.viewport_y + self.viewport_h - border_len - 20)
-        --Font.current:pop()
+            vx + border_len + 2,
+            vy + vh - border_len - 20)
+        Font.current:pop()
 
         -- Showing the message DEBUG MODE
-        Font.current:push()
-        Font.current:set_font_size(12)
-        local fr = Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
-        fr:draw(
-            self.viewport_x + self.viewport_w - border_len - fr:width() - 10,
-            self.viewport_y + border_len + 10,
-            "left"
-        )
-        Font.current:pop()
+        -- Font.current:push()
+        -- Font.current:set_font_size(8)
+        -- local fr = Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
+        -- fr:draw(
+        --     vx + vw - border_len - fr:width() - 10,
+        --     vy + border_len + 10,
+        --     "left"
+        -- )
+        -- Font.current:pop()
     end
 end
 
@@ -1452,14 +1454,17 @@ function Camera:draw_world_bounds()
     if self.show_world_boundary then
         draw_bounds(self)
     end
+
+    local r = show_border(self)
+    r = debbug(self)
 end
 
 --- Used after detach
 function Camera:draw_info()
     local r
-    if self.debug then debbug(self) end
-    r = self.show_focus and show_focus(self)
-    r = self.border_color and show_border(self)
+    -- if self.debug then debbug(self) end
+    -- r = self.show_focus and show_focus(self)
+    -- r = self.border_color and show_border(self)
 end
 
 function Camera:toggle_grid()

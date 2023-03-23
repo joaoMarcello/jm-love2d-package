@@ -30,7 +30,7 @@ function Tile:__constructor__(args)
 end
 
 function Tile:finished()
-    return self.mult >= 2
+    return self.mult >= 4
 end
 
 function Tile:update(dt)

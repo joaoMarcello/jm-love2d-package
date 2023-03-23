@@ -31,6 +31,8 @@ function Pass:__constructor__(args)
     self.axis = args.axis or "x"
     self.left_to_right = args.type == "left-right"
     self.up_to_down = args.type == "up-down"
+
+    self.mult = math.sin(self.rad)
 end
 
 function Pass:finished()

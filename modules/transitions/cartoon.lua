@@ -66,7 +66,9 @@ function Cartoon:__constructor__(args)
 
     self.subpixel = args.subpixel or 4
 
-    self.enabled = true
+    self.radius = self.max_radius * self.mult
+
+    self.is_enabled = true
 end
 
 function Cartoon:finished()
@@ -78,7 +80,7 @@ function Cartoon:finished()
 end
 
 function Cartoon:update(dt)
-    if not self.enabled then return end
+    if not self.is_enabled then return end
 
     self.time = self.time + dt * self.direction
 
@@ -94,10 +96,10 @@ function Cartoon:draw()
 
     love_setCanvas(self.canvas)
     love_clear(self.color)
-    love_setColor(1, 1, 0)
     love_push()
     love.graphics.scale(1 / self.subpixel, 1 / self.subpixel)
 
+    love_setColor(1, 1, 0)
     love.graphics.circle("fill", self.px, self.py, self.radius)
 
     love_pop()
