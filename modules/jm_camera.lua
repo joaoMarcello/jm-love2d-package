@@ -413,15 +413,18 @@ end
 
 ---@param self JM.Camera.Camera
 local function show_focus(self)
+    local vx, vy, vw, vh = self:get_viewport_in_world_coord()
+    local foc_x, foc_y = self.focus_x / self.scale, self.focus_y / self.scale
+
     -- Focus guide lines
     love_set_color(0, 0, 0, 0.1)
     love_rect("fill",
-        self.viewport_x + self.focus_x,
-        self.viewport_y, 2, self.viewport_h
+        vx + foc_x,
+        vy, 2, vh
     )
-    love_rect("fill", self.viewport_x,
-        self.viewport_y + self.focus_y,
-        self.viewport_w,
+    love_rect("fill", vx,
+        vy + foc_y,
+        vw,
         2
     )
     --=============================================================
@@ -437,26 +440,13 @@ local function show_focus(self)
             )
         end
 
-        -- love.graphics.circle("fill",
-        --     self.viewport_x / self.desired_scale / self.scale + self.focus_x / self.desired_scale
-        --     + self:x_world_to_screen(
-        --         (self.target.x or self.target.last_x)
-        --     ),
-
-        --     self.viewport_y / self.desired_scale / self.scale + self.focus_y / self.desired_scale / self.scale
-        --     + self:y_world_to_screen(
-        --         (self.target.y or self.target.last_y)
-        --     ),
-        --     7
-        -- )
-
         local px, py = self:world_to_screen(self.target.x or self.target.last_x, self.target.y or self.target.last_y)
 
-        px = px * self.desired_scale + self.focus_x
-        py = py * self.desired_scale + self.focus_y
-        love.graphics.circle("fill", self.viewport_x + px,
-            self.viewport_y + py,
-            7)
+        px = px + foc_x
+        py = py + foc_y
+        love.graphics.circle("fill", vx + px,
+            vy + py,
+            5)
     end
 
     -- Camera's focus
@@ -466,12 +456,11 @@ local function show_focus(self)
         love_set_color(1, 0, 0, 1)
     end
     love.graphics.circle("fill",
-        self.viewport_x + self.focus_x,
-        self.viewport_y + self.focus_y,
-        5
+        vx + foc_x,
+        vy + foc_y,
+        3
     )
 
-    local scl = self.scale
     local corner_esp = 2
     local corner_length = 16
 
@@ -487,50 +476,49 @@ local function show_focus(self)
     if self.use_deadzone or true then
         -- Left-Top Corner
         love_rect("fill",
-            self.viewport_x + self.focus_x - self.deadzone_w / 2,
-            self.viewport_y + self.focus_y - self.deadzone_h / 2,
+            vx + foc_x - self.deadzone_w / 2,
+            vy + foc_y - self.deadzone_h / 2,
             corner_length,
             corner_esp)
         love_rect("fill",
-            self.viewport_x + self.focus_x - self.deadzone_w / 2,
-            self.viewport_y + self.focus_y - self.deadzone_h / 2,
+            vx + foc_x - self.deadzone_w / 2,
+            vy + foc_y - self.deadzone_h / 2,
             corner_esp,
             corner_length)
 
         -- Top-Right Corner
         love_rect("fill",
-            self.viewport_x + self.focus_x + self.deadzone_w / 2 - corner_length,
-            self.viewport_y + self.focus_y - self.deadzone_h / 2,
+            vx + foc_x + self.deadzone_w / 2 - corner_length,
+            vy + foc_y - self.deadzone_h / 2,
             corner_length,
             corner_esp)
         love_rect("fill",
-            self.viewport_x + self.focus_x + self.deadzone_w / 2,
-            self.viewport_y + self.focus_y - self.deadzone_h / 2,
+            vx + foc_x + self.deadzone_w / 2,
+            vy + foc_y - self.deadzone_h / 2,
             corner_esp,
             corner_length)
 
         --- Bottom-Right Corner
         love_rect("fill",
-            self.viewport_x + self.focus_x + self.deadzone_w / 2 - corner_length + corner_esp,
-            self.viewport_y + self.focus_y + self.deadzone_h / 2,
+            vx + foc_x + self.deadzone_w / 2 - corner_length + corner_esp,
+            vy + foc_y + self.deadzone_h / 2,
             corner_length,
             corner_esp)
         love_rect("fill",
-            self.viewport_x + self.focus_x + self.deadzone_w / 2,
-            self.viewport_y + self.focus_y + self.deadzone_h / 2 - corner_length,
+            vx + foc_x + self.deadzone_w / 2,
+            vy + foc_y + self.deadzone_h / 2 - corner_length,
             corner_esp,
             corner_length)
 
         --- Bottom-Left Corner
         love_rect("fill",
-            self.viewport_x + self.focus_x - self.deadzone_w / 2,
-            self.viewport_y + self.focus_y + self.deadzone_h / 2 - corner_length,
+            vx + foc_x - self.deadzone_w / 2,
+            vy + foc_y + self.deadzone_h / 2 - corner_length,
             corner_esp,
             corner_length)
-
         love_rect("fill",
-            self.viewport_x + self.focus_x - self.deadzone_w / 2,
-            self.viewport_y + self.focus_y + self.deadzone_h / 2,
+            vx + foc_x - self.deadzone_w / 2,
+            vy + foc_y + self.deadzone_h / 2,
             corner_length,
             corner_esp)
     end
@@ -542,28 +530,28 @@ local function show_focus(self)
 
     -- Deadzone Right-Middle
     love_rect("fill",
-        self.viewport_x + self.focus_x + self.deadzone_w / 2 - len_half,
-        self.viewport_y + self.focus_y,
+        vx + foc_x + self.deadzone_w / 2 - len_half,
+        vy + foc_y,
         len_bar,
         corner_esp)
 
     -- Deadzone Left-Middle
     love_rect("fill",
-        self.viewport_x + self.focus_x - self.deadzone_w / 2 - len_half,
-        self.viewport_y + self.focus_y,
+        vx + foc_x - self.deadzone_w / 2 - len_half,
+        vy + foc_y,
         len_bar,
         corner_esp)
 
     -- Deadzone Top-Middle
     love_rect("fill",
-        self.viewport_x + self.focus_x,
-        self.viewport_y + self.focus_y - self.deadzone_h / 2 - len_half,
+        vx + foc_x,
+        vy + foc_y - self.deadzone_h / 2 - len_half,
         corner_esp,
         len_bar)
     -- Deadzone Bottom-Middle
     love_rect("fill",
-        self.viewport_x + self.focus_x,
-        self.viewport_y + self.focus_y + self.deadzone_h / 2 - len_half,
+        vx + foc_x,
+        vy + foc_y + self.deadzone_h / 2 - len_half,
         corner_esp,
         len_bar)
 end
@@ -1454,17 +1442,13 @@ function Camera:draw_world_bounds()
     if self.show_world_boundary then
         draw_bounds(self)
     end
-
-    local r = show_border(self)
-    r = debbug(self)
 end
 
---- Used after detach
+-- Used after attach and before detach
 function Camera:draw_info()
-    local r
-    -- if self.debug then debbug(self) end
-    -- r = self.show_focus and show_focus(self)
-    -- r = self.border_color and show_border(self)
+    local r = self.border_color and show_border(self)
+    r = self.debug and debbug(self)
+    r = self.show_focus and show_focus(self)
 end
 
 function Camera:toggle_grid()

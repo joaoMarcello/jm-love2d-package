@@ -747,27 +747,16 @@ function Scene:implements(param)
                     if condition then
                         camera:draw_grid()
                         camera:draw_world_bounds()
-                        -- camera:draw_info()
+                        camera:draw_info()
                     end
 
                     camera:detach()
-
-                    if condition then
-                        love_set_scissor(camera:get_viewport())
-                        camera:draw_info()
-                        love_set_scissor()
-                    end
-
-                    -- camera:set_shader()
-
-                    layer = nil
+                    --
                 end -- END FOR Layers
             end
 
             if param.draw then
-                -- set_blend_mode("alpha")
-                -- set_color_draw(1, 1, 1, 1)
-
+                ---
                 if camera.color and not param.layers then
                     camera:draw_background()
                 end
@@ -778,12 +767,10 @@ function Scene:implements(param)
 
                 camera:draw_grid()
                 camera:draw_world_bounds()
+                camera:draw_info()
 
                 camera:detach()
-
-                love_set_scissor(camera:get_viewport())
-                camera:draw_info()
-                love_set_scissor()
+                --
             end
 
             camera = nil
@@ -793,6 +780,7 @@ function Scene:implements(param)
         if self.transition then
             self.transition:draw()
         end
+
         pop()
         set_canvas(last_canvas)
 
@@ -831,13 +819,13 @@ function Scene:implements(param)
                 true)
         end
 
-
-
         love_set_scissor(sx, sy, sw, sh)
     end
 
     self.mousepressed = function(self, x, y, button, istouch, presses)
-        if self.time_pause then
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
             return
         end
 
@@ -847,7 +835,9 @@ function Scene:implements(param)
     end
 
     self.mousereleased = function(self, x, y, button, istouch, presses)
-        if self.time_pause then
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
             return
         end
 
@@ -857,7 +847,9 @@ function Scene:implements(param)
     end
 
     self.mousemoved = function(self, x, y, dx, dy, istouch)
-        if self.time_pause then
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
             return
         end
 
