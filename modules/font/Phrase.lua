@@ -189,7 +189,8 @@ local results_get_lines = setmetatable({}, { __mode = 'k' })
 
 ---@return table
 function Phrase:get_lines(x)
-    local key = string.format("%d %d", x, self.__font.__font_size)
+    -- local key = string.format("%d %d", x, self.__font.__font_size)
+    local key = string.format("%d %d", x, self.__bounds.right - x)
     local result = results_get_lines[self] and results_get_lines[self][key]
     if result then return result end
 
@@ -487,7 +488,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
             local current_word = lines[i][j]
 
             local first = apply_commands(self, (i == 1 and j == 1 and "first")
-            or nil, init_font_size)
+                or nil, init_font_size)
 
             local r = current_word:get_width() + space
 

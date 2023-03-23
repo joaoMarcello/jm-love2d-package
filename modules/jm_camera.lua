@@ -440,13 +440,14 @@ local function show_focus(self)
             )
         end
 
-        local px, py = self:world_to_screen(self.target.x or self.target.last_x, self.target.y or self.target.last_y)
+        -- local px, py = self:world_to_screen(self.target.x or self.target.last_x, self.target.y or self.target.last_y)
+
+        local px = self.target.x or self.target.last_x
+        local py = self.target.y or self.target.last_y
 
         px = px + foc_x
         py = py + foc_y
-        love.graphics.circle("fill", vx + px,
-            vy + py,
-            5)
+        love.graphics.circle("fill", px, py, 5)
     end
 
     -- Camera's focus
@@ -1363,15 +1364,18 @@ local function debbug(self)
             vy + vh - border_len - 20)
         Font.current:pop()
 
-        -- Showing the message DEBUG MODE
+        -- -- Showing the message DEBUG MODE
         -- Font.current:push()
         -- Font.current:set_font_size(8)
-        -- local fr = Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
-        -- fr:draw(
-        --     vx + vw - border_len - fr:width() - 10,
-        --     vy + border_len + 10,
-        --     "left"
-        -- )
+        -- -- self.phrase_debug = self.phrase_debug or
+        -- --     Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
+        -- -- local fr = self.phrase_debug
+        -- -- fr.__bounds.right = math.huge
+        -- -- fr:draw(
+        -- --     vx + vw - border_len - fr:width() - 10,
+        -- --     vy + border_len + 10,
+        -- --     "left"
+        -- -- )
         -- Font.current:pop()
     end
 end
