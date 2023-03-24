@@ -1390,19 +1390,19 @@ local function debbug(self)
         -- Font:print(tostring(math.huge - 100), vx + 100, vy + 100)
         Font.current:pop()
 
-        -- Showing the message DEBUG MODE
-        Font.current:push()
-        Font.current:set_font_size(8)
-        -- self.phrase_debug = self.phrase_debug or
-        --     Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
-        -- local fr = self.phrase_debug
-        -- fr.__bounds.right = math.huge
-        -- fr:draw(
-        --     vx + vw - border_len - fr:width() - 10,
-        --     vy + border_len + 10,
-        --     "left"
-        -- )
-        Font.current:pop()
+        -- -- Showing the message DEBUG MODE
+        -- Font.current:push()
+        -- Font.current:set_font_size(8)
+        -- -- self.phrase_debug = self.phrase_debug or
+        -- --     Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
+        -- -- local fr = self.phrase_debug
+        -- -- fr.__bounds.right = math.huge
+        -- -- fr:draw(
+        -- --     vx + vw - border_len - fr:width() - 10,
+        -- --     vy + border_len + 10,
+        -- --     "left"
+        -- -- )
+        -- Font.current:pop()
     end
 end
 

@@ -5,6 +5,19 @@ local Utils = _G.JM_Utils
 
 local rect = love.graphics.rectangle
 
+--- Euler's number
+local E = 2.718281828459
+local function sigmoid(x)
+    return 1.0 / (1.0 + (E ^ (-x)))
+end
+
+local function tanh(x)
+    local E_x = E ^ x
+    local E_minus_x = E ^ (-x)
+
+    return (E_x - E_minus_x) / (E_x + E_minus_x)
+end
+
 ---@class JM.Transition.Curtain : JM.Transition
 local Curtain = setmetatable({}, Transition)
 Curtain.__index = Curtain
@@ -19,20 +32,20 @@ end
 function Curtain:__constructor__(args)
     self.color = Utils:get_rgba(0, 0, 0, 1)
     self.rad = 0 --math.pi / 2
-    self.speed = args.duration or 1.5
+    self.speed = args.duration or 0.8
     self.direction = 1
 
     if not self.mode_out then
-        self.rad = math.pi / 2
+        self.rad = E
         self.direction = -1
-        self.speed = args.duration or 1
+        self.speed = args.duration or 0.7
     end
 
-    self.axis = "x" --args.axis or "x"
+    self.axis = args.axis or "x"
     self.left_to_right = args.type == "left-right"
     self.up_to_down = args.type == "up-down"
 
-    self.mult = math.sin(self.rad)
+    self.mult = tanh(self.rad)
 end
 
 function Curtain:finished()
@@ -44,9 +57,9 @@ function Curtain:finished()
 end
 
 function Curtain:update(dt)
-    self.rad = self.rad + (math.pi / self.speed) * dt * self.direction
-    self.rad = Utils:clamp(self.rad, 0, math.pi + math.pi / 2)
-    self.mult = math.sin(self.rad)
+    self.rad = self.rad + ((E) / self.speed) * dt * self.direction
+    self.mult = tanh(self.rad) + 0.007
+    self.mult = Utils:clamp(self.mult, 0, 1)
 end
 
 function Curtain:draw()
@@ -55,11 +68,13 @@ function Curtain:draw()
     if self.axis == "x" then
         local w = self.w * self.mult
 
-        if self.left_to_right or true then
+        if self.left_to_right then
             if self.mode_out then
-                rect("fill", self.x, self.y, w, self.h)
+                rect("fill", self.x, self.y, Utils:clamp(w, 0, self.w), self.h)
             else
-                local px = self.x + self.w - w
+                local px = Utils:clamp(self.x + self.w - w,
+                    self.x,
+                    self.x + self.w)
                 rect("fill", px, self.y, self.x + self.w - px, self.h)
             end
         else

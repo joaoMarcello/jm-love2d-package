@@ -38,8 +38,8 @@ local function draw_tile(self)
     local tile, qx, qy
 
     tile = self.tile_size_x * 4 * self.camera.scale
-    qx = (self.w - self.x) / tile
-    qy = (self.h - self.y) / tile
+    qx = (self.screen_w) / tile
+    qy = (self.screen_h) / tile
 
     clear_screen(0.35, 0.35, 0.35, 1)
     set_color_draw(0.9, 0.9, 0.9, 0.3)
