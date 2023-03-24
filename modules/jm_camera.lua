@@ -58,6 +58,19 @@ local function chase_target(self, dt, chase_x_axis, chase_y_axis)
     -- Hello World
 
     if self.target then
+        --
+        if self.catch_target_x then
+            self:set_position(self.target.x)
+        else
+            self.catch_target_x = false
+        end
+
+        if self.catch_target_y then
+            self:set_position(nil, self.target.y)
+        else
+            self.catch_target_y = false
+        end
+
         if chase_x_axis
             and (self.x ~= self.target.x or self.infinity_chase_x)
         then
@@ -89,6 +102,7 @@ local function chase_target(self, dt, chase_x_axis, chase_y_axis)
             if (cos_r > 0 and self.x >= self.target.x)
                 or (cos_r < 0 and self.x <= self.target.x)
             then
+                self.catch_target_x = true
                 self:set_position(self.target.x)
                 self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
             end
@@ -143,6 +157,7 @@ local function chase_target(self, dt, chase_x_axis, chase_y_axis)
             if (sin_r > 0 and self.y > self.target.y)
                 or (sin_r < 0 and self.y < self.target.y)
             then
+                self.catch_target_y = true
                 self:set_position(nil, self.target.y)
                 self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
             end
@@ -184,6 +199,8 @@ local function dynamic_x_offset(self, dt)
         and left_focus or right_focus
 
     local move_right_offset = move_left_offset == right_focus and left_focus or right_focus
+
+    self.catch_target_x = false
 
     if not self:is_locked_in_x() then
         local objective = chase_target_x(self, dt)
@@ -245,6 +262,8 @@ local function dynamic_y_offset(self, dt)
 
     local bottom_offset = top_offset == top_focus and bottom_focus or top_focus
 
+    self.catch_target_y = false
+
     if not self:is_locked_in_y() then
         local objective = chase_target_y(self, dt)
 
@@ -291,9 +310,11 @@ local function chase_y_when_not_moving(self, dt)
     local deadzone_height = self.deadzone_h
     --=========================================================================
 
-    local top_limit = self:y_screen_to_world(self.viewport_h / self.desired_scale * 0.2)
-    local bottom = self:y_screen_to_world(self.y + deadzone_height / self.desired_scale)
+    local top_limit = self:y_screen_to_world(self.viewport_h * 0.2)
+    local bottom = self:y_screen_to_world(self.y + deadzone_height)
     local cy = self:y_screen_to_world(self.target.y)
+
+    self.catch_target_y = false
 
     if self.target.direction_y == 0 then
         chase_target_y(self, dt)
@@ -301,7 +322,7 @@ local function chase_y_when_not_moving(self, dt)
         self.follow_speed_y = 0 --sqrt(2 * self.acc_y)
     end
 
-    if self.target.y + self.focus_y / self.desired_scale / self.scale < top_limit then
+    if self.target.y + self.focus_y / self.scale < top_limit then
         self:move(nil, -abs(self.target.range_y))
     end
 
@@ -676,18 +697,18 @@ function Camera:__constructor__(
     self.desired_canvas_h = desired_canvas_h or self.device_height
 
     self.scale = scale or 1.0
-    self.desired_scale = 1 --(self.device_height) / self.desired_canvas_h
+    -- self.desired_scale = 1 --(self.device_height) / self.desired_canvas_h
 
     --- Viewport in real-screen coordinates
     self.viewport_x = x or 0
     self.viewport_y = y or 0
 
-    self.viewport_x = self.viewport_x * self.desired_scale
-    self.viewport_y = self.viewport_y * self.desired_scale
+    -- self.viewport_x = self.viewport_x * self.desired_scale
+    -- self.viewport_y = self.viewport_y * self.desired_scale
 
-    self.viewport_w = (w and w * self.desired_scale)
+    self.viewport_w = (w and w)
         or self.device_width
-    self.viewport_h = (h and h * self.desired_scale)
+    self.viewport_h = (h and h)
         or self.device_height
 
     self.tile_size = tile_size or 32
@@ -713,8 +734,8 @@ function Camera:__constructor__(
 
     self.bounds_left = bounds and bounds.left or 0
     self.bounds_top = bounds and bounds.top or 0
-    self.bounds_right = bounds and bounds.right or self.viewport_w / self.scale / self.desired_scale
-    self.bounds_bottom = bounds and bounds.bottom or self.viewport_h / self.scale / self.desired_scale
+    self.bounds_right = bounds and bounds.right or self.viewport_w
+    self.bounds_bottom = bounds and bounds.bottom or self.viewport_h / self.scale
     self:set_bounds()
 
     self.acc_x = self.tile_size * 13
@@ -927,21 +948,18 @@ function Camera:set_type(s)
 end
 
 function Camera:set_viewport(x, y, w, h)
-    self.viewport_x = x and x * self.desired_scale or self.viewport_x
-    self.viewport_y = y and y * self.desired_scale or self.viewport_y
-    self.viewport_w = w and w * self.desired_scale or self.viewport_w
-    self.viewport_h = h and h * self.desired_scale or self.viewport_h
+    self.viewport_x = x or self.viewport_x
+    self.viewport_y = y or self.viewport_y
+    self.viewport_w = w or self.viewport_w
+    self.viewport_h = h or self.viewport_h
     self:set_type(self.type)
     self:set_bounds()
 end
 
 --- Returns left, top, right and bottom!!!
 function Camera:get_viewport_in_world_coord()
-    -- local vw, vh = self:screen_to_world(self.viewport_w / self.desired_scale, self.viewport_h / self.desired_scale)
-
-    return self.x, self.y, self.viewport_w / self.desired_scale / self.scale,
-        self.viewport_h / self.desired_scale / self.scale
-    --return self.x, self.y, vw, vh
+    return self.x, self.y, self.viewport_w / self.scale,
+        self.viewport_h / self.scale
 end
 
 --- Viewport in Camera Screen coordinates.
@@ -984,8 +1002,8 @@ end
 function Camera:follow(x, y, name)
     if not self.target then self.target = {} end
 
-    x = x - self.focus_x / self.scale / self.desired_scale
-    y = y - self.focus_y / self.scale / self.desired_scale
+    x = x - self.focus_x / self.scale
+    y = y - self.focus_y / self.scale
 
     x = round(x)
     y = round(y)
@@ -1088,8 +1106,8 @@ function Camera:set_focus_y(value)
 end
 
 function Camera:set_position(x, y)
-    self.x = (not self.lock_x and (x and x)) or self.x
-    self.y = (not self.lock_y and (y and y)) or self.y
+    self.x = (not self.lock_x and x) or self.x
+    self.y = (not self.lock_y and y) or self.y
     self.x = round(self.x)
     self.y = round(self.y)
 end
@@ -1129,8 +1147,8 @@ function Camera:set_bounds(left, right, top, bottom)
         self.bounds_right = self.bounds_left + self.viewport_w / self.scale
     end
 
-    if self.bounds_bottom - self.bounds_top < self.viewport_h / self.desired_scale / self.scale then
-        self.bounds_bottom = self.bounds_top + self.viewport_h / self.scale / self.desired_scale
+    if self.bounds_bottom - self.bounds_top < self.viewport_h / self.scale then
+        self.bounds_bottom = self.bounds_top + self.viewport_h / self.scale
         -- self.bounds_top = self.bounds_bottom - self.viewport_h / self.scale / self.desired_scale
     end
 end
@@ -1243,9 +1261,9 @@ function Camera:update(dt)
     -- px, py = self:screen_to_world(self.x, self.y)
 
     -- --===================================
-    local px = clamp(self.x, self.bounds_left, self.bounds_right - self.viewport_w / self.desired_scale / self.scale)
+    local px = clamp(self.x, self.bounds_left, self.bounds_right - self.viewport_w / self.scale)
 
-    local py = clamp(self.y, self.bounds_top, self.bounds_bottom - self.viewport_h / self.desired_scale / self.scale)
+    local py = clamp(self.y, self.bounds_top, self.bounds_bottom - self.viewport_h / self.scale)
 
     self.x = round(px)
     self.y = round(py)
@@ -1362,21 +1380,23 @@ local function debbug(self)
         Font:print(state,
             vx + border_len + 2,
             vy + vh - border_len - 20)
+
+        -- Font:print(tostring(math.huge - 100), vx + 100, vy + 100)
         Font.current:pop()
 
-        -- -- Showing the message DEBUG MODE
-        -- Font.current:push()
-        -- Font.current:set_font_size(8)
-        -- -- self.phrase_debug = self.phrase_debug or
-        -- --     Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
-        -- -- local fr = self.phrase_debug
-        -- -- fr.__bounds.right = math.huge
-        -- -- fr:draw(
-        -- --     vx + vw - border_len - fr:width() - 10,
-        -- --     vy + border_len + 10,
-        -- --     "left"
-        -- -- )
-        -- Font.current:pop()
+        -- Showing the message DEBUG MODE
+        Font.current:push()
+        Font.current:set_font_size(8)
+        self.phrase_debug = self.phrase_debug or
+            Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
+        local fr = self.phrase_debug
+        fr.__bounds.right = math.huge
+        fr:draw(
+            vx + vw - border_len - fr:width() - 10,
+            vy + border_len + 10,
+            "left"
+        )
+        Font.current:pop()
     end
 end
 
@@ -1388,10 +1408,10 @@ function Camera:attach(lock_shake, subpixel)
     local x, y, w, h = self:get_viewport()
 
     if subpixel then
-        x = (x / self.desired_scale) * subpixel
-        y = (y / self.desired_scale) * subpixel
-        h = (h / self.desired_scale) * subpixel
-        w = (w / self.desired_scale) * subpixel
+        x = x * subpixel
+        y = y * subpixel
+        h = h * subpixel
+        w = w * subpixel
     end
 
     love_set_scissor(x, y, w, h)
@@ -1405,9 +1425,9 @@ function Camera:attach(lock_shake, subpixel)
     local shake_y = (not lock_shake and self.shaking_in_y and self.shake_offset_y) or 0
 
     love_translate(
-        -self.x + (self.viewport_x / self.desired_scale / self.scale)
+        -self.x + (self.viewport_x / self.scale)
         + shake_x,
-        -self.y + (self.viewport_y / self.desired_scale / self.scale)
+        -self.y + (self.viewport_y / self.scale)
         + shake_y
     )
 end
@@ -1490,10 +1510,10 @@ function Camera:scissor_transform(x, y, w, h)
 
     --- The object scissor
     local sx, sy, sw, sh =
-        (self.viewport_x / self.desired_scale / self.scale - self.x + x) * self.scale * self.desired_scale,
-        (self.viewport_y / self.desired_scale / self.scale - self.y + y) * self.scale * self.desired_scale,
-        w * self.scale * self.desired_scale,
-        h * self.scale * self.desired_scale
+        (self.viewport_x / self.scale - self.x + x) * self.scale,
+        (self.viewport_y / self.scale - self.y + y) * self.scale,
+        w * self.scale,
+        h * self.scale
 
     local rx = clamp(sx, cx, cx + cw)
     local ry = clamp(sy, cy, cy + ch)
@@ -1512,8 +1532,8 @@ function Camera:get_state()
 
     left, top = self:screen_to_world(self.bounds_left, self.bounds_top)
     right, bottom = self:screen_to_world(
-        self.bounds_right - (self.viewport_w) / self.scale / self.desired_scale,
-        self.bounds_bottom - (self.viewport_h) / self.scale / self.desired_scale
+        self.bounds_right - (self.viewport_w) / self.scale,
+        self.bounds_bottom - (self.viewport_h) / self.scale
     )
     px, py = self:screen_to_world(self.x, self.y)
 
