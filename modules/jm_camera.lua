@@ -55,18 +55,18 @@ end
 local function chase_target(self, dt, chase_x_axis, chase_y_axis)
     local reach_objective_x, reach_objective_y = not chase_x_axis, not chase_y_axis
 
-    -- Hello World
-
     if self.target then
         --
         if self.catch_target_x then
-            self:set_position(self.target.x)
+            --self:set_position(self.target.x)
+            self.x = round(self.target.x)
         else
             self.catch_target_x = false
         end
 
         if self.catch_target_y then
-            self:set_position(nil, self.target.y)
+            -- self:set_position(nil, self.target.y)
+            self.y = round(self.target.y)
         else
             self.catch_target_y = false
         end
@@ -580,6 +580,8 @@ end
 
 ---@param self JM.Camera.Camera
 local function show_border(self)
+    if self.border_color[4] == 0 then return end
+
     -- Drawind a border in the camera's viewport
     love_set_color(self.border_color)
 
@@ -1261,15 +1263,19 @@ function Camera:update(dt)
     -- px, py = self:screen_to_world(self.x, self.y)
 
     -- --===================================
+    self:keep_on_bounds()
+
+    self.dx = self.x - last_x
+    self.dy = self.y - last_y
+end
+
+function Camera:keep_on_bounds()
     local px = clamp(self.x, self.bounds_left, self.bounds_right - self.viewport_w / self.scale)
 
     local py = clamp(self.y, self.bounds_top, self.bounds_bottom - self.viewport_h / self.scale)
 
     self.x = round(px)
     self.y = round(py)
-
-    self.dx = self.x - last_x
-    self.dy = self.y - last_y
 end
 
 ---@param duration any
@@ -1387,15 +1393,15 @@ local function debbug(self)
         -- Showing the message DEBUG MODE
         Font.current:push()
         Font.current:set_font_size(8)
-        self.phrase_debug = self.phrase_debug or
-            Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
-        local fr = self.phrase_debug
-        fr.__bounds.right = math.huge
-        fr:draw(
-            vx + vw - border_len - fr:width() - 10,
-            vy + border_len + 10,
-            "left"
-        )
+        -- self.phrase_debug = self.phrase_debug or
+        --     Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
+        -- local fr = self.phrase_debug
+        -- fr.__bounds.right = math.huge
+        -- fr:draw(
+        --     vx + vw - border_len - fr:width() - 10,
+        --     vy + border_len + 10,
+        --     "left"
+        -- )
         Font.current:pop()
     end
 end

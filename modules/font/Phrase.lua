@@ -189,8 +189,8 @@ local results_get_lines = setmetatable({}, { __mode = 'k' })
 
 ---@return table
 function Phrase:get_lines(x)
-    -- local key = string.format("%d %d", x, self.__font.__font_size)
-    local key = string.format("%d", self.__bounds.right - x)
+    local key = string.format("%d %d", x, self.__font.__font_size)
+    -- local key = string.format("%d", self.__bounds.right - x)
     local result = results_get_lines[self] and results_get_lines[self][key]
     if result then return result end
 

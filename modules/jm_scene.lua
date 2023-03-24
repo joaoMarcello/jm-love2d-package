@@ -18,6 +18,7 @@ local love_mouse_position = love.mouse.getPosition
 local math_abs, math_min, math_floor = math.abs, math.min, math.floor
 local love_get_scissor = love.graphics.getScissor
 local love_set_scissor = love.graphics.setScissor
+local love_rect = love.graphics.rectangle
 
 ---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean}
 
@@ -32,24 +33,11 @@ local function round(value)
     end
 end
 
--- ---@param self JM.Scene
--- local function to_world(self, x, y, camera)
---     x = x / self.scale_x
---     y = y / self.scale_y
-
---     x = x - self.x
---     y = y - self.y
-
---     return x - camera.viewport_x, y - camera.viewport_y
--- end
-
 ---@param self  JM.Scene
 local function draw_tile(self)
     local tile, qx, qy
-    -- local ds = math.min((self.w - self.x) / self.screen_w, (self.h - self.y) / (self.screen_h))
-    local ds = self.canvas_scale * self.subpixel / 2
 
-    tile = self.tile_size_x * 4 * self.camera.scale * ds
+    tile = self.tile_size_x * 4 * self.camera.scale
     qx = (self.w - self.x) / tile
     qy = (self.h - self.y) / tile
 
@@ -57,11 +45,11 @@ local function draw_tile(self)
     set_color_draw(0.9, 0.9, 0.9, 0.3)
 
     for i = 0, qx, 2 do
-        local x = self.x + tile * i --+ self.offset_x
+        local x = tile * i
 
         for j = 0, qy, 2 do
-            love.graphics.rectangle("fill", x, self.y * 0 + tile * j, tile, tile)
-            love.graphics.rectangle("fill", x + tile, self.y * 0 + tile * j + tile, tile, tile)
+            love_rect("fill", x, tile * j, tile, tile)
+            love_rect("fill", x + tile, tile * j + tile, tile, tile)
         end
     end
 end
