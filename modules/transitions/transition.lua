@@ -1,5 +1,26 @@
+--- Euler's number
+local E = 2.718281828459
+local function sigmoid(x)
+    return 1.0 / (1.0 + (E ^ (-x)))
+end
+
+---@return number
+local function tanh(x)
+    local E_x = E ^ x
+    local E_minus_x = E ^ (-x)
+
+    return (E_x - E_minus_x) / (E_x + E_minus_x)
+end
+
 ---@class JM.Transition
-local Transition = {}
+local Transition = {
+    E = E,
+    sigmoid = sigmoid,
+    tanh = tanh,
+    clamp = function(value, A, B)
+        return math.min(math.max(value, A), B)
+    end
+}
 Transition.__index = Transition
 
 function Transition:new(args, x, y, w, h)
