@@ -404,8 +404,8 @@ function Scene:add_transition(type_, mode, config, camera)
     if Tran then
         local x, y, w, h = (camera or self:get_camera("main")):get_viewport()
         config.subpixel = self.subpixel
-        config.anima = JM_Anima:new { img = '/data/image/baiacu.png' }
-        config.anima:apply_effect("clockWise", { speed = 3 })
+        -- config.anima = JM_Anima:new { img = '/data/image/baiacu.png' }
+        -- config.anima:apply_effect("clockWise", { speed = 3 })
 
         local transition = Tran:new(config, x, y, w, h)
 
