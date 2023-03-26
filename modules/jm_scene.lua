@@ -20,6 +20,8 @@ local love_get_scissor = love.graphics.getScissor
 local love_set_scissor = love.graphics.setScissor
 local love_rect = love.graphics.rectangle
 
+local SceneManager = _G.JM_SceneManager
+
 ---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean}
 
 local function round(value)
@@ -73,7 +75,12 @@ end
 ---@field touchpressed function
 ---@field touchreleased function
 ---@field touchmoved function
-local Scene = {}
+local Scene = {
+    ---@param config JM.GameState.Config
+    change_gamestate = function(self, new_state, config)
+        SceneManager:change_gamestate(new_state, config)
+    end,
+}
 Scene.__index = Scene
 
 ---@param self JM.Scene
@@ -100,6 +107,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     -- the dispositive's screen dimensions
     self.dispositive_w = love.graphics.getWidth()
     self.dispositive_h = love.graphics.getHeight()
+
+    self.prev_state = nil
 
     -- the scene position coordinates
     self.x = x or 0
@@ -374,7 +383,7 @@ local function fadein_out_draw(self, color, time, duration, fadein)
     love.graphics.rectangle("fill", 0, 0, self.dispositive_w, self.dispositive_h)
 end
 
-function Scene:add_transition(type_, mode, config, camera)
+function Scene:add_transition(type_, mode, config, action, endAction, camera)
     type_ = type_ or "fade"
     mode = mode or "out"
     config = config or {}
@@ -406,11 +415,13 @@ function Scene:add_transition(type_, mode, config, camera)
         config.subpixel = self.subpixel
         -- config.anima = JM_Anima:new { img = '/data/image/baiacu.png' }
         -- config.anima:apply_effect("clockWise", { speed = 3 })
-
         local transition = Tran:new(config, x, y, w, h)
 
         ---@type JM.Transition
         self.transition = transition
+
+        self.trans_action = action
+        self.trans_end_action = endAction
 
         return transition
     end
@@ -588,12 +599,17 @@ function Scene:implements(param)
 
         if self.transition then
             self.transition:__update__(dt)
+            local r = self.trans_action and self.trans_action(dt)
 
-            local r = not self.transition:is_paused()
+            r = not self.transition:is_paused()
                 and self.transition:update(dt)
 
-            if self.transition:is_mode_in() and self.transition:finished() then
+            if self.transition:finished() then
                 self.transition = nil
+                self.trans_action = nil
+                r = self.trans_end_action and self.trans_end_action(dt)
+                self.trans_end_action = nil
+                return
             end
 
             if self.transition and self.transition.pause_scene then

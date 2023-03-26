@@ -1,25 +1,16 @@
----@class JM.GameState: JM.Scene
----@field load function
----@field init function
----@field finish function
----@field update function
----@field draw function
----@field keypressed function
----@field prev_state JM.GameState|nil
-
 ---@alias JM.GameState.Config {skip_finish:boolean, skip_load:boolean, save_prev:boolean, skip_collect:boolean, skip_init:boolean, skip_transition:boolean, transition:string, transition_conf:table}
 
----@type JM.GameState
+---@type JM.Scene
 local scene
 
 ---@class JM.SceneManager
 local Manager = {}
+Manager.__index = Manager
 
 function Manager:get_scene()
     return scene
 end
 
----@param new_state JM.GameState
 ---@param conf JM.GameState.Config|any
 function Manager:change_gamestate(new_state, conf)
     conf = conf or {}
@@ -42,7 +33,7 @@ function Manager:change_gamestate(new_state, conf)
     return r
 end
 
----@param state JM.GameState
+---@param state JM.Scene
 function Manager:restart_gamestate(state)
     return self:change_gamestate(state, {
         skip_finish = true,
@@ -50,7 +41,7 @@ function Manager:restart_gamestate(state)
     })
 end
 
----@param state JM.GameState
+---@param state JM.Scene
 function Manager:pause_gamestate(state)
     self:change_gamestate(state, {
         skip_finish = true,

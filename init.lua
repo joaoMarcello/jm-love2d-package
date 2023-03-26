@@ -30,6 +30,10 @@ JM_Font = JM.Font
 ---@type JM.Camera.Camera
 JM.Camera = require(string.gsub(path, "init", "modules.jm_camera"))
 
+---@type JM.SceneManager
+JM.SceneManager = require(string.gsub(path, "init", "modules.jm_scene_manager"))
+JM_SceneManager = JM.SceneManager
+
 ---@type JM.Scene
 JM.Scene = require(string.gsub(path, "init", "modules.jm_scene"))
 
@@ -48,9 +52,6 @@ JM.TileSet = require(string.gsub(path, "init", "modules.tile.tile_set"))
 ---@type JM.TileMap
 JM.TileMap = require(string.gsub(path, "init", "modules.tile.tile_map"))
 
----@type JM.SceneManager
-JM.SceneManager = require(string.gsub(path, "init", "modules.jm_scene_manager"))
-JM_SceneManager = JM.SceneManager
 
 function JM:update(dt)
     self.Sound:update(dt)
