@@ -789,7 +789,7 @@ function Camera:__constructor__(
     self.type = type_ or CAMERA_TYPES.SuperMarioWorld
     self:set_type(self.type)
 
-    self.debug = true
+    self.debug = false
     self.debug_msg_rad = 0
     self.debug_trgt_rad = 0
     self.debug_color = {}
@@ -797,7 +797,7 @@ function Camera:__constructor__(
 
     self.show_world_boundary = show_world_bounds or self.debug
     self.show_focus = false or self.debug
-    self.border_color = border_color or { 1, 0, 0, 1 }
+    self.border_color = border_color --or { 1, 0, 0, 1 }
     self.is_showing_grid = self.debug or false
     self.grid_desired_tile = self.tile_size * 1
 
@@ -1424,7 +1424,6 @@ function Camera:attach(lock_shake, subpixel)
 
     love_push()
     love_scale(self.scale)
-    -- love_scale(self.desired_scale, self.desired_scale)
 
     local shake_x = (not lock_shake and self.shaking_in_x and self.shake_offset_x) or 0
 
@@ -1439,17 +1438,7 @@ function Camera:attach(lock_shake, subpixel)
 end
 
 function Camera:detach()
-    -- local r
-    -- r = (self.is_showing_grid and show_grid) and draw_grid(self)
-    -- r = (self.show_world_boundary and show_bounds) and draw_bounds(self)
     love_pop()
-
-    -- if show_bounds then
-    --     if self.debug then debbug(self) end
-    --     r = self.show_focus and show_focus(self)
-    --     r = self.border_color and show_border(self)
-    -- end
-
     love_set_scissor()
 end
 
@@ -1476,7 +1465,7 @@ end
 
 -- Used after attach and before detach
 function Camera:draw_info()
-    local r = self.border_color and show_border(self)
+    local r = self.border_color --and show_border(self)
     r = self.debug and debbug(self)
     r = self.show_focus and show_focus(self)
 end

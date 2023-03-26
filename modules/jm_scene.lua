@@ -161,7 +161,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
             --
             tile_size = self.tile_size_x,
             color = { 43 / 255, 78 / 255, 108 / 255, 1 },
-            border_color = { 1, 1, 0, 1 },
+            border_color = conf.cam_border_color or nil, -- { 1, 1, 0, 1 },
             --
             --
             scale = conf.cam_scale or 1,
@@ -487,7 +487,9 @@ local function generic(callback)
     result =
     ---@param scene JM.Scene
         (function(scene, ...)
-            if scene.time_pause or scene.fadeout_time then
+            if scene.time_pause or scene.fadeout_time
+                or (scene.transition and scene.transition.pause_scene)
+            then
                 return
             end
 

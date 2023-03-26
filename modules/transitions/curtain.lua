@@ -18,21 +18,21 @@ end
 
 function Curtain:__constructor__(args)
     self.color = Utils:get_rgba(0, 0, 0, 1)
-    self.rad = 0 --math.pi / 2
-    self.speed = args.duration or 0.8
+    self.rad = -self.E --math.pi / 2
+    self.speed = args.duration or 1
     self.direction = 1
 
     if not self.mode_out then
-        self.rad = self.E
+        self.rad = 3.0
         self.direction = -1
-        self.speed = args.duration or 0.7
+        self.speed = args.duration or 1
     end
 
     self.axis = args.axis or "x"
     self.left_to_right = args.type == "left-right"
     self.up_to_down = args.type == "up-down"
 
-    self.mult = self.tanh(self.rad)
+    self.mult = self.tanh(self.rad) + 0.007
 end
 
 function Curtain:finished()
@@ -44,8 +44,11 @@ function Curtain:finished()
 end
 
 function Curtain:update(dt)
-    self.rad = self.rad + ((self.E) / self.speed) * dt * self.direction
-    self.mult = self.tanh(self.rad) + 0.007
+    self.rad = self.rad + (6.0 / self.speed) * dt * self.direction
+    local tanh = self.tanh(self.rad) + 0.007 + 1
+    local mult = tanh / 2.0
+
+    self.mult = mult --self.tanh(self.rad) + 0.007
     self.mult = self.clamp(self.mult, 0, 1)
 end
 
@@ -93,7 +96,8 @@ function Curtain:draw()
     end
 
     -- local font = JM_Font
-    -- font:print(self:finished(), 100, 100)
+    -- font:print("<color, 1, 1, 1>tanh: " .. self.tanh(self.rad), 100, 200)
+    -- font:print("<color, 1, 1, 1>rad: " .. self.rad, 100, 250)
 end
 
 return Curtain
