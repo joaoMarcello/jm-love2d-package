@@ -6,8 +6,8 @@ end
 
 ---@return number
 local function tanh(x)
-    local E_x = E ^ x
-    local E_minus_x = E ^ (-x)
+    -- local E_x = E ^ x
+    -- local E_minus_x = E ^ (-x)
     local E_2x = E ^ (2 * x)
 
     -- return (E_x - E_minus_x) / (E_x + E_minus_x)

@@ -25,12 +25,12 @@ function Curtain:__constructor__(args)
     if not self.mode_out then
         self.rad = 3.0
         self.direction = -1
-        self.speed = args.duration or 1
+        self.speed = args.duration or 0.6
     end
 
     self.axis = args.axis or "x"
     self.left_to_right = args.type == "left-right"
-    self.up_to_down = args.type == "up-down"
+    self.up_to_down = args.type == "top-bottom" or args.type == "up-down"
 
     self.mult = self.tanh(self.rad) + 0.007
 end

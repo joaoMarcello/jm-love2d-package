@@ -408,6 +408,8 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
         Tran = require "jm-love2d-package.modules.transitions.stripe"
     elseif type_ == "curtain" then
         Tran = require "jm-love2d-package.modules.transitions.curtain"
+    elseif type_ == "diamond" then
+        Tran = require "jm-love2d-package.modules.transitions.diamond"
     end
 
     if Tran then
