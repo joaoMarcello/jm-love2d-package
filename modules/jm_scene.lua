@@ -159,7 +159,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
             desired_canvas_h = self.screen_h,
             --
             --
-            tile_size = self.tile_size_x,
+            tile_size = conf.cam_tile or self.tile_size_x,
             color = { 43 / 255, 78 / 255, 108 / 255, 1 },
             border_color = conf.cam_border_color or nil, -- { 1, 1, 0, 1 },
             --

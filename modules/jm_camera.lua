@@ -484,7 +484,7 @@ local function show_focus(self)
     )
 
     local corner_esp = 2
-    local corner_length = 16
+    local corner_length = self.tile_size / 32 * 16
 
     if self:target_on_focus() then
         love_set_color(1, 1, 1, 1)
@@ -547,7 +547,7 @@ local function show_focus(self)
 
 
     love_set_color(0.1, 0.1, 0.1, 1)
-    local len_bar = 16
+    local len_bar = corner_length
     local len_half = len_bar / 2
 
     -- Deadzone Right-Middle
