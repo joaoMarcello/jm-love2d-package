@@ -582,22 +582,24 @@ end
 local function show_border(self)
     if self.border_color[4] == 0 then return end
 
+    local len = 2
+
     -- Drawind a border in the camera's viewport
     love_set_color(self.border_color)
 
     local vx, vy, vw, vh = self:get_viewport_in_world_coord()
 
     -- left
-    love_rect("fill", vx, vy, 3, vh)
+    love_rect("fill", vx, vy, len, vh)
 
     -- Right
-    love_rect("fill", vx + vw - 3, vy, 3, vh)
+    love_rect("fill", vx + vw - len, vy, len, vh)
 
     -- Top
-    love_rect("fill", vx, vy, vw, 3)
+    love_rect("fill", vx, vy, vw, len)
 
     -- -- Bottom
-    love_rect("fill", vx, vy + vh - 3, vw, 3)
+    love_rect("fill", vx, vy + vh - len, vw, len)
 end
 
 ---@param self JM.Camera.Camera
@@ -1451,23 +1453,22 @@ end
 
 -- Used after attach and before detach
 function Camera:draw_grid()
-    if self.is_showing_grid then
-        draw_grid(self)
-    end
+
 end
 
 -- Used after attach and before detach
 function Camera:draw_world_bounds()
-    if self.show_world_boundary then
-        draw_bounds(self)
-    end
+
 end
 
 -- Used after attach and before detach
 function Camera:draw_info()
-    local r = self.border_color --and show_border(self)
+    local r
+    r = self.is_showing_grid and draw_grid(self)
+    r = self.show_world_boundary and draw_bounds(self)
     r = self.debug and debbug(self)
     r = self.show_focus and show_focus(self)
+    r = self.border_color and show_border(self)
 end
 
 function Camera:toggle_grid()

@@ -249,8 +249,8 @@ function Scene:add_camera(config, name)
 
     self.amount_cameras = self.amount_cameras + 1
 
-    local w = (self.w - self.x - camera.viewport_w) / 2
-    if name ~= "main" then w = 0 end
+    -- local w = (self.w - self.x - camera.viewport_w) / 2
+    -- if name ~= "main" then w = 0 end
 
     -- camera.viewport_x = camera.viewport_x + (self.x + w)
     -- camera.viewport_y = camera.viewport_y + (self.y)
@@ -415,7 +415,13 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
     end
 
     if Tran then
-        local x, y, w, h = (camera or self:get_camera("main")):get_viewport()
+        local x, y, w, h
+        if camera then
+            x, y, w, h = camera:get_viewport()
+        else
+            x, y, w, h = self.x, self.y, self.screen_w, self.screen_h
+        end
+
         config.subpixel = self.subpixel
         -- config.anima = JM_Anima:new { img = '/data/image/baiacu.png' }
         -- config.anima:apply_effect("clockWise", { speed = 3 })
@@ -761,8 +767,6 @@ function Scene:implements(param)
 
                     local condition = not param.draw and i == self.n_layers
                     if condition then
-                        camera:draw_grid()
-                        camera:draw_world_bounds()
                         camera:draw_info()
                     end
 
@@ -781,8 +785,6 @@ function Scene:implements(param)
 
                 r = param.draw and param.draw(camera)
 
-                camera:draw_grid()
-                camera:draw_world_bounds()
                 camera:draw_info()
 
                 camera:detach()
