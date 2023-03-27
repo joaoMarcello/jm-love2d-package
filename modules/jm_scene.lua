@@ -179,28 +179,27 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
         self.camera = self:add_camera(config, "main")
 
-        self.offset_x = (self.w - self.x - self.camera.viewport_w) / 2.0
-        self.offset_y = (self.h - self.y - self.camera.viewport_h) / 2
+        self.offset_x = 0
+        self.offset_y = 0
     end
 
 
-    self.n_layers                   = 0
-    self.shader                     = nil
+    self.n_layers     = 0
+    self.shader       = nil
 
     -- used when scene is in frame skip mode
-    self.__skip                     = nil
+    self.__skip       = nil
 
-    self.subpixel                   = conf.subpixel or 4
-    self.canvas                     = create_canvas(
+    self.subpixel     = conf.subpixel or 4
+
+    self.canvas       = create_canvas(
         self.screen_w,
         self.screen_h,
         conf.canvas_filter or 'linear',
         self.subpixel
     )
 
-    local canvasWidth, canvasHeight = self.canvas:getDimensions()
-
-    self.canvas_scale               = math.min((self.w - self.x) / canvasWidth, (self.h - self.y) / canvasHeight)
+    self.canvas_scale = 1
 
     self:implements {}
 
@@ -419,7 +418,7 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
         if camera then
             x, y, w, h = camera:get_viewport()
         else
-            x, y, w, h = self.x, self.y, self.screen_w, self.screen_h
+            x, y, w, h = 0, 0, self.screen_w, self.screen_h
         end
 
         config.subpixel = self.subpixel
@@ -807,11 +806,6 @@ function Scene:implements(param)
         love_draw(self.canvas, self.x + self.offset_x, self.y + self.offset_y, 0, self.canvas_scale)
         set_blend_mode("alpha")
 
-        set_color_draw(1, 1, 1, 1)
-        love.graphics.rectangle('line', self.x, self.y, self.w - self.x, self.h - self.y)
-
-
-
         -- love.graphics.setScissor(self.x,
         --     math_abs(self.h - self.dispositive_h),
         --     self.w, self.h
@@ -838,6 +832,9 @@ function Scene:implements(param)
         end
 
         love_set_scissor(sx, sy, sw, sh)
+
+        set_color_draw(1, 1, 1, 1)
+        love.graphics.rectangle('line', self.x, self.y, self.w - self.x, self.h - self.y)
     end
 
     self.mousepressed = function(self, x, y, button, istouch, presses)
