@@ -17,22 +17,24 @@ function Curtain:new(args, x, y, w, h)
 end
 
 function Curtain:__constructor__(args)
-    self.color = Utils:get_rgba(0, 0, 0, 1)
-    self.rad = -self.E --math.pi / 2
+    self.color = args.color or Utils:get_rgba(0, 0, 0, 1)
+    self.type2 = args.change
+    self.rad = self.type2 and 0 or (-self.E)
     self.speed = args.duration or 1
     self.direction = 1
+    self.len_domain = self.type2 and 3 or 6
 
     if not self.mode_out then
-        self.rad = 3.0
+        self.rad = 3
         self.direction = -1
-        self.speed = args.duration or 0.6
+        self.speed = args.duration or 1
     end
 
     self.axis = args.axis or "x"
     self.left_to_right = args.type == "left-right"
     self.up_to_down = args.type == "top-bottom" or args.type == "up-down"
 
-    self.mult = self.tanh(self.rad) + 0.007
+    self.mult = self:get_mult()
 end
 
 function Curtain:finished()
@@ -43,13 +45,17 @@ function Curtain:finished()
     end
 end
 
-function Curtain:update(dt)
-    self.rad = self.rad + (6.0 / self.speed) * dt * self.direction
-    local tanh = self.tanh(self.rad) + 0.007 + 1
-    local mult = tanh / 2.0
+function Curtain:get_mult()
+    if self.type2 then
+        return self.clamp(self.tanh(self.rad) + 0.007, 0, 1)
+    end
+    return self.clamp((self.tanh(self.rad) + 1.007) / 2.0, 0, 1)
+end
 
-    self.mult = mult --self.tanh(self.rad) + 0.007
-    self.mult = self.clamp(self.mult, 0, 1)
+function Curtain:update(dt)
+    self.rad = self.rad + (self.len_domain / self.speed) * dt * self.direction
+
+    self.mult = self:get_mult()
 end
 
 function Curtain:draw()

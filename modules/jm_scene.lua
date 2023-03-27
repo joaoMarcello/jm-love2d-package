@@ -203,6 +203,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.canvas_scale               = math.min((self.w - self.x) / canvasWidth, (self.h - self.y) / canvasHeight)
 
     self:implements {}
+
+    self:calc_canvas_scale()
 end
 
 ---@param config table
@@ -429,6 +431,18 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
     end
 end
 
+function Scene:calc_canvas_scale()
+    local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
+    local canvasWidth, canvasHeight = self.canvas:getDimensions()
+    self.canvas_scale               = math_min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+
+    local canvasWidthScaled         = canvasWidth * self.canvas_scale
+    local canvasHeightScaled        = canvasHeight * self.canvas_scale
+
+    self.offset_x                   = math_floor((windowWidth - canvasWidthScaled) / 2)
+    self.offset_y                   = math_floor((windowHeight - canvasHeightScaled) / 2)
+end
+
 ---@param skip integer
 ---@param duration number|nil
 ---@param on_skip_action function|nil
@@ -577,17 +591,7 @@ function Scene:implements(param)
     end
 
     self.update = function(self, dt)
-        do
-            local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
-            local canvasWidth, canvasHeight = self.canvas:getDimensions()
-            self.canvas_scale               = math_min(windowWidth / canvasWidth, windowHeight / canvasHeight)
-
-            local canvasWidthScaled         = canvasWidth * self.canvas_scale
-            local canvasHeightScaled        = canvasHeight * self.canvas_scale
-
-            self.offset_x                   = math_floor((windowWidth - canvasWidthScaled) / 2)
-            self.offset_y                   = math_floor((windowHeight - canvasHeightScaled) / 2)
-        end
+        self:calc_canvas_scale()
 
         if self.time_pause then
             self.time_pause = self.time_pause - dt
@@ -608,15 +612,17 @@ function Scene:implements(param)
             r = not self.transition:is_paused()
                 and self.transition:update(dt)
 
+            if self.transition and self.transition.pause_scene
+                and not self.transition:finished()
+            then
+                return
+            end
+
             if self.transition:finished() then
                 self.transition = nil
                 self.trans_action = nil
                 r = self.trans_end_action and self.trans_end_action(dt)
                 self.trans_end_action = nil
-                return
-            end
-
-            if self.transition and self.transition.pause_scene then
                 return
             end
         end

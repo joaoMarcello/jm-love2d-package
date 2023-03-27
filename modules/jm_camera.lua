@@ -1496,12 +1496,19 @@ function Camera:toggle_world_bounds()
     end
 end
 
-function Camera:scissor_transform(x, y, w, h)
+function Camera:scissor_transform(x, y, w, h, subpixel)
+    subpixel = subpixel or 1
+
     -- Camera's default scissor
     local cx, cy, cw, ch = self.viewport_x,
         self.viewport_y,
         self.viewport_w,
         self.viewport_h
+
+    cx = cx * subpixel
+    cy = cy * subpixel
+    cw = cw * subpixel
+    ch = ch * subpixel
 
     --- The object scissor
     local sx, sy, sw, sh =
@@ -1509,6 +1516,11 @@ function Camera:scissor_transform(x, y, w, h)
         (self.viewport_y / self.scale - self.y + y) * self.scale,
         w * self.scale,
         h * self.scale
+
+    sx = sx * subpixel
+    sy = sy * subpixel
+    sw = sw * subpixel
+    sh = sh * subpixel
 
     local rx = clamp(sx, cx, cx + cw)
     local ry = clamp(sy, cy, cy + ch)

@@ -19,7 +19,6 @@ Affectable.__index = Affectable
 
 ---@param obj_draw function|nil
 function Affectable:new(obj_draw)
-
     local obj = {}
     self.__index = self
     setmetatable(obj, self)

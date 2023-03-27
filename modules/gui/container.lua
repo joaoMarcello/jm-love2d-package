@@ -21,11 +21,8 @@ local INSERT_MODE = {
 local Container = setmetatable({}, Component)
 Container.__index = Container
 
-
----@return JM.GUI.Container|JM.GUI.Component
+---@return JM.GUI.Container
 function Container:new(args)
-
-    ---@type JM.GUI.Container|JM.GUI.Component
     local obj = Component:new(args)
     self.__index = self
     setmetatable(obj, self)
@@ -38,7 +35,7 @@ end
 ---@param args {scene: JM.Scene, type: string, mode: string, grid_x:number, grid_y: number}
 function Container:__constructor__(args)
     args = args or {}
-    self.Game = args.scene
+    self.scene = args.scene
     self.components = {}
     self.space_vertical = 15
     self.space_horizontal = 15
@@ -79,11 +76,10 @@ end
 
 function Container:update(dt)
     for i = #(self.components), 1, -1 do
-
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
-        if gc.remove_ then
+        if gc.__remove then
             table.remove(self.components, i)
         else
             local r = gc.is_enable and gc:update(dt)
@@ -96,7 +92,7 @@ function Container:mouse_pressed(x, y)
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
-        local r = gc.is_enable and not gc.remove_
+        local r = gc.is_enable and not gc.__remove
             and gc:mouse_pressed(x, y)
     end
 end
@@ -106,7 +102,7 @@ function Container:mouse_released(x, y)
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
-        local r = gc.is_enable and not gc.remove_
+        local r = gc.is_enable and not gc.__remove
             and gc:mouse_released(x, y)
     end
 end
@@ -116,7 +112,7 @@ function Container:key_pressed(key, scancode, isrepeat)
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
-        local r = gc.is_enable and not gc.remove_
+        local r = gc.is_enable and not gc.__remove
             and gc:key_pressed(key, scancode, isrepeat)
     end
 end
@@ -126,7 +122,7 @@ function Container:key_released(key, scancode)
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
-        local r = gc.is_enable and not gc.remove_
+        local r = gc.is_enable and not gc.__remove
             and gc:key_released(key, scancode)
     end
 end
@@ -135,7 +131,7 @@ end
 function Container:draw(camera)
     local sx, sy, sw, sh = love_get_scissor()
 
-    local sx1, sy1, sw1, sh1 = camera:scissor_transform(self:rect())
+    local sx1, sy1, sw1, sh1 = camera:scissor_transform(self.x, self.y, self.w, self.h, self.scene.subpixel)
 
     love_set_scissor(sx1, sy1, sw1, sh1)
 
@@ -148,7 +144,7 @@ function Container:draw(camera)
             or gc.bottom < self.y - 20
             or gc.y > self.bottom + 20
 
-        local r = gc.is_visible and not gc.remove_ and not out_of_limits
+        local r = gc.is_visible and not gc.__remove and not out_of_limits
             and gc:draw()
     end
 
@@ -162,13 +158,11 @@ function Container:draw(camera)
         love_rectangle("line", self.x + self.border_x, self.y + self.border_y, self.w - self.border_x * 2,
             self.h - self.border_y * 2)
     end
-
 end
 
 ---@param obj JM.GUI.Component
 ---@return JM.GUI.Component
 function Container:add(obj)
-
     self.total_width = self.total_width or 0
     self.total_height = self.total_height or 0
 
@@ -203,9 +197,9 @@ function Container:set_type(type_, mode, grid_x, grid_y)
             self:refresh_pos_grid(grid_y, grid_x)
         end
     else -- free position
-
         ---@diagnostic disable-next-line: duplicate-set-field
-        self.__add_behavior__ = function() end
+        self.__add_behavior__ = function()
+        end
     end
 end
 
@@ -230,10 +224,8 @@ function Container:refresh_positions_y(mode)
         local px = gc.x
         if mode == INSERT_MODE.left then
             px = x
-
         elseif mode == INSERT_MODE.right then
             px = x + w - gc.w
-
         elseif mode == INSERT_MODE.center then
             px = self.x + self.border_x
                 + (self.w - self.border_x * 2) / 2
