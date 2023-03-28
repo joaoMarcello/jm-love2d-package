@@ -1067,6 +1067,8 @@ function Camera:follow(x, y, name)
         target_distance_y,
         target_distance_x
     )
+
+    return self.target
 end
 
 function Camera:target_on_focus()

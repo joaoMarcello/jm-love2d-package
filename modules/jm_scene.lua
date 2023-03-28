@@ -139,8 +139,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
             -- camera's viewport in desired game screen coordinates
             x = 0,
             y = 0,
-            w = self.screen_w - self.x * 0,
-            h = self.screen_h - self.y * 0,
+            w = self.screen_w,
+            h = self.screen_h,
             --
             -- world bounds
             bounds = {
@@ -169,7 +169,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
             --
             --
             show_grid = conf.cam_show_grid or false,
-            grid_tile_size = self.tile_size_x * 2,
+            grid_tile_size = (conf.cam_tile or self.tile_size_x) * 2,
             --
             show_world_bounds = conf.cam_show_world_bounds or false
         }
@@ -583,10 +583,14 @@ function Scene:implements(param)
 
         for i = 1, self.n_layers, 1 do
             local layer = param.layers[i]
+
             layer.x = layer.x or 0
             layer.y = layer.y or 0
-            layer.factor_y = layer.factor_y or 0
+
             layer.factor_x = layer.factor_x or 0
+            layer.factor_y = layer.factor_y or 0
+
+            layer.accum = 0
 
             if not layer.name then
                 layer.name = layer.name or ("layer " .. name)
@@ -670,26 +674,21 @@ function Scene:implements(param)
 
         if param.layers then
             for i = 1, self.n_layers, 1 do
-                local layer
-
                 ---@type JM.Scene.Layer
-                layer = param.layers[i]
+                local layer = param.layers[i]
 
                 if layer.update then
                     layer:update(dt)
                 end
-                layer = nil
             end
         end
 
         local r = param.update and param.update(dt)
 
         for i = 1, self.amount_cameras do
-            local camera
             ---@type JM.Camera.Camera
-            camera = self.cameras_list[i]
+            local camera = self.cameras_list[i]
             camera:update(dt)
-            camera = nil
         end
     end
 
@@ -714,7 +713,7 @@ function Scene:implements(param)
         else
             draw_tile(self)
         end
-        love_set_scissor()
+        -- love_set_scissor()
 
         local temp = self.draw_background and self.draw_background()
 
@@ -743,8 +742,10 @@ function Scene:implements(param)
 
                     push()
 
-                    local px = -camera.x * layer.factor_x * (layer.factor_x > 0 and camera.scale or 1)
-                    local py = -camera.y * layer.factor_y * (layer.factor_y > 0 and camera.scale or 1)
+                    local px = -camera.x * layer.factor_x
+                        * (layer.factor_x > 0 and camera.scale or 1)
+                    local py = -camera.y * layer.factor_y
+                        * (layer.factor_y > 0 and camera.scale or 1)
 
                     if layer.fixed_on_ground and layer.top then
                         if layer.top <= camera.y + layer.top then
@@ -757,6 +758,8 @@ function Scene:implements(param)
                             py = 0
                         end
                     end
+
+                    layer.accum = camera.x * layer.factor_x
 
                     translate(round(px), round(py))
 
