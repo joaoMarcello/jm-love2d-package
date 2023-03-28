@@ -764,8 +764,10 @@ function Scene:implements(param)
                     translate(round(px), round(py))
 
                     if layer.infinity_scroll_x then
-                        if layer.accum + camera.x >= self.screen_w then
-                            translate(self.screen_w, 0)
+                        local sum = layer.accum + camera.x
+
+                        if math.abs(sum) >= self.screen_w then
+                            translate(self.screen_w * math.floor(sum / self.screen_w), 0)
                         end
                     end
 
