@@ -22,7 +22,7 @@ local love_rect = love.graphics.rectangle
 
 local SceneManager = _G.JM_SceneManager
 
----@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean}
+---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean}
 
 local function round(value)
     local absolute = math.abs(value)
@@ -759,9 +759,15 @@ function Scene:implements(param)
                         end
                     end
 
-                    layer.accum = camera.x * layer.factor_x
+                    layer.accum = round(camera.x * layer.factor_x)
 
                     translate(round(px), round(py))
+
+                    if layer.infinity_scroll_x then
+                        if layer.accum + camera.x >= self.screen_w then
+                            translate(self.screen_w, 0)
+                        end
+                    end
 
                     r = layer.draw and layer:draw(camera)
 
