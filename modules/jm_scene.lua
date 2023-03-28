@@ -776,6 +776,7 @@ function Scene:implements(param)
                     if layer.infinity_scroll_x then
                         translate(-self.screen_w, 0)
                         r = layer.draw and layer:draw(camera)
+
                         translate(self.screen_w * 2, 0)
                         r = layer.draw and layer:draw(camera)
                     end
