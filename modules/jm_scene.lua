@@ -773,6 +773,13 @@ function Scene:implements(param)
 
                     r = layer.draw and layer:draw(camera)
 
+                    if layer.infinity_scroll_x then
+                        translate(-self.screen_w, 0)
+                        r = layer.draw and layer:draw(camera)
+                        translate(self.screen_w * 2, 0)
+                        r = layer.draw and layer:draw(camera)
+                    end
+
                     pop()
 
                     local condition = not param.draw and i == self.n_layers
