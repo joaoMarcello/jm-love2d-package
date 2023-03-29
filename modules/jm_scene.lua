@@ -698,7 +698,7 @@ function Scene:implements(param)
 
         set_canvas(self.canvas)
 
-        clear_screen(.3, .3, .3)
+        clear_screen(.3, .3, .3, 0)
 
         scale(self.subpixel, self.subpixel)
         set_blend_mode("alpha")
@@ -743,9 +743,9 @@ function Scene:implements(param)
                     push()
 
                     local px = -camera.x * layer.factor_x
-                        * (layer.factor_x > 0 and camera.scale or 1)
+                    -- * (layer.factor_x > 0 and camera.scale or 1)
                     local py = -camera.y * layer.factor_y
-                        * (layer.factor_y > 0 and camera.scale or 1)
+                    -- * (layer.factor_y > 0 and camera.scale or 1)
 
                     if layer.fixed_on_ground and layer.top then
                         if layer.top <= camera.y + layer.top then
@@ -774,11 +774,21 @@ function Scene:implements(param)
                     r = layer.draw and layer:draw(camera)
 
                     if layer.infinity_scroll_x then
-                        translate(-self.screen_w, 0)
-                        r = layer.draw and layer:draw(camera)
+                        local qx = math.floor((self.screen_w / camera.scale) / self.screen_w) + 1
+                        -- qx = qx > 0 and qx or 1
 
-                        translate(self.screen_w * 2, 0)
-                        r = layer.draw and layer:draw(camera)
+                        if math.abs(layer.accum + camera.x)
+                            < self.screen_w
+                        then
+                            translate(-self.screen_w, 0)
+                            r = layer.draw and layer:draw(camera)
+                            translate(self.screen_w * 1, 0)
+                        end
+
+                        for i = 1, qx do
+                            translate(self.screen_w, 0)
+                            r = layer.draw and layer:draw(camera)
+                        end
                     end
 
                     pop()
