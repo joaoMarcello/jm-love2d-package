@@ -831,12 +831,14 @@ function Scene:implements(param)
                         r = layer.draw and not layer.infinity_scroll_x and layer:draw(camera)
                         infinity_scroll_x(self, camera, layer)
 
-                        local qy = math_floor((self.screen_h / camera.scale) / self.screen_h) + 1
+                        local qy = math_floor((self.screen_h / camera.scale)
+                                / self.screen_h) + 1
 
                         if math_abs(sum) < self.screen_h then
                             translate(0, -self.screen_h)
 
-                            r = layer.draw and layer:draw(camera)
+                            r = layer.draw and not layer.infinity_scroll_x
+                                and layer:draw(camera)
                             infinity_scroll_x(self, camera, layer)
 
                             translate(0, self.screen_h)
@@ -858,24 +860,6 @@ function Scene:implements(param)
                         and not layer.infinity_scroll_y
                     then
                         r = layer.draw and layer:draw(camera)
-                    end
-
-                    if layer.infinity_scroll_x then
-                        -- local qx = math.floor((self.screen_w / camera.scale)
-                        --         / self.screen_w) + 1
-
-                        -- if math.abs(layer.accum + camera.x)
-                        --     < self.screen_w
-                        -- then
-                        --     translate(-self.screen_w, 0)
-                        --     r = layer.draw and layer:draw(camera)
-                        --     translate(self.screen_w, 0)
-                        -- end
-
-                        -- for i = 1, qx do
-                        --     translate(self.screen_w, 0)
-                        --     r = layer.draw and layer:draw(camera)
-                        -- end
                     end
 
                     pop()
