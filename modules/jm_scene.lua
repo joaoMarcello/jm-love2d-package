@@ -819,7 +819,8 @@ function Scene:implements(param)
                     -- * (layer.factor_y > 0 and camera.scale or 1)
 
                     if layer.fixed_on_ground and layer.top then
-                        if layer.top <= camera.y + layer.top then
+                        if layer.top <= (camera.y + layer.top) / camera.scale
+                        then
                             py = 0
                         end
                     end
@@ -881,12 +882,6 @@ function Scene:implements(param)
                         --
                         r = layer.draw and layer:draw(camera)
                     end
-
-                    -- if not layer.infinity_scroll_x
-                    --     and not layer.infinity_scroll_y
-                    -- then
-                    --     r = layer.draw and layer:draw(camera)
-                    -- end
 
                     pop()
 
