@@ -204,6 +204,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self:implements {}
 
     self:calc_canvas_scale()
+
+    self.capture_mode = false
 end
 
 ---@param config table
@@ -808,7 +810,7 @@ function Scene:implements(param)
                                 * math_floor(sum / self.screen_h))
                         end
 
-                        r = layer.draw and layer:draw(camera)
+                        r = layer.draw and not layer.infinity_scroll_x and layer:draw(camera)
                         infinity_scroll_x(self, camera, layer)
 
                         local qy = math_floor((self.screen_h / camera.scale) / self.screen_h) + 1
@@ -824,7 +826,7 @@ function Scene:implements(param)
 
                         for i = 1, qy do
                             translate(0, self.screen_h)
-                            r = layer.draw and layer:draw(camera)
+                            r = layer.draw and not layer.infinity_scroll_x and layer:draw(camera)
 
                             infinity_scroll_x(self, camera, layer)
                         end
@@ -897,9 +899,11 @@ function Scene:implements(param)
         pop()
         set_canvas(last_canvas)
 
+        if self.capture_mode then return end
+
         set_color_draw(1, 1, 1, 1)
         set_blend_mode("alpha", 'premultiplied')
-        love_draw(self.canvas, self.x + self.offset_x, self.y + self.offset_y, 0, self.canvas_scale)
+        love_draw(self.canvas, self.x + self.offset_x, self.y + self.offset_y, 0, self.canvas_scale, self.canvas_scale)
         set_blend_mode("alpha")
 
         -- love.graphics.setScissor(self.x,
