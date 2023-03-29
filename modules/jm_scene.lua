@@ -830,7 +830,6 @@ function Scene:implements(param)
                         end
                     end
 
-                    -- layer.accum = round(camera.x * layer.factor_x)
                     layer.pos_x = round(camera.x * layer.factor_x)
                     layer.pos_y = round(camera.y * layer.factor_y)
 
@@ -873,15 +872,21 @@ function Scene:implements(param)
                         end
 
                         pop()
+                        --
                     elseif layer.infinity_scroll_x then
+                        --
                         infinity_scroll_x(self, camera, layer)
-                    end
-
-                    if not layer.infinity_scroll_x
-                        and not layer.infinity_scroll_y
-                    then
+                        --
+                    else
+                        --
                         r = layer.draw and layer:draw(camera)
                     end
+
+                    -- if not layer.infinity_scroll_x
+                    --     and not layer.infinity_scroll_y
+                    -- then
+                    --     r = layer.draw and layer:draw(camera)
+                    -- end
 
                     pop()
 
