@@ -22,7 +22,7 @@ local love_rect = love.graphics.rectangle
 
 local SceneManager = _G.JM_SceneManager
 
----@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean}
+---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, accum:number, pos_x:number, pos_y:number}
 
 local function round(value)
     local absolute = math.abs(value)
@@ -527,6 +527,39 @@ local function generic(callback)
     return result
 end
 
+---@param self JM.Scene
+---@param camera JM.Camera.Camera
+---@param layer JM.Scene.Layer
+local function infinity_scroll_x(self, camera, layer)
+    if not layer.infinity_scroll_x then return false end
+
+    local sum = layer.accum + camera.x
+    local r
+    push()
+    if math_abs(sum) >= self.screen_w then
+        translate(self.screen_w * math_floor(sum / self.screen_w), 0)
+    end
+    r = layer.draw and layer:draw(camera)
+
+    local qx = math_floor((self.screen_w / camera.scale)
+            / self.screen_w) + 1
+
+    --==================================================
+    if math_abs(layer.accum + camera.x)
+        < self.screen_w
+    then
+        translate(-self.screen_w, 0)
+        r = layer.draw and layer:draw(camera)
+        translate(self.screen_w, 0)
+    end
+    --==================================================
+    for i = 1, qx do
+        translate(self.screen_w, 0)
+        r = layer.draw and layer:draw(camera)
+    end
+    pop()
+end
+
 ---
 ---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table}
 ---
@@ -591,6 +624,7 @@ function Scene:implements(param)
             layer.factor_y = layer.factor_y or 0
 
             layer.accum = 0
+            layer.pos_y = 0
 
             if not layer.name then
                 layer.name = layer.name or ("layer " .. name)
@@ -760,35 +794,68 @@ function Scene:implements(param)
                     end
 
                     layer.accum = round(camera.x * layer.factor_x)
+                    layer.pos_y = round(camera.y * layer.factor_y)
 
                     translate(round(px), round(py))
 
-                    if layer.infinity_scroll_x then
-                        local sum = layer.accum + camera.x
+                    if layer.infinity_scroll_y then
+                        local sum = layer.pos_y + camera.y
 
-                        if math.abs(sum) >= self.screen_w then
-                            translate(self.screen_w * math.floor(sum / self.screen_w), 0)
+                        push()
+
+                        if math_abs(sum) >= self.screen_h then
+                            translate(0, self.screen_h
+                                * math_floor(sum / self.screen_h))
                         end
+
+                        r = layer.draw and layer:draw(camera)
+                        infinity_scroll_x(self, camera, layer)
+
+                        local qy = math_floor((self.screen_h / camera.scale) / self.screen_h) + 1
+
+                        if math_abs(sum) < self.screen_h then
+                            translate(0, -self.screen_h)
+
+                            r = layer.draw and layer:draw(camera)
+                            infinity_scroll_x(self, camera, layer)
+
+                            translate(0, self.screen_h)
+                        end
+
+                        for i = 1, qy do
+                            translate(0, self.screen_h)
+                            r = layer.draw and layer:draw(camera)
+
+                            infinity_scroll_x(self, camera, layer)
+                        end
+
+                        pop()
+                    elseif layer.infinity_scroll_x then
+                        infinity_scroll_x(self, camera, layer)
                     end
 
-                    r = layer.draw and layer:draw(camera)
+                    if not layer.infinity_scroll_x
+                        and not layer.infinity_scroll_y
+                    then
+                        r = layer.draw and layer:draw(camera)
+                    end
 
                     if layer.infinity_scroll_x then
-                        local qx = math.floor((self.screen_w / camera.scale) / self.screen_w) + 1
-                        -- qx = qx > 0 and qx or 1
+                        -- local qx = math.floor((self.screen_w / camera.scale)
+                        --         / self.screen_w) + 1
 
-                        if math.abs(layer.accum + camera.x)
-                            < self.screen_w
-                        then
-                            translate(-self.screen_w, 0)
-                            r = layer.draw and layer:draw(camera)
-                            translate(self.screen_w * 1, 0)
-                        end
+                        -- if math.abs(layer.accum + camera.x)
+                        --     < self.screen_w
+                        -- then
+                        --     translate(-self.screen_w, 0)
+                        --     r = layer.draw and layer:draw(camera)
+                        --     translate(self.screen_w, 0)
+                        -- end
 
-                        for i = 1, qx do
-                            translate(self.screen_w, 0)
-                            r = layer.draw and layer:draw(camera)
-                        end
+                        -- for i = 1, qx do
+                        --     translate(self.screen_w, 0)
+                        --     r = layer.draw and layer:draw(camera)
+                        -- end
                     end
 
                     pop()
