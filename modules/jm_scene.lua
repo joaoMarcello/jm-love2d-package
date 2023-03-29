@@ -450,6 +450,20 @@ function Scene:calc_canvas_scale()
     self.offset_y                   = math_floor((windowHeight - canvasHeightScaled) / 2)
 end
 
+function Scene:draw_capture(x, y, rot, sx, sy, ox, oy, kx, ky)
+    self.__transf = self.__transf or love.math.newTransform()
+    self.capture_mode = true
+    push()
+    love.graphics.replaceTransform(self.__transf)
+    self:draw()
+    set_color_draw(1, 1, 1, 1)
+    set_blend_mode("alpha", "premultiplied")
+    love_draw(self.canvas, x, y, rot, sx, sy, ox, oy, kx, ky)
+    set_blend_mode("alpha")
+    pop()
+    self.capture_mode = false
+end
+
 ---@param skip integer
 ---@param duration number|nil
 ---@param on_skip_action function|nil
@@ -734,7 +748,11 @@ function Scene:implements(param)
 
         set_canvas(self.canvas)
 
-        clear_screen(.3, .3, .3, 0)
+        if self:get_color() then
+            clear_screen(self:get_color())
+        else
+            clear_screen(.3, .3, .3, 0)
+        end
 
         scale(self.subpixel, self.subpixel)
         set_blend_mode("alpha")
@@ -745,7 +763,7 @@ function Scene:implements(param)
         -- love_set_scissor(self.x + self.offset_x, self.y, self.w - self.x - self.offset_x * 2, self.h - self.y)
 
         if self:get_color() then
-            clear_screen(self:get_color())
+            -- clear_screen(self:get_color())
         else
             draw_tile(self)
         end
