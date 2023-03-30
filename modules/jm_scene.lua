@@ -80,6 +80,9 @@ local Scene = {
     change_gamestate = function(self, new_state, config)
         SceneManager:change_gamestate(new_state, config)
     end,
+    is_current_active = function(self)
+        return SceneManager:get_scene() == self
+    end
 }
 Scene.__index = Scene
 
