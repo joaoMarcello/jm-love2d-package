@@ -30,6 +30,8 @@ function Manager:change_gamestate(new_state, conf)
 
     r = conf.transition and scene:add_transition(conf.transition, "in", conf.transition_conf) or nil
 
+    scene:update(love.timer.getDelta())
+
     return r
 end
 

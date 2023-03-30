@@ -1004,8 +1004,9 @@ end
 
 function Slope:check_collision(x, y, w, h)
     do
+        local oy = self.world.tile / 2
         local rec_col = collision_rect(
-            self.x, self.y - 5, self.w, self.h + 10,
+            self.x, self.y - oy, self.w, self.h + oy * 2,
             x, y, w, h
         )
         if not rec_col then return false end
@@ -1022,7 +1023,7 @@ function Slope:get_y(x, y, w, h)
     y = -y
     local py = -(self:A() * x + self:B())
     py = (py < self.y and self.y) or py
-    py = (py > self:bottom() and self:bottom()) or py
+    -- py = (py > self:bottom() and self:bottom()) or py
 
     return py
 end
