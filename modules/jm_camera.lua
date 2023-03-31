@@ -338,7 +338,6 @@ local function draw_grid(self)
     local qx = mceil((self.bounds_right - self.bounds_left) / tile)
     local qy = mceil((self.bounds_bottom - self.bounds_top) / tile)
 
-    love_set_color(0, 0, 0, 0.05)
     for i = mfloor(self.x / tile), qx do
         local px = tile * i
         if px > vx + vw then break end
@@ -1217,14 +1216,22 @@ function Camera:is_locked_in_y()
     return self.lock_y
 end
 
+---@param custom function
+function Camera:set_custom_update(custom)
+    self.custom_update = custom
+end
+
 function Camera:update(dt)
     assert(self.scale and self.scale ~= 0, ">> Error: Scale cannot be zero or nil !!!")
 
     local last_x, last_y = self.x, self.y
 
+    if self.custom_update then
+        self:custom_update(dt)
+    end
+
     if self.target then
-        local r
-        r = self.movement_x and self.movement_x(self, dt)
+        local r = self.movement_x and self.movement_x(self, dt)
         r = self.movement_y and self.movement_y(self, dt)
     end
 
