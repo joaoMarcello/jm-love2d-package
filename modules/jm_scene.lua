@@ -665,6 +665,11 @@ function Scene:implements(param)
             layer.scroll_width = layer.scroll_width or self.screen_w
             layer.scroll_height = layer.scroll_height or self.screen_h
 
+            if layer.shader then
+                self.canvas_layer = self.canvas_layer
+                    or love.graphics.newCanvas(self.canvas:getDimensions())
+            end
+
             if not layer.name then
                 layer.name = layer.name or ("layer " .. name)
                 name = name + 1
@@ -783,14 +788,9 @@ function Scene:implements(param)
 
         local sx, sy, sw, sh = love_get_scissor()
 
-        -- love_set_scissor(self.x + self.offset_x, self.y, self.w - self.x - self.offset_x * 2, self.h - self.y)
-
-        if self:get_color() then
-            -- clear_screen(self:get_color())
-        else
+        if not self:get_color() then
             draw_tile(self)
         end
-        -- love_set_scissor()
 
         local temp = self.draw_background and self.draw_background()
 
@@ -809,7 +809,13 @@ function Scene:implements(param)
                     ---@type JM.Scene.Layer
                     layer = param.layers[i]
 
-                    -- camera:set_shader(self.shader)
+                    local last_canvas = love.graphics.getCanvas()
+
+                    if layer.shader then
+                        set_canvas(self.canvas_layer)
+                        clear_screen(0, 0, 0, 0)
+                        set_blend_mode("alpha", "premultiplied")
+                    end
 
                     if i == 1 then
                         camera:draw_background()
@@ -817,6 +823,7 @@ function Scene:implements(param)
 
                     local last_cam_px = camera.x
                     local last_cam_py = camera.y
+                    local last_cam_scale = camera.scale
 
                     camera:set_position(layer.cam_px, layer.cam_py)
 
@@ -846,6 +853,9 @@ function Scene:implements(param)
                     layer.pos_y = round(camera.y * layer.factor_y)
 
                     translate(round(px), round(py))
+                    if layer.shader then
+                        -- translate(-layer.pos_x, 0)
+                    end
 
                     if layer.infinity_scroll_y then
                         local sum = layer.pos_y + camera.y
@@ -894,7 +904,22 @@ function Scene:implements(param)
                         r = layer.draw and layer:draw(camera)
                     end
 
+                    if layer.shader then
+                        set_canvas(last_canvas)
+                        set_shader(layer.shader)
+                        set_color_draw(1, 1, 1, 1)
+                        set_blend_mode("alpha")
+                        love_draw(self.canvas_layer,
+                            camera.x + (px ~= 0 and layer.pos_x or 0),
+                            camera.y + (py ~= 0 and layer.pos_y or 0),
+                            0,
+                            1 / self.subpixel)
+                        set_shader()
+                    end
+
                     camera:set_position(last_cam_px, last_cam_py)
+                    camera.scale = last_cam_scale
+                    set_canvas(last_canvas)
 
                     pop()
 
@@ -941,6 +966,7 @@ function Scene:implements(param)
         set_blend_mode("alpha", 'premultiplied')
         love_draw(self.canvas, self.x + self.offset_x, self.y + self.offset_y, 0, self.canvas_scale, self.canvas_scale)
         set_blend_mode("alpha")
+
 
         -- love.graphics.setScissor(self.x,
         --     math_abs(self.h - self.dispositive_h),
