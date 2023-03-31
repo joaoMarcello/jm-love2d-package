@@ -22,7 +22,7 @@ local love_rect = love.graphics.rectangle
 
 local SceneManager = _G.JM_SceneManager
 
----@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number}
+---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean}
 
 local function round(value)
     local absolute = math.abs(value)
@@ -665,7 +665,7 @@ function Scene:implements(param)
             layer.scroll_width = layer.scroll_width or self.screen_w
             layer.scroll_height = layer.scroll_height or self.screen_h
 
-            if layer.shader then
+            if layer.shader or layer.use_canvas then
                 self.canvas_layer = self.canvas_layer
                     or love.graphics.newCanvas(self.canvas:getDimensions())
                 self.canvas_layer:setFilter("linear", "linear")
@@ -812,7 +812,7 @@ function Scene:implements(param)
 
                     local last_canvas = love.graphics.getCanvas()
 
-                    if layer.shader then
+                    if layer.shader or layer.use_canvas then
                         set_canvas(self.canvas_layer)
                         clear_screen(0, 0, 0, 0)
                         set_blend_mode("alpha", "premultiplied")
@@ -902,7 +902,7 @@ function Scene:implements(param)
                         r = layer.draw and layer:draw(camera)
                     end
 
-                    if layer.shader then
+                    if layer.shader or layer.use_canvas then
                         set_canvas(last_canvas)
                         set_shader(layer.shader)
                         set_color_draw(1, 1, 1, 1)
