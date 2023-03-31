@@ -668,6 +668,7 @@ function Scene:implements(param)
             if layer.shader then
                 self.canvas_layer = self.canvas_layer
                     or love.graphics.newCanvas(self.canvas:getDimensions())
+                self.canvas_layer:setFilter("linear", "linear")
             end
 
             if not layer.name then
@@ -910,7 +911,7 @@ function Scene:implements(param)
                             camera.x + (px ~= 0 and layer.pos_x or 0),
                             camera.y + (py ~= 0 and layer.pos_y or 0),
                             0,
-                            1 / self.subpixel)
+                            1 / self.subpixel / camera.scale)
                         set_shader()
                     end
 
