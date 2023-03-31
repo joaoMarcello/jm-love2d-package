@@ -853,9 +853,6 @@ function Scene:implements(param)
                     layer.pos_y = round(camera.y * layer.factor_y)
 
                     translate(round(px), round(py))
-                    if layer.shader then
-                        -- translate(-layer.pos_x, 0)
-                    end
 
                     if layer.infinity_scroll_y then
                         local sum = layer.pos_y + camera.y
