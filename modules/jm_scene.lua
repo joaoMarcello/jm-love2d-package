@@ -857,7 +857,7 @@ function Scene:implements(param)
                     if layer.shader or layer.use_canvas then
                         set_canvas(self.canvas_layer)
                         clear_screen(0, 0, 0, 0)
-                        -- set_blend_mode("alpha", "premultiplied")
+                        set_blend_mode("alpha", "premultiplied")
                     end
 
                     if i == 1 then
