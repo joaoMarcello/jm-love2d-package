@@ -14,6 +14,15 @@ local function clamp(value, A, B)
     return math_min(math_max(value, A), B)
 end
 
+local function round(x)
+    local f = math_floor(x + 0.5)
+    if (x == f) or (x % 2.0 == 0.5) then
+        return f
+    else
+        return math_floor(x + 0.5)
+    end
+end
+
 local filter_default = function(x, y, id)
     return true
 end
@@ -170,13 +179,15 @@ local function bounds_changed(self, left, top, right, bottom)
 end
 
 ---@param camera JM.Camera.Camera|nil
-function TileMap:draw(camera)
+function TileMap:draw(camera, factor_x, factor_y)
     if camera then
         local x, y, w, h = camera:get_viewport_in_world_coord()
+        x = x + (factor_x and round(x * factor_x) or 0)
+        y = y + (factor_y and round(y * factor_y) or 0)
         local right, bottom = x + w, y + h
 
-        x, y = x, y
-        right, bottom = right, bottom
+        -- x, y = x + 32, y + 32
+        -- right, bottom = right - 32, bottom - 32
 
         if bounds_changed(self, x, y, right, bottom)
             or self.tile_set:frame_changed()
@@ -187,8 +198,6 @@ function TileMap:draw(camera)
             love_set_color(1, 1, 1, 1)
             love_draw(self.sprite_batch)
         end
-    else
-        --draw_without_bounds(self)
     end
 end
 
