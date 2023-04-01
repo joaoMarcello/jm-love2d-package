@@ -36,10 +36,11 @@ function Manager:change_gamestate(new_state, conf)
 
     r = (not conf.skip_load) and new_state:load()
     r = (not conf.skip_init) and new_state:init()
-    r = (not conf.skip_collect) and collectgarbage()
 
     scene = new_state
     scene:restaure_canvas()
+
+    r = (not conf.skip_collect) and collectgarbage()
 
     r = conf.transition and scene:add_transition(conf.transition, "in", conf.transition_conf) or nil
 
