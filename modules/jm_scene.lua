@@ -593,6 +593,48 @@ local function infinity_scroll_x(self, camera, layer)
     pop()
 end
 
+---@param self JM.Scene
+---@param camera JM.Camera.Camera
+---@param layer JM.Scene.Layer
+local function infinity_scroll_y(self, camera, layer)
+    local sum = layer.pos_y + camera.y
+    local height = layer.scroll_height
+
+    push()
+
+    if math_abs(sum) >= height then
+        translate(0, height
+            * math_floor(sum / height))
+    end
+
+    local r = layer.draw and not layer.infinity_scroll_x
+        and layer:draw(camera)
+    infinity_scroll_x(self, camera, layer)
+
+    local qy = math_floor((self.screen_h / camera.scale)
+            / height) + 1
+
+    if math_abs(sum) < height then
+        translate(0, -height)
+
+        r = layer.draw and not layer.infinity_scroll_x
+            and layer:draw(camera)
+        infinity_scroll_x(self, camera, layer)
+
+        translate(0, height)
+    end
+
+    for i = 1, qy do
+        translate(0, height)
+        r = layer.draw and not layer.infinity_scroll_x
+            and layer:draw(camera)
+
+        infinity_scroll_x(self, camera, layer)
+    end
+
+    pop()
+end
+
 ---
 ---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table}
 ---
@@ -659,8 +701,8 @@ function Scene:implements(param)
             layer.pos_x = 0
             layer.pos_y = 0
 
-            layer.cam_px = layer.speed_x and 0 or nil
-            layer.cam_py = layer.speed_y and 0 or nil
+            layer.cam_px = layer.speed_x and 0 or layer.cam_px
+            layer.cam_py = layer.speed_y and 0 or layer.cam_py
 
             layer.scroll_width = layer.scroll_width or self.screen_w
             layer.scroll_height = layer.scroll_height or self.screen_h
@@ -815,7 +857,7 @@ function Scene:implements(param)
                     if layer.shader or layer.use_canvas then
                         set_canvas(self.canvas_layer)
                         clear_screen(0, 0, 0, 0)
-                        set_blend_mode("alpha", "premultiplied")
+                        -- set_blend_mode("alpha", "premultiplied")
                     end
 
                     if i == 1 then
@@ -856,42 +898,7 @@ function Scene:implements(param)
                     translate(round(px), round(py))
 
                     if layer.infinity_scroll_y then
-                        local sum = layer.pos_y + camera.y
-                        local height = layer.scroll_height
-
-                        push()
-
-                        if math_abs(sum) >= height then
-                            translate(0, height
-                                * math_floor(sum / height))
-                        end
-
-                        r = layer.draw and not layer.infinity_scroll_x
-                            and layer:draw(camera)
-                        infinity_scroll_x(self, camera, layer)
-
-                        local qy = math_floor((self.screen_h / camera.scale)
-                                / height) + 1
-
-                        if math_abs(sum) < height then
-                            translate(0, -height)
-
-                            r = layer.draw and not layer.infinity_scroll_x
-                                and layer:draw(camera)
-                            infinity_scroll_x(self, camera, layer)
-
-                            translate(0, height)
-                        end
-
-                        for i = 1, qy do
-                            translate(0, height)
-                            r = layer.draw and not layer.infinity_scroll_x
-                                and layer:draw(camera)
-
-                            infinity_scroll_x(self, camera, layer)
-                        end
-
-                        pop()
+                        infinity_scroll_y(self, camera, layer)
                         --
                     elseif layer.infinity_scroll_x then
                         --
@@ -908,8 +915,10 @@ function Scene:implements(param)
                         set_color_draw(1, 1, 1, 1)
                         set_blend_mode("alpha")
                         love_draw(self.canvas_layer,
-                            camera.x + (px ~= 0 and layer.pos_x or 0),
-                            camera.y + (py ~= 0 and layer.pos_y or 0),
+                            camera.x + (px ~= 0 and layer.pos_x or 0)
+                            - camera.viewport_x / camera.scale,
+                            camera.y + (py ~= 0 and layer.pos_y or 0)
+                            - camera.viewport_y / camera.scale,
                             0,
                             1 / self.subpixel / camera.scale)
                         set_shader()

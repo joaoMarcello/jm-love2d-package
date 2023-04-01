@@ -65,7 +65,7 @@ end
 
 ---@param self JM.TileMap
 local function get_index(self, x, y)
-    local r = (y / self.tile_size - 1) * 9999999 + (x / self.tile_size - 1)
+    local r = (y / self.tile_size - 1) * 9999 + (x / self.tile_size - 1)
     return r
     -- return string_format("%d:%d", x, y)
 end
