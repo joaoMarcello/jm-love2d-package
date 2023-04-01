@@ -193,7 +193,14 @@ function TileMap:draw(camera)
 end
 
 function TileMap:draw_with_bounds(left, top, right, bottom)
-    return draw_with_bounds(self, left, top, right, bottom)
+    if bounds_changed(self, left, top, right, bottom)
+        or self.tile_set:frame_changed()
+    then
+        return draw_with_bounds(self, left, top, right, bottom)
+    else
+        love_set_color(1, 1, 1, 1)
+        love_draw(self.sprite_batch)
+    end
 end
 
 return TileMap
