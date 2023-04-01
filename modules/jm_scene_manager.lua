@@ -11,6 +11,7 @@ function Manager:get_scene()
     return scene
 end
 
+---@param new_state JM.Scene
 ---@param conf JM.GameState.Config|any
 function Manager:change_gamestate(new_state, conf)
     conf = conf or {}
@@ -20,6 +21,17 @@ function Manager:change_gamestate(new_state, conf)
 
     ---@type any
     local r = scene and not conf.skip_finish and scene:finish()
+
+    if not conf.keep_canvas and scene then
+        scene.canvas:release()
+        scene.canvas = nil
+
+        if scene.canvas_layer then
+            scene.canvas_layer:release()
+            scene.canvas_layer = nil
+        end
+    end
+
     new_state.prev_state = conf.save_prev and scene or nil
 
     r = (not conf.skip_load) and new_state:load()
@@ -27,6 +39,7 @@ function Manager:change_gamestate(new_state, conf)
     r = (not conf.skip_collect) and collectgarbage()
 
     scene = new_state
+    scene:restaure_canvas()
 
     r = conf.transition and scene:add_transition(conf.transition, "in", conf.transition_conf) or nil
 

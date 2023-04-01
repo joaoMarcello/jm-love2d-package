@@ -187,28 +187,44 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     end
 
 
-    self.n_layers     = 0
-    self.shader       = nil
+    self.n_layers      = 0
+    self.shader        = nil
 
     -- used when scene is in frame skip mode
-    self.__skip       = nil
+    self.__skip        = nil
 
-    self.subpixel     = conf.subpixel or 4
+    self.subpixel      = conf.subpixel or 4
+    self.canvas_filter = conf.canvas_filter or 'linear'
 
-    self.canvas       = create_canvas(
+    self.canvas        = create_canvas(
         self.screen_w,
         self.screen_h,
-        conf.canvas_filter or 'linear',
+        self.canvas_filter,
         self.subpixel
     )
 
-    self.canvas_scale = 1
+    self.canvas_scale  = 1
 
     self:implements {}
 
     self:calc_canvas_scale()
 
     self.capture_mode = false
+
+    self.canvas_layer = nil
+end
+
+function Scene:restaure_canvas()
+    if not self.canvas then
+        self.canvas = create_canvas(self.screen_w, self.screen_h, self.canvas_filter, self.subpixel)
+        self:calc_canvas_scale()
+    end
+
+    if self.using_canvas_layer and not self.canvas_layer then
+        local w, h        = self.canvas:getDimensions()
+        self.canvas_layer = love.graphics.newCanvas(w, h)
+        self.canvas_layer:setFilter(self.canvas_filter, self.canvas_filter)
+    end
 end
 
 ---@param config table
@@ -710,7 +726,11 @@ function Scene:implements(param)
             if layer.shader or layer.use_canvas then
                 self.canvas_layer = self.canvas_layer
                     or love.graphics.newCanvas(self.canvas:getDimensions())
-                self.canvas_layer:setFilter("linear", "linear")
+
+                self.canvas_layer:setFilter(self.canvas_filter,
+                    self.canvas_filter)
+
+                self.using_canvas_layer = true
             end
 
             if not layer.name then
