@@ -882,9 +882,9 @@ function Scene:implements(param)
                         set_shader(layer.shader)
                     end
 
-                    if i == 1 then
-                        camera:draw_background()
-                    end
+                    -- if i == 1 then
+                    --     camera:draw_background()
+                    -- end
 
                     local last_cam_px = camera.x
                     local last_cam_py = camera.y
