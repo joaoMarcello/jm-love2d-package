@@ -842,7 +842,7 @@ function Scene:implements(param)
         if self:get_color() then
             clear_screen(self:get_color())
         else
-            clear_screen(.3, .3, .3, 0)
+            -- clear_screen(.3, .3, .3, 0)
         end
 
         scale(self.subpixel, self.subpixel)
@@ -874,10 +874,12 @@ function Scene:implements(param)
 
                     local last_canvas = love.graphics.getCanvas()
 
-                    if layer.shader or layer.use_canvas then
+                    if layer.shader and layer.use_canvas then
                         set_canvas(self.canvas_layer)
                         clear_screen(0, 0, 0, 0)
-                        set_blend_mode("alpha", "premultiplied")
+                        -- set_blend_mode("alpha", "premultiplied")
+                    elseif layer.shader then
+                        set_shader(layer.shader)
                     end
 
                     if i == 1 then
@@ -929,7 +931,7 @@ function Scene:implements(param)
                         r = layer.draw and layer:draw(camera)
                     end
 
-                    if layer.shader or layer.use_canvas then
+                    if layer.shader and layer.use_canvas then
                         set_canvas(last_canvas)
                         set_shader(layer.shader)
                         set_color_draw(1, 1, 1, 1)
@@ -947,6 +949,7 @@ function Scene:implements(param)
                     camera:set_position(last_cam_px, last_cam_py)
                     camera.scale = last_cam_scale
                     set_canvas(last_canvas)
+                    set_shader()
 
                     pop()
 
