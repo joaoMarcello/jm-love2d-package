@@ -149,12 +149,15 @@ local function draw_with_bounds(self, left, top, right, bottom)
     bottom = math_floor(bottom / self.tile_size) * self.tile_size
     bottom = clamp(bottom, self.min_y, bottom)
 
-    -- if left > self.max_x or right < self.min_x
-    --     or top > self.max_y or bottom < self.min_y
-    -- then
-    --     self.changed = false
-    --     return
-    -- end
+    if left > self.max_x or right < self.min_x
+        or top > self.max_y or bottom < self.min_y
+    then
+        if self.sprite_batch:getCount() > 0 then
+            self.sprite_batch:clear()
+        end
+        self.changed = false
+        return
+    end
 
     if top == self.last_index_top and left == self.last_index_left
         and right == self.last_index_right
@@ -179,7 +182,7 @@ local function draw_with_bounds(self, left, top, right, bottom)
     for j = top, bottom, self.tile_size do
         --
         if left > self.max_x or top > self.max_y
-            or bottom < self.min_y or right < self.min_x
+        -- or bottom < self.min_y or right < self.min_x
         then
             return
         end
