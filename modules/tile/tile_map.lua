@@ -62,6 +62,8 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
 
     self.last_index_top = nil
     self.last_index_left = nil
+    self.last_index_bottom = nil
+    self.last_index_right = nil
 
     self:load_map(filter, regions)
 end
@@ -141,38 +143,48 @@ local function draw_with_bounds(self, left, top, right, bottom)
     left = math_floor(left / self.tile_size) * self.tile_size
     left = clamp(left, self.min_x, left)
 
-    local index_right = math_floor(right / self.tile_size) * self.tile_size
-    index_right = clamp(index_right, self.min_x, self.max_x)
+    right = math_floor(right / self.tile_size) * self.tile_size
+    right = clamp(right, self.min_x, right)
 
-    local index_bottom = math_floor(bottom / self.tile_size) * self.tile_size
-    index_bottom = clamp(index_bottom, self.min_y, self.max_y)
+    bottom = math_floor(bottom / self.tile_size) * self.tile_size
+    bottom = clamp(bottom, self.min_y, bottom)
 
-    -- if top == self.last_index_top and left == self.last_index_left
-    --     -- and (right - left) == self.last_width
-    --     and not self.tile_set:frame_changed()
+    -- if left > self.max_x or right < self.min_x
+    --     or top > self.max_y or bottom < self.min_y
     -- then
-    --     love_set_color(1, 1, 1, 1)
-    --     love_draw(self.sprite_batch)
     --     self.changed = false
     --     return
     -- end
+
+    if top == self.last_index_top and left == self.last_index_left
+        and right == self.last_index_right
+        and bottom == self.last_index_bottom
+        and not self.tile_set:frame_changed()
+    then
+        love_set_color(1, 1, 1, 1)
+        love_draw(self.sprite_batch)
+        self.changed = false
+        return
+    end
 
     self.changed = true
 
     self.last_index_left = left
     self.last_index_top = top
-    self.last_index_bottom = index_bottom
-    self.last_index_right = index_right
+    self.last_index_bottom = bottom
+    self.last_index_right = right
 
     self.sprite_batch:clear()
 
-    for j = top, index_bottom, self.tile_size do
+    for j = top, bottom, self.tile_size do
         --
-        if left > self.max_x or top > self.max_y then
+        if left > self.max_x or top > self.max_y
+            or bottom < self.min_y or right < self.min_x
+        then
             return
         end
 
-        for i = left, index_right, self.tile_size do
+        for i = left, right, self.tile_size do
             -- ---@type JM.TileMap.Cell
             -- local cell = self.cells_by_pos[j] and self.cells_by_pos[j][i]
 
