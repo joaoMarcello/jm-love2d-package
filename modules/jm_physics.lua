@@ -508,7 +508,8 @@ do
                 n_collisions = n_collisions + 1
 
                 most_left = most_left or item
-                most_left = ((item.x < most_left.x or item.is_slope) and item) or most_left
+                most_left = ((item.x < most_left.x or item.is_slope) and item)
+                    or most_left
 
                 most_right = most_right or item
                 most_right = ((item.x + item.w)
@@ -540,7 +541,7 @@ do
         collisions.diff_x = diff_x
         collisions.diff_y = diff_y
 
-        local offset = 0.05
+        local offset = 0.1
 
         collisions.end_x = (diff_x >= 0 and most_left
             and most_left.x - self.w - offset)
@@ -671,11 +672,11 @@ do
     ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_x(col)
         if col.n > 0 then
-            if col.n > 1 then
-                table_sort(col.items, is_slope)
-            end
-
             if col.has_slope then
+                if col.n > 1 then
+                    table_sort(col.items, is_slope)
+                end
+
                 local n = #(col.items)
                 local final_x, final_y
                 local slope = col.has_slope
@@ -739,8 +740,7 @@ do
     end
 
     function Body:update(dt)
-        local obj
-        obj = self
+        local obj = self
 
         if is_dynamic(obj) or is_kinematic(obj)
             or obj.type == BodyTypes.ghost
@@ -832,6 +832,12 @@ do
             if (obj.acc_x ~= 0.0) or (obj.speed_x ~= 0.0) then
                 local last_sx = obj.speed_x
 
+                if obj.speed_x > 0 and obj.acc_x < 0 then
+                    obj.acc_x = -abs(obj.dacc_x)
+                elseif obj.speed_x < 0 and obj.acc_x > 0 then
+                    obj.acc_x = abs(obj.dacc_x)
+                end
+
                 goalx = obj.x + (obj.speed_x * dt)
                     + (obj.acc_x * dt * dt) / 2.0
 
@@ -860,10 +866,8 @@ do
                     -- goto skip_collision_x
                 else
                     --- will store the body collisions with other bodies
-                    local col
-
                     ---@type JM.Physics.Collisions
-                    col = obj:check(goalx, nil, colliders_filter)
+                    local col = obj:check(goalx, nil, colliders_filter)
 
                     if col.n > 0 then -- had collision!
                         obj:resolve_collisions_x(col)
@@ -890,8 +894,6 @@ do
                         obj:refresh(goalx)
                     end
 
-                    col = nil
-
                     -- simulating the enviroment resistence (friction)
                     if obj.speed_x ~= 0.0
                         and (obj.ground or obj.allowed_air_dacc)
@@ -912,8 +914,7 @@ do
                 self.holder.y = obj.y
             end
         end --end if body is dynamic
-
-        obj = nil
+        ---
     end
 
     do
