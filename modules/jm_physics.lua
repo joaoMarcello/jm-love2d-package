@@ -641,14 +641,15 @@ do
                 self.ground = col.most_up
 
                 if self.ground.is_slope then
-                    self.y = self.ground:get_y(self:rect()) - self.h
+                    -- self.y = self.ground:get_y(self:rect()) - self.h
+                    self:refresh(nil, self.ground:get_y(self:rect()) - self.h)
                 end
             else -- body hit the ceil
                 if not self.ceil then
                     dispatch_event(self, BodyEvents.ceil_touch)
                 end
 
-                self.speed_y = 0.1
+                -- self.speed_y = 0.1
 
                 self.ceil = col.most_bottom
             end
@@ -668,7 +669,10 @@ do
                 or (bd:right() == slope.x and not norm))
         else
             local cond = bd:bottom() == slope:bottom()
-            return cond and (bd.x == slope:right() or bd:right() == slope.x)
+            local norm = slope.normal_direction
+
+            return cond and ((bd.x == slope:right() and not norm)
+                or (bd:right() == slope.x and norm))
         end
     end
 
@@ -703,7 +707,8 @@ do
                                 final_x = bd:left() - 0.05 - self.w
                             end
 
-                            final_y = slope and (slope:get_y(final_x, self.y, self.w, self.h) - self.h) or final_y
+                            local temp = bd.is_floor and (-self.h - 0.05) or (0.05)
+                            final_y = slope and (slope:get_y(final_x, self.y, self.w, self.h) + temp) or final_y
                         end
                     end
                 end -- END for
@@ -800,8 +805,8 @@ do
                     obj:refresh(nil, goaly)
                     -- goto skip_collision_y
                 else
-                    local ex = obj.speed_y >= 0 and obj.allowed_gravity
-                        and 1 or 0
+                    local ex = obj.speed_y > 0 and 1 or 0
+                    ex = obj.speed_y < 0 and -1 or ex
 
                     ---@type JM.Physics.Collisions
                     local col = obj:check(nil, goaly + ex, colliders_filter)
@@ -885,9 +890,12 @@ do
                     obj:refresh(goalx)
                     -- goto skip_collision_x
                 else
+                    local ex = obj.speed_x > 0 and 1 or 0
+                    ex = obj.speed_x < 0 and -1 or ex
+
                     --- will store the body collisions with other bodies
                     ---@type JM.Physics.Collisions
-                    local col = obj:check(goalx, nil, colliders_filter)
+                    local col = obj:check(goalx + ex, nil, colliders_filter)
 
                     if col.n > 0 then -- had collision!
                         obj:resolve_collisions_x(col)
@@ -1056,7 +1064,7 @@ function Slope:check_collision(x, y, w, h)
     do
         local oy = self.world.tile / 2
         local rec_col = collision_rect(
-            self.x, self.y - oy, self.w, self.h + oy * 2,
+            self.x, self.y, self.w, self.h + oy,
             x, y, w, h
         )
         if not rec_col then return false end
@@ -1073,7 +1081,8 @@ function Slope:get_y(x, y, w, h)
     y = -y
     local py = -(self:A() * x + self:B())
     py = (py < self.y and self.y) or py
-    -- py = (py > self:bottom() and self:bottom()) or py
+
+    py = not self.is_floor and (py > self:bottom() and self:bottom()) or py
 
     return py
 end
