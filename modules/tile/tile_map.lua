@@ -149,15 +149,15 @@ local function draw_with_bounds(self, left, top, right, bottom)
     bottom = math_floor(bottom / self.tile_size) * self.tile_size
     bottom = clamp(bottom, self.min_y, bottom)
 
-    if left > self.max_x or right < self.min_x
-        or top > self.max_y or bottom < self.min_y
-    then
-        if self.sprite_batch:getCount() > 0 then
-            self.sprite_batch:clear()
-        end
-        self.changed = false
-        return
-    end
+    -- if left > self.max_x or right < self.min_x
+    --     or top > self.max_y or bottom < self.min_y
+    -- then
+    --     if self.sprite_batch:getCount() > 0 then
+    --         self.sprite_batch:clear()
+    --     end
+    --     self.changed = false
+    --     return
+    -- end
 
     if top == self.last_index_top and left == self.last_index_left
         and right == self.last_index_right
@@ -179,14 +179,12 @@ local function draw_with_bounds(self, left, top, right, bottom)
 
     self.sprite_batch:clear()
 
+    if left > self.max_x or top > self.max_y then
+        return
+    end
+
     for j = top, bottom, self.tile_size do
         --
-        if left > self.max_x or top > self.max_y
-        -- or bottom < self.min_y or right < self.min_x
-        then
-            return
-        end
-
         for i = left, right, self.tile_size do
             -- ---@type JM.TileMap.Cell
             -- local cell = self.cells_by_pos[j] and self.cells_by_pos[j][i]
@@ -227,8 +225,8 @@ function TileMap:draw(camera, factor_x, factor_y)
         y = y + (factor_y and round(y * factor_y) or 0)
         local right, bottom = x + w, y + h
 
-        x, y = x + 32, y + 32
-        right, bottom = right - 32, bottom - 32
+        -- x, y = x + 32, y + 32
+        -- right, bottom = right - 32, bottom - 32
 
         if bounds_changed(self, x, y, right, bottom)
             or self.tile_set:frame_changed()

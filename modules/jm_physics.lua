@@ -79,6 +79,11 @@ local function is_kinematic(obj)
     return obj.type == BodyTypes.kinematic
 end
 
+---@param obj JM.Physics.Slope|any
+local function is_slope(obj)
+    return obj.is_slope
+end
+
 local function dynamic_filter(obj, item)
     return is_dynamic(item)
 end
@@ -648,9 +653,28 @@ do
         end
     end
 
+    ---@param bd JM.Physics.Body|any
+    ---@param slope JM.Physics.Slope|any
+    local function body_is_adjc_slope(bd, slope)
+        if not slope then return false end
+
+        if slope.is_floor then
+            local cond = bd.y == slope.y
+            return cond and (bd.x == slope:right()
+                or bd:right() == slope.x)
+        else
+            local cond = bd:bottom() == slope:bottom()
+            return cond and (bd.x == slope:right() or bd:right() == slope.x)
+        end
+    end
+
     ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_x(col)
         if col.n > 0 then
+            if col.n > 1 then
+                table_sort(col.items, is_slope)
+            end
+
             if col.has_slope then
                 local n = #(col.items)
                 local final_x, final_y
@@ -665,11 +689,17 @@ do
                         slope = bd
                         final_x = col.goal_x
                         final_y = bd:get_y(col.goal_x, self.y, self.w, self.h) + temp
-                    elseif is_kinematic(bd) then
-                        if col.diff_x < 0 then
-                            final_x = bd:right() + 0.05
-                        else
-                            final_x = bd:left() - 0.05
+                    else --if is_kinematic(bd) or true then
+                        if not body_is_adjc_slope(bd, slope) then
+                            self.speed_x = 0.0
+
+                            if col.diff_x < 0 then
+                                final_x = bd:right() + 0.05 --- self.w
+                            else
+                                final_x = bd:left() - 0.05 - self.w
+                            end
+
+                            final_y = slope and (slope:get_y(final_x, self.y, self.w, self.h) - self.h) or final_y
                         end
                     end
                 end -- END for
@@ -678,7 +708,6 @@ do
                 -- goto end_function
                 return
             end
-
 
             self:refresh(col.end_x)
 
@@ -1035,10 +1064,13 @@ function Slope:draw()
     love.graphics.setColor(1, 0, 0, 1)
     love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
-    love.graphics.setColor(0, 0, 0, 1)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setLineWidth(2)
     love.graphics.line(x1, y1, x2, y2)
+    love.graphics.setLineWidth(1)
 
-    love.graphics.setColor(0.3, 1, 0.3, 0.5)
+    -- love.graphics.setColor(0.3, 1, 0.3, 0.5)
+    love.graphics.setColor(0.1, 0.4, 0.5)
 
     if self.is_floor then
         love.graphics.polygon("fill", x1, y1, x2, y2,
