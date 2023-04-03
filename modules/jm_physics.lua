@@ -1030,6 +1030,11 @@ function Slope:__constructor__(direction, slope_type)
     self.normal_direction = direction == "normal"
     self.is_floor = slope_type == "floor"
     self.resistance_x = 0.7
+
+    ---@type JM.Physics.Slope
+    self.prev = nil
+    ---@type JM.Physics.Slope
+    self.next = nil
 end
 
 function Slope:point_left()
@@ -1106,7 +1111,6 @@ function Slope:check_collision(x, y, w, h)
     end
 
     local up_or_down = self:check_up_down(x, y, w, h)
-    -- local py = self:get_y(x, y, w - 2, h)
 
     return (self.is_floor and up_or_down == "down")
         or ((not self.is_floor) and up_or_down == "up")
@@ -1116,8 +1120,11 @@ function Slope:get_y(x, y, w, h)
     x, y = self:get_coll_point(x, y, w, h)
     y = -y
     local py = -(self:A() * x + self:B())
-    py = (py < self.y and self.y) or py
 
+    if not self.next then
+        py = py < self.y and self.y or py
+    end
+    -- py = (py < self.y and not self.next and self.y) or py
     py = not self.is_floor and (py > self:bottom() and self:bottom()) or py
 
     return py
@@ -1151,6 +1158,10 @@ function Slope:draw()
             self.x, self.y
         )
     end
+
+    local font = JM_Font
+    font:print("<color, 1, 1, 1>" .. tostring(self.prev and true or false), self.x, self.y - 22)
+    font:print("<color, 1, 1, 1>next:" .. tostring(self.next and true or false), self.x, self.y - 44)
 end
 
 --=============================================================================
@@ -1363,6 +1374,31 @@ end
 function Phys:newSlope(world, x, y, w, h, slope_type, direction)
     local slope = Slope:new(x, y, w, h, world, direction, slope_type)
     world:add(slope)
+
+    local col = slope:check2(nil, nil, function(obj, item)
+        return item.is_slope and item ~= slope
+    end, slope.x - 1, slope.y - 1, slope.w, slope.h + 2)
+
+    if col.n > 0 then
+        local prev = col.items[1]
+        if prev.is_slope then
+            slope.prev = col.items[1]
+            prev.next = slope
+        end
+    end
+
+    col = slope:check2(nil, nil, function(obj, item)
+        return item.is_slope and item ~= slope
+    end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
+
+    if col.n > 0 then
+        local next = col.items[1]
+        if next.is_slope then
+            slope.next = col.items[1]
+            next.prev = slope
+        end
+    end
+
     return slope
 end
 
