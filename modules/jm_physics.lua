@@ -90,17 +90,30 @@ local function dynamic_filter(obj, item)
 end
 
 ---@param obj JM.Physics.Body
----@param item JM.Physics.Body
+---@param item JM.Physics.Body|JM.Physics.Slope
 local function coll_y_filter(obj, item)
     if item.type == BodyTypes.only_fall then
         return obj:bottom() <= item.y
     else
+        if item.is_slope then
+            local py = item:get_y(obj:rect())
+
+            return (item.is_floor and obj.speed_y >= 0 and obj.y <= py - obj.h)
+                or (not item.is_floor and obj.speed_y <= 0)
+        end
         return not is_dynamic(item)
     end
 end
 
----@param item JM.Physics.Body
+---@param obj JM.Physics.Body
+---@param item JM.Physics.Body|JM.Physics.Slope
 local function collision_x_filter(obj, item)
+    if item.is_slope then
+        local py = item:get_y(obj:rect())
+
+        return (item.is_floor and obj.speed_y >= 0 and obj.y <= py - obj.h)
+            or (not item.is_floor and obj.speed_y <= 0)
+    end
     return item.type ~= BodyTypes.dynamic and item.type ~= BodyTypes.only_fall
 end
 
@@ -1093,6 +1106,7 @@ function Slope:check_collision(x, y, w, h)
     end
 
     local up_or_down = self:check_up_down(x, y, w, h)
+    -- local py = self:get_y(x, y, w - 2, h)
 
     return (self.is_floor and up_or_down == "down")
         or ((not self.is_floor) and up_or_down == "up")
