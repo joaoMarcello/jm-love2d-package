@@ -662,8 +662,10 @@ do
 
         if slope.is_floor then
             local cond = bd.y == slope.y
-            return cond and (bd.x == slope:right()
-                or bd:right() == slope.x)
+            local norm = slope.normal_direction
+
+            return cond and ((bd.x == slope:right() and norm)
+                or (bd:right() == slope.x and not norm))
         else
             local cond = bd:bottom() == slope:bottom()
             return cond and (bd.x == slope:right() or bd:right() == slope.x)
