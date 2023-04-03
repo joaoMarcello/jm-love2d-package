@@ -60,6 +60,9 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.__bound_right = math.huge
     self.__bound_bottom = math.huge
 
+    self.last_index_top = nil
+    self.last_index_left = nil
+
     self:load_map(filter, regions)
 end
 
@@ -132,21 +135,44 @@ local function draw_with_bounds(self, left, top, right, bottom)
     self.__bound_right = right
     self.__bound_bottom = bottom
 
-    self.sprite_batch:clear()
-
     top = math_floor(top / self.tile_size) * self.tile_size
     top = clamp(top, self.min_y, top)
 
     left = math_floor(left / self.tile_size) * self.tile_size
     left = clamp(left, self.min_x, left)
 
-    for j = top, bottom, self.tile_size do
+    local index_right = math_floor(right / self.tile_size) * self.tile_size
+    index_right = clamp(index_right, self.min_x, self.max_x)
+
+    local index_bottom = math_floor(bottom / self.tile_size) * self.tile_size
+    index_bottom = clamp(index_bottom, self.min_y, self.max_y)
+
+    -- if top == self.last_index_top and left == self.last_index_left
+    --     -- and (right - left) == self.last_width
+    --     and not self.tile_set:frame_changed()
+    -- then
+    --     love_set_color(1, 1, 1, 1)
+    --     love_draw(self.sprite_batch)
+    --     self.changed = false
+    --     return
+    -- end
+
+    self.changed = true
+
+    self.last_index_left = left
+    self.last_index_top = top
+    self.last_index_bottom = index_bottom
+    self.last_index_right = index_right
+
+    self.sprite_batch:clear()
+
+    for j = top, index_bottom, self.tile_size do
         --
         if left > self.max_x or top > self.max_y then
             return
         end
 
-        for i = left, right, self.tile_size do
+        for i = left, index_right, self.tile_size do
             -- ---@type JM.TileMap.Cell
             -- local cell = self.cells_by_pos[j] and self.cells_by_pos[j][i]
 
@@ -162,7 +188,7 @@ local function draw_with_bounds(self, left, top, right, bottom)
         end
         --
     end
-
+    self.sprite_batch:flush()
 
     love_set_color(1, 1, 1, 1)
     love_draw(self.sprite_batch)
@@ -186,8 +212,8 @@ function TileMap:draw(camera, factor_x, factor_y)
         y = y + (factor_y and round(y * factor_y) or 0)
         local right, bottom = x + w, y + h
 
-        -- x, y = x + 32, y + 32
-        -- right, bottom = right - 32, bottom - 32
+        x, y = x + 32, y + 32
+        right, bottom = right - 32, bottom - 32
 
         if bounds_changed(self, x, y, right, bottom)
             or self.tile_set:frame_changed()
@@ -197,6 +223,7 @@ function TileMap:draw(camera, factor_x, factor_y)
         else
             love_set_color(1, 1, 1, 1)
             love_draw(self.sprite_batch)
+            self.changed = false
         end
     end
 end
@@ -209,6 +236,7 @@ function TileMap:draw_with_bounds(left, top, right, bottom)
     else
         love_set_color(1, 1, 1, 1)
         love_draw(self.sprite_batch)
+        self.changed = false
     end
 end
 

@@ -139,6 +139,9 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     do
         -- main camera's default configuration
         local config = {
+            --
+            name = "main",
+            --
             -- camera's viewport in desired game screen coordinates
             x = 0,
             y = 0,
@@ -180,7 +183,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
         self.cameras_list = {}
         self.amount_cameras = 0
 
-        self.camera = self:add_camera(config, "main")
+        self.camera = self:add_camera(config)
 
         self.offset_x = 0
         self.offset_y = 0
@@ -228,11 +231,12 @@ function Scene:restaure_canvas()
 end
 
 ---@param config table
----@param name string
-function Scene:add_camera(config, name)
-    assert(name, "\n>> Error: You not inform the Camera's name.")
+-- -@param name string
+function Scene:add_camera(config)
+    assert(config.name, "\n>> Error: You not inform the Camera's name.")
 
-    assert(not self.cameras_list[name], "\n>> Error: A camera with the name '" .. tostring(name) .. "' already exists!")
+    assert(not self.cameras_list[config.name],
+        "\n>> Error: A camera with the name '" .. tostring(config.name) .. "' already exists!")
 
     assert(not self.cameras_list[self.amount_cameras + 1])
 
@@ -278,9 +282,8 @@ function Scene:add_camera(config, name)
 
     self.cameras_list[self.amount_cameras] = camera
 
-    self.cameras_list[name] = camera
+    self.cameras_list[config.name] = camera
 
-    Camera = nil
     return camera
 end
 
