@@ -7,6 +7,7 @@ local scene
 local Manager = {}
 Manager.__index = Manager
 
+---@return JM.Scene | any
 function Manager:get_scene()
     return scene
 end

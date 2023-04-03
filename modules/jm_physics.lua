@@ -365,7 +365,8 @@ do
         -- end
 
         direction = direction or -1
-        self.y = self.y - 0.05
+        -- self.y = self.y - 0.05
+        self:refresh(nil, self.y + direction)
         self.speed_y = sqrt(2.0 * self:weight() * desired_height) * direction
     end
 
@@ -742,14 +743,22 @@ do
     function Body:update(dt)
         local obj = self
 
-        if is_dynamic(obj) or is_kinematic(obj)
-            or obj.type == BodyTypes.ghost
-        then
+        -- if obj.type == BodyTypes.dynamic or obj.type == BodyTypes.kinematic
+        --     or obj.type == BodyTypes.ghost
+        -- then
+        if obj.type ~= BodyTypes.static then
             local goalx, goaly
 
             -- applying the gravity
             if obj.allowed_gravity then
                 obj:apply_force(nil, obj:weight())
+                --
+            elseif obj.dacc_y then
+                if obj.speed_y > 0 and obj.acc_y < 0 then
+                    obj.acc_y = -abs(obj.dacc_y)
+                elseif obj.speed_y < 0 and obj.acc_y > 0 then
+                    obj.acc_y = abs(obj.dacc_y)
+                end
             end
 
             -- falling
@@ -758,10 +767,6 @@ do
 
                 goaly = obj.y + (obj.speed_y * dt)
                     + (obj.acc_y * dt * dt) / 2.0
-
-                -- if obj.speed_y >= 0 and abs(goaly - obj.y) < 1 then
-                --     -- goaly = obj.y + 1
-                -- end
 
                 -- speed up with acceleration
                 obj.speed_y = obj.speed_y + obj.acc_y * dt
@@ -782,6 +787,10 @@ do
                 if last_sy < 0.0 and obj.speed_y > 0.0
                     or (last_sy > 0.0 and obj.speed_y < 0.0)
                 then
+                    if not obj.allowed_gravity and obj.dacc_y then
+                        obj.speed_y = 0.0
+                        obj.acc_y = 0.0
+                    end
                     dispatch_event(obj, BodyEvents.speed_y_change_direction)
                 end
 
@@ -789,7 +798,8 @@ do
                     obj:refresh(nil, goaly)
                     -- goto skip_collision_y
                 else
-                    local ex = obj.speed_y >= 0 and 1 or 0
+                    local ex = obj.speed_y >= 0 and obj.allowed_gravity
+                        and 1 or 0
 
                     ---@type JM.Physics.Collisions
                     local col = obj:check(nil, goaly + ex, colliders_filter)
@@ -817,6 +827,14 @@ do
                         end
 
                         obj:refresh(nil, goaly)
+                    end
+
+                    -- simulating the enviroment resistence (friction)
+                    if obj.speed_y ~= 0.0
+                        and obj.dacc_y
+                    then
+                        local dacc = abs(obj.dacc_y)
+                        obj:apply_force(nil, dacc * -obj:direction_y())
                     end
 
                     if last_sy <= 0.0 and obj.speed_y > 0.0 then
