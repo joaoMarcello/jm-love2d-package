@@ -7,7 +7,8 @@ local BodyTypes = {
     dynamic = 1,
     static = 2,
     kinematic = 3,
-    ghost = 4
+    ghost = 4,
+    only_fall = 5,
 }
 
 ---@enum JM.Physics.BodyShapes
@@ -88,8 +89,19 @@ local function dynamic_filter(obj, item)
     return is_dynamic(item)
 end
 
-local function colliders_filter(obj, item)
-    return not is_dynamic(item)
+---@param obj JM.Physics.Body
+---@param item JM.Physics.Body
+local function coll_y_filter(obj, item)
+    if item.type == BodyTypes.only_fall then
+        return obj:bottom() <= item.y
+    else
+        return not is_dynamic(item)
+    end
+end
+
+---@param item JM.Physics.Body
+local function collision_x_filter(obj, item)
+    return item.type ~= BodyTypes.dynamic and item.type ~= BodyTypes.only_fall
 end
 
 local default_filter = function(body, item)
@@ -114,7 +126,7 @@ local function kinematic_moves_dynamic_x(kbody, goalx)
 
             local col_bd
 
-            col_bd = bd:check(nil, nil, colliders_filter)
+            col_bd = bd:check(nil, nil, collision_x_filter)
 
             if col_bd.n > 0 then
                 if col.diff_x < 0 then
@@ -123,7 +135,7 @@ local function kinematic_moves_dynamic_x(kbody, goalx)
                     bd:refresh(col_bd.left - bd.w - 0.1)
                 end
 
-                local col_f = bd:check(nil, nil, colliders_filter)
+                local col_f = bd:check(nil, nil, collision_x_filter)
 
                 -- bd.is_stucked = nn > 0
                 -- bd.is_stucked = true
@@ -153,7 +165,7 @@ local function kinematic_moves_dynamic_y(kbody, goaly)
 
             local col_bd
             col_bd = bd:check(nil, nil, function(obj, item)
-                return item ~= kbody and colliders_filter(obj, item)
+                return item ~= kbody and coll_y_filter(obj, item)
             end)
 
             if col_bd.n > 0 then
@@ -179,7 +191,9 @@ end
 --=============================================================================
 
 ---@class JM.Physics.Body
-local Body = {}
+local Body = {
+    Types = BodyTypes,
+}
 do
     ---@return JM.Physics.Body
     function Body:new(x, y, w, h, type_, world, id)
@@ -652,6 +666,12 @@ do
                 -- self.speed_y = 0.1
 
                 self.ceil = col.most_bottom
+
+                if self.ceil.is_slope and self.allowed_gravity then
+                    -- self.speed_y = 150.0
+                    self.speed_x = 0.0
+                    self:refresh(nil, self.ceil:get_y(self:rect()) + 1)
+                end
             end
         end
     end
@@ -707,7 +727,7 @@ do
                                 final_x = bd:left() - 0.05 - self.w
                             end
 
-                            local temp = bd.is_floor and (-self.h - 0.05) or (0.05)
+                            local temp = slope and slope.is_floor and (-self.h - 0.05) or (0.05)
                             final_y = slope and (slope:get_y(final_x, self.y, self.w, self.h) + temp) or final_y
                         end
                     end
@@ -753,7 +773,9 @@ do
         -- if obj.type == BodyTypes.dynamic or obj.type == BodyTypes.kinematic
         --     or obj.type == BodyTypes.ghost
         -- then
-        if obj.type ~= BodyTypes.static then
+        if obj.type ~= BodyTypes.static
+            and obj.type ~= BodyTypes.only_fall
+        then
             local goalx, goaly
 
             -- applying the gravity
@@ -809,7 +831,7 @@ do
                     ex = obj.speed_y < 0 and -1 or ex
 
                     ---@type JM.Physics.Collisions
-                    local col = obj:check(nil, goaly + ex, colliders_filter)
+                    local col = obj:check(nil, goaly + ex, coll_y_filter)
 
                     if col.n > 0 then -- collision!
                         obj:resolve_collisions_y(col)
@@ -895,7 +917,7 @@ do
 
                     --- will store the body collisions with other bodies
                     ---@type JM.Physics.Collisions
-                    local col = obj:check(goalx + ex, nil, colliders_filter)
+                    local col = obj:check(goalx + ex, nil, collision_x_filter)
 
                     if col.n > 0 then -- had collision!
                         obj:resolve_collisions_x(col)
@@ -1064,8 +1086,8 @@ function Slope:check_collision(x, y, w, h)
     do
         local oy = self.world.tile / 2
         local rec_col = collision_rect(
-            self.x, self.y, self.w, self.h + oy,
-            x, y, w, h
+            self.x, self.y, self.w, self.h,
+            x, y, w, h + oy
         )
         if not rec_col then return false end
     end
@@ -1311,7 +1333,7 @@ function Phys:newWorld(args)
 end
 
 ---@param world JM.Physics.World
----@param type_ "dynamic"|"kinematic"|"static"|"ghost"
+---@param type_ "dynamic"|"kinematic"|"static"|"ghost"|"only_fall"
 ---@return JM.Physics.Body
 function Phys:newBody(world, x, y, w, h, type_)
     local bd_type = BodyTypes[type_] or BodyTypes.static
