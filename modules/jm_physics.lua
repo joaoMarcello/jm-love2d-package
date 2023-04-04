@@ -107,7 +107,7 @@ local function coll_y_filter(obj, item)
 
             return (item.is_floor and obj.speed_y >= 0
                 and obj.y - 2 <= py - obj.h)
-                or (not item.is_floor and obj.speed_y <= 0)
+            -- or (not item.is_floor and obj.speed_y <= 0)
         end
         return item.type ~= BodyTypes.dynamic
     end
@@ -125,9 +125,9 @@ local function collision_x_filter(obj, item)
 
         local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
 
-        return (item.is_floor and obj.speed_y >= 0
+        return (item.is_floor --and obj.speed_y >= 0
             and obj.y - 2 <= py - obj.h)
-            or (not item.is_floor and obj.speed_y <= 0)
+        -- or (not item.is_floor and obj.speed_y <= 0)
     end
     return item.type ~= BodyTypes.dynamic and item.type ~= BodyTypes.only_fall
 end
@@ -920,12 +920,18 @@ do
                 end
 
                 local mult = 1
-                if obj.ground and obj.ground.is_slope and self.y + self.h ~= obj.ground.y then
-                    mult = 1 - abs(math.sin(self.ground.angle))
+                if obj.ground and obj.ground.is_slope
+                    and self.y + self.h ~= obj.ground.y
+                then
+                    if obj.ground.is_norm and obj.speed_x > 0
+                        or (not obj.ground.is_norm and obj.speed_x < 0)
+                    then
+                        mult = 1 - abs(math.sin(self.ground.angle))
+                    end
                 end
 
-                goalx = obj.x + (obj.speed_x * dt) * mult
-                    + (obj.acc_x * dt * dt) / 2.0 * mult
+                goalx = obj.x + ((obj.speed_x * dt)
+                    + (obj.acc_x * dt * dt) / 2.0) * mult
 
 
                 -- obj.acc_x = obj.ground and obj.acc_x * 0.5 or obj.acc_x
@@ -1238,7 +1244,7 @@ function Slope:draw()
     local font = JM_Font
     -- font:print("<color, 1, 1, 1>" .. tostring(self.prev and true or false), self.x, self.y - 22)
     -- font:print("<color, 1, 1, 1>next:" .. tostring(self.next and true or false), self.x, self.y - 44)
-    font:print(math.sin(self.angle), self.x, self.y - 22)
+    -- font:print(math.sin(self.angle), self.x, self.y - 22)
 end
 
 --=============================================================================
