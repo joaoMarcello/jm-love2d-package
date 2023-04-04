@@ -1205,9 +1205,13 @@ function Slope:get_y(x, y, w, h)
                 py = py > bt and bt or py
             end
         end
-        -- else
-        --     -- if self.is_norm and self.is_floor then
-        --     -- end
+    else
+        -- if self.is_norm and self.is_floor then
+        -- end
+        if self.is_floor and not self.is_norm and not self.next then
+            local bt = self.y + self.h
+            py = py > bt and bt or py
+        end
     end
 
     -- py = (py < self.y and not self.next and self.y) or py
