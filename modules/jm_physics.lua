@@ -1124,9 +1124,9 @@ function Slope:check_collision(x, y, w, h)
         if not rec_col then return false end
     end
 
-    if self.next and self.is_norm and y + h < self.y then
-        -- return false
-    elseif self.prev and not self.is_norm and y + h < self.y then
+    if self.next and self.is_norm and y + h <= self.y then
+        return false
+    elseif self.prev and not self.is_norm and y + h <= self.y then
         return false
     end
 
@@ -1146,9 +1146,9 @@ function Slope:get_y(x, y, w, h)
             py = py < self.y and self.y or py
         end
     else
-        if py < self.y then
-            -- return self.next:get_y(x, y, w, h)
-        end
+        -- if py < self.y then
+        --     -- return self.next:get_y(x, y, w, h)
+        -- end
     end
 
     if not self.prev then
@@ -1156,8 +1156,8 @@ function Slope:get_y(x, y, w, h)
             py = py < self.y and self.y or py
         end
     else
-        if self.is_norm and self.is_floor then
-        end
+        -- if self.is_norm and self.is_floor then
+        -- end
     end
 
     -- py = (py < self.y and not self.next and self.y) or py
