@@ -23,7 +23,7 @@ local love_rect = love.graphics.rectangle
 
 local SceneManager = _G.JM_SceneManager
 
----@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean}
+---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean, adjust_shader:function}
 
 local function round(value)
     local absolute = math.abs(value)
@@ -883,7 +883,7 @@ function Scene:implements(param)
 
                     if layer.shader and layer.use_canvas then
                         set_canvas(self.canvas_layer)
-                        clear_screen(0, 0, 0, 0)
+                        clear_screen(.8, .8, .8, 0)
                         -- set_blend_mode("alpha", "premultiplied")
                     elseif layer.shader then
                         set_shader(layer.shader)
@@ -942,14 +942,23 @@ function Scene:implements(param)
                         set_canvas(last_canvas)
                         set_shader(layer.shader)
                         set_color_draw(1, 1, 1, 1)
-                        set_blend_mode("alpha")
-                        love_draw(self.canvas_layer,
-                            camera.x + (px ~= 0 and layer.pos_x or 0)
-                            - camera.viewport_x / camera.scale,
-                            camera.y + (py ~= 0 and layer.pos_y or 0)
-                            - camera.viewport_y / camera.scale,
-                            0,
-                            1 / self.subpixel / camera.scale)
+                        -- set_blend_mode("alpha")
+                        local px = camera.x + (px ~= 0 and layer.pos_x or 0)
+                            - camera.viewport_x / camera.scale
+                        px = round(px)
+
+                        local py = camera.y + (py ~= 0 and layer.pos_y or 0)
+                            - camera.viewport_y / camera.scale
+                        py = round(py)
+
+                        local scale = 1 / self.subpixel / camera.scale
+
+                        love_draw(self.canvas_layer, px, py, 0, scale)
+
+                        if layer.adjust_shader then
+                            layer:adjust_shader(px, py, scale)
+                            -- love_draw(self.canvas_layer, px, py, 0, scale)
+                        end
                         set_shader()
                     end
 
