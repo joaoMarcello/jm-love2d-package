@@ -93,19 +93,23 @@ end
 ---@param item JM.Physics.Body|JM.Physics.Slope
 local function coll_y_filter(obj, item)
     if item.type == BodyTypes.only_fall then
-        return obj:bottom() <= item.y
+        return (obj.y + obj.h) <= item.y
     else
         if item.is_slope then
-            local py = item:get_y(obj:rect())
-
             if not item.is_floor then
                 return true
             end
 
-            return (item.is_floor and obj.speed_y >= 0 and obj.y - 2 <= py - obj.h)
+            if not obj.allow_climb_slope then return false end
+
+            local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
+            -- obj:bottom() < item:bottom() - 2
+
+            return (item.is_floor and obj.speed_y >= 0
+                and obj.y - 2 <= py - obj.h)
                 or (not item.is_floor and obj.speed_y <= 0)
         end
-        return not is_dynamic(item)
+        return item.type ~= BodyTypes.dynamic
     end
 end
 
@@ -113,9 +117,16 @@ end
 ---@param item JM.Physics.Body|JM.Physics.Slope
 local function collision_x_filter(obj, item)
     if item.is_slope then
-        local py = item:get_y(obj:rect())
+        if not item.is_floor then
+            return true
+        end
 
-        return (item.is_floor and obj.speed_y >= 0 and obj.y <= py - obj.h)
+        if not obj.allow_climb_slope then return false end
+
+        local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
+
+        return (item.is_floor and obj.speed_y >= 0
+            and obj.y - 2 <= py - obj.h)
             or (not item.is_floor and obj.speed_y <= 0)
     end
     return item.type ~= BodyTypes.dynamic and item.type ~= BodyTypes.only_fall
@@ -272,6 +283,7 @@ do
         self.allowed_air_dacc = false
         self.allowed_gravity = true
         self.allowed_speed_y_restriction = true
+        self.allow_climb_slope = true
 
         self.shape = BodyShapes.rectangle
 
@@ -527,7 +539,7 @@ do
 
                 and filter(self, item)
 
-                and self.extra_filter(self, item)
+            -- and self.extra_filter(self, item)
             then
                 col_items = col_items or {}
 
@@ -1130,6 +1142,8 @@ function Slope:check_collision(x, y, w, h)
         return false
     end
 
+    -- if y + h >= self:bottom() - 2 then return false end
+
     local up_or_down = self:check_up_down(x, y, w, h)
 
     return (self.is_floor and up_or_down)
@@ -1154,6 +1168,11 @@ function Slope:get_y(x, y, w, h)
     if not self.prev then
         if not self.is_norm and self.is_floor then
             py = py < self.y and self.y or py
+        else
+            if self.is_floor then
+                local bt = self.y + self.h
+                py = py > bt and bt or py
+            end
         end
     else
         -- if self.is_norm and self.is_floor then
@@ -1195,9 +1214,9 @@ function Slope:draw()
         )
     end
 
-    local font = JM_Font
-    font:print("<color, 1, 1, 1>" .. tostring(self.prev and true or false), self.x, self.y - 22)
-    font:print("<color, 1, 1, 1>next:" .. tostring(self.next and true or false), self.x, self.y - 44)
+    -- local font = JM_Font
+    -- font:print("<color, 1, 1, 1>" .. tostring(self.prev and true or false), self.x, self.y - 22)
+    -- font:print("<color, 1, 1, 1>next:" .. tostring(self.next and true or false), self.x, self.y - 44)
 end
 
 --=============================================================================
