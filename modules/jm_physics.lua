@@ -98,7 +98,11 @@ local function coll_y_filter(obj, item)
         if item.is_slope then
             local py = item:get_y(obj:rect())
 
-            return (item.is_floor and obj.speed_y >= 0 and obj.y <= py - obj.h)
+            if not item.is_floor then
+                return true
+            end
+
+            return (item.is_floor and obj.speed_y >= 0 and obj.y - 2 <= py - obj.h)
                 or (not item.is_floor and obj.speed_y <= 0)
         end
         return not is_dynamic(item)
@@ -545,7 +549,8 @@ do
                     or most_left
 
                 most_up = most_up or item
-                most_up = ((item.y < most_up.y or item.is_slope) and item) or most_up
+                -- most_up = ((item.y < most_up.y or item.is_slope) and item) or most_up
+                most_up = (item.y < most_up.y and item) or most_up
 
                 most_bottom = most_bottom or item
                 most_bottom = ((item.y + item.h)
@@ -669,7 +674,11 @@ do
 
                 if self.ground.is_slope then
                     -- self.y = self.ground:get_y(self:rect()) - self.h
-                    self:refresh(nil, self.ground:get_y(self:rect()) - self.h)
+                    if self.ground.is_floor then
+                        self:refresh(nil, self.ground:get_y(self:rect()) - self.h)
+                    else
+                        self:refresh(nil, self.ground:get_y(self:rect()) + 1)
+                    end
                 end
             else -- body hit the ceil
                 if not self.ceil then
@@ -681,7 +690,7 @@ do
                 self.ceil = col.most_bottom
 
                 if self.ceil.is_slope and self.allowed_gravity then
-                    -- self.speed_y = 150.0
+                    self.speed_y = self.world.meter
                     self.speed_x = 0.0
                     self:refresh(nil, self.ceil:get_y(self:rect()) + 1)
                 end
@@ -696,13 +705,13 @@ do
 
         if slope.is_floor then
             local cond = bd.y == slope.y
-            local norm = slope.normal_direction
+            local norm = slope.is_norm
 
             return cond and ((bd.x == slope:right() and norm)
                 or (bd:right() == slope.x and not norm))
         else
             local cond = bd:bottom() == slope:bottom()
-            local norm = slope.normal_direction
+            local norm = slope.is_norm
 
             return cond and ((bd.x == slope:right() and not norm)
                 or (bd:right() == slope.x and norm))
@@ -1027,20 +1036,23 @@ function Slope:__constructor__(direction, slope_type)
     self.shape = BodyShapes.slope
     self.is_slope = true
 
-    self.normal_direction = direction == "normal"
+    self.is_norm = direction == "normal"
     self.is_floor = slope_type == "floor"
     self.resistance_x = 0.7
 
-    ---@type JM.Physics.Slope
+    ---@type JM.Physics.Slope|any
     self.prev = nil
-    ---@type JM.Physics.Slope
+    ---@type JM.Physics.Slope|any
     self.next = nil
+
+    self._A = self:A()
+    self._B = self:B()
 end
 
 function Slope:point_left()
     local x, y
 
-    if self.normal_direction then
+    if self.is_norm then
         y, x = self:bottom_left()
     else
         y, x = self:top_left()
@@ -1051,7 +1063,7 @@ end
 function Slope:point_right()
     local x, y
 
-    if self.normal_direction then
+    if self.is_norm then
         y, x = self:top_right()
     else
         y, x = self:bottom_right()
@@ -1078,9 +1090,9 @@ function Slope:get_coll_point(x, y, w, h)
     local px, py
     if x and w then
         if self.is_floor then
-            px = (self.normal_direction and x + w) or x
+            px = (self.is_norm and x + w) or x
         else
-            px = (self.normal_direction and x) or x + w
+            px = (self.is_norm and x) or x + w
         end
     end
 
@@ -1095,9 +1107,11 @@ function Slope:get_coll_point(x, y, w, h)
     return px, py
 end
 
+-- -@return boolean is_down
 function Slope:check_up_down(x, y, w, h)
     local px, py = self:get_coll_point(x, y, w, h)
-    return py <= self:A() * px + self:B() and "down" or "up"
+    -- return py <= self._A * px + self._B and "down" or "up"
+    return py <= self._A * px + self._B and true or false
 end
 
 function Slope:check_collision(x, y, w, h)
@@ -1105,25 +1119,47 @@ function Slope:check_collision(x, y, w, h)
         local oy = self.world.tile / 2
         local rec_col = collision_rect(
             self.x, self.y, self.w, self.h,
-            x, y, w, h + oy
+            x - 1, y, w + 2, h + oy
         )
         if not rec_col then return false end
     end
 
+    if self.next and self.is_norm and y + h < self.y then
+        -- return false
+    elseif self.prev and not self.is_norm and y + h < self.y then
+        return false
+    end
+
     local up_or_down = self:check_up_down(x, y, w, h)
 
-    return (self.is_floor and up_or_down == "down")
-        or ((not self.is_floor) and up_or_down == "up")
+    return (self.is_floor and up_or_down)
+        or ((not self.is_floor) and not up_or_down)
 end
 
 function Slope:get_y(x, y, w, h)
     x, y = self:get_coll_point(x, y, w, h)
     y = -y
-    local py = -(self:A() * x + self:B())
+    local py = -(self._A * x + self._B)
 
     if not self.next then
-        py = py < self.y and self.y or py
+        if self.is_norm and self.is_floor then
+            py = py < self.y and self.y or py
+        end
+    else
+        if py < self.y then
+            -- return self.next:get_y(x, y, w, h)
+        end
     end
+
+    if not self.prev then
+        if not self.is_norm and self.is_floor then
+            py = py < self.y and self.y or py
+        end
+    else
+        if self.is_norm and self.is_floor then
+        end
+    end
+
     -- py = (py < self.y and not self.next and self.y) or py
     py = not self.is_floor and (py > self:bottom() and self:bottom()) or py
 
@@ -1380,24 +1416,35 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
     end, slope.x - 1, slope.y - 1, slope.w, slope.h + 2)
 
     if col.n > 0 then
+        ---@type JM.Physics.Slope|any
         local prev = col.items[1]
-        if prev.is_slope then
+
+        local px, py = prev:point_right()
+        local sx, sy = slope:point_left()
+
+        if (px == sx and py == sy) then
             slope.prev = col.items[1]
             prev.next = slope
         end
-    end
+    else
+        col = slope:check2(nil, nil, function(obj, item)
+            return item.is_slope and item ~= slope
+        end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
 
-    col = slope:check2(nil, nil, function(obj, item)
-        return item.is_slope and item ~= slope
-    end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
+        if col.n > 0 then
+            ---@type JM.Physics.Slope|any
+            local next = col.items[1]
 
-    if col.n > 0 then
-        local next = col.items[1]
-        if next.is_slope then
-            slope.next = col.items[1]
-            next.prev = slope
+            local px, py = next:point_left()
+            local sx, sy = slope:point_right()
+
+            if (px == sx and py == sy) then
+                slope.next = col.items[1]
+                next.prev = slope
+            end
         end
     end
+
 
     return slope
 end
