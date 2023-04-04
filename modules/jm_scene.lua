@@ -4,6 +4,7 @@
 local path = (...)
 
 local set_canvas = love.graphics.setCanvas
+local get_canvas = love.graphics.getCanvas
 local clear_screen = love.graphics.clear
 local set_blend_mode = love.graphics.setBlendMode
 local translate = love.graphics.translate
@@ -81,7 +82,7 @@ local Scene = {
         SceneManager:change_gamestate(new_state, config)
     end,
     is_current_active = function(self)
-        return SceneManager:get_scene() == self
+        return SceneManager.scene == self
     end
 }
 Scene.__index = Scene
@@ -708,6 +709,9 @@ function Scene:implements(param)
         local name = 1
         self.n_layers = #(param.layers)
 
+        local generic = function()
+        end
+
         for i = 1, self.n_layers, 1 do
             local layer = param.layers[i]
 
@@ -725,6 +729,8 @@ function Scene:implements(param)
 
             layer.scroll_width = layer.scroll_width or self.screen_w
             layer.scroll_height = layer.scroll_height or self.screen_h
+
+            layer.draw = layer.draw or generic
 
             if layer.shader or layer.use_canvas then
                 self.canvas_layer = self.canvas_layer
@@ -780,38 +786,38 @@ function Scene:implements(param)
             end
         end
 
-        if self.fadeout_time then
-            if self.fadeout_delay > 0 then
-                self.fadeout_delay = self.fadeout_delay - dt
-            else
-                self.fadeout_time = self.fadeout_time + dt
-            end
+        -- if self.fadeout_time then
+        --     if self.fadeout_delay > 0 then
+        --         self.fadeout_delay = self.fadeout_delay - dt
+        --     else
+        --         self.fadeout_time = self.fadeout_time + dt
+        --     end
 
-            if self.fadeout_time <= self.fadeout_duration + 0.5
-            then
-                local r = self.fadeout_action and self.fadeout_action(dt)
-                return
-            else
-                self.fadeout_time = nil
-                local r = self.fadeout_end_action and self.fadeout_end_action()
-            end
-        end
+        --     if self.fadeout_time <= self.fadeout_duration + 0.5
+        --     then
+        --         local r = self.fadeout_action and self.fadeout_action(dt)
+        --         return
+        --     else
+        --         self.fadeout_time = nil
+        --         local r = self.fadeout_end_action and self.fadeout_end_action()
+        --     end
+        -- end
 
-        if self.fadein_time then
-            if self.fadein_delay > 0 then
-                self.fadein_delay = self.fadein_delay - dt
-            else
-                self.fadein_time = self.fadein_time + dt
-            end
+        -- if self.fadein_time then
+        --     if self.fadein_delay > 0 then
+        --         self.fadein_delay = self.fadein_delay - dt
+        --     else
+        --         self.fadein_time = self.fadein_time + dt
+        --     end
 
-            if self.fadein_time <= self.fadein_duration + 0.5
-            then
-                local r = self.fadein_action and self.fadein_action(dt)
-            else
-                self.fadein_time = nil
-                local r = self.fadein_end_action and self.fadein_end_action()
-            end
-        end
+        --     if self.fadein_time <= self.fadein_duration + 0.5
+        --     then
+        --         local r = self.fadein_action and self.fadein_action(dt)
+        --     else
+        --         self.fadein_time = nil
+        --         local r = self.fadein_end_action and self.fadein_end_action()
+        --     end
+        -- end
 
         self.__skip = frame_skip_update(self)
         if self.__skip then return end
@@ -837,14 +843,14 @@ function Scene:implements(param)
     end
 
     self.draw = function(self)
-        local last_canvas = love.graphics.getCanvas()
+        local last_canvas = get_canvas()
         push()
 
         set_canvas(self.canvas)
 
         if self:get_color() then
             clear_screen(self:get_color())
-        else
+            -- else
             -- clear_screen(.3, .3, .3, 0)
         end
 
@@ -858,24 +864,22 @@ function Scene:implements(param)
             draw_tile(self)
         end
 
-        local temp = self.draw_background and self.draw_background()
+        -- local temp = self.draw_background and self.draw_background()
 
         --=====================================================
 
         for i = 1, self.amount_cameras, 1 do
-            local camera, r
-
+            --
             ---@type JM.Camera.Camera
-            camera = self.cameras_list[i]
+            local camera = self.cameras_list[i]
 
             if param.layers then
                 for i = 1, self.n_layers, 1 do
-                    local layer
-
+                    --
                     ---@type JM.Scene.Layer
-                    layer = param.layers[i]
+                    local layer = param.layers[i]
 
-                    local last_canvas = love.graphics.getCanvas()
+                    local last_canvas = get_canvas()
 
                     if layer.shader and layer.use_canvas then
                         set_canvas(self.canvas_layer)
@@ -931,7 +935,7 @@ function Scene:implements(param)
                         --
                     else
                         --
-                        r = layer.draw and layer:draw(camera)
+                        layer:draw(camera)
                     end
 
                     if layer.shader and layer.use_canvas then
@@ -956,10 +960,10 @@ function Scene:implements(param)
 
                     pop()
 
-                    local condition = not param.draw and i == self.n_layers
-                    if condition then
-                        camera:draw_info()
-                    end
+                    -- local condition = not param.draw and i == self.n_layers
+                    -- if condition then
+                    --     camera:draw_info()
+                    -- end
 
                     camera:detach()
                     --
@@ -968,21 +972,19 @@ function Scene:implements(param)
 
             if param.draw then
                 ---
-                if camera.color and not param.layers then
-                    camera:draw_background()
-                end
+                -- if camera.color and not param.layers then
+                --     camera:draw_background()
+                -- end
 
                 camera:attach(nil, self.subpixel)
 
-                r = param.draw and param.draw(camera)
+                param.draw(camera)
 
                 camera:draw_info()
 
                 camera:detach()
                 --
             end
-
-            camera = nil
         end
 
 
@@ -997,7 +999,9 @@ function Scene:implements(param)
 
         set_color_draw(1, 1, 1, 1)
         set_blend_mode("alpha", 'premultiplied')
-        love_draw(self.canvas, self.x + self.offset_x, self.y + self.offset_y, 0, self.canvas_scale, self.canvas_scale)
+        love_draw(self.canvas, self.x + self.offset_x,
+            self.y + self.offset_y,
+            0, self.canvas_scale, self.canvas_scale)
         set_blend_mode("alpha")
 
 
@@ -1015,21 +1019,21 @@ function Scene:implements(param)
         -- set_blend_mode("alpha")
         -- love.graphics.setScissor()
 
-        temp = self.draw_foreground and self.draw_foreground()
+        local r = self.draw_foreground and self.draw_foreground()
 
-        if self.fadeout_time then
-            fadein_out_draw(self, self.fadeout_color, self.fadeout_time, self.fadeout_duration)
-        elseif self.fadein_time then
-            fadein_out_draw(self, self.fadein_color,
-                self.fadein_time,
-                self.fadein_duration,
-                true)
-        end
+        -- if self.fadeout_time then
+        --     fadein_out_draw(self, self.fadeout_color, self.fadeout_time, self.fadeout_duration)
+        -- elseif self.fadein_time then
+        --     fadein_out_draw(self, self.fadein_color,
+        --         self.fadein_time,
+        --         self.fadein_duration,
+        --         true)
+        -- end
 
         love_set_scissor(sx, sy, sw, sh)
 
         set_color_draw(1, 1, 1, 1)
-        love.graphics.rectangle('line', self.x, self.y, self.w - self.x, self.h - self.y)
+        love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
     end
 
     self.mousepressed = function(self, x, y, button, istouch, presses)

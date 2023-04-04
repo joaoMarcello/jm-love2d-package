@@ -715,18 +715,22 @@ do
     local function body_is_adjc_slope(bd, slope)
         if not slope then return false end
 
+        local slope_r = slope.x + slope.w
+        local bd_bottom = bd.y + bd.h
+        local bd_right = bd.x + bd.w
+
         if slope.is_floor then
             local cond = bd.y == slope.y
             local norm = slope.is_norm
 
-            return cond and ((bd.x == slope:right() and norm)
-                or (bd:right() == slope.x and not norm))
+            return cond and ((bd.x == slope_r and norm)
+                or (bd_right == slope.x and not norm))
         else
-            local cond = bd:bottom() == slope:bottom()
+            local cond = bd_bottom == (slope.y + slope.h)
             local norm = slope.is_norm
 
-            return cond and ((bd.x == slope:right() and not norm)
-                or (bd:right() == slope.x and norm))
+            return cond and ((bd.x == slope_r and not norm)
+                or (bd_right == slope.x and norm))
         end
     end
 

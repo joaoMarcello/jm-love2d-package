@@ -1,20 +1,23 @@
 ---@alias JM.GameState.Config {skip_finish:boolean, skip_load:boolean, save_prev:boolean, skip_collect:boolean, skip_init:boolean, skip_transition:boolean, transition:string, transition_conf:table}
 
----@type JM.Scene
-local scene
+-- ---@type JM.Scene
+-- local scene
 
 ---@class JM.SceneManager
+---@field scene JM.Scene|any
 local Manager = {}
 Manager.__index = Manager
 
----@return JM.Scene | any
-function Manager:get_scene()
-    return scene
-end
+-- ---@return JM.Scene | any
+-- function Manager:get_scene()
+--     return self.scene
+-- end
 
 ---@param new_state JM.Scene
 ---@param conf JM.GameState.Config|any
 function Manager:change_gamestate(new_state, conf)
+    local scene = self.scene
+
     conf = conf or {}
     conf.transition = conf.transition or (not conf.skip_transition and "fade")
     conf.transition_conf = conf.transition_conf
@@ -46,6 +49,8 @@ function Manager:change_gamestate(new_state, conf)
     r = conf.transition and scene:add_transition(conf.transition, "in", conf.transition_conf) or nil
 
     scene:update(love.timer.getDelta())
+
+    self.scene = scene
 
     return r
 end
