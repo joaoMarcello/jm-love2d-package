@@ -919,8 +919,14 @@ do
                     obj.acc_x = abs(obj.dacc_x)
                 end
 
-                goalx = obj.x + (obj.speed_x * dt)
-                    + (obj.acc_x * dt * dt) / 2.0
+                local mult = 1
+                if obj.ground and obj.ground.is_slope and self.y + self.h ~= obj.ground.y then
+                    mult = 1 - abs(math.sin(self.ground.angle))
+                end
+
+                goalx = obj.x + (obj.speed_x * dt) * mult
+                    + (obj.acc_x * dt * dt) / 2.0 * mult
+
 
                 -- obj.acc_x = obj.ground and obj.acc_x * 0.5 or obj.acc_x
                 obj.speed_x = obj.speed_x + obj.acc_x * dt
@@ -948,6 +954,10 @@ do
                 else
                     local ex = obj.speed_x > 0 and 1 or 0
                     ex = obj.speed_x < 0 and -1 or ex
+
+                    -- if obj.ground and obj.ground.is_slope then
+                    --     goalx = goalx - goalx * abs(math.cos(self.ground.angle))
+                    -- end
 
                     --- will store the body collisions with other bodies
                     ---@type JM.Physics.Collisions
@@ -1050,6 +1060,17 @@ function Slope:__constructor__(direction, slope_type)
 
     self.is_norm = direction == "normal"
     self.is_floor = slope_type == "floor"
+
+    local left_x, left_y = self:point_left()
+    local right_x, right_y = self:point_right()
+
+    local dx = right_x - left_x
+    local dy = right_y - left_y
+
+    -- local dist = sqrt(dx ^ 2 + dy ^ 2)
+
+    self.angle = math.atan2(dy, dx)
+
     self.resistance_x = 0.7
 
     ---@type JM.Physics.Slope|any
@@ -1100,22 +1121,19 @@ end
 
 function Slope:get_coll_point(x, y, w, h)
     local px, py
-    if x and w then
-        if self.is_floor then
-            px = (self.is_norm and x + w) or x
-        else
-            px = (self.is_norm and x) or x + w
-        end
+    -- if x and w then
+    if self.is_floor then
+        px = (self.is_norm and x + w) or x
+    else
+        px = (self.is_norm and x) or (x + w)
     end
-
-    if y and h then
-        py = (self.is_floor and (y + h)) or y
-        py = -py
-    end
-
-    -- do
-    --     return x + w / 2.0, py
     -- end
+
+    -- if y and h then
+    py = (self.is_floor and (y + h)) or y
+    py = -py
+    -- end
+
     return px, py
 end
 
@@ -1142,12 +1160,15 @@ function Slope:check_collision(x, y, w, h)
         return false
     end
 
-    -- if y + h >= self:bottom() - 2 then return false end
+    local is_down = self:check_up_down(x, y, w, h)
 
-    local up_or_down = self:check_up_down(x, y, w, h)
-
-    return (self.is_floor and up_or_down)
-        or ((not self.is_floor) and not up_or_down)
+    if self.is_floor then
+        return is_down
+    else
+        return not is_down
+    end
+    -- return (self.is_floor and is_down)
+    --     or ((not self.is_floor) and not is_down)
 end
 
 function Slope:get_y(x, y, w, h)
@@ -1159,10 +1180,10 @@ function Slope:get_y(x, y, w, h)
         if self.is_norm and self.is_floor then
             py = py < self.y and self.y or py
         end
-    else
-        -- if py < self.y then
-        --     -- return self.next:get_y(x, y, w, h)
-        -- end
+        -- else
+        --     -- if py < self.y then
+        --     --     -- return self.next:get_y(x, y, w, h)
+        --     -- end
     end
 
     if not self.prev then
@@ -1174,9 +1195,9 @@ function Slope:get_y(x, y, w, h)
                 py = py > bt and bt or py
             end
         end
-    else
-        -- if self.is_norm and self.is_floor then
-        -- end
+        -- else
+        --     -- if self.is_norm and self.is_floor then
+        --     -- end
     end
 
     -- py = (py < self.y and not self.next and self.y) or py
@@ -1214,9 +1235,10 @@ function Slope:draw()
         )
     end
 
-    -- local font = JM_Font
+    local font = JM_Font
     -- font:print("<color, 1, 1, 1>" .. tostring(self.prev and true or false), self.x, self.y - 22)
     -- font:print("<color, 1, 1, 1>next:" .. tostring(self.next and true or false), self.x, self.y - 44)
+    font:print(math.sin(self.angle), self.x, self.y - 22)
 end
 
 --=============================================================================
@@ -1229,19 +1251,19 @@ do
         setmetatable(obj, self)
         self.__index = self
 
-        World.__constructor__(obj, args)
+        World.__constructor__(obj, args or {})
         return obj
     end
 
     function World:__constructor__(args)
-        self.tile = 32
-        self.cellsize = self.tile * 2
+        self.tile = args.tile or 32
+        self.cellsize = args.cellsize or (self.tile * 2)
 
-        self.meter = self.tile * 3.5
-        self.gravity = 9.8 * self.meter
-        self.max_speed_y = self.meter * 15.0
-        self.max_speed_x = self.max_speed_y
-        self.default_mass = 65.0
+        self.meter = args.meter or (self.tile * 3.5)
+        self.gravity = args.gravity or (9.8 * self.meter)
+        self.max_speed_y = args.max_speed_y or (self.meter * 15.0)
+        self.max_speed_x = args.max_speed_x or self.max_speed_y
+        self.default_mass = args.default_mass or 65.0
 
         self.bodies = {}
         self.bodies_number = 0
@@ -1369,7 +1391,6 @@ do
                 end
             end
         end
-        r = nil
     end
 
     function World:update(dt)
