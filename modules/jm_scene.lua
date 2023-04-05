@@ -23,7 +23,7 @@ local love_rect = love.graphics.rectangle
 
 local SceneManager = _G.JM_SceneManager
 
----@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean, adjust_shader:function}
+---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean}
 
 local function round(value)
     local absolute = math.abs(value)
@@ -705,6 +705,8 @@ function Scene:implements(param)
         self[callback] = generic(param[callback])
     end
 
+    self.__layers = param.layers
+
     if param.layers then
         local name = 1
         self.n_layers = #(param.layers)
@@ -731,6 +733,17 @@ function Scene:implements(param)
             layer.scroll_height = layer.scroll_height or self.screen_h
 
             layer.draw = layer.draw or generic
+
+            layer.index = i
+
+            if layer.skip_draw then
+                layer.use_canvas = true
+                local next = self.__layers[i + 1]
+                if next then
+                    next.skip_clear = true
+                    next.use_canvas = true
+                end
+            end
 
             if layer.shader or layer.use_canvas then
                 self.canvas_layer = self.canvas_layer
@@ -848,10 +861,8 @@ function Scene:implements(param)
 
         set_canvas(self.canvas)
 
-        if self:get_color() then
+        if self.color_r then
             clear_screen(self:get_color())
-            -- else
-            -- clear_screen(.3, .3, .3, 0)
         end
 
         scale(self.subpixel, self.subpixel)
@@ -860,7 +871,7 @@ function Scene:implements(param)
 
         local sx, sy, sw, sh = love_get_scissor()
 
-        if not self:get_color() then
+        if not self.color_r then
             draw_tile(self)
         end
 
@@ -879,19 +890,17 @@ function Scene:implements(param)
                     ---@type JM.Scene.Layer
                     local layer = param.layers[i]
 
-                    local last_canvas = get_canvas()
+                    local last_canvas = self.canvas
 
-                    if layer.shader and layer.use_canvas then
+                    if layer.use_canvas then
                         set_canvas(self.canvas_layer)
-                        clear_screen(.8, .8, .8, 0)
-                        -- set_blend_mode("alpha", "premultiplied")
+
+                        local r = not layer.skip_clear
+                            and clear_screen(.8, .8, .8, 0)
+                        ---
                     elseif layer.shader then
                         set_shader(layer.shader)
                     end
-
-                    -- if i == 1 then
-                    --     camera:draw_background()
-                    -- end
 
                     local last_cam_px = camera.x
                     local last_cam_py = camera.y
@@ -938,9 +947,9 @@ function Scene:implements(param)
                         layer:draw(camera)
                     end
 
-                    if layer.shader and layer.use_canvas then
+                    if layer.use_canvas and not layer.skip_draw then
                         set_canvas(last_canvas)
-                        set_shader(layer.shader)
+                        local r = layer.shader and set_shader(layer.shader)
                         set_color_draw(1, 1, 1, 1)
                         -- set_blend_mode("alpha")
                         local px = camera.x + (px ~= 0 and layer.pos_x or 0)
@@ -955,16 +964,20 @@ function Scene:implements(param)
 
                         love_draw(self.canvas_layer, px, py, 0, scale)
 
-                        if layer.adjust_shader then
+                        if layer.shader and layer.adjust_shader then
                             layer:adjust_shader(px, py, scale)
-                            -- love_draw(self.canvas_layer, px, py, 0, scale)
                         end
                         set_shader()
                     end
 
                     camera:set_position(last_cam_px, last_cam_py)
                     camera.scale = last_cam_scale
-                    set_canvas(last_canvas)
+
+                    if layer.use_canvas and layer.skip_draw then
+
+                    else
+                        set_canvas(last_canvas)
+                    end
                     set_shader()
 
                     pop()
