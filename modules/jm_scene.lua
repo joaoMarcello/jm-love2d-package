@@ -363,51 +363,51 @@ function Scene:is_paused()
     return self.time_pause
 end
 
----@param duration number|nil
----@param color table|nil
----@param delay number|nil
----@param action function|nil
----@param endAction function|nil
-function Scene:fadeout(duration, color, delay, action, endAction)
-    if self.fadeout_time then return end
+-- ---@param duration number|nil
+-- ---@param color table|nil
+-- ---@param delay number|nil
+-- ---@param action function|nil
+-- ---@param endAction function|nil
+-- function Scene:fadeout(duration, color, delay, action, endAction)
+--     if self.fadeout_time then return end
 
-    self.fadein_time = nil
-    self.fadeout_time = 0.0
-    self.fadeout_delay = delay or 0.5
-    self.fadeout_duration = duration or 1.0
-    self.fadeout_action = action or nil
-    self.fadeout_end_action = endAction or nil
-    self.fadeout_color = color or { 0, 0, 0 }
-end
+--     self.fadein_time = nil
+--     self.fadeout_time = 0.0
+--     self.fadeout_delay = delay or 0.5
+--     self.fadeout_duration = duration or 1.0
+--     self.fadeout_action = action or nil
+--     self.fadeout_end_action = endAction or nil
+--     self.fadeout_color = color or { 0, 0, 0 }
+-- end
 
----@param duration number|nil
----@param color table|nil
----@param delay number|nil
----@param action function|nil
----@param endAction function|nil
-function Scene:fadein(duration, color, delay, action, endAction)
-    if self.fadein_time then return end
+-- ---@param duration number|nil
+-- ---@param color table|nil
+-- ---@param delay number|nil
+-- ---@param action function|nil
+-- ---@param endAction function|nil
+-- function Scene:fadein(duration, color, delay, action, endAction)
+--     if self.fadein_time then return end
 
-    self.fadeout_time = nil
-    self.fadeout_action = nil
-    self.fadeout_end_action = nil
+--     self.fadeout_time = nil
+--     self.fadeout_action = nil
+--     self.fadeout_end_action = nil
 
-    self.fadein_time = 0.0
-    self.fadein_delay = delay or 0
-    self.fadein_duration = duration or 0.3
-    self.fadein_action = action or nil
-    self.fadein_end_action = endAction or nil
-    self.fadein_color = color or { 0, 0, 0 }
-end
+--     self.fadein_time = 0.0
+--     self.fadein_delay = delay or 0
+--     self.fadein_duration = duration or 0.3
+--     self.fadein_action = action or nil
+--     self.fadein_end_action = endAction or nil
+--     self.fadein_color = color or { 0, 0, 0 }
+-- end
 
----@param self JM.Scene
-local function fadein_out_draw(self, color, time, duration, fadein)
-    local r, g, b = unpack(color)
-    local alpha = time / duration
-    set_color_draw(r, g, b, fadein and (1.0 - alpha) or alpha)
+-- ---@param self JM.Scene
+-- local function fadein_out_draw(self, color, time, duration, fadein)
+--     local r, g, b = unpack(color)
+--     local alpha = time / duration
+--     set_color_draw(r, g, b, fadein and (1.0 - alpha) or alpha)
 
-    love.graphics.rectangle("fill", 0, 0, self.dispositive_w, self.dispositive_h)
-end
+--     love.graphics.rectangle("fill", 0, 0, self.dispositive_w, self.dispositive_h)
+-- end
 
 function Scene:add_transition(type_, mode, config, action, endAction, camera)
     type_ = type_ or "fade"
@@ -473,7 +473,10 @@ function Scene:calc_canvas_scale()
     self.offset_y                   = math_floor((windowHeight - canvasHeightScaled) / 2)
 end
 
-function Scene:draw_capture(x, y, rot, sx, sy, ox, oy, kx, ky)
+---@param scene JM.Scene
+---@param camera JM.Camera.Camera
+function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
+    local last_canvas = get_canvas()
     x = x or 0
     y = y or 0
     rot = rot or 0
@@ -484,17 +487,36 @@ function Scene:draw_capture(x, y, rot, sx, sy, ox, oy, kx, ky)
     kx = kx or 0
     ky = ky or 0
 
+    -- local scale = math_min((scene.w - scene.x) / scene.screen_w,
+    --     768 / scene.screen_h
+    -- )
+    x = x + camera.viewport_x * 2
+    y = y + camera.viewport_y * 2
+
+    -- sx = sx * camera.scale
+    -- sy = sy * camera.scale
+
     self.__transf = self.__transf or love.math.newTransform()
     self.capture_mode = true
     push()
     love.graphics.replaceTransform(self.__transf)
-    self:draw()
+
+    if camera == scene.camera then
+        love_set_scissor()
+        self:draw()
+    end
     set_color_draw(1, 1, 1, 1)
     set_blend_mode("alpha", "premultiplied")
+
+    local scx, scy, scw, sch = love_get_scissor()
+    love_set_scissor(x, y, camera.viewport_w * 2, camera.viewport_h * 2)
     love_draw(self.canvas, x, y, rot, sx, sy, ox, oy, kx, ky)
+
     set_blend_mode("alpha")
     pop()
     self.capture_mode = false
+    set_canvas(last_canvas)
+    love_set_scissor(scx, scy, scw, sch)
 end
 
 ---@param skip integer
@@ -557,7 +579,7 @@ local function generic(callback)
     result =
     ---@param scene JM.Scene
         (function(scene, ...)
-            if scene.time_pause or scene.fadeout_time
+            if scene.time_pause --or scene.fadeout_time
                 or (scene.transition and scene.transition.pause_scene)
             then
                 return

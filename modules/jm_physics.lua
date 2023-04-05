@@ -104,9 +104,10 @@ local function coll_y_filter(obj, item)
 
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
             -- obj:bottom() < item:bottom() - 2
+            local off = item.world.tile / 4
 
             return (item.is_floor and obj.speed_y >= 0
-                and obj.y - 2 <= py - obj.h)
+                and obj.y - off <= py - obj.h)
             -- or (not item.is_floor and obj.speed_y <= 0)
         end
         return item.type ~= BodyTypes.dynamic
@@ -466,20 +467,20 @@ do
         end
     end
 
-    ---@param body JM.Physics.Body
-    ---@param item JM.Physics.Body
-    local function collider_condition(body, item, diff_x, diff_y)
-        diff_x = diff_x or 0
-        diff_y = diff_y or 0
+    -- ---@param body JM.Physics.Body
+    -- ---@param item JM.Physics.Body
+    -- local function collider_condition(body, item, diff_x, diff_y)
+    --     diff_x = diff_x or 0
+    --     diff_y = diff_y or 0
 
-        local cond_y = (diff_y ~= 0
-            and (body:right() > item.x and body.x < item:right()))
+    --     local cond_y = (diff_y ~= 0
+    --         and (body:right() > item.x and body.x < item:right()))
 
-        local cond_x = (diff_x ~= 0
-            and (body:bottom() > item.y and body.y < item:bottom()))
+    --     local cond_x = (diff_x ~= 0
+    --         and (body:bottom() > item.y and body.y < item:bottom()))
 
-        return (cond_x or cond_y) or (diff_x == 0 and diff_y == 0)
-    end
+    --     return (cond_x or cond_y) or (diff_x == 0 and diff_y == 0)
+    -- end
 
     ---@return JM.Physics.Collisions collisions
     function Body:check(goal_x, goal_y, filter)
@@ -1049,9 +1050,10 @@ do
 
         function Body:draw()
             love.graphics.setColor(0.1, 0.4, 0.5)
-            love.graphics.rectangle("fill", self:rect())
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.rectangle("line", self:rect())
+            love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
+            -- love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
+            love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
         end
     end
 end
@@ -1199,11 +1201,12 @@ function Slope:get_y(x, y, w, h)
         if self.is_norm and self.is_floor then
             py = py < self.y and self.y or py
         end
-        -- else
-        --     -- if py < self.y then
-        --     --     -- return self.next:get_y(x, y, w, h)
-        --     -- end
     end
+
+    -- if self.is_floor and not self.is_norm and not self.next then
+    --     local bt = self.y + self.h
+    --     py = py > bt and bt or py
+    -- end
 
     if not self.prev then
         if not self.is_norm and self.is_floor then
@@ -1234,7 +1237,7 @@ function Slope:draw()
     love.graphics.setColor(1, 0, 0, 1)
     love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
     love.graphics.setLineWidth(2)
     love.graphics.line(x1, y1, x2, y2)
     love.graphics.setLineWidth(1)
@@ -1257,8 +1260,8 @@ function Slope:draw()
     end
 
     local font = JM_Font
-    -- font:print("<color, 1, 1, 1>" .. tostring(self.prev and true or false), self.x, self.y - 22)
-    -- font:print("<color, 1, 1, 1>next:" .. tostring(self.next and true or false), self.x, self.y - 44)
+    font:print("p:" .. tostring(self.prev and true or false), self.x, self.y - 22)
+    font:print("n:" .. tostring(self.next and true or false), self.x, self.y - 44)
     -- font:print(math.sin(self.angle), self.x, self.y - 22)
 end
 
@@ -1329,27 +1332,23 @@ do
         if not cell.items[obj] then
             cell.items[obj] = true
             cell.count = cell.count + 1
+            return true
         end
+        return false
     end
 
     function World:remove_obj_from_cell(obj, cx, cy)
         local row = self.grid[cy]
         if not row or not row[cx] or not row[cx].items[obj] then return end
 
-        local cell
-
         ---@type JM.Physics.Cell
-        cell = row[cx]
+        local cell = row[cx]
         cell.items[obj] = nil
         cell.count = cell.count - 1
 
         if cell.count == 0 then
             self.non_empty_cells[cell] = nil
-            -- cell.items = nil
-            -- self.grid[cy][cx] = nil
         end
-        -- row = nil
-        -- cell = nil
         return true
     end
 
@@ -1476,10 +1475,61 @@ function Phys:newBody(world, x, y, w, h, type_)
     return b
 end
 
+---@param slope JM.Physics.Slope|any
+---@param world JM.Physics.World
+local function merge_slopes(slope, world)
+    local prop = slope.h / slope.w
+
+    local col = slope:check2(nil, nil, function(obj, item)
+        return item.is_slope and item ~= slope and (item.h / item.w) == prop
+    end, slope.x - 1, slope.y - 1, slope.w, slope.h + 2)
+
+    if col.n > 0 then
+        ---@type JM.Physics.Slope
+        local item = col.items[1]
+
+        local px, py = item:point_right()
+        local sx, sy = slope:point_left()
+
+        if px == sx and py == sy then
+            item:refresh(nil, nil, item.w + slope.w, item.h + slope.h)
+            return item
+        end
+    else
+        col = slope:check2(nil, nil, function(obj, item)
+            return item.is_slope and item ~= slope and (item.h / item.w) == prop
+        end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
+
+        if col.n > 0 then
+            ---@type JM.Physics.Slope
+            local item = col.items[1]
+
+            local px, py = item:point_left()
+            local sx, sy = slope:point_right()
+
+            if px == sx and py == sy then
+                item:refresh(item.x - slope.w, item.y - slope.y, item.w + slope.w, item.h + slope.h)
+
+                return item
+            end
+        end
+    end
+
+    return slope
+end
+
 ---@return JM.Physics.Body|JM.Physics.Slope
 function Phys:newSlope(world, x, y, w, h, slope_type, direction)
     local slope = Slope:new(x, y, w, h, world, direction, slope_type)
-    world:add(slope)
+
+    local result = merge_slopes(slope, world)
+    local merged = result ~= slope
+
+    if not merged then
+        world:add(slope)
+    else
+        slope = result
+    end
 
     local col = slope:check2(nil, nil, function(obj, item)
         return item.is_slope and item ~= slope
@@ -1514,7 +1564,6 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
             end
         end
     end
-
 
     return slope
 end
