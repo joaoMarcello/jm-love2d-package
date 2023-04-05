@@ -965,7 +965,7 @@ function Scene:implements(param)
                         love_draw(self.canvas_layer, px, py, 0, scale)
 
                         if layer.shader and layer.adjust_shader then
-                            layer:adjust_shader(px, py, scale)
+                            layer:adjust_shader(px, py, scale, camera)
                         end
                         set_shader()
                     end
