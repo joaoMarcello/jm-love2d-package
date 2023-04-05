@@ -431,10 +431,9 @@ do
         h = h or self.h
 
         if x ~= self.x or y ~= self.y or w ~= self.w or h ~= self.h then
-            local world
-            world = self.world
+            local world = self.world
 
-            local cl1, ct1, cw1, ch1 = world:rect_to_cell(self:rect())
+            local cl1, ct1, cw1, ch1 = world:rect_to_cell(self.x, self.y, self.w, self.h)
             local cl2, ct2, cw2, ch2 = world:rect_to_cell(x, y, w, h)
 
             if cl1 ~= cl2 or ct1 ~= ct2 or cw1 ~= cw2 or ch1 ~= ch2 then
@@ -463,7 +462,6 @@ do
                 end
             end -- End If
 
-            world = nil
             self.x, self.y, self.w, self.h = x, y, w, h
         end
     end
@@ -504,6 +502,7 @@ do
 
         if not items then
             self.colls.n = 0
+            self.colls.has_slope = false
             return self.colls
         end
 
@@ -755,6 +754,10 @@ do
                         slope = bd
                         final_x = col.goal_x
                         final_y = bd:get_y(col.goal_x, self.y, self.w, self.h) + temp
+
+                        -- if slope.is_floor and not self.ground then
+                        --     self.ground = slope
+                        -- end
                     else --if is_kinematic(bd) or true then
                         if not body_is_adjc_slope(bd, slope) then
                             self.speed_x = 0.0
@@ -775,6 +778,12 @@ do
                 -- goto end_function
                 return
             end
+
+            -- if self.ground and self.ground.is_slope
+            --     and not self.ground:check_collision(self.x, self.y, self.w, self.h + 2)
+            -- then
+            --     self.ground = nil
+            -- end
 
             self:refresh(col.end_x)
 
@@ -1206,8 +1215,6 @@ function Slope:get_y(x, y, w, h)
             end
         end
     else
-        -- if self.is_norm and self.is_floor then
-        -- end
         if self.is_floor and not self.is_norm and not self.next then
             local bt = self.y + self.h
             py = py > bt and bt or py
@@ -1281,6 +1288,7 @@ do
 
         self.bodies = {}
         self.bodies_number = 0
+        self.bodies_static = {}
 
         self.non_empty_cells = {}
 
@@ -1378,10 +1386,18 @@ do
 
     ---@param obj JM.Physics.Body
     function World:add(obj)
-        table_insert(self.bodies, obj)
-        self.bodies_number = self.bodies_number + 1
+        if obj.type ~= BodyTypes.static then
+            table_insert(self.bodies, obj)
+            self.bodies_number = self.bodies_number + 1
 
-        local cl, ct, cw, ch = self:rect_to_cell(obj:rect())
+            if obj.type == BodyTypes.only_fall then
+                table_insert(self.bodies_static, obj)
+            end
+        else
+            table_insert(self.bodies_static, obj)
+        end
+
+        local cl, ct, cw, ch = self:rect_to_cell(obj.x, obj.y, obj.w, obj.h)
 
         for cy = ct, (ct + ch - 1) do
             for cx = cl, (cl + cw - 1) do
@@ -1397,7 +1413,7 @@ do
         if r then
             self.bodies_number = self.bodies_number - 1
 
-            local cl, ct, cw, ch = self:rect_to_cell(obj:rect())
+            local cl, ct, cw, ch = self:rect_to_cell(obj.x, obj.y, obj.w, obj.h)
 
             for cy = ct, (ct + ch - 1) do
                 for cx = cl, (cl + cw - 1) do
