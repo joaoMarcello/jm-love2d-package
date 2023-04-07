@@ -1550,7 +1550,7 @@ local function merge_slopes(slope, world)
 
                 slope:refresh(slope.x, slope.y, slope.w + item.w, slope.h + item.h)
             else
-                item:refresh(item.x - slope.w, item.y - slope.y, item.w + slope.w, item.h + slope.h)
+                item:refresh(slope.x, slope.y, item.w + slope.w, item.h + slope.h)
 
                 return item
             end
