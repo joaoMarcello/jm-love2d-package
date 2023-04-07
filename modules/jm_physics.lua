@@ -1201,12 +1201,12 @@ function Slope:get_y(x, y, w, h)
         if self.is_norm and self.is_floor then
             py = py < self.y and self.y or py
         end
-    end
 
-    -- if self.is_floor and not self.is_norm and not self.next then
-    --     local bt = self.y + self.h
-    --     py = py > bt and bt or py
-    -- end
+        if not self.is_norm and self.is_floor then
+            local bt = self.y + self.h
+            py = py > bt and bt or py
+        end
+    end
 
     if not self.prev then
         if not self.is_norm and self.is_floor then
@@ -1526,8 +1526,15 @@ local function merge_slopes(slope, world)
         local px, py = item:point_right()
         local sx, sy = slope:point_left()
 
-        if px == sx and py == sy then
-            item:refresh(nil, nil, item.w + slope.w, item.h + slope.h)
+        local same_dir = (item.is_norm and slope.is_norm)
+            or (not item.is_norm and not slope.is_norm)
+
+        if (px == sx and py == sy) and same_dir then
+            if item.is_norm then
+                item:refresh(nil, item.y - slope.h, item.w + slope.w, item.h + slope.h)
+            else
+                item:refresh(nil, nil, item.w + slope.w, item.h + slope.h)
+            end
             slope = item
             merged = true
         end
@@ -1544,13 +1551,24 @@ local function merge_slopes(slope, world)
         local px, py = item:point_left()
         local sx, sy = slope:point_right()
 
-        if px == sx and py == sy then
+        local same_dir = (item.is_norm and slope.is_norm)
+            or (not item.is_norm and not slope.is_norm)
+
+        if (px == sx and py == sy) and same_dir then
             if merged then
                 world:remove_by_obj(item)
 
-                slope:refresh(slope.x, slope.y, slope.w + item.w, slope.h + item.h)
+                if slope.is_norm then
+                    slope:refresh(nil, item.y, slope.w + item.w, slope.h + item.h)
+                else
+                    slope:refresh(slope.x, slope.y, slope.w + item.w, slope.h + item.h)
+                end
             else
-                item:refresh(slope.x, slope.y, item.w + slope.w, item.h + slope.h)
+                if item.is_norm then
+                    item:refresh(item.x - slope.w, item.y, item.w + slope.w, item.h + slope.h)
+                else
+                    item:refresh(slope.x, slope.y, item.w + slope.w, item.h + slope.h)
+                end
 
                 return item
             end
@@ -1584,7 +1602,10 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
         local px, py = prev:point_right()
         local sx, sy = slope:point_left()
 
-        if (px == sx and py == sy) then
+        local same_dir = (prev.is_norm and slope.is_norm)
+            or (not prev.is_norm and not slope.is_norm)
+
+        if (px == sx and py == sy) and same_dir then
             slope.prev = col.items[1]
             prev.next = slope
         end
@@ -1600,7 +1621,10 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
             local px, py = next:point_left()
             local sx, sy = slope:point_right()
 
-            if (px == sx and py == sy) then
+            local same_dir = (next.is_norm and slope.is_norm)
+                or (not next.is_norm and not slope.is_norm)
+
+            if (px == sx and py == sy) and same_dir then
                 slope.next = col.items[1]
                 next.prev = slope
             end
