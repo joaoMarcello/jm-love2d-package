@@ -343,23 +343,27 @@ local function draw_grid(self)
         if px > vx + vw then break end
 
         if px % (tile * 4) == 0 then
-            love_set_color(0, 0, 0, 0.7)
+            love_set_color(0, 0, 0, 0.5)
+            love.graphics.setLineWidth(2)
         else
             love_set_color(0, 0, 0, 0.3)
         end
 
         love_line(px, vy, px, vy + vh)
+        love.graphics.setLineWidth(1)
     end
 
     for j = mfloor(self.y / tile), qy do
         local py = tile * j
         if py > vy + vh then break end
         if py % (tile * 4) == 0 then
-            love_set_color(0, 0, 0, 0.7)
+            love_set_color(0, 0, 0, 0.5)
+            love.graphics.setLineWidth(2)
         else
             love_set_color(0, 0, 0, 0.3)
         end
         love_line(self.x, py, vx + vw, py)
+        love.graphics.setLineWidth(1)
     end
 end
 

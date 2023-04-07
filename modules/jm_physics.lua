@@ -1449,7 +1449,11 @@ do
                     self:remove_obj_from_cell(obj, cx, cy)
                 end
             end
+
+            return true
         end
+
+        return false
     end
 
     function World:update(dt)
@@ -1509,6 +1513,7 @@ end
 ---@param world JM.Physics.World
 local function merge_slopes(slope, world)
     local prop = slope.h / slope.w
+    local merged = false
 
     local col = slope:check2(nil, nil, function(obj, item)
         return item.is_slope and item ~= slope and (item.h / item.w) == prop
@@ -1523,21 +1528,28 @@ local function merge_slopes(slope, world)
 
         if px == sx and py == sy then
             item:refresh(nil, nil, item.w + slope.w, item.h + slope.h)
-            return item
+            slope = item
+            merged = true
         end
-    else
-        col = slope:check2(nil, nil, function(obj, item)
-            return item.is_slope and item ~= slope and (item.h / item.w) == prop
-        end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
+    end
 
-        if col.n > 0 then
-            ---@type JM.Physics.Slope
-            local item = col.items[1]
+    col = slope:check2(nil, nil, function(obj, item)
+        return item.is_slope and item ~= slope and (item.h / item.w) == prop
+    end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
 
-            local px, py = item:point_left()
-            local sx, sy = slope:point_right()
+    if col.n > 0 then
+        ---@type JM.Physics.Slope
+        local item = col.items[1]
 
-            if px == sx and py == sy then
+        local px, py = item:point_left()
+        local sx, sy = slope:point_right()
+
+        if px == sx and py == sy then
+            if merged then
+                world:remove_by_obj(item)
+
+                slope:refresh(slope.x, slope.y, slope.w + item.w, slope.h + item.h)
+            else
                 item:refresh(item.x - slope.w, item.y - slope.y, item.w + slope.w, item.h + slope.h)
 
                 return item
