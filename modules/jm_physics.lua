@@ -1167,7 +1167,7 @@ end
 
 function Slope:check_collision(x, y, w, h)
     do
-        local oy = self.world.tile / 2
+        local oy = self.world.tile * 0.5
         local rec_col = collision_rect(
             self.x, self.y, self.w, self.h,
             x - 1, y, w + 2, h + oy
@@ -1411,6 +1411,36 @@ do
 
         if r then
             self.bodies_number = self.bodies_number - 1
+
+            local cl, ct, cw, ch = self:rect_to_cell(obj.x, obj.y, obj.w, obj.h)
+
+            for cy = ct, (ct + ch - 1) do
+                for cx = cl, (cl + cw - 1) do
+                    self:remove_obj_from_cell(obj, cx, cy)
+                end
+            end
+        end
+    end
+
+    ---@param obj JM.Physics.Body|JM.Physics.Slope|any
+    function World:remove_by_obj(obj)
+        local index, list
+
+        list = (obj.is_slope and self.bodies_static) or self.bodies
+
+        for i = 1, #list do
+            if list[i] == obj then
+                index = i
+                break
+            end
+        end
+
+        if index then
+            table_remove(list, index)
+
+            if list == self.bodies then
+                self.bodies_number = self.bodies_number - 1
+            end
 
             local cl, ct, cw, ch = self:rect_to_cell(obj.x, obj.y, obj.w, obj.h)
 

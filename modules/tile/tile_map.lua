@@ -4,6 +4,8 @@ local love_file_load = love.filesystem.load
 local math_floor, math_min, math_max = math.floor, math.min, math.max
 local string_format = string.format
 
+local MAX_COLUMN = 9999
+
 --- -- @alias JM.TileMap.Cell {x:number, y:number, id:number}
 ---@alias JM.TileMap.Cell number
 
@@ -70,7 +72,7 @@ end
 
 ---@param self JM.TileMap
 local function get_index(self, x, y)
-    local r = (y / self.tile_size - 1) * 9999 + (x / self.tile_size - 1)
+    local r = (y / self.tile_size) * MAX_COLUMN + (x / self.tile_size)
     return r
     -- return string_format("%d:%d", x, y)
 end
@@ -185,11 +187,15 @@ local function draw_with_bounds(self, left, top, right, bottom)
 
     for j = top, bottom, self.tile_size do
         --
-        for i = left, right, self.tile_size do
-            -- ---@type JM.TileMap.Cell
-            -- local cell = self.cells_by_pos[j] and self.cells_by_pos[j][i]
+        local y = j / self.tile_size
 
-            local cell = self.cells_by_pos[get_index(self, i, j)]
+        for i = left, right, self.tile_size do
+            --
+            local x = i / self.tile_size
+
+            local index = y * MAX_COLUMN + x
+
+            local cell = self.cells_by_pos[index]
 
             if cell then
                 local tile = self.tile_set:get_tile(cell)
