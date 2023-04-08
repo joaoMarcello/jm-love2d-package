@@ -1,4 +1,4 @@
----@alias JM.GameState.Config {skip_finish:boolean, skip_load:boolean, save_prev:boolean, skip_collect:boolean, skip_init:boolean, skip_transition:boolean, transition:string, transition_conf:table}
+---@alias JM.GameState.Config {skip_finish:boolean, skip_load:boolean, save_prev:boolean, skip_collect:boolean, skip_init:boolean, skip_transition:boolean, transition:string, transition_conf:table, unload:string}
 
 -- ---@type JM.Scene
 -- local scene
@@ -40,6 +40,11 @@ function Manager:change_gamestate(new_state, conf)
 
     r = (not conf.skip_load) and new_state:load()
     r = (not conf.skip_init) and new_state:init()
+
+    if conf.unload then
+        package.loaded[conf.unload] = nil
+        _G[conf.unload] = nil
+    end
 
     scene = new_state
     scene:restaure_canvas()
