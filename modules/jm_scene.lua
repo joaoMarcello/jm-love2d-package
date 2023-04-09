@@ -60,6 +60,7 @@ end
 local function create_canvas(width, height, filter, subpixel)
     local canvas = love.graphics.newCanvas(width * subpixel, height * subpixel)
     canvas:setFilter(filter, filter)
+    -- canvas:setWrap("clampzero", "clampzero", "clampzero")
     return canvas
 end
 --===========================================================================
