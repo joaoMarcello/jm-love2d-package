@@ -55,7 +55,7 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.path = path_map
     self.tile_size = tile_size or 32
     self.tile_set = TileSet:new(path_tileset, self.tile_size)
-    self.sprite_batch = love.graphics.newSpriteBatch(self.tile_set.img)
+    self.sprite_batch = love.graphics.newSpriteBatch(self.tile_set.img, nil, "dynamic")
 
     self.__bound_left = -math.huge
     self.__bound_top = -math.huge
