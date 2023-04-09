@@ -1,7 +1,7 @@
-local love_graphics = love.graphics
-local lgx_draw = love_graphics.draw
-local lgx_rect = love_graphics.rectangle
-local lgx_setColor = love_graphics.setColor
+local lgx = love.graphics
+local lgx_draw = lgx.draw
+local lgx_rect = lgx.rectangle
+local lgx_setColor = lgx.setColor
 
 ---@type JM.Template.Affectable
 local Affectable = _G.JM_Affectable
@@ -54,7 +54,7 @@ function Glyph:__constructor__(img, args)
         end
 
         if not Quads[self.__img][self.key] then
-            Quads[self.__img][self.key] = love.graphics.newQuad(
+            Quads[self.__img][self.key] = lgx.newQuad(
                 self.x, self.y,
                 self.w, self.h,
                 self.__img:getDimensions()
@@ -85,7 +85,7 @@ function Glyph:__constructor__(img, args)
     self.ox = (self.w) / 2 --* self.sx
     self.oy = (self.h) / 2 --* self.sy
 
-    self.bounds = { left = 0, top = 0, right = love.graphics.getWidth(), bottom = love.graphics.getHeight() }
+    -- self.bounds = { left = 0, top = 0, right = love.graphics.getWidth(), bottom = love.graphics.getHeight() }
 
     self.__quad = self:get_quad()
 end
@@ -176,6 +176,7 @@ function Glyph:__glyph_draw__()
 
     if self.__anima then
         self.__anima:draw(x, y)
+        --
     elseif not self.__img then
         lgx_setColor(0, 0, 0, 0.2)
         lgx_rect("fill", x, y,

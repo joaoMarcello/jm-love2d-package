@@ -73,7 +73,6 @@ end
 --- Update EffectManager class.
 ---@param dt number
 function EffectManager:update(dt)
-
     if self.__effects_list then
         for i = #self.__effects_list, 1, -1 do
             ---@type JM.Effect
@@ -97,9 +96,8 @@ function EffectManager:update(dt)
                     self.__effects_list[i] = nil
                     local r2 = table.remove(self.__effects_list, i)
                 end
-
             end -- END if remove effect
-        end -- END FOR i in effects list
+        end     -- END FOR i in effects list
 
         if self.__sort__ then
             table.sort(self.__effects_list,
@@ -113,19 +111,16 @@ function EffectManager:update(dt)
 
             self.__sort__ = false
         end -- END IF sort.
-
-    end -- END effect list is not nil.
+    end     -- END effect list is not nil.
 end
 
 ---
 ---@param draw function # Draw method from affectable object.
 ---@param ... unknown # The param for the object draw method
 function EffectManager:draw(draw, ...)
-    local args
-    args = (...) and { ... } or nil
+    local args = (...) and { ... } or nil
 
     for i = #(self.__effects_list), 1, -1 do
-
         ---@type JM.Effect
         local eff = self.__effects_list[i]
 
@@ -135,7 +130,6 @@ function EffectManager:draw(draw, ...)
             eff:draw(draw)
         end
     end
-    args = nil
 end
 
 ---
@@ -152,7 +146,6 @@ end
 
 function EffectManager:clear()
     if #(self.__effects_list) > 0 then
-
         for i = 1, #(self.__effects_list) do
             ---@type JM.Effect
             local eff = self.__effects_list[i]
@@ -171,7 +164,6 @@ end
 ---@return boolean result
 function EffectManager:stop_effect(effect_unique_id)
     for i = 1, #self.__effects_list do
-
         ---@type JM.Effect
         local eff = self.__effects_list[i]
 
@@ -253,7 +245,6 @@ end
 ---@param __only_get__ boolean|nil
 ---@return JM.Effect eff # The generate effect.
 function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
-
     object = object or self.object
 
     local eff
@@ -266,47 +257,34 @@ function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
 
     if eff_type == Effect.TYPE.flash then
         eff = Flash:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.flickering then
         eff = Flick:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.colorFlick then
-
         eff = Flick:new(object, effect_args)
         eff.__id = Effect.TYPE.colorFlick
 
         if not effect_args or (effect_args and not effect_args.color) then
             eff.__color = { 1, 0, 0, 1 }
         end
-
     elseif eff_type == Effect.TYPE.pulse then
         eff = Pulse:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.float then
         eff = Float:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.pointing then
-
         effect_args.__id__ = Effect.TYPE.pointing
         eff = Float:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.circle then
         effect_args.__id__ = Effect.TYPE.circle
         eff = Float:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.eight then
         effect_args.__id__ = Effect.TYPE.eight
         eff = Float:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.butterfly then
         effect_args.__id__ = Effect.TYPE.butterfly
         eff = Float:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.idle then
         eff = Idle:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.heartBeat then
-
         local pulse = Pulse:new(object, { max_sequence = 2, speed = 0.3, range = 0.1, __id__ = Effect.TYPE.heartBeat })
         pulse.__rad = 0
 
@@ -326,9 +304,7 @@ function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
         )
 
         eff = pulse
-
     elseif eff_type == Effect.TYPE.clickHere then
-
         local bb = Swing:new(object, { range = 0.03, speed = 1 / 3, max_sequence = 2 })
 
         local idle = Idle:new(object, { duration = 1 })
@@ -344,55 +320,40 @@ function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
             end)
 
         eff = bb
-
     elseif eff_type == Effect.TYPE.jelly then
         effect_args.__id__ = Effect.TYPE.jelly
         eff = Pulse:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.stretchHorizontal then
         effect_args.__id__ = Effect.TYPE.stretchHorizontal
         eff = Pulse:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.stretchVertical then
         effect_args.__id__ = Effect.TYPE.stretchVertical
         eff = Pulse:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.bounce then
         effect_args.__id__ = Effect.TYPE.bounce
         eff = Pulse:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.clockWise then
         eff = Rotate:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.counterClockWise then
         effect_args.__counter__ = true
         eff = Rotate:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.swing then
         eff = Swing:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.popin then
         eff = Popin:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.popout then
         effect_args.__id__ = Effect.TYPE.popout
         eff = Popin:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.fadein then
         eff = Fadein:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.fadeout then
         effect_args.__id__ = Effect.TYPE.fadeout
         eff = Fadein:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.ghost then
         eff = Ghost:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.disc then
         eff = Disc:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.ufo then
-
         local circle = self:generate_effect("circle", { range = 25, speed = 4, adjust_range_x = 150 })
 
         local pulse = Pulse:new(object, { range = 0.5, speed = 4 })
@@ -406,15 +367,11 @@ function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
             end)
 
         eff = idle
-
     elseif eff_type == Effect.TYPE.earthquake then
         eff = Earthquake:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.ghostShader then
         eff = GhostShader:new(object, effect_args)
-
     elseif eff_type == Effect.TYPE.pendulum then
-
         -- local pointing = self:apply_effect(object, "pointing", { speed = 4, range = 100 }, true)
 
         -- local floating = self:apply_effect(object, "float", { speed = 2 }, true)

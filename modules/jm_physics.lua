@@ -843,7 +843,7 @@ do
                 local last_sy = obj.speed_y
 
                 goaly = obj.y + (obj.speed_y * dt)
-                    + (obj.acc_y * dt * dt) / 2.0
+                    + (obj.acc_y * dt * dt) * 0.5
 
                 -- speed up with acceleration
                 obj.speed_y = obj.speed_y + obj.acc_y * dt
@@ -945,7 +945,7 @@ do
                 end
 
                 goalx = obj.x + ((obj.speed_x * dt)
-                    + (obj.acc_x * dt * dt) / 2.0) * mult
+                    + (obj.acc_x * dt * dt) * 0.5) * mult
 
 
                 -- obj.acc_x = obj.ground and obj.acc_x * 0.5 or obj.acc_x

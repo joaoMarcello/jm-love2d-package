@@ -172,11 +172,11 @@ end
 ---@param color JM.Color
 function Word:set_color(color, startp, endp)
     if not startp then startp = 1 end
-    if not endp then endp = #self.__characters end
+    if not endp then endp = self.__N_characters end
 
     local i = startp
     while (i <= endp) do
-        local char_ = self:__get_char_by_index(i)
+        local char_ = self.__characters[i] --self:__get_char_by_index(i)
         if char_ and char_:is_animated() then
 
         else
@@ -188,8 +188,9 @@ end
 
 ---
 function Word:update(dt)
-    for i = 1, #self.__characters, 1 do
-        local char_ = self:__get_char_by_index(i)
+    for i = 1, self.__N_characters, 1 do
+        ---@type JM.Font.Glyph
+        local char_ = self.__characters[i] --self:__get_char_by_index(i)
         char_:update(dt)
     end
 end
@@ -203,7 +204,7 @@ end
 ---
 function Word:get_width()
     local w = 0
-    local N = #self.__characters
+    local N = self.__N_characters --#self.__characters
     for i = 1, N do
         local cur_char = self:__get_char_by_index(i)
 
