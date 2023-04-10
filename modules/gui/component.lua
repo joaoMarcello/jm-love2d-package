@@ -128,7 +128,7 @@ function Component:init()
     self.is_enable = true
     self.is_visible = true
     -- self.on_focus = false
-    self.remove_ = false
+    self.__remove = false
 
     self.__mouse_pressed = false
 end
@@ -252,7 +252,7 @@ end
 local function mode_mouse_update(self, dt)
     local x, y
     if self.__holder then
-        x, y = self.__holder.Game:get_mouse_position()
+        x, y = self.__holder.scene:get_mouse_position()
     else
         x, y = love.mouse.getPosition()
     end
@@ -276,9 +276,9 @@ function Component:update(dt)
 
     self:__custom_update__(dt)
 
-    -- if self.mode == MODES.mouse then
-    --     mode_mouse_update(self, dt)
-    -- end
+    if self.mode == MODES.mouse then
+        mode_mouse_update(self, dt)
+    end
 
     if self.__touch_released then self.__touch_released = false end
     if self.__mouse_released then self.__mouse_released = false end
@@ -326,7 +326,7 @@ do
 
     function Component:remove()
         dispatch_event(self, EVENTS.remove)
-        self.remove_ = true
+        self.__remove = true
     end
 
     function Component:set_focus(value)

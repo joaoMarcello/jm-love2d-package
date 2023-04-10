@@ -1,7 +1,7 @@
-local love_graphics = love.graphics
-local love_graphics_draw = love_graphics.draw
-local love_graphics_rectangle = love_graphics.rectangle
-local love_graphics_set_color = love_graphics.setColor
+local lgx = love.graphics
+local lgx_draw = lgx.draw
+local lgx_rect = lgx.rectangle
+local lgx_setColor = lgx.setColor
 
 ---@type JM.Template.Affectable
 local Affectable = _G.JM_Affectable
@@ -23,7 +23,6 @@ function Glyph:new(img, args)
 end
 
 function Glyph:__constructor__(img, args)
-
     self.__img = img
     self.__id = args.id or ""
 
@@ -55,7 +54,7 @@ function Glyph:__constructor__(img, args)
         end
 
         if not Quads[self.__img][self.key] then
-            Quads[self.__img][self.key] = love.graphics.newQuad(
+            Quads[self.__img][self.key] = lgx.newQuad(
                 self.x, self.y,
                 self.w, self.h,
                 self.__img:getDimensions()
@@ -86,8 +85,9 @@ function Glyph:__constructor__(img, args)
     self.ox = (self.w) / 2 --* self.sx
     self.oy = (self.h) / 2 --* self.sy
 
-    self.bounds = { left = 0, top = 0, right = love.graphics.getWidth(), bottom = love.graphics.getHeight() }
+    -- self.bounds = { left = 0, top = 0, right = love.graphics.getWidth(), bottom = love.graphics.getHeight() }
 
+    self.__quad = self:get_quad()
 end
 
 function Glyph:update(dt)
@@ -150,7 +150,6 @@ function Glyph:is_animated()
 end
 
 function Glyph:draw(x, y)
-
     self.x, self.y = x, y
 
     Affectable.draw(self, self.__glyph_draw__)
@@ -161,7 +160,7 @@ function Glyph:draw_rec(x, y, w, h)
 
     x = x + w / 2
     y = y + h
-        - self.h * self.sy --* (eff_t and eff_t.sy or 1)
+        - self.h * self.sy  --* (eff_t and eff_t.sy or 1)
         + self.oy * self.sy -- * (eff_t and eff_t.sy or 1)
 
     self:draw(x, y)
@@ -177,19 +176,17 @@ function Glyph:__glyph_draw__()
 
     if self.__anima then
         self.__anima:draw(x, y)
-
+        --
     elseif not self.__img then
-
-        love_graphics_set_color(0, 0, 0, 0.2)
-        love_graphics_rectangle("fill", x, y,
+        lgx_setColor(0, 0, 0, 0.2)
+        lgx_rect("fill", x, y,
             self.w * self.sx,
             self.h * self.sy
         )
-
     elseif self.__id ~= "\t" and self.__id ~= " " then
-        love_graphics_set_color(self.color)
+        lgx_setColor(self.color)
 
-        love_graphics_draw(self.__img, self:get_quad(), x, y, 0, self.sx, self.sy, self.ox, self.oy)
+        lgx_draw(self.__img, self.__quad, x, y, 0, self.sx, self.sy, self.ox, self.oy)
     end
 
     -- if self.w and self.h then

@@ -19,7 +19,6 @@ Affectable.__index = Affectable
 
 ---@param obj_draw function|nil
 function Affectable:new(obj_draw)
-
     local obj = {}
     self.__index = self
     setmetatable(obj, self)
@@ -34,9 +33,9 @@ function Affectable:__constructor__(obj_draw)
 
     self.__effect_manager = EffectManager:new(self)
 
-    self.__effect_transform = { ox = 0, oy = 0, rot = 0, sx = 1, sy = 1, kx = 0, ky = 0 }
+    self.__effect_transform = nil --{ ox = 0, oy = 0, rot = 0, sx = 1, sy = 1, kx = 0, ky = 0 }
 
-    self.__transform = love.math.newTransform()
+    self.__transform = nil        --love.math.newTransform()
 
     self.x = 0
     self.y = 0
@@ -77,7 +76,10 @@ end
 ---@param self JM.Template.Affectable
 ---@param arg JM.Effect.TransformObject
 function Affectable:__set_effect_transform(arg)
-    if not self.__effect_transform then self.__effect_transform = {} end
+    -- if not self.__effect_transform then self.__effect_transform = {} end
+    self.__effect_transform = self.__effect_transform or {
+        x = 0, y = 0, rot = 0, sx = 1, sy = 1, ox = 0, oy = 0, kx = 0, ky = 0
+    }
 
     self.__effect_transform.x = arg.x or self.__effect_transform.x or 0
     self.__effect_transform.y = arg.y or self.__effect_transform.y or 0
@@ -91,6 +93,9 @@ function Affectable:__set_effect_transform(arg)
 end
 
 function Affectable:set_effect_transform(index, value)
+    self.__effect_transform = self.__effect_transform or {
+        x = 0, y = 0, rot = 0, sx = 1, sy = 1, ox = 0, oy = 0, kx = 0, ky = 0
+    }
     if self.__effect_transform[index] and value then
         self.__effect_transform[index] = value
     end
@@ -117,6 +122,9 @@ local function apply_transform(self, x, y)
 
     if eff_transf then
         local ox, oy = self.ox, self.oy
+
+        self.__transform = self.__transform
+            or love.math.newTransform()
 
         self.__transform:setTransformation(
             (x + ox + eff_transf.ox),
@@ -159,8 +167,7 @@ function Affectable:draw(custom_draw, ...)
     custom_draw = custom_draw or self.__specific_draw__
 
     if not custom_draw or not self.is_visible then return end
-    local args
-    args = (...) and { ... } or nil
+    local args = (...) and { ... } or nil
 
     if args then
         self:__draw__(custom_draw, unpack(args))
@@ -169,7 +176,6 @@ function Affectable:draw(custom_draw, ...)
         self:__draw__(custom_draw)
         self.__effect_manager:draw(custom_draw)
     end
-    args = nil
 end
 
 ---@param eff_type JM.Effect.id_string

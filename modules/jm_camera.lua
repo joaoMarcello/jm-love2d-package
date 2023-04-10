@@ -338,29 +338,32 @@ local function draw_grid(self)
     local qx = mceil((self.bounds_right - self.bounds_left) / tile)
     local qy = mceil((self.bounds_bottom - self.bounds_top) / tile)
 
-    love_set_color(0, 0, 0, 0.05)
     for i = mfloor(self.x / tile), qx do
         local px = tile * i
         if px > vx + vw then break end
 
         if px % (tile * 4) == 0 then
-            love_set_color(0, 0, 0, 0.7)
+            love_set_color(0, 0, 0, 0.5)
+            love.graphics.setLineWidth(2)
         else
             love_set_color(0, 0, 0, 0.3)
         end
 
         love_line(px, vy, px, vy + vh)
+        love.graphics.setLineWidth(1)
     end
 
     for j = mfloor(self.y / tile), qy do
         local py = tile * j
         if py > vy + vh then break end
         if py % (tile * 4) == 0 then
-            love_set_color(0, 0, 0, 0.7)
+            love_set_color(0, 0, 0, 0.5)
+            love.graphics.setLineWidth(2)
         else
             love_set_color(0, 0, 0, 0.3)
         end
         love_line(self.x, py, vx + vw, py)
+        love.graphics.setLineWidth(1)
     end
 end
 
@@ -484,7 +487,7 @@ local function show_focus(self)
     )
 
     local corner_esp = 2
-    local corner_length = 16
+    local corner_length = self.tile_size / 32 * 16
 
     if self:target_on_focus() then
         love_set_color(1, 1, 1, 1)
@@ -547,7 +550,7 @@ local function show_focus(self)
 
 
     love_set_color(0.1, 0.1, 0.1, 1)
-    local len_bar = 16
+    local len_bar = corner_length
     local len_half = len_bar / 2
 
     -- Deadzone Right-Middle
@@ -582,22 +585,24 @@ end
 local function show_border(self)
     if self.border_color[4] == 0 then return end
 
+    local len = 2
+
     -- Drawind a border in the camera's viewport
     love_set_color(self.border_color)
 
     local vx, vy, vw, vh = self:get_viewport_in_world_coord()
 
     -- left
-    love_rect("fill", vx, vy, 3, vh)
+    love_rect("fill", vx, vy, len, vh)
 
     -- Right
-    love_rect("fill", vx + vw - 3, vy, 3, vh)
+    love_rect("fill", vx + vw - len, vy, len, vh)
 
     -- Top
-    love_rect("fill", vx, vy, vw, 3)
+    love_rect("fill", vx, vy, vw, len)
 
     -- -- Bottom
-    love_rect("fill", vx, vy + vh - 3, vw, 3)
+    love_rect("fill", vx, vy + vh - len, vw, len)
 end
 
 ---@param self JM.Camera.Camera
@@ -699,19 +704,13 @@ function Camera:__constructor__(
     self.desired_canvas_h = desired_canvas_h or self.device_height
 
     self.scale = scale or 1.0
-    -- self.desired_scale = 1 --(self.device_height) / self.desired_canvas_h
 
     --- Viewport in real-screen coordinates
     self.viewport_x = x or 0
     self.viewport_y = y or 0
 
-    -- self.viewport_x = self.viewport_x * self.desired_scale
-    -- self.viewport_y = self.viewport_y * self.desired_scale
-
-    self.viewport_w = (w and w)
-        or self.device_width
-    self.viewport_h = (h and h)
-        or self.device_height
+    self.viewport_w = w or self.device_width
+    self.viewport_h = h or self.device_height
 
     self.tile_size = tile_size or 32
 
@@ -789,7 +788,7 @@ function Camera:__constructor__(
     self.type = type_ or CAMERA_TYPES.SuperMarioWorld
     self:set_type(self.type)
 
-    self.debug = true
+    self.debug = false
     self.debug_msg_rad = 0
     self.debug_trgt_rad = 0
     self.debug_color = {}
@@ -797,7 +796,7 @@ function Camera:__constructor__(
 
     self.show_world_boundary = show_world_bounds or self.debug
     self.show_focus = false or self.debug
-    self.border_color = border_color or { 1, 0, 0, 1 }
+    self.border_color = border_color --or { 1, 0, 0, 1 }
     self.is_showing_grid = self.debug or false
     self.grid_desired_tile = self.tile_size * 1
 
@@ -1071,6 +1070,8 @@ function Camera:follow(x, y, name)
         target_distance_y,
         target_distance_x
     )
+
+    return self.target
 end
 
 function Camera:target_on_focus()
@@ -1219,14 +1220,22 @@ function Camera:is_locked_in_y()
     return self.lock_y
 end
 
+---@param custom function
+function Camera:set_custom_update(custom)
+    self.custom_update = custom
+end
+
 function Camera:update(dt)
     assert(self.scale and self.scale ~= 0, ">> Error: Scale cannot be zero or nil !!!")
 
     local last_x, last_y = self.x, self.y
 
+    if self.custom_update then
+        self:custom_update(dt)
+    end
+
     if self.target then
-        local r
-        r = self.movement_x and self.movement_x(self, dt)
+        local r = self.movement_x and self.movement_x(self, dt)
         r = self.movement_y and self.movement_y(self, dt)
     end
 
@@ -1424,7 +1433,6 @@ function Camera:attach(lock_shake, subpixel)
 
     love_push()
     love_scale(self.scale)
-    -- love_scale(self.desired_scale, self.desired_scale)
 
     local shake_x = (not lock_shake and self.shaking_in_x and self.shake_offset_x) or 0
 
@@ -1439,17 +1447,7 @@ function Camera:attach(lock_shake, subpixel)
 end
 
 function Camera:detach()
-    -- local r
-    -- r = (self.is_showing_grid and show_grid) and draw_grid(self)
-    -- r = (self.show_world_boundary and show_bounds) and draw_bounds(self)
     love_pop()
-
-    -- if show_bounds then
-    --     if self.debug then debbug(self) end
-    --     r = self.show_focus and show_focus(self)
-    --     r = self.border_color and show_border(self)
-    -- end
-
     love_set_scissor()
 end
 
@@ -1462,23 +1460,22 @@ end
 
 -- Used after attach and before detach
 function Camera:draw_grid()
-    if self.is_showing_grid then
-        draw_grid(self)
-    end
+
 end
 
 -- Used after attach and before detach
 function Camera:draw_world_bounds()
-    if self.show_world_boundary then
-        draw_bounds(self)
-    end
+
 end
 
 -- Used after attach and before detach
 function Camera:draw_info()
-    local r = self.border_color and show_border(self)
+    local r
+    r = self.is_showing_grid and draw_grid(self)
+    r = self.show_world_boundary and draw_bounds(self)
     r = self.debug and debbug(self)
     r = self.show_focus and show_focus(self)
+    r = self.border_color and show_border(self)
 end
 
 function Camera:toggle_grid()
@@ -1507,12 +1504,19 @@ function Camera:toggle_world_bounds()
     end
 end
 
-function Camera:scissor_transform(x, y, w, h)
+function Camera:scissor_transform(x, y, w, h, subpixel)
+    subpixel = subpixel or 1
+
     -- Camera's default scissor
     local cx, cy, cw, ch = self.viewport_x,
         self.viewport_y,
         self.viewport_w,
         self.viewport_h
+
+    cx = cx * subpixel
+    cy = cy * subpixel
+    cw = cw * subpixel
+    ch = ch * subpixel
 
     --- The object scissor
     local sx, sy, sw, sh =
@@ -1520,6 +1524,11 @@ function Camera:scissor_transform(x, y, w, h)
         (self.viewport_y / self.scale - self.y + y) * self.scale,
         w * self.scale,
         h * self.scale
+
+    sx = sx * subpixel
+    sy = sy * subpixel
+    sw = sw * subpixel
+    sh = sh * subpixel
 
     local rx = clamp(sx, cx, cx + cw)
     local ry = clamp(sy, cy, cy + ch)

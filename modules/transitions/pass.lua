@@ -17,7 +17,7 @@ function Pass:new(args, x, y, w, h)
 end
 
 function Pass:__constructor__(args)
-    self.color = Utils:get_rgba(0, 0, 0, 1)
+    self.color = args.color or Utils:get_rgba(0, 0, 0, 1)
     self.rad = 0
     self.speed = args.duration or 1.5
     self.direction = 1

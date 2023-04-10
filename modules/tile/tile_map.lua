@@ -4,6 +4,8 @@ local love_file_load = love.filesystem.load
 local math_floor, math_min, math_max = math.floor, math.min, math.max
 local string_format = string.format
 
+local MAX_COLUMN = 9999
+
 --- -- @alias JM.TileMap.Cell {x:number, y:number, id:number}
 ---@alias JM.TileMap.Cell number
 
@@ -12,6 +14,15 @@ local TileSet = require((...):gsub("tile_map", "tile_set"))
 
 local function clamp(value, A, B)
     return math_min(math_max(value, A), B)
+end
+
+local function round(x)
+    local f = math_floor(x + 0.5)
+    if (x == f) or (x % 2.0 == 0.5) then
+        return f
+    else
+        return math_floor(x + 0.5)
+    end
 end
 
 local filter_default = function(x, y, id)
@@ -44,19 +55,24 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.path = path_map
     self.tile_size = tile_size or 32
     self.tile_set = TileSet:new(path_tileset, self.tile_size)
-    self.sprite_batch = love.graphics.newSpriteBatch(self.tile_set.img)
+    self.sprite_batch = love.graphics.newSpriteBatch(self.tile_set.img, nil, "dynamic")
 
     self.__bound_left = -math.huge
     self.__bound_top = -math.huge
     self.__bound_right = math.huge
     self.__bound_bottom = math.huge
 
+    self.last_index_top = nil
+    self.last_index_left = nil
+    self.last_index_bottom = nil
+    self.last_index_right = nil
+
     self:load_map(filter, regions)
 end
 
 ---@param self JM.TileMap
 local function get_index(self, x, y)
-    local r = (y / self.tile_size - 1) * 9999999 + (x / self.tile_size - 1)
+    local r = (y / self.tile_size) * MAX_COLUMN + (x / self.tile_size)
     return r
     -- return string_format("%d:%d", x, y)
 end
@@ -123,25 +139,63 @@ local function draw_with_bounds(self, left, top, right, bottom)
     self.__bound_right = right
     self.__bound_bottom = bottom
 
-    self.sprite_batch:clear()
-
     top = math_floor(top / self.tile_size) * self.tile_size
     top = clamp(top, self.min_y, top)
 
     left = math_floor(left / self.tile_size) * self.tile_size
     left = clamp(left, self.min_x, left)
 
+    right = math_floor(right / self.tile_size) * self.tile_size
+    right = clamp(right, self.min_x, right)
+
+    bottom = math_floor(bottom / self.tile_size) * self.tile_size
+    bottom = clamp(bottom, self.min_y, bottom)
+
+    -- if left > self.max_x or right < self.min_x
+    --     or top > self.max_y or bottom < self.min_y
+    -- then
+    --     if self.sprite_batch:getCount() > 0 then
+    --         self.sprite_batch:clear()
+    --     end
+    --     self.changed = false
+    --     return
+    -- end
+
+    if top == self.last_index_top and left == self.last_index_left
+        and right == self.last_index_right
+        and bottom == self.last_index_bottom
+        and not self.tile_set:frame_changed()
+    then
+        love_set_color(1, 1, 1, 1)
+        love_draw(self.sprite_batch)
+        self.changed = false
+        return
+    end
+
+    self.changed = true
+
+    self.last_index_left = left
+    self.last_index_top = top
+    self.last_index_bottom = bottom
+    self.last_index_right = right
+
+    self.sprite_batch:clear()
+
+    if left > self.max_x or top > self.max_y then
+        return
+    end
+
     for j = top, bottom, self.tile_size do
         --
-        if left > self.max_x or top > self.max_y then
-            return
-        end
+        local y = j / self.tile_size
 
         for i = left, right, self.tile_size do
-            -- ---@type JM.TileMap.Cell
-            -- local cell = self.cells_by_pos[j] and self.cells_by_pos[j][i]
+            --
+            local x = i / self.tile_size
 
-            local cell = self.cells_by_pos[get_index(self, i, j)]
+            local index = y * MAX_COLUMN + x
+
+            local cell = self.cells_by_pos[index]
 
             if cell then
                 local tile = self.tile_set:get_tile(cell)
@@ -153,7 +207,7 @@ local function draw_with_bounds(self, left, top, right, bottom)
         end
         --
     end
-
+    self.sprite_batch:flush()
 
     love_set_color(1, 1, 1, 1)
     love_draw(self.sprite_batch)
@@ -170,13 +224,15 @@ local function bounds_changed(self, left, top, right, bottom)
 end
 
 ---@param camera JM.Camera.Camera|nil
-function TileMap:draw(camera)
+function TileMap:draw(camera, factor_x, factor_y)
     if camera then
         local x, y, w, h = camera:get_viewport_in_world_coord()
+        x = x + (factor_x and round(x * factor_x) or 0)
+        y = y + (factor_y and round(y * factor_y) or 0)
         local right, bottom = x + w, y + h
 
-        x, y = x, y
-        right, bottom = right, bottom
+        -- x, y = x + 32, y + 32
+        -- right, bottom = right - 32, bottom - 32
 
         if bounds_changed(self, x, y, right, bottom)
             or self.tile_set:frame_changed()
@@ -186,14 +242,21 @@ function TileMap:draw(camera)
         else
             love_set_color(1, 1, 1, 1)
             love_draw(self.sprite_batch)
+            self.changed = false
         end
-    else
-        --draw_without_bounds(self)
     end
 end
 
 function TileMap:draw_with_bounds(left, top, right, bottom)
-    return draw_with_bounds(self, left, top, right, bottom)
+    if bounds_changed(self, left, top, right, bottom)
+        or self.tile_set:frame_changed()
+    then
+        return draw_with_bounds(self, left, top, right, bottom)
+    else
+        love_set_color(1, 1, 1, 1)
+        love_draw(self.sprite_batch)
+        self.changed = false
+    end
 end
 
 return TileMap

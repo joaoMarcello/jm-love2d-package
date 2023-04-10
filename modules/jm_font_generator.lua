@@ -41,7 +41,7 @@ local function get_glyphs(s)
 
     local t = {}
     for p, c in utf8.codes(s) do
-        table.insert(t, utf8.char(c))
+        table_insert(t, utf8.char(c))
     end
 
     getGlyphsResult[s] = t
