@@ -76,6 +76,7 @@ end
 ---@param self JM.Template.Affectable
 ---@param arg JM.Effect.TransformObject
 function Affectable:__set_effect_transform(arg)
+    if not arg then return end
     -- if not self.__effect_transform then self.__effect_transform = {} end
     self.__effect_transform = self.__effect_transform or {
         x = 0, y = 0, rot = 0, sx = 1, sy = 1, ox = 0, oy = 0, kx = 0, ky = 0
