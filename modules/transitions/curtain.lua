@@ -23,7 +23,7 @@ function Curtain:__constructor__(args)
     self.direction = 1
 
     if not self.mode_out then
-        self.rad = self.E
+        self.rad = 3 --self.E
         self.direction = -1
         self.speed = args.duration or 0.7
     end
@@ -44,7 +44,7 @@ function Curtain:finished()
 end
 
 function Curtain:update(dt)
-    self.rad = self.rad + ((self.E) / self.speed) * dt * self.direction
+    self.rad = self.rad + (3.0 / self.speed) * dt * self.direction
     self.mult = self.tanh(self.rad) + 0.007
     self.mult = self.clamp(self.mult, 0, 1)
 end
@@ -93,7 +93,7 @@ function Curtain:draw()
     end
 
     -- local font = JM_Font
-    -- font:print(self:finished(), 100, 100)
+    -- font:print(self.tanh(self.rad), 100, 100)
 end
 
 return Curtain
