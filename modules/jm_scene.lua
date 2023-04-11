@@ -1066,7 +1066,7 @@ function Scene:implements(param)
         set_blend_mode("alpha")
 
 
-        if self.use_vpad then
+        if self.use_vpad and self:is_current_active() then
             VPad:draw()
         end
         -- love.graphics.setScissor(self.x,
