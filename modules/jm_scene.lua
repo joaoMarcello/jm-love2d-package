@@ -226,6 +226,10 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.use_vpad = conf.use_vpad or false
 end
 
+function Scene:get_vpad()
+    return VPad
+end
+
 function Scene:restaure_canvas()
     if not self.canvas then
         self.canvas = create_canvas(self.screen_w, self.screen_h, self.canvas_filter, self.subpixel)
@@ -686,7 +690,7 @@ local function infinity_scroll_y(self, camera, layer)
 end
 
 ---
----@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table}
+---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function}
 ---
 function Scene:implements(param)
     assert(param, "\n>> Error: No parameter passed to method.")
@@ -1097,7 +1101,7 @@ function Scene:implements(param)
     end
 
     self.mousepressed = function(self, x, y, button, istouch, presses)
-        if self.use_vpad then
+        if self.use_vpad and not istouch then
             local mx, my = mousePosition()
             VPad:mousepressed(mx, my, button, istouch, presses)
         end
@@ -1114,7 +1118,7 @@ function Scene:implements(param)
     end
 
     self.mousereleased = function(self, x, y, button, istouch, presses)
-        if self.use_vpad then
+        if self.use_vpad and not istouch then
             local mx, my = mousePosition()
             VPad:mousereleased(mx, my, button, istouch, presses)
         end
@@ -1139,6 +1143,34 @@ function Scene:implements(param)
 
         x, y = self:get_mouse_position()
         local r = param.mousemoved and param.mousemoved(x, y, dx, dy, istouch)
+    end
+
+    self.touchpressed = function(self, id, x, y, dx, dy, pressure)
+        if self.use_vpad then
+            VPad:touchpressed(id, x, y, dx, dy, pressure)
+        end
+
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
+            return
+        end
+
+        local r = param.touchpressed and param.touchpressed(x, y, dx, dy, pressure)
+    end
+
+    self.touchreleased = function(self, id, x, y, dx, dy, pressure)
+        if self.use_vpad then
+            VPad:touchreleased(id, x, y, dx, dy, pressure)
+        end
+
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
+            return
+        end
+
+        local r = param.touchreleased and param.touchreleased(x, y, dx, dy, pressure)
     end
 
     self.keypressed = function(self, key, scancode, isrepeat)

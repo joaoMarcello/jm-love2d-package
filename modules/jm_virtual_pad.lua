@@ -1,3 +1,4 @@
+---@type JM.GUI
 local GUI = require(string.gsub(..., "jm_virtual_pad", "jm_gui"))
 --_G.JM_Love2D_Package.GUI
 local TouchButton = GUI.TouchButton
