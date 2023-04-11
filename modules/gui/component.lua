@@ -276,14 +276,12 @@ function Component:update(dt)
 
     self:__custom_update__(dt)
 
-    if self.mode == MODES.mouse then
-        mode_mouse_update(self, dt)
-    end
+    -- if self.mode == MODES.mouse then
+    --     mode_mouse_update(self, dt)
+    -- end
 
     if self.__touch_released then self.__touch_released = false end
     if self.__mouse_released then self.__mouse_released = false end
-
-    return
 end
 
 function Component:draw()

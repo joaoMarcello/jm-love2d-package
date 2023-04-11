@@ -11,6 +11,7 @@ local love_setColor, love_circle = love.graphics.setColor, love.graphics.circle
 local Button = setmetatable({}, Component)
 Button.__index = Button
 
+---@return JM.GUI.TouchButton
 function Button:new(args)
     args = args or {}
     local obj = Component:new(args)

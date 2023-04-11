@@ -3,36 +3,41 @@
 ]]
 local path = (...)
 
-local set_canvas = love.graphics.setCanvas
-local get_canvas = love.graphics.getCanvas
-local clear_screen = love.graphics.clear
-local set_blend_mode = love.graphics.setBlendMode
-local translate = love.graphics.translate
-local scale = love.graphics.scale
-local push = love.graphics.push
-local pop = love.graphics.pop
-local set_color_draw = love.graphics.setColor
-local love_draw = love.graphics.draw
-local set_shader = love.graphics.setShader
+local lgx = love.graphics
+local set_canvas = lgx.setCanvas
+local get_canvas = lgx.getCanvas
+local clear_screen = lgx.clear
+local set_blend_mode = lgx.setBlendMode
+local translate = lgx.translate
+local scale = lgx.scale
+local push = lgx.push
+local pop = lgx.pop
+local set_color_draw = lgx.setColor
+local love_draw = lgx.draw
+local set_shader = lgx.setShader
 local get_delta_time = love.timer.getDelta
 local love_mouse_position = love.mouse.getPosition
-local math_abs, math_min, math_floor = math.abs, math.min, math.floor
-local love_get_scissor = love.graphics.getScissor
-local love_set_scissor = love.graphics.setScissor
-local love_rect = love.graphics.rectangle
+local math_abs, math_min, math_floor, math_ceil = math.abs, math.min, math.floor, math.ceil
+local love_get_scissor = lgx.getScissor
+local love_set_scissor = lgx.setScissor
+local love_rect = lgx.rectangle
+local mousePosition = love.mouse.getPosition
 
 local SceneManager = _G.JM_SceneManager
+
+---@type JM.GUI.VPad
+local VPad = require(string.gsub(path, "jm_scene", "jm_virtual_pad"))
 
 ---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean}
 
 local function round(value)
-    local absolute = math.abs(value)
-    local decimal = absolute - math.floor(absolute)
+    local absolute = math_abs(value)
+    local decimal = absolute - math_floor(absolute)
 
     if decimal >= 0.5 then
-        return value > 0 and math.ceil(value) or math.floor(value)
+        return value > 0 and math_ceil(value) or math_floor(value)
     else
-        return value > 0 and math.floor(value) or math.ceil(value)
+        return value > 0 and math_floor(value) or math_ceil(value)
     end
 end
 
@@ -58,7 +63,7 @@ local function draw_tile(self)
 end
 
 local function create_canvas(width, height, filter, subpixel)
-    local canvas = love.graphics.newCanvas(width * subpixel, height * subpixel)
+    local canvas = love.graphics.newCanvas(width * subpixel, height * subpixel, { dpiscale = 1 })
     canvas:setFilter(filter, filter)
     -- canvas:setWrap("clampzero", "clampzero", "clampzero")
     return canvas
@@ -217,6 +222,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.capture_mode = false
 
     self.canvas_layer = nil
+
+    self.use_vpad = conf.use_vpad or false
 end
 
 function Scene:restaure_canvas()
@@ -227,7 +234,7 @@ function Scene:restaure_canvas()
 
     if self.using_canvas_layer and not self.canvas_layer then
         local w, h        = self.canvas:getDimensions()
-        self.canvas_layer = love.graphics.newCanvas(w, h)
+        self.canvas_layer = love.graphics.newCanvas(w, h, { dpiscale = self.canvas:getDPIScale() })
         self.canvas_layer:setFilter(self.canvas_filter, self.canvas_filter)
     end
 end
@@ -769,13 +776,14 @@ function Scene:implements(param)
             end
 
             if layer.shader or layer.use_canvas then
-                self.canvas_layer = self.canvas_layer
-                    or love.graphics.newCanvas(self.canvas:getDimensions())
-
-                self.canvas_layer:setFilter(self.canvas_filter,
-                    self.canvas_filter)
-
                 self.using_canvas_layer = true
+
+                self:restaure_canvas()
+                -- self.canvas_layer = self.canvas_layer
+                --     or love.graphics.newCanvas(self.canvas:getDimensions())
+
+                -- self.canvas_layer:setFilter(self.canvas_filter,
+                --     self.canvas_filter)
             end
 
             if not layer.name then
@@ -787,6 +795,10 @@ function Scene:implements(param)
 
     self.update = function(self, dt)
         self:calc_canvas_scale()
+
+        if self.use_vpad then
+            VPad:update(dt)
+        end
 
         if self.time_pause then
             self.time_pause = self.time_pause - dt
@@ -1050,6 +1062,9 @@ function Scene:implements(param)
         set_blend_mode("alpha")
 
 
+        if self.use_vpad then
+            VPad:draw()
+        end
         -- love.graphics.setScissor(self.x,
         --     math_abs(self.h - self.dispositive_h),
         --     self.w, self.h
@@ -1082,6 +1097,11 @@ function Scene:implements(param)
     end
 
     self.mousepressed = function(self, x, y, button, istouch, presses)
+        if self.use_vpad then
+            local mx, my = mousePosition()
+            VPad:mousepressed(mx, my, button, istouch, presses)
+        end
+
         if self.time_pause
             or (self.transition and self.transition.pause_scene)
         then
@@ -1094,6 +1114,11 @@ function Scene:implements(param)
     end
 
     self.mousereleased = function(self, x, y, button, istouch, presses)
+        if self.use_vpad then
+            local mx, my = mousePosition()
+            VPad:mousereleased(mx, my, button, istouch, presses)
+        end
+
         if self.time_pause
             or (self.transition and self.transition.pause_scene)
         then

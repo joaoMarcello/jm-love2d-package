@@ -12,6 +12,7 @@ local math_atan2, math_sqrt = math.atan2, math.sqrt
 local Stick = setmetatable({}, Component)
 Stick.__index = Stick
 
+---@return JM.GUI.VirtualStick
 function Stick:new(args)
     args = args or {}
     args.x = args.x or 250
