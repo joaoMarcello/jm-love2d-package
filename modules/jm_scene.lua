@@ -7,19 +7,19 @@ local lgx = love.graphics
 local set_canvas = lgx.setCanvas
 local get_canvas = lgx.getCanvas
 local clear_screen = lgx.clear
-local set_blend_mode = lgx.setBlendMode
+local setBlendMode = lgx.setBlendMode
 local translate = lgx.translate
 local scale = lgx.scale
 local push = lgx.push
 local pop = lgx.pop
-local set_color_draw = lgx.setColor
+local setColor = lgx.setColor
 local love_draw = lgx.draw
-local set_shader = lgx.setShader
+local setShader = lgx.setShader
 local get_delta_time = love.timer.getDelta
-local love_mouse_position = love.mouse.getPosition
-local math_abs, math_min, math_floor, math_ceil = math.abs, math.min, math.floor, math.ceil
-local love_get_scissor = lgx.getScissor
-local love_set_scissor = lgx.setScissor
+local mouseGetPosition = love.mouse.getPosition
+local abs, min, floor, ceil = math.abs, math.min, math.floor, math.ceil
+local getScissor = lgx.getScissor
+local setScissor = lgx.setScissor
 local love_rect = lgx.rectangle
 local mousePosition = love.mouse.getPosition
 
@@ -43,13 +43,13 @@ local VPad = require(string.gsub(path, "jm_scene", "jm_virtual_pad"))
 ---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean}
 
 local function round(value)
-    local absolute = math_abs(value)
-    local decimal = absolute - math_floor(absolute)
+    local absolute = abs(value)
+    local decimal = absolute - floor(absolute)
 
     if decimal >= 0.5 then
-        return value > 0 and math_ceil(value) or math_floor(value)
+        return value > 0 and ceil(value) or floor(value)
     else
-        return value > 0 and math_floor(value) or math_ceil(value)
+        return value > 0 and floor(value) or ceil(value)
     end
 end
 
@@ -62,7 +62,7 @@ local function draw_tile(self)
     qy = (self.screen_h) / tile
 
     clear_screen(0.35, 0.35, 0.35, 1)
-    set_color_draw(0.9, 0.9, 0.9, 0.3)
+    setColor(0.9, 0.9, 0.9, 0.3)
 
     for i = 0, qx, 2 do
         local x = tile * i
@@ -330,7 +330,7 @@ end
 function Scene:get_mouse_position(camera)
     camera = camera or self.camera
 
-    local x, y = love_mouse_position()
+    local x, y = mouseGetPosition()
     local ds --= self.camera.desired_scale
 
     ds = math.min((self.w - self.x) / self.screen_w,
@@ -468,13 +468,13 @@ end
 function Scene:calc_canvas_scale()
     local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
     local canvasWidth, canvasHeight = self.canvas:getDimensions()
-    self.canvas_scale               = math_min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+    self.canvas_scale               = min(windowWidth / canvasWidth, windowHeight / canvasHeight)
 
     local canvasWidthScaled         = canvasWidth * self.canvas_scale
     local canvasHeightScaled        = canvasHeight * self.canvas_scale
 
-    self.offset_x                   = math_floor((windowWidth - canvasWidthScaled) / 2)
-    self.offset_y                   = math_floor((windowHeight - canvasHeightScaled) / 2)
+    self.offset_x                   = floor((windowWidth - canvasWidthScaled) / 2)
+    self.offset_y                   = floor((windowHeight - canvasHeightScaled) / 2)
 end
 
 ---@param scene JM.Scene
@@ -506,21 +506,21 @@ function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
     love.graphics.replaceTransform(self.__transf)
 
     if camera == scene.camera then
-        love_set_scissor()
+        setScissor()
         self:draw()
     end
-    set_color_draw(1, 1, 1, 1)
-    set_blend_mode("alpha", "premultiplied")
+    setColor(1, 1, 1, 1)
+    setBlendMode("alpha", "premultiplied")
 
-    local scx, scy, scw, sch = love_get_scissor()
-    love_set_scissor(x, y, camera.viewport_w * 2, camera.viewport_h * 2)
+    local scx, scy, scw, sch = getScissor()
+    setScissor(x, y, camera.viewport_w * 2, camera.viewport_h * 2)
     love_draw(self.canvas, x, y, rot, sx, sy, ox, oy, kx, ky)
 
-    set_blend_mode("alpha")
+    setBlendMode("alpha")
     pop()
     self.capture_mode = false
     set_canvas(last_canvas)
-    love_set_scissor(scx, scy, scw, sch)
+    setScissor(scx, scy, scw, sch)
 end
 
 ---@param skip integer
@@ -614,16 +614,16 @@ local function infinity_scroll_x(self, camera, layer)
     local width = layer.scroll_width
 
     push()
-    if math_abs(sum) >= width then
-        translate(width * math_floor(sum / width), 0)
+    if abs(sum) >= width then
+        translate(width * floor(sum / width), 0)
     end
     r = layer.draw and layer:draw(camera)
 
-    local qx = math_floor((self.screen_w / camera.scale)
+    local qx = floor((self.screen_w / camera.scale)
             / width) + 1
 
     --==================================================
-    if math_abs(layer.pos_x + camera.x)
+    if abs(layer.pos_x + camera.x)
         < width
     then
         translate(-width, 0)
@@ -648,19 +648,19 @@ local function infinity_scroll_y(self, camera, layer)
 
     push()
 
-    if math_abs(sum) >= height then
+    if abs(sum) >= height then
         translate(0, height
-            * math_floor(sum / height))
+            * floor(sum / height))
     end
 
     local r = layer.draw and not layer.infinity_scroll_x
         and layer:draw(camera)
     infinity_scroll_x(self, camera, layer)
 
-    local qy = math_floor((self.screen_h / camera.scale)
+    local qy = floor((self.screen_h / camera.scale)
             / height) + 1
 
-    if math_abs(sum) < height then
+    if abs(sum) < height then
         translate(0, -height)
 
         r = layer.draw and not layer.infinity_scroll_x
@@ -897,10 +897,10 @@ function Scene:implements(param)
         end
 
         scale(self.subpixel, self.subpixel)
-        set_blend_mode("alpha")
-        set_color_draw(1, 1, 1, 1)
+        setBlendMode("alpha")
+        setColor(1, 1, 1, 1)
 
-        local sx, sy, sw, sh = love_get_scissor()
+        local sx, sy, sw, sh = getScissor()
 
         if not self.color_r then
             draw_tile(self)
@@ -930,7 +930,7 @@ function Scene:implements(param)
                             and clear_screen(.8, .8, .8, 0)
                         ---
                     elseif layer.shader then
-                        set_shader(layer.shader)
+                        setShader(layer.shader)
                     end
 
                     local last_cam_px = camera.x
@@ -980,8 +980,8 @@ function Scene:implements(param)
 
                     if layer.use_canvas and not layer.skip_draw then
                         set_canvas(last_canvas)
-                        local r = layer.shader and set_shader(layer.shader)
-                        set_color_draw(1, 1, 1, 1)
+                        local r = layer.shader and setShader(layer.shader)
+                        setColor(1, 1, 1, 1)
                         -- set_blend_mode("alpha")
                         local px = camera.x + (px ~= 0 and layer.pos_x or 0)
                             - camera.viewport_x / camera.scale
@@ -998,7 +998,7 @@ function Scene:implements(param)
                         if layer.shader and layer.adjust_shader then
                             layer:adjust_shader(px, py, scale, camera)
                         end
-                        set_shader()
+                        setShader()
                     end
 
                     camera:set_position(last_cam_px, last_cam_py)
@@ -1009,7 +1009,7 @@ function Scene:implements(param)
                     else
                         set_canvas(last_canvas)
                     end
-                    set_shader()
+                    setShader()
 
                     pop()
 
@@ -1050,16 +1050,16 @@ function Scene:implements(param)
 
         if self.capture_mode then return end
 
-        set_color_draw(1, 1, 1, 1)
-        set_blend_mode("alpha", 'premultiplied')
-        set_shader(self.shader)
+        setColor(1, 1, 1, 1)
+        setBlendMode("alpha", 'premultiplied')
+        setShader(self.shader)
 
         love_draw(self.canvas, self.x + self.offset_x,
             self.y + self.offset_y,
             0, self.canvas_scale, self.canvas_scale)
 
-        set_blend_mode("alpha")
-        set_shader()
+        setBlendMode("alpha")
+        setShader()
 
         if self.use_vpad and self:is_current_active() then
             VPad:draw()
@@ -1089,9 +1089,9 @@ function Scene:implements(param)
         --         true)
         -- end
 
-        love_set_scissor(sx, sy, sw, sh)
+        setScissor(sx, sy, sw, sh)
 
-        set_color_draw(1, 1, 1, 1)
+        setColor(1, 1, 1, 1)
         love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
     end
 
