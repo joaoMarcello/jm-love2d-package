@@ -23,6 +23,18 @@ local love_set_scissor = lgx.setScissor
 local love_rect = lgx.rectangle
 local mousePosition = love.mouse.getPosition
 
+local Transitions = {
+    cartoon = require(string.gsub(path, "jm_scene", "transitions.cartoon")),
+    curtain = require(string.gsub(path, "jm_scene", "transitions.curtain")),
+    diamond = require(string.gsub(path, "jm_scene", "transitions.diamond")),
+    door = require(string.gsub(path, "jm_scene", "transitions.door")),
+    fade = require(string.gsub(path, "jm_scene", "transitions.fade")),
+    masker = require(string.gsub(path, "jm_scene", "transitions.masker")),
+    pass = require(string.gsub(path, "jm_scene", "transitions.pass")),
+    stripe = require(string.gsub(path, "jm_scene", "transitions.stripe")),
+    tile = require(string.gsub(path, "jm_scene", "transitions.tile")),
+}
+
 local SceneManager = _G.JM_SceneManager
 
 ---@type JM.GUI.VPad
@@ -428,27 +440,7 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
     config.mode = config.mode or mode
 
     ---@type JM.Transition
-    local Tran
-
-    if type_ == "fade" then
-        Tran = require 'jm-love2d-package.modules.transitions.fade'
-    elseif type_ == "tile" then
-        Tran = require 'jm-love2d-package.modules.transitions.tile'
-    elseif type_ == "cartoon" then
-        Tran = require 'jm-love2d-package.modules.transitions.cartoon'
-    elseif type_ == "masker" then
-        Tran = require "jm-love2d-package.modules.transitions.masker"
-    elseif type_ == "pass" then
-        Tran = require "jm-love2d-package.modules.transitions.pass"
-    elseif type_ == "door" then
-        Tran = require "jm-love2d-package.modules.transitions.door"
-    elseif type_ == "stripe" then
-        Tran = require "jm-love2d-package.modules.transitions.stripe"
-    elseif type_ == "curtain" then
-        Tran = require "jm-love2d-package.modules.transitions.curtain"
-    elseif type_ == "diamond" then
-        Tran = require "jm-love2d-package.modules.transitions.diamond"
-    end
+    local Tran = Transitions[type_]
 
     if Tran then
         local x, y, w, h
