@@ -174,9 +174,9 @@ function Stick:is_pressing(direction, constraint, angle_limit)
 
     if direction == "left" or direction == "right" then
         if math_abs(dx) < constraint then return false end
-
-        if (direction == "right" and math_abs(angle) > angle_limit) or
-            (direction == "left" and math_abs(angle) < 180 - angle_limit)
+        local abs_angle = math_abs(angle)
+        if (direction == "right" and abs_angle > angle_limit) or
+            (direction == "left" and abs_angle < 180 - angle_limit)
         then
             return false
         end
@@ -184,6 +184,14 @@ function Stick:is_pressing(direction, constraint, angle_limit)
         return (direction == "left" and dx < 0) or (direction == "right" and dx > 0)
     else
         if math_abs(dy) < constraint then return false end
+        local abs_angle = math_abs(angle)
+        if (direction == "up" and (abs_angle > 90 + angle_limit
+            or abs_angle < 90 - angle_limit))
+            or (direction == "down" and (abs_angle > 90 + angle_limit
+            or abs_angle < 90 - angle_limit))
+        then
+            return false
+        end
 
         return (direction == "up" and dy < 0) or (direction == "down" and dy > 0)
     end
@@ -284,17 +292,17 @@ function Stick:draw()
     -- love.graphics.setColor(1, 1, 0)
     -- love.graphics.rectangle("line", self.bounds_left, self.bounds_top, self.bounds_width, self.bounds_height)
 
-    -- font:push()
-    -- font:set_font_size(32)
-    -- ---@type string|number, string|number
-    -- local dx, dy = self:get_direction()
-    -- dx = string.format("%.2f", dx)
-    -- dy = string.format("%.2f", dy)
-    -- font:print("dx:" .. dx .. "  dy:" .. dy, 500, self.y - 100)
-    -- local angle = string.format("%.2f", self:get_angle2())
-    -- font:print(angle, self.x, self.y - 100)
+    font:push()
+    font:set_font_size(32)
+    ---@type string|number, string|number
+    local dx, dy = self:get_direction()
+    dx = string.format("%.2f", dx)
+    dy = string.format("%.2f", dy)
+    font:print("dx:" .. dx .. "  dy:" .. dy, 500, self.y - 100)
+    local angle = string.format("%.2f", self:get_angle2())
+    font:print(angle, self.x, self.y - 100)
     -- font:print(tostring(self:is_pressing("left")), self.x, self.y + self.h + 30)
-    -- font:pop()
+    font:pop()
 end
 
 return Stick
