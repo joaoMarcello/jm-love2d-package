@@ -1,12 +1,11 @@
 ---@type JM.GUI.Component
 local Component = require(string.gsub(..., "stick", "component"))
 
-local font = _G.JM_Font.current
-
 local Utils = _G.JM_Utils
 
 local math_abs, math_sin, math_cos = math.abs, math.sin, math.cos
 local math_atan2, math_sqrt = math.atan2, math.sqrt
+local lgx = love.graphics
 
 ---@class JM.GUI.VirtualStick : JM.GUI.Component
 local Stick = setmetatable({}, Component)
@@ -40,8 +39,8 @@ function Stick:__constructor__(args)
 
     self.bounds_left = args.bound_left or 0
     self.bounds_top = args.bound_top or 0
-    self.bounds_width = args.bound_width or (1366 / 4)
-    self.bounds_height = args.bound_height or 768
+    self.bounds_width = args.bound_width or (lgx.getWidth() * 0.25)
+    self.bounds_height = args.bound_height or lgx.getHeight()
 
     self.init_x = self.x
     self.init_y = self.y
@@ -51,11 +50,11 @@ end
 
 function Stick:set_position(x, y, capture)
     Component.set_position(self, x, y)
-    self.cx = self.x + self.w / 2
-    self.cy = self.y + self.h / 2
+    self.cx = self.x + self.w * 0.5
+    self.cy = self.y + self.h * 0.5
 
-    self.half_x = self.x + self.w / 2
-    self.half_y = self.y + self.h / 2
+    self.half_x = self.x + self.w * 0.5
+    self.half_y = self.y + self.h * 0.5
 
     if capture then
         self.init_x = self.x
@@ -184,6 +183,9 @@ function Stick:is_pressing(direction, constraint, angle_limit)
         return (direction == "left" and dx < 0) or (direction == "right" and dx > 0)
     else
         if math_abs(dy) < constraint then return false end
+
+        angle_limit = angle_limit * 1.25
+
         local abs_angle = math_abs(angle)
         if (direction == "up" and (abs_angle > 90 + angle_limit
             or abs_angle < 90 - angle_limit))
@@ -193,7 +195,8 @@ function Stick:is_pressing(direction, constraint, angle_limit)
             return false
         end
 
-        return (direction == "up" and dy < 0) or (direction == "down" and dy > 0)
+        return (direction == "up" and dy < 0)
+            or (direction == "down" and dy > 0)
     end
 end
 
@@ -215,7 +218,7 @@ end
 
 function Stick:get_angle2()
     local angle = self.angle or 0
-    angle = angle * 180 / math.pi
+    angle = angle * 180.0 / math.pi
     return angle
 end
 
@@ -266,43 +269,42 @@ function Stick:update(dt)
 end
 
 function Stick:__custom_draw__()
-    love.graphics.setColor(0, 0, 0, 0.4 * self.opacity)
-    love.graphics.circle("fill", self.x + self.w / 2, self.y + self.h / 2, self.radius)
+    lgx.setColor(0, 0, 0, 0.4 * self.opacity)
+    lgx.circle("fill", self.x + self.w / 2, self.y + self.h / 2, self.radius)
 
-    love.graphics.setColor(1, 1, 1, self.opacity)
-    love.graphics.circle("line", self.x + self.w / 2, self.y + self.h / 2, self.radius)
+    lgx.setColor(1, 1, 1, self.opacity)
+    lgx.circle("line", self.x + self.w / 2, self.y + self.h / 2, self.radius)
 end
 
 function Stick:draw()
     Component.draw(self)
 
-    love.graphics.setColor(1, 1, 1, self.opacity)
-    -- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
-    love.graphics.circle("fill", self.cx, self.cy, self.radius * 0.7)
-    love.graphics.setColor(.3, .3, .3, .2)
+    lgx.setColor(1, 1, 1, self.opacity)
+    lgx.circle("fill", self.cx, self.cy, self.radius * 0.7)
+    lgx.setColor(.3, .3, .3, .2)
     local rm = self.radius * 0.7 * 0.6
-    love.graphics.circle("fill", self.cx, self.cy, rm)
+    lgx.circle("fill", self.cx, self.cy, rm)
 
-    love.graphics.setColor(0, 0, 0, 0.4 * self.opacity)
-    love.graphics.circle("fill", self.cx - rm - 3, self.cy, 4)
-    love.graphics.circle("fill", self.cx, self.cy - rm - 3, 4)
-    love.graphics.circle("fill", self.cx + rm + 3, self.cy, 4)
-    love.graphics.circle("fill", self.cx, self.cy + rm + 3, 4)
+    lgx.setColor(0, 0, 0, 0.4 * self.opacity)
+    lgx.circle("fill", self.cx - rm - 3, self.cy, 4)
+    lgx.circle("fill", self.cx, self.cy - rm - 3, 4)
+    lgx.circle("fill", self.cx + rm + 3, self.cy, 4)
+    lgx.circle("fill", self.cx, self.cy + rm + 3, 4)
 
     -- love.graphics.setColor(1, 1, 0)
     -- love.graphics.rectangle("line", self.bounds_left, self.bounds_top, self.bounds_width, self.bounds_height)
 
-    font:push()
-    font:set_font_size(32)
-    ---@type string|number, string|number
-    local dx, dy = self:get_direction()
-    dx = string.format("%.2f", dx)
-    dy = string.format("%.2f", dy)
-    font:print("dx:" .. dx .. "  dy:" .. dy, 500, self.y - 100)
-    local angle = string.format("%.2f", self:get_angle2())
-    font:print(angle, self.x, self.y - 100)
-    -- font:print(tostring(self:is_pressing("left")), self.x, self.y + self.h + 30)
-    font:pop()
+    -- font:push()
+    -- font:set_font_size(32)
+    -- ---@type string|number, string|number
+    -- local dx, dy = self:get_direction()
+    -- dx = string.format("%.2f", dx)
+    -- dy = string.format("%.2f", dy)
+    -- font:print("dx:" .. dx .. "  dy:" .. dy, 500, self.y - 100)
+    -- local angle = string.format("%.2f", self:get_angle2())
+    -- font:print(angle, self.x, self.y - 100)
+    -- -- font:print(tostring(self:is_pressing("left")), self.x, self.y + self.h + 30)
+    -- font:pop()
 end
 
 return Stick

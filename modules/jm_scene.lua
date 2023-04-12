@@ -1060,11 +1060,14 @@ function Scene:implements(param)
 
         set_color_draw(1, 1, 1, 1)
         set_blend_mode("alpha", 'premultiplied')
+        set_shader(self.shader)
+
         love_draw(self.canvas, self.x + self.offset_x,
             self.y + self.offset_y,
             0, self.canvas_scale, self.canvas_scale)
-        set_blend_mode("alpha")
 
+        set_blend_mode("alpha")
+        set_shader()
 
         if self.use_vpad and self:is_current_active() then
             VPad:draw()
