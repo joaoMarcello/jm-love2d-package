@@ -543,16 +543,29 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     if __max_char__ and __max_char__ == 0 then return end
     -- self:__debbug()
 
-    self.x = x
-    self.y = y
+    love.graphics.push()
+
+    self.x = 0
+    self.y = 0
+
+    love.graphics.translate(x, y)
+    x = 0
+    y = 0
+
+    -- self.x = x
+    -- self.y = y
 
     self:update(dt or love.timer.getDelta())
 
-    return self:draw_lines(
+    local tx, ty, glyph = self:draw_lines(
         self:get_lines(x),
         x, y, align,
         nil, __max_char__
     )
+
+    love.graphics.pop()
+
+    return tx, ty, glyph
 
     -- love.graphics.setColor(0.4, 0.4, 0.4, 1)
     -- love.graphics.line(self.__bounds.right, 0, self.__bounds.right, 600)

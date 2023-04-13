@@ -1234,8 +1234,8 @@ function Slope:draw()
     local x1, y1 = self:point_left()
     local x2, y2 = self:point_right()
 
-    love.graphics.setColor(1, 0, 0, 1)
-    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+    -- love.graphics.setColor(1, 0, 0, 1)
+    -- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
     love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
     love.graphics.setLineWidth(2)
@@ -1259,9 +1259,9 @@ function Slope:draw()
         )
     end
 
-    local font = JM_Font
-    font:print("p:" .. tostring(self.prev and true or false), self.x, self.y - 22)
-    font:print("n:" .. tostring(self.next and true or false), self.x, self.y - 44)
+    -- local font = JM_Font
+    -- font:print("p:" .. tostring(self.prev and true or false), self.x, self.y - 22)
+    -- font:print("n:" .. tostring(self.next and true or false), self.x, self.y - 44)
     -- font:print(math.sin(self.angle), self.x, self.y - 22)
 end
 

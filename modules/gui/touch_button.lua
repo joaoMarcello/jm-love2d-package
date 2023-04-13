@@ -182,7 +182,8 @@ function Button:__custom_draw__()
     if self.font_obj then
         font:push()
         font:set_font_size(self.font_size)
-        self.font_obj.__bounds.right = self.x + self.w
+        -- self.font_obj.__bounds.right = self.x + self.w
+        self.font_obj.__bounds.right = self.w
         self.font_obj:draw(self.x, self.y + self.h / 2 - (font.__font_size + 2) / 2, "center")
         font:pop()
     end
