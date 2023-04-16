@@ -59,7 +59,7 @@ local Loader = {
     --
     ---@param self JM.Loader
     img = function(self, path, w, h)
-        ---@type any|string|love.ByteData
+        ---@type any
         local dat = filesys.read(path)
         dat = decompress(str, format_comp, dat)
         dat = decode(bytedata, format_enc2, dat)
