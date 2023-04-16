@@ -1,6 +1,11 @@
+local string_format = string.format
+local string_rep = string.rep
+local assert, type, pairs, loadstring = assert, type, pairs, loadstring
+
 --- TSerial v1.3, a simple table serializer which turns tables into Lua script
 -- @author Taehl (SelfMadeSpirit@gmail.com)
-local TSerial = {}
+---@class Tserial
+TSerial = {}
 
 --- Serializes a table into a string, in form of Lua script.
 -- @param t table to be serialized (may not contain any circular reference)
@@ -16,13 +21,13 @@ function TSerial.pack(t, drop, indent)
 		if tk == "boolean" then
 			k = k and "[true]" or "[false]"
 		elseif tk == "string" then
-			if string.format("%q", k) ~= '"' .. k .. '"' then k = '[' .. string.format("%q", k) .. ']' end
+			if string_format("%q", k) ~= '"' .. k .. '"' then k = '[' .. string_format("%q", k) .. ']' end
 		elseif tk == "number" then
 			k = "[" .. k .. "]"
 		elseif tk == "table" then
 			k = "[" .. TSerial.pack(k, drop, indent and indent + 1) .. "]"
 		elseif type(drop) == "function" then
-			k = "[" .. string.format("%q", drop(k)) .. "]"
+			k = "[" .. string_format("%q", drop(k)) .. "]"
 		elseif drop then
 			skip = true
 		else
@@ -31,20 +36,20 @@ function TSerial.pack(t, drop, indent)
 		if tv == "boolean" then
 			v = v and "true" or "false"
 		elseif tv == "string" then
-			v = string.format("%q", v)
+			v = string_format("%q", v)
 		elseif tv == "number" then -- no change needed
 		elseif tv == "table" then
 			v = TSerial.pack(v, drop, indent and indent + 1)
 		elseif type(drop) == "function" then
-			v = "[" .. string.format("%q", drop(v)) .. "]"
+			v = "[" .. string_format("%q", drop(v)) .. "]"
 		elseif drop then
 			skip = true
 		else
 			error("Attempted to TSerial.pack a table with an invalid value: " .. tostring(v))
 		end
-		if not skip then s = s .. string.rep("\t", indent or 0) .. k .. "=" .. v .. "," .. (indent and "\n" or "") end
+		if not skip then s = s .. string_rep("\t", indent or 0) .. k .. "=" .. v .. "," .. (indent and "\n" or "") end
 	end
-	return s .. string.rep("\t", (indent or 1) - 1) .. "}"
+	return s .. string_rep("\t", (indent or 1) - 1) .. "}"
 end
 
 --- Loads a table into memory from a string (like those output by Tserial.pack)
