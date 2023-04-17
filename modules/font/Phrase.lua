@@ -190,6 +190,7 @@ function Phrase:get_word_by_index(index)
     return self.__words[index]
 end
 
+local metatable_mode_v = { __mode = 'v' }
 local results_get_lines = setmetatable({}, { __mode = 'k' })
 
 ---@return table
@@ -202,7 +203,7 @@ function Phrase:get_lines(x)
     local lines = {}
     local tx = x
     local cur_line = 1
-    local word_char = Word:new({ text = " ", font = self.__font })
+    local word_char = Word:new { text = " ", font = self.__font }
 
     local effect = nil
     local eff_args = nil
@@ -313,11 +314,11 @@ function Phrase:get_lines(x)
 
     table_insert(
         lines[cur_line],
-        Word:new({ text = "\n", font = self.__font })
+        Word:new { text = "\n", font = self.__font }
     )
 
     results_get_lines[self] = results_get_lines[self]
-        or setmetatable({}, { __mode = 'v' })
+        or setmetatable({}, metatable_mode_v)
     results_get_lines[self][key] = lines
 
     return lines
@@ -455,8 +456,10 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
     for i = 1, #lines do
         if align == "right" then
             tx = self.__bounds.right - self:__line_length(lines[i])
+            --
         elseif align == "center" then
-            tx = x + (self.__bounds.right - x) / 2 - self:__line_length(lines[i]) / 2
+            tx = x + (self.__bounds.right - x) * 0.5 - self:__line_length(lines[i]) * 0.5
+            --
         elseif align == "justify" then
             local total = self:__line_length(lines[i])
 
@@ -554,8 +557,8 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     self.y = 0
 
     translate(x, y)
-    x = 0
-    y = 0
+    -- x = 0
+    -- y = 0
 
     -- self.x = x
     -- self.y = y
@@ -563,8 +566,8 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     self:update(dt or love.timer.getDelta())
 
     local tx, ty, glyph = self:draw_lines(
-        self:get_lines(x),
-        x, y, align,
+        self:get_lines(0),
+        0, 0, align,
         nil, __max_char__
     )
 
