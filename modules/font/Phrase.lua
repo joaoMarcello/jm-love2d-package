@@ -1,4 +1,9 @@
-local table_insert = table.insert
+local table_insert, table_remove = table.insert, table.remove
+local lgx = love.graphics
+local translate = lgx.translate
+local push = lgx.push
+local pop = lgx.pop
+local setmetatable = setmetatable
 
 ---@type JM.Font.Word
 local Word = require((...):gsub("Phrase", "Word"))
@@ -358,7 +363,7 @@ function Phrase:width(lines)
 end
 
 function Phrase:update(dt)
-    for i = 1, #self.__words, 1 do
+    for i = 1, #self.__words do
         ---@type JM.Font.Word
         local w = self.__words[i]
         w:update(dt)
@@ -543,12 +548,12 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     if __max_char__ and __max_char__ == 0 then return end
     -- self:__debbug()
 
-    love.graphics.push()
+    push()
 
     self.x = 0
     self.y = 0
 
-    love.graphics.translate(x, y)
+    translate(x, y)
     x = 0
     y = 0
 
@@ -563,7 +568,7 @@ function Phrase:draw(x, y, align, __max_char__, dt)
         nil, __max_char__
     )
 
-    love.graphics.pop()
+    pop()
 
     return tx, ty, glyph
 

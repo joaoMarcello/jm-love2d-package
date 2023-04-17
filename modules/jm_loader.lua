@@ -42,8 +42,8 @@ local Loader = {
         ---@type string|any
         local dat = data
 
-        dat = encode(str, format_enc2, dat)
-        dat = compress(str, format_comp, dat)
+        -- dat = encode(str, format_enc2, dat)
+        dat = compress(str, format_comp, dat, 9)
 
         filesys.write(path, dat)
         return dat
@@ -53,7 +53,7 @@ local Loader = {
         ---@type any
         local dat = filesys.read(path)
         dat = decompress(str, format_comp, dat)
-        dat = decode(str, format_enc2, dat)
+        -- dat = decode(str, format_enc2, dat)
         return dat
     end,
     --
@@ -62,7 +62,7 @@ local Loader = {
         ---@type any
         local dat = filesys.read(path)
         dat = decompress(str, format_comp, dat)
-        dat = decode(bytedata, format_enc2, dat)
+        -- dat = decode(bytedata, format_enc2, dat)
         ---@diagnostic disable-next-line: param-type-mismatch
         return newImage(newImageData(w, h, nil, dat))
     end,
