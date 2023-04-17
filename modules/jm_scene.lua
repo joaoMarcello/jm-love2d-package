@@ -333,7 +333,7 @@ function Scene:get_mouse_position(camera)
     local x, y = mouseGetPosition()
     local ds --= self.camera.desired_scale
 
-    ds = math_min((self.w - self.x) / self.screen_w,
+    ds = min((self.w - self.x) / self.screen_w,
         (self.h - self.y) / self.screen_h
     )
 
@@ -354,7 +354,7 @@ function Scene:to_camera_screen(x, y)
 
     local ds --= self.camera.desired_scale
 
-    ds = math_min((self.w - self.x) / self.screen_w,
+    ds = min((self.w - self.x) / self.screen_w,
         (self.h - self.y) / self.screen_h
     )
 
