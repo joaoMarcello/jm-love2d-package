@@ -282,8 +282,6 @@ function Component:update(dt)
 
     if self.__touch_released then self.__touch_released = false end
     if self.__mouse_released then self.__mouse_released = false end
-
-    return
 end
 
 function Component:draw()

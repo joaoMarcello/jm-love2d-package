@@ -6,7 +6,6 @@
 ---@class JM.SceneManager
 ---@field scene JM.Scene|any
 local Manager = {}
-Manager.__index = Manager
 
 -- ---@return JM.Scene | any
 -- function Manager:get_scene()

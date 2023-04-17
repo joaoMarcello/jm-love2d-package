@@ -3,36 +3,53 @@
 ]]
 local path = (...)
 
-local set_canvas = love.graphics.setCanvas
-local get_canvas = love.graphics.getCanvas
-local clear_screen = love.graphics.clear
-local set_blend_mode = love.graphics.setBlendMode
-local translate = love.graphics.translate
-local scale = love.graphics.scale
-local push = love.graphics.push
-local pop = love.graphics.pop
-local set_color_draw = love.graphics.setColor
-local love_draw = love.graphics.draw
-local set_shader = love.graphics.setShader
+local lgx = love.graphics
+local set_canvas = lgx.setCanvas
+local get_canvas = lgx.getCanvas
+local clear_screen = lgx.clear
+local setBlendMode = lgx.setBlendMode
+local translate = lgx.translate
+local scale = lgx.scale
+local push = lgx.push
+local pop = lgx.pop
+local setColor = lgx.setColor
+local love_draw = lgx.draw
+local setShader = lgx.setShader
 local get_delta_time = love.timer.getDelta
-local love_mouse_position = love.mouse.getPosition
-local math_abs, math_min, math_floor = math.abs, math.min, math.floor
-local love_get_scissor = love.graphics.getScissor
-local love_set_scissor = love.graphics.setScissor
-local love_rect = love.graphics.rectangle
+local mouseGetPosition = love.mouse.getPosition
+local abs, min, floor, ceil = math.abs, math.min, math.floor, math.ceil
+local getScissor = lgx.getScissor
+local setScissor = lgx.setScissor
+local love_rect = lgx.rectangle
+local mousePosition = love.mouse.getPosition
+
+local Transitions = {
+    cartoon = require(string.gsub(path, "jm_scene", "transitions.cartoon")),
+    curtain = require(string.gsub(path, "jm_scene", "transitions.curtain")),
+    diamond = require(string.gsub(path, "jm_scene", "transitions.diamond")),
+    door = require(string.gsub(path, "jm_scene", "transitions.door")),
+    fade = require(string.gsub(path, "jm_scene", "transitions.fade")),
+    masker = require(string.gsub(path, "jm_scene", "transitions.masker")),
+    pass = require(string.gsub(path, "jm_scene", "transitions.pass")),
+    stripe = require(string.gsub(path, "jm_scene", "transitions.stripe")),
+    tile = require(string.gsub(path, "jm_scene", "transitions.tile")),
+}
 
 local SceneManager = _G.JM_SceneManager
+
+---@type JM.GUI.VPad
+local VPad = require(string.gsub(path, "jm_scene", "jm_virtual_pad"))
 
 ---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean}
 
 local function round(value)
-    local absolute = math.abs(value)
-    local decimal = absolute - math.floor(absolute)
+    local absolute = abs(value)
+    local decimal = absolute - floor(absolute)
 
     if decimal >= 0.5 then
-        return value > 0 and math.ceil(value) or math.floor(value)
+        return value > 0 and ceil(value) or floor(value)
     else
-        return value > 0 and math.floor(value) or math.ceil(value)
+        return value > 0 and floor(value) or ceil(value)
     end
 end
 
@@ -45,7 +62,7 @@ local function draw_tile(self)
     qy = (self.screen_h) / tile
 
     clear_screen(0.35, 0.35, 0.35, 1)
-    set_color_draw(0.9, 0.9, 0.9, 0.3)
+    setColor(0.9, 0.9, 0.9, 0.3)
 
     for i = 0, qx, 2 do
         local x = tile * i
@@ -58,7 +75,7 @@ local function draw_tile(self)
 end
 
 local function create_canvas(width, height, filter, subpixel)
-    local canvas = love.graphics.newCanvas(width * subpixel, height * subpixel)
+    local canvas = love.graphics.newCanvas(width * subpixel, height * subpixel, { dpiscale = 1 })
     canvas:setFilter(filter, filter)
     -- canvas:setWrap("clampzero", "clampzero", "clampzero")
     return canvas
@@ -217,6 +234,12 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.capture_mode = false
 
     self.canvas_layer = nil
+
+    self.use_vpad = conf.use_vpad or false
+end
+
+function Scene:get_vpad()
+    return VPad
 end
 
 function Scene:restaure_canvas()
@@ -227,7 +250,7 @@ function Scene:restaure_canvas()
 
     if self.using_canvas_layer and not self.canvas_layer then
         local w, h        = self.canvas:getDimensions()
-        self.canvas_layer = love.graphics.newCanvas(w, h)
+        self.canvas_layer = love.graphics.newCanvas(w, h, { dpiscale = self.canvas:getDPIScale() })
         self.canvas_layer:setFilter(self.canvas_filter, self.canvas_filter)
     end
 end
@@ -307,7 +330,7 @@ end
 function Scene:get_mouse_position(camera)
     camera = camera or self.camera
 
-    local x, y = love_mouse_position()
+    local x, y = mouseGetPosition()
     local ds --= self.camera.desired_scale
 
     ds = math_min((self.w - self.x) / self.screen_w,
@@ -417,27 +440,7 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
     config.mode = config.mode or mode
 
     ---@type JM.Transition
-    local Tran
-
-    if type_ == "fade" then
-        Tran = require 'jm-love2d-package.modules.transitions.fade'
-    elseif type_ == "tile" then
-        Tran = require 'jm-love2d-package.modules.transitions.tile'
-    elseif type_ == "cartoon" then
-        Tran = require 'jm-love2d-package.modules.transitions.cartoon'
-    elseif type_ == "masker" then
-        Tran = require "jm-love2d-package.modules.transitions.masker"
-    elseif type_ == "pass" then
-        Tran = require "jm-love2d-package.modules.transitions.pass"
-    elseif type_ == "door" then
-        Tran = require "jm-love2d-package.modules.transitions.door"
-    elseif type_ == "stripe" then
-        Tran = require "jm-love2d-package.modules.transitions.stripe"
-    elseif type_ == "curtain" then
-        Tran = require "jm-love2d-package.modules.transitions.curtain"
-    elseif type_ == "diamond" then
-        Tran = require "jm-love2d-package.modules.transitions.diamond"
-    end
+    local Tran = Transitions[type_]
 
     if Tran then
         local x, y, w, h
@@ -465,13 +468,13 @@ end
 function Scene:calc_canvas_scale()
     local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
     local canvasWidth, canvasHeight = self.canvas:getDimensions()
-    self.canvas_scale               = math_min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+    self.canvas_scale               = min(windowWidth / canvasWidth, windowHeight / canvasHeight)
 
     local canvasWidthScaled         = canvasWidth * self.canvas_scale
     local canvasHeightScaled        = canvasHeight * self.canvas_scale
 
-    self.offset_x                   = math_floor((windowWidth - canvasWidthScaled) / 2)
-    self.offset_y                   = math_floor((windowHeight - canvasHeightScaled) / 2)
+    self.offset_x                   = floor((windowWidth - canvasWidthScaled) / 2)
+    self.offset_y                   = floor((windowHeight - canvasHeightScaled) / 2)
 end
 
 ---@param scene JM.Scene
@@ -503,21 +506,21 @@ function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
     love.graphics.replaceTransform(self.__transf)
 
     if camera == scene.camera then
-        love_set_scissor()
+        setScissor()
         self:draw()
     end
-    set_color_draw(1, 1, 1, 1)
-    set_blend_mode("alpha", "premultiplied")
+    setColor(1, 1, 1, 1)
+    setBlendMode("alpha", "premultiplied")
 
-    local scx, scy, scw, sch = love_get_scissor()
-    love_set_scissor(x, y, camera.viewport_w * 2, camera.viewport_h * 2)
+    local scx, scy, scw, sch = getScissor()
+    setScissor(x, y, camera.viewport_w * 2, camera.viewport_h * 2)
     love_draw(self.canvas, x, y, rot, sx, sy, ox, oy, kx, ky)
 
-    set_blend_mode("alpha")
+    setBlendMode("alpha")
     pop()
     self.capture_mode = false
     set_canvas(last_canvas)
-    love_set_scissor(scx, scy, scw, sch)
+    setScissor(scx, scy, scw, sch)
 end
 
 ---@param skip integer
@@ -611,16 +614,16 @@ local function infinity_scroll_x(self, camera, layer)
     local width = layer.scroll_width
 
     push()
-    if math_abs(sum) >= width then
-        translate(width * math_floor(sum / width), 0)
+    if abs(sum) >= width then
+        translate(width * floor(sum / width), 0)
     end
     r = layer.draw and layer:draw(camera)
 
-    local qx = math_floor((self.screen_w / camera.scale)
+    local qx = floor((self.screen_w / camera.scale)
             / width) + 1
 
     --==================================================
-    if math_abs(layer.pos_x + camera.x)
+    if abs(layer.pos_x + camera.x)
         < width
     then
         translate(-width, 0)
@@ -645,19 +648,19 @@ local function infinity_scroll_y(self, camera, layer)
 
     push()
 
-    if math_abs(sum) >= height then
+    if abs(sum) >= height then
         translate(0, height
-            * math_floor(sum / height))
+            * floor(sum / height))
     end
 
     local r = layer.draw and not layer.infinity_scroll_x
         and layer:draw(camera)
     infinity_scroll_x(self, camera, layer)
 
-    local qy = math_floor((self.screen_h / camera.scale)
+    local qy = floor((self.screen_h / camera.scale)
             / height) + 1
 
-    if math_abs(sum) < height then
+    if abs(sum) < height then
         translate(0, -height)
 
         r = layer.draw and not layer.infinity_scroll_x
@@ -679,7 +682,7 @@ local function infinity_scroll_y(self, camera, layer)
 end
 
 ---
----@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table}
+---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function}
 ---
 function Scene:implements(param)
     assert(param, "\n>> Error: No parameter passed to method.")
@@ -769,13 +772,14 @@ function Scene:implements(param)
             end
 
             if layer.shader or layer.use_canvas then
-                self.canvas_layer = self.canvas_layer
-                    or love.graphics.newCanvas(self.canvas:getDimensions())
-
-                self.canvas_layer:setFilter(self.canvas_filter,
-                    self.canvas_filter)
-
                 self.using_canvas_layer = true
+
+                self:restaure_canvas()
+                -- self.canvas_layer = self.canvas_layer
+                --     or love.graphics.newCanvas(self.canvas:getDimensions())
+
+                -- self.canvas_layer:setFilter(self.canvas_filter,
+                --     self.canvas_filter)
             end
 
             if not layer.name then
@@ -787,6 +791,10 @@ function Scene:implements(param)
 
     self.update = function(self, dt)
         self:calc_canvas_scale()
+
+        if self.use_vpad then
+            VPad:update(dt)
+        end
 
         if self.time_pause then
             self.time_pause = self.time_pause - dt
@@ -889,10 +897,10 @@ function Scene:implements(param)
         end
 
         scale(self.subpixel, self.subpixel)
-        set_blend_mode("alpha")
-        set_color_draw(1, 1, 1, 1)
+        setBlendMode("alpha")
+        setColor(1, 1, 1, 1)
 
-        local sx, sy, sw, sh = love_get_scissor()
+        local sx, sy, sw, sh = getScissor()
 
         if not self.color_r then
             draw_tile(self)
@@ -922,7 +930,7 @@ function Scene:implements(param)
                             and clear_screen(.8, .8, .8, 0)
                         ---
                     elseif layer.shader then
-                        set_shader(layer.shader)
+                        setShader(layer.shader)
                     end
 
                     local last_cam_px = camera.x
@@ -972,8 +980,8 @@ function Scene:implements(param)
 
                     if layer.use_canvas and not layer.skip_draw then
                         set_canvas(last_canvas)
-                        local r = layer.shader and set_shader(layer.shader)
-                        set_color_draw(1, 1, 1, 1)
+                        local r = layer.shader and setShader(layer.shader)
+                        setColor(1, 1, 1, 1)
                         -- set_blend_mode("alpha")
                         local px = camera.x + (px ~= 0 and layer.pos_x or 0)
                             - camera.viewport_x / camera.scale
@@ -990,7 +998,7 @@ function Scene:implements(param)
                         if layer.shader and layer.adjust_shader then
                             layer:adjust_shader(px, py, scale, camera)
                         end
-                        set_shader()
+                        setShader()
                     end
 
                     camera:set_position(last_cam_px, last_cam_py)
@@ -1001,7 +1009,7 @@ function Scene:implements(param)
                     else
                         set_canvas(last_canvas)
                     end
-                    set_shader()
+                    setShader()
 
                     pop()
 
@@ -1042,14 +1050,20 @@ function Scene:implements(param)
 
         if self.capture_mode then return end
 
-        set_color_draw(1, 1, 1, 1)
-        set_blend_mode("alpha", 'premultiplied')
+        setColor(1, 1, 1, 1)
+        setBlendMode("alpha", 'premultiplied')
+        setShader(self.shader)
+
         love_draw(self.canvas, self.x + self.offset_x,
             self.y + self.offset_y,
             0, self.canvas_scale, self.canvas_scale)
-        set_blend_mode("alpha")
 
+        setBlendMode("alpha")
+        setShader()
 
+        if self.use_vpad and self:is_current_active() then
+            VPad:draw()
+        end
         -- love.graphics.setScissor(self.x,
         --     math_abs(self.h - self.dispositive_h),
         --     self.w, self.h
@@ -1075,13 +1089,18 @@ function Scene:implements(param)
         --         true)
         -- end
 
-        love_set_scissor(sx, sy, sw, sh)
+        setScissor(sx, sy, sw, sh)
 
-        set_color_draw(1, 1, 1, 1)
+        setColor(1, 1, 1, 1)
         love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
     end
 
     self.mousepressed = function(self, x, y, button, istouch, presses)
+        if self.use_vpad and not istouch then
+            local mx, my = mousePosition()
+            VPad:mousepressed(mx, my, button, istouch, presses)
+        end
+
         if self.time_pause
             or (self.transition and self.transition.pause_scene)
         then
@@ -1094,6 +1113,11 @@ function Scene:implements(param)
     end
 
     self.mousereleased = function(self, x, y, button, istouch, presses)
+        if self.use_vpad and not istouch then
+            local mx, my = mousePosition()
+            VPad:mousereleased(mx, my, button, istouch, presses)
+        end
+
         if self.time_pause
             or (self.transition and self.transition.pause_scene)
         then
@@ -1114,6 +1138,34 @@ function Scene:implements(param)
 
         x, y = self:get_mouse_position()
         local r = param.mousemoved and param.mousemoved(x, y, dx, dy, istouch)
+    end
+
+    self.touchpressed = function(self, id, x, y, dx, dy, pressure)
+        if self.use_vpad then
+            VPad:touchpressed(id, x, y, dx, dy, pressure)
+        end
+
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
+            return
+        end
+
+        local r = param.touchpressed and param.touchpressed(x, y, dx, dy, pressure)
+    end
+
+    self.touchreleased = function(self, id, x, y, dx, dy, pressure)
+        if self.use_vpad then
+            VPad:touchreleased(id, x, y, dx, dy, pressure)
+        end
+
+        if self.time_pause
+            or (self.transition and self.transition.pause_scene)
+        then
+            return
+        end
+
+        local r = param.touchreleased and param.touchreleased(x, y, dx, dy, pressure)
     end
 
     self.keypressed = function(self, key, scancode, isrepeat)

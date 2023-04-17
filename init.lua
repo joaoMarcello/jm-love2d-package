@@ -1,4 +1,5 @@
 local path = (...)
+_G.JM_Path = string.gsub(path, "init", "")
 
 local JM = {}
 

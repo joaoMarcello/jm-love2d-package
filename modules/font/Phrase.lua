@@ -1,4 +1,10 @@
-local table_insert = table.insert
+local table_insert, table_remove = table.insert, table.remove
+local str_format = string.format
+local lgx = love.graphics
+local translate = lgx.translate
+local push = lgx.push
+local pop = lgx.pop
+local setmetatable = setmetatable
 
 ---@type JM.Font.Word
 local Word = require((...):gsub("Phrase", "Word"))
@@ -185,19 +191,21 @@ function Phrase:get_word_by_index(index)
     return self.__words[index]
 end
 
+local metatable_mode_v = { __mode = 'v' }
 local results_get_lines = setmetatable({}, { __mode = 'k' })
 
 ---@return table
 function Phrase:get_lines(x)
-    local key = string.format("%d %d", x, self.__font.__font_size)
+    local key = str_format("%d %d", self.__bounds.right, self.__font.__font_size)
+    -- local key = string.format("%d %d", x, self.__font.__font_size)
     -- local key = string.format("%d", self.__bounds.right - x)
     local result = results_get_lines[self] and results_get_lines[self][key]
     if result then return result end
 
     local lines = {}
-    local tx = x
+    local tx = 0 --x
     local cur_line = 1
-    local word_char = Word:new({ text = " ", font = self.__font })
+    local word_char = Word:new { text = " ", font = self.__font }
 
     local effect = nil
     local eff_args = nil
@@ -225,7 +233,7 @@ function Phrase:get_lines(x)
                 local last_added = lines[cur_line] and lines[cur_line][#lines[cur_line]]
 
                 if last_added and last_added.text == " " then
-                    table.remove(lines[cur_line], #lines[cur_line])
+                    table_remove(lines[cur_line], #lines[cur_line])
                 end
             end
             -- goto skip_word
@@ -267,14 +275,14 @@ function Phrase:get_lines(x)
 
             if tx + r > self.__bounds.right
                 or current_word.text:match("\n ?") then
-                tx = x
+                tx = 0 --x
 
                 -- Try remove the last added space word
                 ---@type JM.Font.Word
                 local last_added = lines[cur_line] and lines[cur_line][#(lines[cur_line])]
 
                 if last_added and last_added.text == " " then
-                    table.remove(lines[cur_line], #lines[cur_line])
+                    table_remove(lines[cur_line], #lines[cur_line])
                 end
                 --=========================================================
 
@@ -308,11 +316,11 @@ function Phrase:get_lines(x)
 
     table_insert(
         lines[cur_line],
-        Word:new({ text = "\n", font = self.__font })
+        Word:new { text = "\n", font = self.__font }
     )
 
     results_get_lines[self] = results_get_lines[self]
-        or setmetatable({}, { __mode = 'v' })
+        or setmetatable({}, metatable_mode_v)
     results_get_lines[self][key] = lines
 
     return lines
@@ -358,7 +366,7 @@ function Phrase:width(lines)
 end
 
 function Phrase:update(dt)
-    for i = 1, #self.__words, 1 do
+    for i = 1, #self.__words do
         ---@type JM.Font.Word
         local w = self.__words[i]
         w:update(dt)
@@ -450,8 +458,10 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
     for i = 1, #lines do
         if align == "right" then
             tx = self.__bounds.right - self:__line_length(lines[i])
+            --
         elseif align == "center" then
-            tx = x + (self.__bounds.right - x) / 2 - self:__line_length(lines[i]) / 2
+            tx = x + (self.__bounds.right - x) * 0.5 - self:__line_length(lines[i]) * 0.5
+            --
         elseif align == "justify" then
             local total = self:__line_length(lines[i])
 
@@ -543,16 +553,29 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     if __max_char__ and __max_char__ == 0 then return end
     -- self:__debbug()
 
-    self.x = x
-    self.y = y
+    push()
+
+    self.x = 0
+    self.y = 0
+
+    translate(x, y)
+    -- x = 0
+    -- y = 0
+
+    -- self.x = x
+    -- self.y = y
 
     self:update(dt or love.timer.getDelta())
 
-    return self:draw_lines(
-        self:get_lines(x),
-        x, y, align,
+    local tx, ty, glyph = self:draw_lines(
+        self:get_lines(0),
+        0, 0, align,
         nil, __max_char__
     )
+
+    pop()
+
+    return tx, ty, glyph
 
     -- love.graphics.setColor(0.4, 0.4, 0.4, 1)
     -- love.graphics.line(self.__bounds.right, 0, self.__bounds.right, 600)
