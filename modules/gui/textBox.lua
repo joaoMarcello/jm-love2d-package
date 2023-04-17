@@ -13,12 +13,12 @@ local Event = {
 }
 ---@alias JM.GUI.TextBox.EventNames "finishScreen"|"finishAll"|"changeScreen"|"glyphChange"|"wordChange"
 
-local Mode = {
-    normal = 1,
-    goddess = 2,
-    popin = 3,
-    rainbow = 4
-}
+-- local Mode = {
+--     normal = 1,
+--     goddess = 2,
+--     popin = 3,
+--     rainbow = 4
+-- }
 
 local function mode_goddess(g)
     g:apply_effect("fadein", { speed = 0.2 })
@@ -33,20 +33,21 @@ local function mode_rainbow(g)
 end
 
 local ModeAction = {
-    normal = function(...) return false end,
+    normal = function(args) return false end,
     goddess = mode_goddess,
     popin = mode_popin,
     rainbow = mode_rainbow
 }
 ---@alias JM.GUI.TextBox.Modes "normal"|"goddess"|"popin"|"rainbow"|nil
 
-
+---@enum JM.GUI.TextBox.AlignOptions
 local Align = {
     top = 1,
     bottom = 2,
     center = 3
 }
 
+---@enum JM.GUI.TextBox.UpdateModes
 local UpdateMode = {
     by_glyph = 1,
     by_word = 2,
@@ -62,6 +63,8 @@ end
 
 ---@class JM.GUI.TextBox: JM.Template.Affectable
 local TextBox = setmetatable({}, Affectable)
+TextBox.UpdateMode = UpdateMode
+TextBox.AlignOptions = Align
 TextBox.__index = TextBox
 
 ---@return JM.GUI.TextBox
@@ -75,13 +78,21 @@ function TextBox:new(text, font, x, y, w)
 end
 
 function TextBox:__constructor__(args, w)
+    self.x = args.x --self.sentence.x
+    self.y = args.y --self.sentence.y
+
+    args.x = 0
+    args.y = 0
+
     self.sentence = Phrase:new(args)
-    self.sentence:set_bounds(nil, nil, args.x + (w or (math.huge - args.x)))
+    -- self.sentence:set_bounds(nil, nil, args.x + (w or (math.huge - args.x)))
+    self.sentence.__bounds.right = w or math.huge
 
     self.lines = self.sentence:get_lines()
 
     local lines_width = {}
     local max_width = -math.huge
+
     for _, line in ipairs(self.lines) do
         lines_width[line] = self.sentence:__line_length(line)
         max_width = lines_width[line] > max_width and lines_width[line]
@@ -90,8 +101,6 @@ function TextBox:__constructor__(args, w)
 
     self.align = "center"
     self.text_align = Align.center
-    self.x = self.sentence.x
-    self.y = self.sentence.y
     self.w = w or max_width
     self.h = -math.huge
     self.is_visible = true
@@ -103,8 +112,8 @@ function TextBox:__constructor__(args, w)
 
     self.time_pause = 0.0
 
-    self.simulate_speak = false
-    self.update_mode = UpdateMode.by_screen
+    self.simulate_speak = true
+    self.update_mode = UpdateMode.by_glyph
 
     self.font = self.sentence.__font
     self.font_config = self.font:__get_configuration()
@@ -170,6 +179,8 @@ function TextBox:__constructor__(args, w)
 
     self.ox = self.w / 2
     self.oy = self.h / 2
+
+    self.sentence.__bounds.right = self.x + self.w
 end
 
 -- ---@return number
@@ -335,8 +346,9 @@ function TextBox:update(dt)
             local g, w = self:get_current_glyph()
 
             if self.update_mode == UpdateMode.by_glyph then
-                local temp = g and self.glyph_change_action
+                local r = g and self.glyph_change_action
                     and self.glyph_change_action(g)
+                --
             elseif self.update_mode == UpdateMode.by_word and g and w then
                 self.cur_glyph = self.cur_glyph + #(w.__characters) - 1
 
@@ -357,8 +369,10 @@ function TextBox:update(dt)
 
             if id:match("[%.;?]") then
                 self.extra_time = 0.8
+                --
             elseif id:match("[,!]") then
                 self.extra_time = 0.3
+                --
             else
                 self.extra_time = 0.0
             end
@@ -394,16 +408,19 @@ function TextBox:update(dt)
     self:set_finish(not glyph and self.cur_glyph ~= 0)
 end
 
-local Font = _G.JM_Font
+-- local Font = _G.JM_Font
 
 function TextBox:__draw()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("line", self:rect())
 
     local screen = self.screens[self.cur_screen]
-    self.sentence:set_bounds(nil, nil,
-        self.x + self.w --(self.screen_width[screen] or self.w)
-    )
+
+    -- self.sentence:set_bounds(nil, nil,
+    --     self.x + self.w --(self.screen_width[screen] or self.w)
+    -- )
+
+    -- self.sentence.__bounds.right = self.x + self.w
 
     self.font:push()
     self.font:set_configuration(self.font_config)
@@ -411,10 +428,13 @@ function TextBox:__draw()
     local height = self.sentence:text_height(screen)
 
     local py = self.y
+
     if self.text_align == Align.center then
-        py = py + self.h / 2 - height / 2
+        py = py + self.h * 0.5 - height * 0.5
+        --
     elseif self.text_align == Align.bottom then
         py = py + self.h - height
+        --
     end
 
     local tx, ty, glyph = self.sentence:draw_lines(
