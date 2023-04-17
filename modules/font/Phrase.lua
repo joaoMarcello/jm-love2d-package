@@ -1,4 +1,5 @@
 local table_insert, table_remove = table.insert, table.remove
+local str_format = string.format
 local lgx = love.graphics
 local translate = lgx.translate
 local push = lgx.push
@@ -195,13 +196,14 @@ local results_get_lines = setmetatable({}, { __mode = 'k' })
 
 ---@return table
 function Phrase:get_lines(x)
-    local key = string.format("%d %d", x, self.__font.__font_size)
+    local key = str_format("%d %d", self.__bounds.right, self.__font.__font_size)
+    -- local key = string.format("%d %d", x, self.__font.__font_size)
     -- local key = string.format("%d", self.__bounds.right - x)
     local result = results_get_lines[self] and results_get_lines[self][key]
     if result then return result end
 
     local lines = {}
-    local tx = x
+    local tx = 0 --x
     local cur_line = 1
     local word_char = Word:new { text = " ", font = self.__font }
 
@@ -231,7 +233,7 @@ function Phrase:get_lines(x)
                 local last_added = lines[cur_line] and lines[cur_line][#lines[cur_line]]
 
                 if last_added and last_added.text == " " then
-                    table.remove(lines[cur_line], #lines[cur_line])
+                    table_remove(lines[cur_line], #lines[cur_line])
                 end
             end
             -- goto skip_word
@@ -273,14 +275,14 @@ function Phrase:get_lines(x)
 
             if tx + r > self.__bounds.right
                 or current_word.text:match("\n ?") then
-                tx = x
+                tx = 0 --x
 
                 -- Try remove the last added space word
                 ---@type JM.Font.Word
                 local last_added = lines[cur_line] and lines[cur_line][#(lines[cur_line])]
 
                 if last_added and last_added.text == " " then
-                    table.remove(lines[cur_line], #lines[cur_line])
+                    table_remove(lines[cur_line], #lines[cur_line])
                 end
                 --=========================================================
 
