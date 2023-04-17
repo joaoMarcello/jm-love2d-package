@@ -310,7 +310,7 @@ function Scene:get_mouse_position(camera)
     local x, y = love_mouse_position()
     local ds --= self.camera.desired_scale
 
-    ds = math.min((self.w - self.x) / self.screen_w,
+    ds = math_min((self.w - self.x) / self.screen_w,
         (self.h - self.y) / self.screen_h
     )
 
@@ -331,7 +331,7 @@ function Scene:to_camera_screen(x, y)
 
     local ds --= self.camera.desired_scale
 
-    ds = math.min((self.w - self.x) / self.screen_w,
+    ds = math_min((self.w - self.x) / self.screen_w,
         (self.h - self.y) / self.screen_h
     )
 
@@ -885,7 +885,7 @@ function Scene:implements(param)
         set_canvas(self.canvas)
 
         if self.color_r then
-            clear_screen(self:get_color())
+            clear_screen(self.color_r, self.color_g, self.color_b, self.color_a)
         end
 
         scale(self.subpixel, self.subpixel)
