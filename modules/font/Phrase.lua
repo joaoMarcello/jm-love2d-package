@@ -195,7 +195,7 @@ local metatable_mode_v = { __mode = 'v' }
 local results_get_lines = setmetatable({}, { __mode = 'k' })
 
 ---@return table
-function Phrase:get_lines(x)
+function Phrase:get_lines()
     local key = str_format("%d %d", self.__bounds.right, self.__font.__font_size)
     -- local key = string.format("%d %d", x, self.__font.__font_size)
     -- local key = string.format("%d", self.__bounds.right - x)
@@ -328,7 +328,7 @@ end -- END function get_lines()
 
 function Phrase:text_height(lines)
     if not lines then return end
-    lines = lines or self:get_lines(self.x)
+    lines = lines or self:get_lines()
 
     ---@type JM.Font.Word
     local word = lines[1][1] or lines[1][2]
@@ -353,7 +353,7 @@ function Phrase:__line_length(line)
 end
 
 function Phrase:width(lines)
-    lines = lines or self:get_lines(self.x)
+    lines = lines or self:get_lines()
     local max = -math.huge
     local N = #lines
 
@@ -380,7 +380,7 @@ end
 ---@return boolean|nil
 function Phrase:get_glyph(n, lines)
     if not n then return end
-    lines = lines or self:get_lines(self.x)
+    lines = lines or self:get_lines()
     local count = 0
 
     local is_command_tag = self.__font.__is_a_command_tag
@@ -568,7 +568,7 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     self:update(dt or love.timer.getDelta())
 
     local tx, ty, glyph = self:draw_lines(
-        self:get_lines(0),
+        self:get_lines(),
         0, 0, align,
         nil, __max_char__
     )

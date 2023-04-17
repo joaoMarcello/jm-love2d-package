@@ -78,7 +78,7 @@ function TextBox:__constructor__(args, w)
     self.sentence = Phrase:new(args)
     self.sentence:set_bounds(nil, nil, args.x + (w or (math.huge - args.x)))
 
-    self.lines = self.sentence:get_lines(self.sentence.x)
+    self.lines = self.sentence:get_lines()
 
     local lines_width = {}
     local max_width = -math.huge
@@ -297,7 +297,6 @@ function TextBox:skip_screen()
 end
 
 function TextBox:update(dt)
-
     self.sentence:update(dt)
 
     self.__effect_manager:update(dt)
@@ -326,7 +325,6 @@ function TextBox:update(dt)
     self.time_glyph = self.time_glyph + dt
 
     if self.time_glyph >= (self.max_time_glyph + self.extra_time) then
-
         self.time_glyph = self.time_glyph - self.max_time_glyph
             - self.extra_time
 
@@ -339,7 +337,6 @@ function TextBox:update(dt)
             if self.update_mode == UpdateMode.by_glyph then
                 local temp = g and self.glyph_change_action
                     and self.glyph_change_action(g)
-
             elseif self.update_mode == UpdateMode.by_word and g and w then
                 self.cur_glyph = self.cur_glyph + #(w.__characters) - 1
 
@@ -349,7 +346,6 @@ function TextBox:update(dt)
                     dispatch_event(self, Event.wordChange)
                 end
             end
-
         end -- END if cur_glyph is not nil
     end
 
@@ -391,12 +387,9 @@ function TextBox:update(dt)
                         end
                     end
                 end
-
             end -- End if tags end endword
-
-        end --End if Word
-
-    end -- End if Glyph
+        end     --End if Word
+    end         -- End if Glyph
 
     self:set_finish(not glyph and self.cur_glyph ~= 0)
 end
@@ -409,7 +402,7 @@ function TextBox:__draw()
 
     local screen = self.screens[self.cur_screen]
     self.sentence:set_bounds(nil, nil,
-        self.x + self.w--(self.screen_width[screen] or self.w)
+        self.x + self.w --(self.screen_width[screen] or self.w)
     )
 
     self.font:push()
