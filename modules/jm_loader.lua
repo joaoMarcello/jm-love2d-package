@@ -42,10 +42,10 @@ local Loader = {
         ---@type string|any
         local dat = data
 
-        dat = not skip_encode and encode(str, format_enc2, dat) or dat
+        dat = not skip_encode and encode(str, enc or format_enc2, dat) or dat
         dat = compress(str, comp or format_comp, dat, 0x9)
 
-        filesys.write(path, dat)
+        write(path, dat)
         return dat
     end,
     --
@@ -58,16 +58,16 @@ local Loader = {
         dat = not skip_decode and decode(return_type, format_enc2, dat) or dat
         return dat
     end,
-    --
-    ---@param self JM.Loader
-    img = function(self, path, w, h)
-        ---@type any
-        local dat = filesys.read(path)
-        dat = decompress(str, format_comp, dat)
-        -- dat = decode(bytedata, format_enc2, dat)
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return newImage(newImageData(w, h, nil, dat))
-    end,
+    -- --
+    -- ---@param self JM.Loader
+    -- img = function(self, path, w, h)
+    --     ---@type any
+    --     local dat = filesys.read(path)
+    --     dat = decompress(str, format_comp, dat)
+    --     -- dat = decode(bytedata, format_enc2, dat)
+    --     ---@diagnostic disable-next-line: param-type-mismatch
+    --     return newImage(newImageData(w, h, nil, dat))
+    -- end,
 }
 
 
