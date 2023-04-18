@@ -9,7 +9,6 @@ local compress = lovedata.compress
 local decompress = lovedata.decompress
 local newImageData = love.image.newImageData
 local newImage = love.graphics.newImage
-local io = io
 
 local str = "\115\116\114\105\110\103"
 local bytedata = "\100\97\116\97"
@@ -28,32 +27,35 @@ local Loader = {
         return dat
     end,
     --
-    load = function(path)
+    load = function(path, return_type, skip_unpack)
+        return_type = return_type or str
         ---@type any
         local dat = filesys.read(path)
-        dat = decompress(str, format_comp, dat)
-        dat = decode(str, format_enc, dat)
-        dat = tserial.unpack(dat)
+        dat = decompress(return_type, format_comp, dat)
+        dat = decode(return_type, format_enc, dat)
+        dat = not skip_unpack and tserial.unpack(dat) or dat
         return dat
     end,
     --
     ---@param self JM.Loader
-    savexp = function(self, data, path)
+    savexp = function(self, data, path, skip_encode, enc, comp)
         ---@type string|any
         local dat = data
 
-        -- dat = encode(str, format_enc2, dat)
-        dat = compress(str, format_comp, dat, 9)
+        dat = not skip_encode and encode(str, format_enc2, dat) or dat
+        dat = compress(str, comp or format_comp, dat, 0x9)
 
         filesys.write(path, dat)
         return dat
     end,
     --
-    loadxp = function(path)
+    ---@param return_type "string"|"data"|nil
+    loadxp = function(path, skip_decode, return_type)
+        return_type = return_type or str
         ---@type any
         local dat = filesys.read(path)
-        dat = decompress(str, format_comp, dat)
-        -- dat = decode(str, format_enc2, dat)
+        dat = decompress(return_type, format_comp, dat)
+        dat = not skip_decode and decode(return_type, format_enc2, dat) or dat
         return dat
     end,
     --
