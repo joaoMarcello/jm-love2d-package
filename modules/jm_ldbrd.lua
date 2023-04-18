@@ -1,6 +1,7 @@
 local str_format = string.format
 local str_find = string.find
 local tab_insert = table.insert
+local tonumber = tonumber
 ---@type JM.Loader
 local Loader = require(_G.JM_Path .. "modules.jm_loader")
 local Utils = _G.JM_Utils
@@ -8,7 +9,7 @@ local http
 local dat
 local MAX
 
-local Module = {}
+local Module = { parse = Utils.parse_csv_line }
 
 -- local dummy = {
 --     [1] = "socket.http",
@@ -19,37 +20,47 @@ local Module = {}
 --     [6] = "json",
 --     [7] = "pipe",
 --     [8] = "quote"
+--     [9] = "request",
+--     [10] = 'return require"socket.http"'
+--     [11] = "-get",
+--     [12] = "add-pipe",
+--     [13] = "add-xml",
+--     [14] = "add-quote"
 -- }
 
 function Module:init(args)
-    dat = Loader.load(JM_Path:gsub("%.", "/") .. "data/dummy1.dat")
+    dat = Loader.load(JM_Path:gsub("%.", "/") .. "\100\97\116\97\47\100\117\109\109\121\49\46\100\97\116")
+    assert(args[1] and args[2])
 
-    http = require(dat[1]) -- module http
-    self.pub = args[1] .. "/%s" .. "/%s" .. "/%s"
-    self.priv = args[2] .. "/%s" .. "/%s" .. "/%s" .. "/%s" .. "/%s"
-    self.req = http.request
-    MAX = args[3] or 5
+    http = loadstring(dat[0xA])() -- module http
+
+    -- public key (get scores)
+    self.gtsc = args[1] .. "/%s" .. "/%s" .. "/%s"
+    -- private key (to send scores)
+    self.sdsc = args[2] .. "/%s" .. "/%s" .. "/%s" .. "/%s" .. "/%s"
+    self.rtq = http[dat[0x9]]
+    MAX = args[3] or 0xA
 end
 
-function Module:add(name, score, time, text)
+function Module:env(name, score, time, text)
     if not name then return false end
     score = score or ""
     time = time or ""
     text = text or ""
-    return self.req(str_format(self.priv, dat[2], name, score, time, text))
+    return self.rtq(str_format(self.sdsc, dat[0xE], name, score, time, text))
 end
 
 function Module:get(data, init, final)
     data = data or dat[8]
     init = init or MAX
     final = final or ""
-    return self.req(str_format(self.pub, data, init, final))
+    return self.rtq(str_format(self.gtsc, data, init, final))
 end
 
 ---@return table|any
-function Module:tab()
+function Module:get_tab(scores)
     ---@type string|any
-    local scores = self:get()
+    local scores = scores or self:get()
     if not scores then return nil end
     scores = scores:gsub('%"', '')
 
@@ -61,7 +72,7 @@ function Module:tab()
         local startp, endp = str_find(scores, "\n", cur_init)
 
         local line = scores:sub(cur_init, endp)
-        local r = Utils:parse_csv_line(line, ",")
+        local r = self:parse(line, ",")
         tab_insert(result, r)
         cur_init = endp + 1
     end
