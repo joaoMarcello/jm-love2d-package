@@ -8,7 +8,7 @@ local decode = lovedata.decode
 local compress = lovedata.compress
 local decompress = lovedata.decompress
 local newImageData = love.image.newImageData
-local newImage = love.graphics.newImage
+-- local newImage = love.graphics.newImage
 
 local str = "\115\116\114\105\110\103"
 local bytedata = "\100\97\116\97"
