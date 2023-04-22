@@ -1,35 +1,32 @@
-local type, str_format, pairs = type, string.format, pairs
-local filesys = love.filesystem
--- local fmt = { integer = "%d", float = "%a" }
-local save_dir = "srl.txt"
+local type, str_format, pairs, loadstring = type, string.format, pairs, loadstring
 
 --- serialize tables without cycles
 local function serialize(o)
     local tp = type(o)
 
     if tp == "number" then
-        filesys.append(save_dir, str_format(math.type(o) == "integer" and "%d" or "%a", o))
+        local c = o % 1 == 0
+        local r = str_format(c and "%d" or "%f", o)
+        return r
         --
     elseif tp == "string" then
-        filesys.append(save_dir, str_format("%q", o))
+        return str_format("%q", o)
         --
     elseif tp == "boolean" then
         local v = o and "true" or "false"
-        filesys.append(save_dir, v)
+        return v
         --
     elseif tp == "nil" then
-        filesys.append(save_dir, "nil")
+        return "nil"
         --
     elseif tp == "table" then
-        filesys.append(save_dir, "{\n")
+        local r = "{"
 
         for k, v in pairs(o) do
-            local str = str_format("   [%s] = ", serialize(k))
-            filesys.append(save_dir, str)
-            serialize(v)
-            filesys.append(save_dir, "\n")
+            r = str_format("%s[%s] = %s,", r, serialize(k), serialize(v))
         end
-        filesys.append(save_dir, "\n")
+        r = str_format("%s}", r)
+        return r
     else
         error("Cannot serialize a " .. type(o))
     end
@@ -37,7 +34,13 @@ end
 
 ---@class JM.Serial
 local Serial = {
-    serialize = serialize,
+    pack = serialize,
+    --
+    unpack = function(path)
+        assert(type(path) == "string")
+        local r = loadstring(str_format("return %s", path))()
+        return r
+    end
 }
 
 return Serial

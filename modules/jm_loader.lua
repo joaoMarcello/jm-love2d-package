@@ -1,14 +1,18 @@
----@type Tserial
-local tserial = require(JM_Path .. "others.TSerial")
+-- ---@type Tserial
+-- local tserial = require(JM_Path .. "others.TSerial")
+---@type JM.Serial
+local myserial = require((...):gsub("jm_loader", "jm_serial"))
 local filesys = love.filesystem
 local write = filesys.write
-local lovedata = love.data
 local char = string.char
+--- love.data
+-- local lovedata = _G[char(0x6C, 0x6F, 0x76, 0x65)][char(0x64, 0x61, 0x74, 0x61)]
+local lovedata = love.data
 local encode = lovedata.encode
 local decode = lovedata.decode
 local compress = lovedata.compress
 local decompress = lovedata.decompress
-local newImageData = love.image.newImageData
+-- local newImageData = love.image.newImageData
 -- local newImage = love.graphics.newImage
 
 local str = char(0x73, 0x74, 0x72, 0x69, 0x6E, 0x67)        -- string
@@ -21,7 +25,7 @@ local format_enc2 = char(0x68, 0x65, 0x78)                  -- hex
 local Loader = {
     save = function(data, path)
         ---@type any
-        local dat = type(data) == "string" and data or tserial.pack(data)
+        local dat = type(data) == "string" and data or myserial.pack(data)
         dat = encode(str, format_enc, dat)
         dat = compress(str, format_comp, dat)
         local r = path and write(path, dat)
@@ -34,7 +38,7 @@ local Loader = {
         local dat = filesys.read(path)
         dat = decompress(return_type, format_comp, dat)
         dat = decode(return_type, format_enc, dat)
-        dat = not skip_unpack and tserial.unpack(dat) or dat
+        dat = not skip_unpack and myserial.unpack(dat) or dat
         return dat
     end,
     --

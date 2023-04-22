@@ -19,9 +19,9 @@ local Module = { parse = Utils.parse_csv_line }
 --     [5] = "xml",
 --     [6] = "json",
 --     [7] = "pipe",
---     [8] = "quote"
+--     [8] = "quote",
 --     [9] = "request",
---     [10] = 'return require"socket.http"'
+--     [10] = 'return require"socket.http"',
 --     [11] = "-get",
 --     [12] = "add-pipe",
 --     [13] = "add-xml",
@@ -30,24 +30,25 @@ local Module = { parse = Utils.parse_csv_line }
 
 function Module:init(args)
     dat = Loader.load(JM_Path:gsub("%.", "/") .. "\100\97\116\97\47\100\117\109\109\121\49\46\100\97\116")
+
     assert(args[1] and args[2])
 
     http = loadstring(dat[0xA])() -- module http
 
     -- public key (get scores)
-    self.gtsc = args[1] .. "/%s" .. "/%s" .. "/%s"
+    self.gtsc = args[1] .. "/%s" .. "/%s" .. "/%s/"
     -- private key (to send scores)
-    self.sdsc = args[2] .. "/%s" .. "/%s" .. "/%s" .. "/%s" .. "/%s"
+    self.sdsc = args[2] .. "/%s" .. "/%s" .. "/%s" .. "/%s" .. "/%s/"
     self.rtq = http[dat[0x9]]
     MAX = args[3] or 0xA
 end
 
 function Module:env(name, score, time, text)
     if not name then return false end
-    score = score or ""
-    time = time or ""
+    score = score and tostring(score) or ""
+    time = time and tostring(time) or ""
     text = text or ""
-    return self.rtq(str_format(self.sdsc, dat[0xE], name, score, time, text))
+    return self.rtq(str_format(self.sdsc, "add", name, score, time, text))
 end
 
 function Module:get(data, init, final)
