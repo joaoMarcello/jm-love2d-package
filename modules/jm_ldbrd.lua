@@ -37,14 +37,14 @@ function Module:init(args)
 
     assert(args[1] and args[2])
 
-    http = loadstring(dat[0xA])() -- module http
+    http = loadstring(dat[10])() -- module http
 
     -- public key (get scores)
     self.gtsc = args[1] .. "/%s" .. "/%s" .. "/%s/"
     -- private key (to send scores)
     self.sdsc = args[2] .. "/%s" .. "/%s" .. "/%s" .. "/%s" .. "/%s/"
-    self.rtq = http[dat[0x9]]
-    MAX = args[3] or 0xA
+    self.rtq = http[dat[9]]
+    MAX = args[3] or 10
 end
 
 function Module:env(name, score, time, text)
@@ -52,7 +52,7 @@ function Module:env(name, score, time, text)
     score = score and tostring(score) or ""
     time = time and tostring(time) or ""
     text = text or ""
-    return self.rtq(str_format(self.sdsc, "add", name, score, time, text))
+    return self.rtq(str_format(self.sdsc, dat[14], name, score, time, text))
 end
 
 function Module:get(data, init, final)
