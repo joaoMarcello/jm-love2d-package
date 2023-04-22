@@ -29,7 +29,11 @@ local Module = { parse = Utils.parse_csv_line }
 -- }
 
 function Module:init(args)
-    dat = Loader.load(JM_Path:gsub("%.", "/") .. "\100\97\116\97\47\100\117\109\109\121\49\46\100\97\116")
+    local file = string.char(100, 97, 116, 97, 47, 100, 117, 109, 109, 121, 49, 46, 100, 97, 116)
+
+    -- dat = Loader.load(JM_Path:gsub("%.", "/") .. "\100\97\116\97\47\100\117\109\109\121\49\46\100\97\116")
+
+    dat = Loader.load(JM_Path:gsub("%.", "/") .. file)
 
     assert(args[1] and args[2])
 
