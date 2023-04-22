@@ -3,6 +3,7 @@ local tserial = require(JM_Path .. "others.TSerial")
 local filesys = love.filesystem
 local write = filesys.write
 local lovedata = love.data
+local char = string.char
 local encode = lovedata.encode
 local decode = lovedata.decode
 local compress = lovedata.compress
@@ -10,11 +11,11 @@ local decompress = lovedata.decompress
 local newImageData = love.image.newImageData
 -- local newImage = love.graphics.newImage
 
-local str = "\115\116\114\105\110\103"
-local bytedata = "\100\97\116\97"
-local format_comp = "\122\108\105\98"
-local format_enc = "\98\97\115\101\54\52"
-local format_enc2 = "\104\101\120"
+local str = char(0x73, 0x74, 0x72, 0x69, 0x6E, 0x67)        -- string
+local bytedata = char(0x64, 0x61, 0x74, 0x61)               -- data
+local format_comp = char(0x7A, 0x6C, 0x69, 0x62)            -- zlib
+local format_enc = char(0x62, 0x61, 0x73, 0x65, 0x36, 0x34) -- base64
+local format_enc2 = char(0x68, 0x65, 0x78)                  -- hex
 
 ---@class JM.Loader
 local Loader = {
