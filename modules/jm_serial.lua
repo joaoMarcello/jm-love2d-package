@@ -6,7 +6,7 @@ local function serialize(o)
 
     if tp == "number" then
         local c = o % 1 == 0
-        local r = str_format(c and "%d" or "%f", o)
+        local r = str_format(c and "%d" or "tonumber(%a)", o)
         return r
         --
     elseif tp == "string" then
@@ -36,9 +36,9 @@ end
 local Serial = {
     pack = serialize,
     --
-    unpack = function(path)
-        assert(type(path) == "string")
-        local r = loadstring(str_format("return %s", path))()
+    unpack = function(data)
+        assert(type(data) == "string")
+        local r = loadstring(str_format("return %s", data))()
         return r
     end
 }

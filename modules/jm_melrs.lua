@@ -3,8 +3,9 @@ local str_find = string.find
 local tab_insert = table.insert
 local tonumber = tonumber
 ---@type JM.Loader
-local Loader = require(_G.JM_Path .. "modules.jm_loader")
-local Utils = _G.JM_Utils
+local Loader = require((...):gsub("jm_melrs", "jm_loader"))
+---@type JM.Utils
+local Utils = require((...):gsub("jm_melrs", "jm_utils"))
 local http
 local dat
 local MAX
