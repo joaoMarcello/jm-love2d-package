@@ -29,7 +29,7 @@ end
 
 ---@param args {text: string, font: JM.Font.Font, x:any, y:any}
 function Phrase:__constructor__(args)
-    assert(Utils, "\n> Module Utils not initialized!")
+    -- assert(Utils, "\n> Module Utils not initialized!")
 
     self.text = args.text
     self.__font = args.font
@@ -236,12 +236,13 @@ function Phrase:get_lines()
                     table_remove(lines[cur_line], #lines[cur_line])
                 end
             end
+
             -- goto skip_word
             --
         else
             do
                 local tags = self.word_to_tag[prev_word]
-                    or self.word_to_tag["first"]
+                    or (i == 2 and self.word_to_tag["first"])
 
                 if tags then
                     for i = 1, #tags do
@@ -254,6 +255,7 @@ function Phrase:get_lines()
 
                             eff_args = eff_args or {}
                             table_insert(eff_args, tag)
+                            --
                         elseif tag_name == "</effect>" then
                             effect = nil
                             eff_args = nil
