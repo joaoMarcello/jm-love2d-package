@@ -242,7 +242,7 @@ function Phrase:get_lines()
         else
             do
                 local tags = self.word_to_tag[prev_word]
-                    or (i == 2 and self.word_to_tag["__first__"])
+                    or (not prev_word and self.word_to_tag["__first__"])
 
                 if tags then
                     for i = 1, #tags do
