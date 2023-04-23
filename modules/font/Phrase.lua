@@ -72,7 +72,7 @@ function Phrase:__constructor__(args)
                 tag_values["prev"] = prev_word
                 table_insert(self.tags, tag_values)
 
-                local index = prev_word or "first"
+                local index = prev_word or "__first__"
                 self.word_to_tag[index] = self.word_to_tag[index] or {}
                 table_insert(self.word_to_tag[index], tag_values)
             end
@@ -242,7 +242,7 @@ function Phrase:get_lines()
         else
             do
                 local tags = self.word_to_tag[prev_word]
-                    or (i == 2 and self.word_to_tag["first"])
+                    or (i == 2 and self.word_to_tag["__first__"])
 
                 if tags then
                     for i = 1, #tags do
@@ -499,7 +499,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
             ---@type JM.Font.Word
             local current_word = lines[i][j]
 
-            local first = apply_commands(self, (i == 1 and j == 1 and "first")
+            local first = apply_commands(self, (i == 1 and j == 1 and "__first__")
                 or nil, init_font_size)
 
             local r = current_word:get_width() + space
