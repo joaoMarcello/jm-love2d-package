@@ -9,7 +9,7 @@ local Component = require((...):gsub("label", "component"))
 
 local font = _G.JM_Font.current
 
-love.keyboard.setKeyRepeat(true)
+-- love.keyboard.setKeyRepeat(true)
 
 ---@param s string
 local only_alpha_numeric = function(s)
