@@ -6,7 +6,7 @@ local function serialize(o)
 
     if tp == "number" then
         local c = o % 1 == 0
-        local r = str_format(c and "%d" or "tonumber(%a)", o)
+        local r = str_format(c and "%d" or "%a", o)
         return r
         --
     elseif tp == "string" then
@@ -23,7 +23,7 @@ local function serialize(o)
         local r = "{"
 
         for k, v in pairs(o) do
-            r = str_format("%s[%s] = %s,", r, serialize(k), serialize(v))
+            r = str_format("%s[%s]=%s,", r, serialize(k), serialize(v))
         end
         r = str_format("%s}", r)
         return r
@@ -38,7 +38,9 @@ local Serial = {
     --
     unpack = function(data)
         assert(type(data) == "string")
+        ---@type any
         local r = loadstring(str_format("return %s", data))()
+        -- r = setfenv(r, env)
         return r
     end
 }
