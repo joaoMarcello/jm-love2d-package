@@ -54,7 +54,7 @@ end
 function Label:textinput(t)
     if not self.on_focus then return end
 
-    if ((self.use_filter and self.filter(t)) or not self.use_filter)
+    if ((self.filter and self.filter(t)) or not self.use_filter)
         and self.count < self.max
     then
         self.text = self.text .. t
