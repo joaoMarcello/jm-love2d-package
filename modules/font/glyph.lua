@@ -87,7 +87,7 @@ function Glyph:__constructor__(img, args)
 
     -- self.bounds = { left = 0, top = 0, right = love.graphics.getWidth(), bottom = love.graphics.getHeight() }
 
-    self.__quad = self:get_quad()
+    self.quad = self:get_quad()
 end
 
 function Glyph:update(dt)
@@ -186,7 +186,7 @@ function Glyph:__glyph_draw__()
     elseif self.__id ~= "\t" and self.__id ~= " " then
         lgx_setColor(self.color)
 
-        lgx_draw(self.img, self.__quad, x, y, 0, self.sx, self.sy, self.ox, self.oy)
+        lgx_draw(self.img, self.quad, x, y, 0, self.sx, self.sy, self.ox, self.oy)
     end
 
     -- if self.w and self.h then
