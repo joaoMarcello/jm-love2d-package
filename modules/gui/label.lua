@@ -44,7 +44,7 @@ function Label:__constructor__(args)
     self.time = 0.0
     self.speed = 0.5
     self.show_line = true
-    self.text_empty = args.text_empty
+    self.text_help = args.text_help
 end
 
 function Label:textinput(t)
@@ -110,26 +110,33 @@ function Label:__custom_draw__()
         lgx.rectangle("line", self.x, self.y, self.w, self.h)
     end
 
+    local px = self.x
+
     if self.align == "center" then
-        local px = self.x + self.w * 0.5 - self.width * 0.5
+        px = self.x + self.w * 0.5 - self.width * 0.5
         font:print(self.text, px, self.y + 2, huge)
 
-        if self.text_empty and self.count <= 0 then
-            font:print(self.text_empty, self.x, self.y + 1, huge)
-            --
-        elseif self.show_line then
-            lgx.setColor(font.__default_color)
-            lgx.setLineWidth(2)
-            local px2 = px + self.width + 2
-            lgx.line(px2, self.y + 1, px2, self.y + self.h - 1)
-            lgx.setLineWidth(1)
-        end
+
         --
     elseif self.align == "right" then
-        font:print(self.text, self.x + self.w - self.width, self.y + 2, huge)
+        px = self.x + self.w - self.width
+        font:print(self.text, px, self.y + 2, huge)
         --
     else
         font:print(self.text, self.x, self.y + 2, huge)
+    end
+
+
+    if self.text_help and not self.on_focus and self.count <= 0 then
+        font:print(self.text_help, self.x, self.y + 1, huge)
+        --
+    elseif self.show_line and self.on_focus then
+        local px2 = px + self.width + 2
+
+        lgx.setColor(font.__default_color)
+        lgx.setLineWidth(1)
+        lgx.line(px2, self.y + 1, px2, self.y + self.h - 1)
+        lgx.setLineWidth(1)
     end
 
     -- font:print(tostring(self.width), self.x, self.y - 22)
