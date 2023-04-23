@@ -77,6 +77,8 @@ function Label:textinput(t)
 end
 
 function Label:key_pressed(key)
+    if not self.on_focus then return end
+
     if key == "backspace" and self.count > 0 then
         local byteoffset = utf8.offset(self.text, -1)
 
@@ -91,6 +93,9 @@ function Label:key_pressed(key)
             self.time = 0.0
             self.show_line = false
         end
+        --
+    elseif key == "return" then
+        self:set_focus(false)
     end
 end
 
@@ -111,7 +116,7 @@ end
 
 function Label:__custom_draw__()
     if self.draw_border then
-        lgx.setColor(1, 0, 0)
+        lgx.setColor(0, 0, 0)
         lgx.rectangle("line", self.x, self.y, self.w, self.h)
     end
 
