@@ -203,11 +203,11 @@ function Glyph:__glyph_draw__()
     -- )
 end
 
-function Glyph:get_pos_draw_rec(x, y, w, h)
-    x = x + w / 2
-    y = y + h - self.h * self.sy + self.oy * self.sy
-    return x, y
-end
+-- function Glyph:get_pos_draw_rec(x, y, w, h)
+--     x = x + w / 2
+--     y = y + h - self.h * self.sy + self.oy * self.sy
+--     return x, y
+-- end
 
 function Glyph:get_quad()
     if self.__id ~= "\t" and self.__id ~= " " and self.is_visible then
