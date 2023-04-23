@@ -38,7 +38,6 @@ local Serial = {
     --
     unpack = function(data)
         assert(type(data) == "string")
-        ---@type any
         local r = loadstring(str_format("return %s", data))()
         -- r = setfenv(r, env)
         return r
