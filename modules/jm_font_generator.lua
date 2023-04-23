@@ -1002,6 +1002,9 @@ local print
 local line_width
 local next_not_command_index
 local get_words
+local metatable_mode_k = { __mode = 'k' }
+local metatable_mode_v = { __mode = 'v' }
+
 --- The functions below are used in the printf method
 do
     get_char_obj =
@@ -1181,7 +1184,8 @@ do
             i = i + 1
         end
 
-        results_get_word[self] = results_get_word[self] or setmetatable({}, { __mode = 'k' })
+        results_get_word[self] = results_get_word[self]
+            or setmetatable({}, metatable_mode_k)
         results_get_word[self][separated] = list
 
         return list
@@ -1333,21 +1337,28 @@ local AlignOptions = {
     justify = 4
 }
 
+local phrase_construct_table = {}
+
 ---@param self JM.Font.Font
 function Font:generate_phrase(text, x, y, right, align)
     align = align or "left"
     right = right or (MATH_HUGE - x)
 
-    self.buffer__ = self.buffer__ or setmetatable({}, { __mode = 'k' })
+    self.buffer__ = self.buffer__ or setmetatable({}, metatable_mode_k)
 
     if not self.buffer__[text] then
-        self.buffer__[text] = setmetatable({}, { __mode = 'v' })
+        self.buffer__[text] = setmetatable({}, metatable_mode_v)
     end
 
     local index = string.format("%d %d %s", x, y, AlignOptions[align])
 
     if not self.buffer__[text][index] then
-        local f = Phrase:new({ text = text, font = self, x = x, y = y })
+        phrase_construct_table.text = text
+        phrase_construct_table.font = self
+        phrase_construct_table.x = x
+        phrase_construct_table.y = y
+        -- local f = Phrase:new({ text = text, font = self, x = x, y = y })
+        local f = Phrase:new(phrase_construct_table)
         self.buffer__[text][index] = f
     end
 

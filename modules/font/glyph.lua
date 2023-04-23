@@ -82,8 +82,8 @@ function Glyph:__constructor__(img, args)
 
     self:set_color2(1, 1, 1, 1)
 
-    self.ox = (self.w) / 2 --* self.sx
-    self.oy = (self.h) / 2 --* self.sy
+    self.ox = (self.w) * 0.5 --* self.sx
+    self.oy = (self.h) * 0.5 --* self.sy
 
     -- self.bounds = { left = 0, top = 0, right = love.graphics.getWidth(), bottom = love.graphics.getHeight() }
 

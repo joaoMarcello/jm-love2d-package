@@ -15,14 +15,11 @@ local decompress = lovedata.decompress
 -- local newImageData = love.image.newImageData
 -- local newImage = love.graphics.newImage
 
-local str = char(0x73, 0x74, 0x72, 0x69, 0x6E, 0x67)        -- string
-local bytedata = char(0x64, 0x61, 0x74, 0x61)               -- data
-local format_comp = char(0x7A, 0x6C, 0x69, 0x62)            -- zlib
-local format_enc = char(0x62, 0x61, 0x73, 0x65, 0x36, 0x34) -- base64
-local format_enc2 = char(0x68, 0x65, 0x78)                  -- hex
+local str, bytedata, format_comp, format_enc, format_enc2
 
 ---@class JM.Loader
 local Loader = {
+    --
     save = function(data, path)
         ---@type any
         local dat = type(data) == "string" and data or myserial.pack(data)
@@ -63,6 +60,14 @@ local Loader = {
         dat = not skip_decode and decode(return_type, format_enc2, dat) or dat
         return dat
     end,
+    --
+    init = function()
+        str = char(0x73, 0x74, 0x72, 0x69, 0x6E, 0x67)        -- string
+        bytedata = char(0x64, 0x61, 0x74, 0x61)               -- data
+        format_comp = char(0x7A, 0x6C, 0x69, 0x62)            -- zlib
+        format_enc = char(0x62, 0x61, 0x73, 0x65, 0x36, 0x34) -- base64
+        format_enc2 = char(0x68, 0x65, 0x78)
+    end,
     -- --
     -- ---@param self JM.Loader
     -- img = function(self, path, w, h)
@@ -75,5 +80,6 @@ local Loader = {
     -- end,
 }
 
+Loader.init()
 
 return Loader
