@@ -467,8 +467,8 @@ local function load_by_tff(name, path, dpi)
     [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]]
 
     local glyph_table = get_glyphs(glyphs)
-    local N_glyphs = #glyph_table
-    local cur_id = 1
+    -- local N_glyphs = #glyph_table
+    -- local cur_id = 1
 
     local cur_x = 4
     local cur_y = 2
@@ -483,7 +483,7 @@ local function load_by_tff(name, path, dpi)
 
         if glyph then
             local w, h = glyph:getDimensions()
-            local bbx, bby, bbw, bbh = glyph:getBoundingBox()
+            -- local bbx, bby, bbw, bbh = glyph:getBoundingBox()
 
             local glyphData = love.image.newImageData(w, h, "rgba8", glyph:getString():gsub("(.)(.)", "%1%1%1%2"))
             local glyphDataWidth, glyphDataHeight = glyphData:getDimensions()

@@ -34,7 +34,7 @@ do
 
     Font.fonts[1] = Generator:new_by_ttf({
         path = "/jm-love2d-package/data/font/komika text/Komika Text Regular.ttf",
-        -- path_bold = "/data/font/Komika Text Bold.ttf",
+        path_bold = "/jm-love2d-package/data/font/komika text/Komika Text Bold.ttf",
         -- path_italic = "/data/font/Komika Text Italic.ttf",
         dpi = 48,
         name = "komika text 2",

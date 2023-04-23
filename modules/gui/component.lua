@@ -77,7 +77,8 @@ end
 local Component = {
     __custom_draw__ = generic_func,
     __pos_draw__ = generic_func,
-    __custom_update__ = generic_func
+    __custom_update__ = generic_func,
+    TYPE = TYPES_
 }
 setmetatable(Component, Affectable)
 Component.__index = Component
@@ -110,8 +111,8 @@ function Component:__constructor__(args)
     self.is_enable = true
     self.on_focus = args.on_focus
     self.type_obj = TYPES_.generic
-    self.TYPE = TYPES_
-    self.Utils = Utils
+    -- self.TYPE = TYPES_
+    -- self.Utils = Utils
     self.mode = MODES.mouse
 
     self:refresh_corners()
