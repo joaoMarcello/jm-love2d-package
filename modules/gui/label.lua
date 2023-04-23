@@ -17,7 +17,11 @@ local only_alpha_numeric = function(s)
 end
 
 ---@class JM.GUI.Label : JM.GUI.Component
-local Label = setmetatable({}, Component)
+local Label = setmetatable({
+    set_font = function(self, new_font)
+        font = new_font
+    end
+}, Component)
 Label.__index = Label
 
 ---@return JM.GUI.Label
@@ -92,6 +96,7 @@ end
 
 function Label:update(dt)
     self.time = self.time + dt
+
     if self.time >= self.speed then
         self.time = self.time - self.speed
         if self.time >= self.speed then self.time = 0.0 end
@@ -111,6 +116,18 @@ function Label:__custom_draw__()
     end
 
     local px = self.x
+
+    lgx.push()
+    if self.width > self.w then
+        local off = self.width - self.w
+
+        if self.align == "center" then
+            lgx.translate(-off * 0.5, 0)
+            --
+        elseif self.align == "left" then
+            lgx.translate(-off, 0)
+        end
+    end
 
     if self.align == "center" then
         px = self.x + self.w * 0.5 - self.width * 0.5
@@ -138,6 +155,8 @@ function Label:__custom_draw__()
         lgx.line(px2, self.y + 1, px2, self.y + self.h - 1)
         lgx.setLineWidth(1)
     end
+
+    lgx.pop()
 
     -- font:print(tostring(self.width), self.x, self.y - 22)
     -- font:print(tostring(self.count), self.x, self.y + self.h + 22)
