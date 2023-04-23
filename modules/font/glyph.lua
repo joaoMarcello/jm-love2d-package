@@ -137,8 +137,8 @@ function Glyph:set_scale(value)
     self.sy = value or self.sy
     self.sx = self.sy
 
-    self.ox = self.w / 2 * self.sx
-    self.oy = self.h / 2 * self.sy
+    self.ox = self.w * 0.5 * self.sx
+    self.oy = self.h * 0.5 * self.sy
 
     -- if self:is_animated() then
     --     self.__anima:set_scale({ x = self.sx, y = self.sy })
@@ -155,18 +155,18 @@ function Glyph:draw(x, y)
     Affectable.draw(self, self.__glyph_draw__)
 end
 
-function Glyph:draw_rec(x, y, w, h)
-    --local eff_t = self:__get_effect_transform()
+-- function Glyph:draw_rec(x, y, w, h)
+--     --local eff_t = self:__get_effect_transform()
 
-    x = x + w / 2
-    y = y + h
-        - self.h * self.sy  --* (eff_t and eff_t.sy or 1)
-        + self.oy * self.sy -- * (eff_t and eff_t.sy or 1)
+--     x = x + w / 2
+--     y = y + h
+--         - self.h * self.sy  --* (eff_t and eff_t.sy or 1)
+--         + self.oy * self.sy -- * (eff_t and eff_t.sy or 1)
 
-    self:draw(x, y)
+--     self:draw(x, y)
 
-    return x, y
-end
+--     return x, y
+-- end
 
 function Glyph:__glyph_draw__()
     -- if self.__id == "__nule__" then return end
