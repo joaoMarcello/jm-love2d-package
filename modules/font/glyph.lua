@@ -23,7 +23,7 @@ function Glyph:new(img, args)
 end
 
 function Glyph:__constructor__(img, args)
-    self.__img = img
+    self.img = img
     self.__id = args.id or ""
 
     self.x = args.x
@@ -46,18 +46,18 @@ function Glyph:__constructor__(img, args)
 
     self.__args = args
 
-    if self.__img then
+    if self.img then
         self.key = string.format("%d-%d-%d-%d", self.x, self.y, self.w, self.h)
 
-        if not Quads[self.__img] then
-            Quads[self.__img] = {}
+        if not Quads[self.img] then
+            Quads[self.img] = {}
         end
 
-        if not Quads[self.__img][self.key] then
-            Quads[self.__img][self.key] = lgx.newQuad(
+        if not Quads[self.img][self.key] then
+            Quads[self.img][self.key] = lgx.newQuad(
                 self.x, self.y,
                 self.w, self.h,
-                self.__img:getDimensions()
+                self.img:getDimensions()
             )
         end
     end
@@ -107,7 +107,7 @@ function Glyph:get_height()
 end
 
 function Glyph:copy()
-    local obj = Glyph:new(self.__img, self.__args)
+    local obj = Glyph:new(self.img, self.__args)
 
     if obj.__anima then
         obj.__anima = obj.__anima:copy()
@@ -177,7 +177,7 @@ function Glyph:__glyph_draw__()
     if self.__anima then
         self.__anima:draw(x, y)
         --
-    elseif not self.__img then
+    elseif not self.img then
         lgx_setColor(0, 0, 0, 0.2)
         lgx_rect("fill", x, y,
             self.w * self.sx,
@@ -186,7 +186,7 @@ function Glyph:__glyph_draw__()
     elseif self.__id ~= "\t" and self.__id ~= " " then
         lgx_setColor(self.color)
 
-        lgx_draw(self.__img, self.__quad, x, y, 0, self.sx, self.sy, self.ox, self.oy)
+        lgx_draw(self.img, self.__quad, x, y, 0, self.sx, self.sy, self.ox, self.oy)
     end
 
     -- if self.w and self.h then
@@ -211,7 +211,7 @@ end
 
 function Glyph:get_quad()
     if self.__id ~= "\t" and self.__id ~= " " and self.is_visible then
-        return Quads[self.__img] and Quads[self.__img][self.key] or nil
+        return Quads[self.img] and Quads[self.img][self.key] or nil
     end
 end
 
