@@ -20,7 +20,7 @@ local Phrase = require((...):gsub("jm_font_generator", "font.Phrase"))
 
 --====================================================================
 
-local table_insert, string_find = table.insert, string.find
+local table_insert, str_find, str_format = table.insert, string.find, string.format
 local love_draw, love_set_color = love.graphics.draw, love.graphics.setColor
 local MATH_HUGE = math.huge
 
@@ -159,7 +159,7 @@ function Font:__constructor__(args)
         .. "%s/%s.png"
 
     self:load_characters(args.regular_data
-        or string.format(dir, args.name, args.name),
+        or str_format(dir, args.name, args.name),
         FontFormat.normal, find_nicks(get_glyphs(args.glyphs)),
         args.regular_quads,
         args.min_filter,
@@ -169,7 +169,7 @@ function Font:__constructor__(args)
 
     if not args.regular_data or args.bold_data then
         self:load_characters(args.bold_data
-            or string.format(dir, args.name, args.name .. "_bold"),
+            or str_format(dir, args.name, args.name .. "_bold"),
             FontFormat.bold, find_nicks(get_glyphs(args.glyphs_bold or args.glyphs)),
             args.bold_quads,
             args.min_filter,
@@ -182,7 +182,7 @@ function Font:__constructor__(args)
 
     if (not args.regular_data or args.italic_data) then
         self:load_characters(args.italic_data
-            or string.format(dir, args.name, args.name .. "_italic"),
+            or str_format(dir, args.name, args.name .. "_italic"),
             FontFormat.italic, find_nicks(get_glyphs(args.glyphs_italic or args.glyphs)),
             args.italic_quads,
             args.min_filter,
@@ -583,7 +583,7 @@ local results_get_config = setmetatable({}, { __mode = 'k' })
 
 ---@return JM.Font.Configuration
 function Font:__get_configuration()
-    local index = string.format("%d %d %.1f %.1f %.1f %.1f %d %d",
+    local index = str_format("%d %d %.1f %.1f %.1f %.1f %d %d",
         self.__font_size,
         self.__character_space,
         (self.__default_color[1]),
@@ -761,7 +761,7 @@ function Font:separate_string(s, list)
     local words = list or {}
 
     while (current_init <= #(s)) do
-        local regex = string.format("[^[ ]]*.-[%s]", sep)
+        local regex = str_format("[^[ ]]*.-[%s]", sep)
         local tag_regex = "< *[%d, =._%w/%-]*>"
 
         local tag = s:match(tag_regex, current_init)
@@ -769,7 +769,7 @@ function Font:separate_string(s, list)
         local nick = false --find and string.match(find, "%-%-%w-%-%-")
 
         if tag then
-            local startp, endp = string_find(s, tag_regex, current_init)
+            local startp, endp = str_find(s, tag_regex, current_init)
             local sub_s = s:sub(startp, endp)
             local prev_s = s:sub(current_init, startp - 1)
 
@@ -794,7 +794,7 @@ function Font:separate_string(s, list)
 
             current_init = endp
         elseif find then
-            local startp, endp = string_find(s, regex, current_init)
+            local startp, endp = str_find(s, regex, current_init)
             local sub_s = s:sub(startp, endp - 1)
 
             if sub_s ~= "" and sub_s ~= " " then
@@ -1350,7 +1350,7 @@ function Font:generate_phrase(text, x, y, right, align)
         self.buffer__[text] = setmetatable({}, metatable_mode_v)
     end
 
-    local index = string.format("%d %d %s", x, y, AlignOptions[align])
+    local index = str_format("%d %d %s", x, y, AlignOptions[align])
 
     if not self.buffer__[text][index] then
         phrase_construct_table.text = text
