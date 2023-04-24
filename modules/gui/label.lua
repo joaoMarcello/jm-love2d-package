@@ -96,6 +96,25 @@ function Label:key_pressed(key)
         --
     elseif key == "return" then
         self:set_focus(false)
+        --
+    end
+end
+
+function Label:mouse_pressed(x, y, button, istouch, presses)
+    if not self.on_focus and self:check_collision(x, y, 0, 0) then
+        self:set_focus(true)
+        self.time = 0.0
+        self.show_line = true
+        Component.mouse_pressed(self, x, y, button, istouch, presses)
+    end
+end
+
+function Label:touch_pressed(id, x, y, dx, dy, pressure)
+    if not self.on_focus and self:check_collision(x, y, 0, 0) then
+        self:set_focus(true)
+        self.time = 0.0
+        self.show_line = true
+        Component.touch_pressed(self, id, x, y, dx, dy, pressure)
     end
 end
 
