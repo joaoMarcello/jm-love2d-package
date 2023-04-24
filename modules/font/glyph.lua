@@ -24,7 +24,7 @@ end
 
 function Glyph:__constructor__(img, args)
     self.img = img
-    self.__id = args.id or ""
+    self.id = args.id or ""
 
     self.x = args.x
     self.y = args.y
@@ -183,7 +183,7 @@ function Glyph:__glyph_draw__()
             self.w * self.sx,
             self.h * self.sy
         )
-    elseif self.__id ~= "\t" and self.__id ~= " " then
+    elseif self.id ~= "\t" and self.id ~= " " then
         lgx_setColor(self.color)
 
         lgx_draw(self.img, self.quad, x, y, 0, self.sx, self.sy, self.ox, self.oy)
@@ -210,7 +210,7 @@ end
 -- end
 
 function Glyph:get_quad()
-    if self.__id ~= "\t" and self.__id ~= " " and self.is_visible then
+    if self.id ~= "\t" and self.id ~= " " and self.is_visible then
         return Quads[self.img] and Quads[self.img][self.key] or nil
     end
 end

@@ -229,7 +229,7 @@ function Font:__constructor__(args)
     for _, format in pairs(FontFormat) do
         self.__characters[format][" "] = self.__space_char
         self.__characters[format]["\t"] = self.__tab_char
-        self.__characters[format][nule_glyph.__id] = nule_glyph
+        self.__characters[format][nule_glyph.id] = nule_glyph
     end
 
     self.__default_color = args.color or { 0.1, 0.1, 0.1, 1 }
@@ -400,10 +400,10 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                         format = format
                     })
 
-                list[glyph.__id] = glyph
+                list[glyph.id] = glyph
 
-                if is_valid_nickname(glyph.__id) then
-                    table_insert(self.__nicknames, glyph.__id)
+                if is_valid_nickname(glyph.id) then
+                    table_insert(self.__nicknames, glyph.id)
                 end
 
                 cur_id = cur_id + 1
@@ -434,7 +434,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                         format = format
                     })
 
-                list[glyph.__id] = glyph
+                list[glyph.id] = glyph
             end
 
             cur_id = cur_id + 1
@@ -564,7 +564,7 @@ local function load_by_tff(name, path, dpi)
         end
     end
 
-    -- font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
+    font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
 
     return font_imgdata, glyphs, quad_pos
 end

@@ -106,7 +106,7 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
         elseif effect_type == "wave" then
             rad_wave = rad_wave - (math.pi * 2 * 0.1)
 
-            if glyph.__id == " " then
+            if glyph.id == " " then
                 skip = true
             else
                 eff = EffectManager:generate_effect("float", { range = 2, rad = rad_wave, speed = 0.5 })
