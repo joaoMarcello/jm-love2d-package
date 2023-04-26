@@ -31,20 +31,20 @@ function Glyph:__constructor__(img, args)
     self.w = args.w
     self.h = args.h
 
-    -- self.qx = self.x
-    -- self.qy = self.y
-    -- self.qw = self.w
-    -- self.qh = self.h
+    self.qx = self.x
+    self.qy = self.y
+    self.qw = self.w
+    self.qh = self.h
 
-    self.bbox_x = args.bbox_x or self.x
-    self.bbox_w = args.bbox_w or self.w
+    -- self.bbox_x = args.bbox_x or self.x
+    -- self.bbox_w = args.bbox_w or self.w
 
     self.sy = args.sy or 1
     self.sx = self.sy
 
     self.format = args.format or 1
 
-    self.__args = args
+    -- self.__args = args
 
     if self.img then
         self.key = string.format("%d-%d-%d-%d", self.x, self.y, self.w, self.h)
@@ -106,12 +106,30 @@ function Glyph:get_height()
     return self.h * self.sy
 end
 
+local tab_cpy = {}
 function Glyph:copy()
-    local obj = Glyph:new(self.img, self.__args)
+    -- local obj = Glyph:new(self.img, self.__args)
 
-    if obj.__anima then
-        obj.__anima = obj.__anima:copy()
+    -- if obj.__anima then
+    --     obj.__anima = obj.__anima:copy()
+    -- end
+    -- return obj
+
+    tab_cpy.id = self.id
+    tab_cpy.x = self.qx
+    tab_cpy.y = self.qy
+    tab_cpy.w = self.qw
+    tab_cpy.h = self.qh
+    tab_cpy.bottom = self.bottom
+    tab_cpy.sy = self.sy
+    tab_cpy.format = self.format
+
+    if self.__anima then
+        tab_cpy.anima = self.__anima:copy()
     end
+
+    local obj = Glyph:new(self.img, tab_cpy)
+
     return obj
 end
 
