@@ -69,7 +69,7 @@ function Label:textinput(t)
         end
 
         self.time = 0.0
-        self.show_line = false
+        self.show_line = true
 
         return true
     end
@@ -91,7 +91,7 @@ function Label:key_pressed(key)
             self.count = self.count - 1
 
             self.time = 0.0
-            self.show_line = false
+            self.show_line = true
         end
         --
     elseif key == "return" then

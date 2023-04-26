@@ -681,6 +681,317 @@ local function infinity_scroll_y(self, camera, layer)
     pop()
 end
 
+---@param self JM.Scene
+local update = function(self, dt)
+    self:calc_canvas_scale()
+
+    if self.use_vpad then
+        VPad:update(dt)
+    end
+
+    if self.time_pause then
+        self.time_pause = self.time_pause - dt
+
+        if self.time_pause <= 0 then
+            self.time_pause = nil
+            self.pause_action = nil
+        else
+            local r = self.pause_action and self.pause_action(dt)
+            return
+        end
+    end
+
+    if self.transition then
+        self.transition:__update__(dt)
+        local r = self.trans_action and self.trans_action(dt)
+
+        r = not self.transition:is_paused()
+            and self.transition:update(dt)
+
+        if self.transition and self.transition.pause_scene
+            and not self.transition:finished()
+        then
+            return
+        end
+
+        if self.transition:finished() then
+            self.transition = nil
+            self.trans_action = nil
+            r = self.trans_end_action and self.trans_end_action(dt)
+            self.trans_end_action = nil
+            return
+        end
+    end
+
+    -- if self.fadeout_time then
+    --     if self.fadeout_delay > 0 then
+    --         self.fadeout_delay = self.fadeout_delay - dt
+    --     else
+    --         self.fadeout_time = self.fadeout_time + dt
+    --     end
+
+    --     if self.fadeout_time <= self.fadeout_duration + 0.5
+    --     then
+    --         local r = self.fadeout_action and self.fadeout_action(dt)
+    --         return
+    --     else
+    --         self.fadeout_time = nil
+    --         local r = self.fadeout_end_action and self.fadeout_end_action()
+    --     end
+    -- end
+
+    -- if self.fadein_time then
+    --     if self.fadein_delay > 0 then
+    --         self.fadein_delay = self.fadein_delay - dt
+    --     else
+    --         self.fadein_time = self.fadein_time + dt
+    --     end
+
+    --     if self.fadein_time <= self.fadein_duration + 0.5
+    --     then
+    --         local r = self.fadein_action and self.fadein_action(dt)
+    --     else
+    --         self.fadein_time = nil
+    --         local r = self.fadein_end_action and self.fadein_end_action()
+    --     end
+    -- end
+
+    local param = self.__param__
+
+    self.__skip = frame_skip_update(self)
+    if self.__skip then return end
+
+    if param.layers then
+        for i = 1, self.n_layers, 1 do
+            ---@type JM.Scene.Layer
+            local layer = param.layers[i]
+
+            if layer.update then
+                layer:update(dt)
+            end
+        end
+    end
+
+    local r = param.update and param.update(dt)
+
+    for i = 1, self.amount_cameras do
+        ---@type JM.Camera.Camera
+        local camera = self.cameras_list[i]
+        camera:update(dt)
+    end
+end
+
+---@param self JM.Scene
+local draw = function(self)
+    local last_canvas = get_canvas()
+    push()
+
+    set_canvas(self.canvas)
+
+    if self.color_r then
+        clear_screen(self.color_r, self.color_g, self.color_b, self.color_a)
+    end
+
+    scale(self.subpixel, self.subpixel)
+    setBlendMode("alpha")
+    setColor(1, 1, 1, 1)
+
+    local sx, sy, sw, sh = getScissor()
+
+    if not self.color_r then
+        draw_tile(self)
+    end
+
+    -- local temp = self.draw_background and self.draw_background()
+
+    --=====================================================
+    local param = self.__param__
+
+    for i = 1, self.amount_cameras, 1 do
+        --
+        ---@type JM.Camera.Camera
+        local camera = self.cameras_list[i]
+
+        if param.layers then
+            for i = 1, self.n_layers, 1 do
+                --
+                ---@type JM.Scene.Layer
+                local layer = param.layers[i]
+
+                local last_canvas = self.canvas
+
+                if layer.use_canvas then
+                    set_canvas(self.canvas_layer)
+
+                    local r = not layer.skip_clear
+                        and clear_screen(.8, .8, .8, 0)
+                    ---
+                elseif layer.shader then
+                    setShader(layer.shader)
+                end
+
+                local last_cam_px = camera.x
+                local last_cam_py = camera.y
+                local last_cam_scale = camera.scale
+
+                camera:set_position(layer.cam_px, layer.cam_py)
+
+                camera:attach(layer.lock_shake, self.subpixel)
+
+                push()
+
+                local px = -camera.x * layer.factor_x
+                -- * (layer.factor_x > 0 and camera.scale or 1)
+                local py = -camera.y * layer.factor_y
+                -- * (layer.factor_y > 0 and camera.scale or 1)
+
+                if layer.fixed_on_ground and layer.top then
+                    if layer.top <= (camera.y + layer.top) / camera.scale
+                    then
+                        py = 0
+                    end
+                end
+
+                if layer.fixed_on_ceil and layer.bottom then
+                    if py >= layer.bottom then
+                        py = 0
+                    end
+                end
+
+                layer.pos_x = round(camera.x * layer.factor_x)
+                layer.pos_y = round(camera.y * layer.factor_y)
+
+                translate(round(px), round(py))
+
+                if layer.infinity_scroll_y then
+                    infinity_scroll_y(self, camera, layer)
+                    --
+                elseif layer.infinity_scroll_x then
+                    --
+                    infinity_scroll_x(self, camera, layer)
+                    --
+                else
+                    --
+                    layer:draw(camera)
+                end
+
+                if layer.use_canvas and not layer.skip_draw then
+                    set_canvas(last_canvas)
+                    local r = layer.shader and setShader(layer.shader)
+                    setColor(1, 1, 1, 1)
+                    -- set_blend_mode("alpha")
+                    local px = camera.x + (px ~= 0 and layer.pos_x or 0)
+                        - camera.viewport_x / camera.scale
+                    px = round(px)
+
+                    local py = camera.y + (py ~= 0 and layer.pos_y or 0)
+                        - camera.viewport_y / camera.scale
+                    py = round(py)
+
+                    local scale = 1 / self.subpixel / camera.scale
+
+                    love_draw(self.canvas_layer, px, py, 0, scale)
+
+                    if layer.shader and layer.adjust_shader then
+                        layer:adjust_shader(px, py, scale, camera)
+                    end
+                    setShader()
+                end
+
+                camera:set_position(last_cam_px, last_cam_py)
+                camera.scale = last_cam_scale
+
+                if layer.use_canvas and layer.skip_draw then
+
+                else
+                    set_canvas(last_canvas)
+                end
+                setShader()
+
+                pop()
+
+                -- local condition = not param.draw and i == self.n_layers
+                -- if condition then
+                --     camera:draw_info()
+                -- end
+
+                camera:detach()
+                --
+            end -- END FOR Layers
+        end
+
+        if param.draw then
+            ---
+            -- if camera.color and not param.layers then
+            --     camera:draw_background()
+            -- end
+
+            camera:attach(nil, self.subpixel)
+
+            param.draw(camera)
+
+            camera:draw_info()
+
+            camera:detach()
+            --
+        end
+    end
+
+
+    if self.transition then
+        self.transition:draw()
+    end
+
+    pop()
+    set_canvas(last_canvas)
+
+    if self.capture_mode then return end
+
+    setColor(1, 1, 1, 1)
+    setBlendMode("alpha", 'premultiplied')
+    setShader(self.shader)
+
+    love_draw(self.canvas, self.x + self.offset_x,
+        self.y + self.offset_y,
+        0, self.canvas_scale, self.canvas_scale)
+
+    setBlendMode("alpha")
+    setShader()
+
+    if self.use_vpad and self:is_current_active() then
+        VPad:draw()
+    end
+    -- love.graphics.setScissor(self.x,
+    --     math_abs(self.h - self.dispositive_h),
+    --     self.w, self.h
+    -- )
+    -- set_canvas()
+    -- set_color_draw(1, 1, 1, 1)
+    -- -- set_shader(self.shader)
+    -- set_blend_mode("alpha", "premultiplied")
+    -- self.canvas:setFilter("nearest", "nearest")
+    -- love_draw(self.canvas)
+    -- -- set_shader()
+    -- set_blend_mode("alpha")
+    -- love.graphics.setScissor()
+
+    local r = self.draw_foreground and self.draw_foreground()
+
+    -- if self.fadeout_time then
+    --     fadein_out_draw(self, self.fadeout_color, self.fadeout_time, self.fadeout_duration)
+    -- elseif self.fadein_time then
+    --     fadein_out_draw(self, self.fadein_color,
+    --         self.fadein_time,
+    --         self.fadein_duration,
+    --         true)
+    -- end
+
+    setScissor(sx, sy, sw, sh)
+
+    setColor(1, 1, 1, 1)
+    love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
+end
+
 ---
 ---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function}
 ---
@@ -724,6 +1035,9 @@ function Scene:implements(param)
         "quit",
     }
 
+    self.__layers = param.layers
+    self.__param__ = param
+
     param.draw = param.draw or (function()
     end)
 
@@ -731,7 +1045,6 @@ function Scene:implements(param)
         self[callback] = generic(param[callback])
     end
 
-    self.__layers = param.layers
 
     if param.layers then
         local name = 1
@@ -789,311 +1102,315 @@ function Scene:implements(param)
         end
     end
 
-    self.update = function(self, dt)
-        self:calc_canvas_scale()
-
-        if self.use_vpad then
-            VPad:update(dt)
-        end
-
-        if self.time_pause then
-            self.time_pause = self.time_pause - dt
-
-            if self.time_pause <= 0 then
-                self.time_pause = nil
-                self.pause_action = nil
-            else
-                local r = self.pause_action and self.pause_action(dt)
-                return
-            end
-        end
-
-        if self.transition then
-            self.transition:__update__(dt)
-            local r = self.trans_action and self.trans_action(dt)
-
-            r = not self.transition:is_paused()
-                and self.transition:update(dt)
-
-            if self.transition and self.transition.pause_scene
-                and not self.transition:finished()
-            then
-                return
-            end
-
-            if self.transition:finished() then
-                self.transition = nil
-                self.trans_action = nil
-                r = self.trans_end_action and self.trans_end_action(dt)
-                self.trans_end_action = nil
-                return
-            end
-        end
-
-        -- if self.fadeout_time then
-        --     if self.fadeout_delay > 0 then
-        --         self.fadeout_delay = self.fadeout_delay - dt
-        --     else
-        --         self.fadeout_time = self.fadeout_time + dt
-        --     end
-
-        --     if self.fadeout_time <= self.fadeout_duration + 0.5
-        --     then
-        --         local r = self.fadeout_action and self.fadeout_action(dt)
-        --         return
-        --     else
-        --         self.fadeout_time = nil
-        --         local r = self.fadeout_end_action and self.fadeout_end_action()
-        --     end
-        -- end
-
-        -- if self.fadein_time then
-        --     if self.fadein_delay > 0 then
-        --         self.fadein_delay = self.fadein_delay - dt
-        --     else
-        --         self.fadein_time = self.fadein_time + dt
-        --     end
-
-        --     if self.fadein_time <= self.fadein_duration + 0.5
-        --     then
-        --         local r = self.fadein_action and self.fadein_action(dt)
-        --     else
-        --         self.fadein_time = nil
-        --         local r = self.fadein_end_action and self.fadein_end_action()
-        --     end
-        -- end
-
-        self.__skip = frame_skip_update(self)
-        if self.__skip then return end
-
-        if param.layers then
-            for i = 1, self.n_layers, 1 do
-                ---@type JM.Scene.Layer
-                local layer = param.layers[i]
-
-                if layer.update then
-                    layer:update(dt)
-                end
-            end
-        end
-
-        local r = param.update and param.update(dt)
-
-        for i = 1, self.amount_cameras do
-            ---@type JM.Camera.Camera
-            local camera = self.cameras_list[i]
-            camera:update(dt)
-        end
-    end
-
-    self.draw = function(self)
-        local last_canvas = get_canvas()
-        push()
-
-        set_canvas(self.canvas)
-
-        if self.color_r then
-            clear_screen(self.color_r, self.color_g, self.color_b, self.color_a)
-        end
+    -- self.update = function(self, dt)
+    --     self:calc_canvas_scale()
+
+    --     if self.use_vpad then
+    --         VPad:update(dt)
+    --     end
+
+    --     if self.time_pause then
+    --         self.time_pause = self.time_pause - dt
+
+    --         if self.time_pause <= 0 then
+    --             self.time_pause = nil
+    --             self.pause_action = nil
+    --         else
+    --             local r = self.pause_action and self.pause_action(dt)
+    --             return
+    --         end
+    --     end
+
+    --     if self.transition then
+    --         self.transition:__update__(dt)
+    --         local r = self.trans_action and self.trans_action(dt)
+
+    --         r = not self.transition:is_paused()
+    --             and self.transition:update(dt)
+
+    --         if self.transition and self.transition.pause_scene
+    --             and not self.transition:finished()
+    --         then
+    --             return
+    --         end
+
+    --         if self.transition:finished() then
+    --             self.transition = nil
+    --             self.trans_action = nil
+    --             r = self.trans_end_action and self.trans_end_action(dt)
+    --             self.trans_end_action = nil
+    --             return
+    --         end
+    --     end
+
+    --     -- if self.fadeout_time then
+    --     --     if self.fadeout_delay > 0 then
+    --     --         self.fadeout_delay = self.fadeout_delay - dt
+    --     --     else
+    --     --         self.fadeout_time = self.fadeout_time + dt
+    --     --     end
+
+    --     --     if self.fadeout_time <= self.fadeout_duration + 0.5
+    --     --     then
+    --     --         local r = self.fadeout_action and self.fadeout_action(dt)
+    --     --         return
+    --     --     else
+    --     --         self.fadeout_time = nil
+    --     --         local r = self.fadeout_end_action and self.fadeout_end_action()
+    --     --     end
+    --     -- end
+
+    --     -- if self.fadein_time then
+    --     --     if self.fadein_delay > 0 then
+    --     --         self.fadein_delay = self.fadein_delay - dt
+    --     --     else
+    --     --         self.fadein_time = self.fadein_time + dt
+    --     --     end
+
+    --     --     if self.fadein_time <= self.fadein_duration + 0.5
+    --     --     then
+    --     --         local r = self.fadein_action and self.fadein_action(dt)
+    --     --     else
+    --     --         self.fadein_time = nil
+    --     --         local r = self.fadein_end_action and self.fadein_end_action()
+    --     --     end
+    --     -- end
+
+    --     self.__skip = frame_skip_update(self)
+    --     if self.__skip then return end
+
+    --     if param.layers then
+    --         for i = 1, self.n_layers, 1 do
+    --             ---@type JM.Scene.Layer
+    --             local layer = param.layers[i]
+
+    --             if layer.update then
+    --                 layer:update(dt)
+    --             end
+    --         end
+    --     end
+
+    --     local r = param.update and param.update(dt)
+
+    --     for i = 1, self.amount_cameras do
+    --         ---@type JM.Camera.Camera
+    --         local camera = self.cameras_list[i]
+    --         camera:update(dt)
+    --     end
+    -- end
+
+    self.update = update
+
+    -- self.draw = function(self)
+    --     local last_canvas = get_canvas()
+    --     push()
+
+    --     set_canvas(self.canvas)
+
+    --     if self.color_r then
+    --         clear_screen(self.color_r, self.color_g, self.color_b, self.color_a)
+    --     end
 
-        scale(self.subpixel, self.subpixel)
-        setBlendMode("alpha")
-        setColor(1, 1, 1, 1)
-
-        local sx, sy, sw, sh = getScissor()
+    --     scale(self.subpixel, self.subpixel)
+    --     setBlendMode("alpha")
+    --     setColor(1, 1, 1, 1)
+
+    --     local sx, sy, sw, sh = getScissor()
+
+    --     if not self.color_r then
+    --         draw_tile(self)
+    --     end
+
+    --     -- local temp = self.draw_background and self.draw_background()
 
-        if not self.color_r then
-            draw_tile(self)
-        end
+    --     --=====================================================
+
+    --     for i = 1, self.amount_cameras, 1 do
+    --         --
+    --         ---@type JM.Camera.Camera
+    --         local camera = self.cameras_list[i]
 
-        -- local temp = self.draw_background and self.draw_background()
+    --         if param.layers then
+    --             for i = 1, self.n_layers, 1 do
+    --                 --
+    --                 ---@type JM.Scene.Layer
+    --                 local layer = param.layers[i]
+
+    --                 local last_canvas = self.canvas
+
+    --                 if layer.use_canvas then
+    --                     set_canvas(self.canvas_layer)
+
+    --                     local r = not layer.skip_clear
+    --                         and clear_screen(.8, .8, .8, 0)
+    --                     ---
+    --                 elseif layer.shader then
+    --                     setShader(layer.shader)
+    --                 end
+
+    --                 local last_cam_px = camera.x
+    --                 local last_cam_py = camera.y
+    --                 local last_cam_scale = camera.scale
 
-        --=====================================================
+    --                 camera:set_position(layer.cam_px, layer.cam_py)
 
-        for i = 1, self.amount_cameras, 1 do
-            --
-            ---@type JM.Camera.Camera
-            local camera = self.cameras_list[i]
+    --                 camera:attach(layer.lock_shake, self.subpixel)
 
-            if param.layers then
-                for i = 1, self.n_layers, 1 do
-                    --
-                    ---@type JM.Scene.Layer
-                    local layer = param.layers[i]
+    --                 push()
 
-                    local last_canvas = self.canvas
-
-                    if layer.use_canvas then
-                        set_canvas(self.canvas_layer)
+    --                 local px = -camera.x * layer.factor_x
+    --                 -- * (layer.factor_x > 0 and camera.scale or 1)
+    --                 local py = -camera.y * layer.factor_y
+    --                 -- * (layer.factor_y > 0 and camera.scale or 1)
 
-                        local r = not layer.skip_clear
-                            and clear_screen(.8, .8, .8, 0)
-                        ---
-                    elseif layer.shader then
-                        setShader(layer.shader)
-                    end
+    --                 if layer.fixed_on_ground and layer.top then
+    --                     if layer.top <= (camera.y + layer.top) / camera.scale
+    --                     then
+    --                         py = 0
+    --                     end
+    --                 end
 
-                    local last_cam_px = camera.x
-                    local last_cam_py = camera.y
-                    local last_cam_scale = camera.scale
+    --                 if layer.fixed_on_ceil and layer.bottom then
+    --                     if py >= layer.bottom then
+    --                         py = 0
+    --                     end
+    --                 end
 
-                    camera:set_position(layer.cam_px, layer.cam_py)
+    --                 layer.pos_x = round(camera.x * layer.factor_x)
+    --                 layer.pos_y = round(camera.y * layer.factor_y)
 
-                    camera:attach(layer.lock_shake, self.subpixel)
+    --                 translate(round(px), round(py))
 
-                    push()
-
-                    local px = -camera.x * layer.factor_x
-                    -- * (layer.factor_x > 0 and camera.scale or 1)
-                    local py = -camera.y * layer.factor_y
-                    -- * (layer.factor_y > 0 and camera.scale or 1)
-
-                    if layer.fixed_on_ground and layer.top then
-                        if layer.top <= (camera.y + layer.top) / camera.scale
-                        then
-                            py = 0
-                        end
-                    end
-
-                    if layer.fixed_on_ceil and layer.bottom then
-                        if py >= layer.bottom then
-                            py = 0
-                        end
-                    end
-
-                    layer.pos_x = round(camera.x * layer.factor_x)
-                    layer.pos_y = round(camera.y * layer.factor_y)
-
-                    translate(round(px), round(py))
-
-                    if layer.infinity_scroll_y then
-                        infinity_scroll_y(self, camera, layer)
-                        --
-                    elseif layer.infinity_scroll_x then
-                        --
-                        infinity_scroll_x(self, camera, layer)
-                        --
-                    else
-                        --
-                        layer:draw(camera)
-                    end
-
-                    if layer.use_canvas and not layer.skip_draw then
-                        set_canvas(last_canvas)
-                        local r = layer.shader and setShader(layer.shader)
-                        setColor(1, 1, 1, 1)
-                        -- set_blend_mode("alpha")
-                        local px = camera.x + (px ~= 0 and layer.pos_x or 0)
-                            - camera.viewport_x / camera.scale
-                        px = round(px)
-
-                        local py = camera.y + (py ~= 0 and layer.pos_y or 0)
-                            - camera.viewport_y / camera.scale
-                        py = round(py)
-
-                        local scale = 1 / self.subpixel / camera.scale
-
-                        love_draw(self.canvas_layer, px, py, 0, scale)
-
-                        if layer.shader and layer.adjust_shader then
-                            layer:adjust_shader(px, py, scale, camera)
-                        end
-                        setShader()
-                    end
-
-                    camera:set_position(last_cam_px, last_cam_py)
-                    camera.scale = last_cam_scale
-
-                    if layer.use_canvas and layer.skip_draw then
-
-                    else
-                        set_canvas(last_canvas)
-                    end
-                    setShader()
-
-                    pop()
-
-                    -- local condition = not param.draw and i == self.n_layers
-                    -- if condition then
-                    --     camera:draw_info()
-                    -- end
-
-                    camera:detach()
-                    --
-                end -- END FOR Layers
-            end
-
-            if param.draw then
-                ---
-                -- if camera.color and not param.layers then
-                --     camera:draw_background()
-                -- end
-
-                camera:attach(nil, self.subpixel)
-
-                param.draw(camera)
-
-                camera:draw_info()
-
-                camera:detach()
-                --
-            end
-        end
-
-
-        if self.transition then
-            self.transition:draw()
-        end
-
-        pop()
-        set_canvas(last_canvas)
-
-        if self.capture_mode then return end
-
-        setColor(1, 1, 1, 1)
-        setBlendMode("alpha", 'premultiplied')
-        setShader(self.shader)
-
-        love_draw(self.canvas, self.x + self.offset_x,
-            self.y + self.offset_y,
-            0, self.canvas_scale, self.canvas_scale)
-
-        setBlendMode("alpha")
-        setShader()
-
-        if self.use_vpad and self:is_current_active() then
-            VPad:draw()
-        end
-        -- love.graphics.setScissor(self.x,
-        --     math_abs(self.h - self.dispositive_h),
-        --     self.w, self.h
-        -- )
-        -- set_canvas()
-        -- set_color_draw(1, 1, 1, 1)
-        -- -- set_shader(self.shader)
-        -- set_blend_mode("alpha", "premultiplied")
-        -- self.canvas:setFilter("nearest", "nearest")
-        -- love_draw(self.canvas)
-        -- -- set_shader()
-        -- set_blend_mode("alpha")
-        -- love.graphics.setScissor()
-
-        local r = self.draw_foreground and self.draw_foreground()
-
-        -- if self.fadeout_time then
-        --     fadein_out_draw(self, self.fadeout_color, self.fadeout_time, self.fadeout_duration)
-        -- elseif self.fadein_time then
-        --     fadein_out_draw(self, self.fadein_color,
-        --         self.fadein_time,
-        --         self.fadein_duration,
-        --         true)
-        -- end
-
-        setScissor(sx, sy, sw, sh)
-
-        setColor(1, 1, 1, 1)
-        love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
-    end
+    --                 if layer.infinity_scroll_y then
+    --                     infinity_scroll_y(self, camera, layer)
+    --                     --
+    --                 elseif layer.infinity_scroll_x then
+    --                     --
+    --                     infinity_scroll_x(self, camera, layer)
+    --                     --
+    --                 else
+    --                     --
+    --                     layer:draw(camera)
+    --                 end
+
+    --                 if layer.use_canvas and not layer.skip_draw then
+    --                     set_canvas(last_canvas)
+    --                     local r = layer.shader and setShader(layer.shader)
+    --                     setColor(1, 1, 1, 1)
+    --                     -- set_blend_mode("alpha")
+    --                     local px = camera.x + (px ~= 0 and layer.pos_x or 0)
+    --                         - camera.viewport_x / camera.scale
+    --                     px = round(px)
+
+    --                     local py = camera.y + (py ~= 0 and layer.pos_y or 0)
+    --                         - camera.viewport_y / camera.scale
+    --                     py = round(py)
+
+    --                     local scale = 1 / self.subpixel / camera.scale
+
+    --                     love_draw(self.canvas_layer, px, py, 0, scale)
+
+    --                     if layer.shader and layer.adjust_shader then
+    --                         layer:adjust_shader(px, py, scale, camera)
+    --                     end
+    --                     setShader()
+    --                 end
+
+    --                 camera:set_position(last_cam_px, last_cam_py)
+    --                 camera.scale = last_cam_scale
+
+    --                 if layer.use_canvas and layer.skip_draw then
+
+    --                 else
+    --                     set_canvas(last_canvas)
+    --                 end
+    --                 setShader()
+
+    --                 pop()
+
+    --                 -- local condition = not param.draw and i == self.n_layers
+    --                 -- if condition then
+    --                 --     camera:draw_info()
+    --                 -- end
+
+    --                 camera:detach()
+    --                 --
+    --             end -- END FOR Layers
+    --         end
+
+    --         if param.draw then
+    --             ---
+    --             -- if camera.color and not param.layers then
+    --             --     camera:draw_background()
+    --             -- end
+
+    --             camera:attach(nil, self.subpixel)
+
+    --             param.draw(camera)
+
+    --             camera:draw_info()
+
+    --             camera:detach()
+    --             --
+    --         end
+    --     end
+
+
+    --     if self.transition then
+    --         self.transition:draw()
+    --     end
+
+    --     pop()
+    --     set_canvas(last_canvas)
+
+    --     if self.capture_mode then return end
+
+    --     setColor(1, 1, 1, 1)
+    --     setBlendMode("alpha", 'premultiplied')
+    --     setShader(self.shader)
+
+    --     love_draw(self.canvas, self.x + self.offset_x,
+    --         self.y + self.offset_y,
+    --         0, self.canvas_scale, self.canvas_scale)
+
+    --     setBlendMode("alpha")
+    --     setShader()
+
+    --     if self.use_vpad and self:is_current_active() then
+    --         VPad:draw()
+    --     end
+    --     -- love.graphics.setScissor(self.x,
+    --     --     math_abs(self.h - self.dispositive_h),
+    --     --     self.w, self.h
+    --     -- )
+    --     -- set_canvas()
+    --     -- set_color_draw(1, 1, 1, 1)
+    --     -- -- set_shader(self.shader)
+    --     -- set_blend_mode("alpha", "premultiplied")
+    --     -- self.canvas:setFilter("nearest", "nearest")
+    --     -- love_draw(self.canvas)
+    --     -- -- set_shader()
+    --     -- set_blend_mode("alpha")
+    --     -- love.graphics.setScissor()
+
+    --     local r = self.draw_foreground and self.draw_foreground()
+
+    --     -- if self.fadeout_time then
+    --     --     fadein_out_draw(self, self.fadeout_color, self.fadeout_time, self.fadeout_duration)
+    --     -- elseif self.fadein_time then
+    --     --     fadein_out_draw(self, self.fadein_color,
+    --     --         self.fadein_time,
+    --     --         self.fadein_duration,
+    --     --         true)
+    --     -- end
+
+    --     setScissor(sx, sy, sw, sh)
+
+    --     setColor(1, 1, 1, 1)
+    --     love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
+    -- end
+
+    self.draw = draw
 
     self.mousepressed = function(self, x, y, button, istouch, presses)
         if self.use_vpad and not istouch then
