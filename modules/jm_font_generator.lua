@@ -198,7 +198,7 @@ function Font:__constructor__(args)
     self.format_options = FontFormat
 
     self.__ref_height = (self:__get_char_equals("A")
-        and self:__get_char_equals("A").h)
+            and self:__get_char_equals("A").h)
         or (self:__get_char_equals("0") and self:__get_char_equals("0").h)
         or self.__font_size
 
@@ -872,10 +872,6 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
     local text_size = #(text)
 
-    -- self.batches[FontFormat.normal]:clear()
-    -- self.batches[FontFormat.bold]:clear()
-    -- self.batches[FontFormat.italic]:clear()
-
     for _, batch in pairs(self.batches) do
         batch:clear()
     end
@@ -910,7 +906,8 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                 local b = parse[4] or 0
                 local a = parse[5] or 1
 
-                current_color = Utils:get_rgba(r, g, b, a) --{ r, g, b, 1 }
+                current_color = Utils:get_rgba(r, g, b, a)
+                --
             elseif match == "</color>" then
                 current_color = original_color
             elseif match == "<bold>" then
@@ -941,6 +938,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
         if not char_obj then
             char_obj = self:__get_char_equals(text:sub(i, i + 1))
+            if char_obj then i = i + 1 end
         end
 
         if char_string == "\n"
@@ -1134,7 +1132,7 @@ do
             local current_index = index + 1
 
             while (separated[current_index]
-                and self:__is_a_command_tag(separated[current_index])) do
+                    and self:__is_a_command_tag(separated[current_index])) do
                 current_index = current_index + 1
             end
 
@@ -1267,7 +1265,7 @@ function Font:printf(text, x, y, align, limit_right)
                 + self.__character_space * 2
 
             if total_width + (next_index and words[next_index]
-                and len(self, words[next_index]) or 0) > limit_right
+                    and len(self, words[next_index]) or 0) > limit_right
 
                 or current_is_break_line
             then

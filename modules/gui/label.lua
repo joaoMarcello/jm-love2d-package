@@ -158,6 +158,7 @@ function Label:__custom_draw__()
     local px = self.x
 
     lgx.push()
+
     font:push()
     font:set_configuration(font_config)
 
