@@ -1076,39 +1076,41 @@ do
                     end
                 end
 
-                for i = 1, #(word) do
+                local N_glyphs = #(word)
+
+                for i = 1, N_glyphs do
                     ---@type JM.Font.Glyph
-                    local char_obj = word[i] --get_char_obj(word[i])
+                    local glyph = word[i] --get_char_obj(word[i])
 
-                    if char_obj then
-                        char_obj:set_color2(unpack(current_color[1]))
+                    if glyph then
+                        glyph:set_color2(unpack(current_color[1]))
 
-                        char_obj:set_scale(self.__scale)
+                        glyph:set_scale(self.__scale)
 
-                        if char_obj:is_animated() then
-                            char_obj:set_color2(1, 1, 1, 1)
+                        if glyph:is_animated() then
+                            glyph:set_color2(1, 1, 1, 1)
 
-                            char_obj.__anima:set_size(
+                            glyph.__anima:set_size(
                                 nil, self.__font_size * 1.4,
-                                nil, char_obj.__anima:get_current_frame().h
+                                nil, glyph.__anima:get_current_frame().h
                             )
 
-                            char_obj:draw(tx + char_obj.w / 2 * char_obj.sx,
-                                ty + char_obj.h / 2 * char_obj.sy
+                            glyph:draw(tx + glyph.w / 2 * glyph.sx,
+                                ty + glyph.h / 2 * glyph.sy
                             )
                             --
                         else
-                            local quad = char_obj.quad
+                            local quad = glyph.quad
                             local x, y
 
                             x = tx
                             y = ty + self.__font_size
-                                - (char_obj.h) * char_obj.sy
+                                - (glyph.h) * glyph.sy
 
                             if quad then
-                                self.batches[char_obj.format]:setColor(unpack(char_obj.color))
+                                self.batches[glyph.format]:setColor(unpack(glyph.color))
 
-                                self.batches[char_obj.format]:add(quad, x, y, 0, char_obj.sx, char_obj.sy, 0,
+                                self.batches[glyph.format]:add(quad, x, y, 0, glyph.sx, glyph.sy, 0,
                                     0)
                             end
 
@@ -1117,7 +1119,7 @@ do
 
                         tx = tx
                             -- + char_obj:get_width()
-                            + (char_obj.w * self.__scale)
+                            + (glyph.w * self.__scale)
                             + self.__character_space
                     end
                 end
@@ -1261,7 +1263,7 @@ function Font:printf(text, x, y, align, limit_right)
     -- local ty = y
     align = align or "left"
     limit_right = limit_right or 500.0 --love.mouse.getX() - x
-    -- limit_right = limit_right - x
+    -- limit_right = limit_right - tx
 
     local current_color = color_pointer
     current_color[1] = self.__default_color
@@ -1284,7 +1286,7 @@ function Font:printf(text, x, y, align, limit_right)
     if result then
         all_lines = result
     else
-        all_lines = { lines = {}, actions = {} }
+        all_lines = { lines = {}, actions = nil }
 
         local total_width = 0
         local line = {}
@@ -1365,7 +1367,10 @@ function Font:printf(text, x, y, align, limit_right)
                     --     + self.__line_space
 
                     table_insert(all_lines.lines, line)
-                    all_lines.actions[#(all_lines.lines)] = line_actions
+                    if line_actions then
+                        all_lines.actions = all_lines.actions or {}
+                        all_lines.actions[#(all_lines.lines)] = line_actions
+                    end
 
                     line = {}
                     line_actions = nil
@@ -1397,7 +1402,10 @@ function Font:printf(text, x, y, align, limit_right)
                 -- print(self, line, pos_to_draw, ty, line_actions, nil, current_color)
 
                 table_insert(all_lines.lines, line)
-                all_lines.actions[#(all_lines.lines)] = line_actions
+                if line_actions then
+                    all_lines.actions = all_lines.actions or {}
+                    all_lines.actions[#(all_lines.lines)] = line_actions
+                end
             end
         end
 
@@ -1420,7 +1428,7 @@ function Font:printf(text, x, y, align, limit_right)
 
     for i = 1, N do
         local line = all_lines.lines[i]
-        local actions = all_lines.actions[i]
+        local actions = all_lines.actions and all_lines.actions[i]
         local N_line = #line
         local lw = line_width(self, line, N_line)
 
