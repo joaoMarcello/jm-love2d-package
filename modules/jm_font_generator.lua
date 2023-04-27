@@ -991,7 +991,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
     love_set_color(1, 1, 1, 1)
     for _, batch in pairs(self.batches) do
-        local r = batch:getCount() > 0 and love_draw(batch)
+        if batch:getCount() > 0 then love_draw(batch) end
     end
 
     self:pop()
