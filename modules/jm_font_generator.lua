@@ -1200,7 +1200,9 @@ local color_pointer = {}
 ---@param align "left"|"right"|"center"|"justify"|nil
 ---@param limit_right number|nil
 function Font:printf(text, x, y, align, limit_right)
-    if not text or text == "" then return { tx = x, ty = y } end
+    if not text or text == "" then
+        return false --{ tx = x, ty = y }
+    end
 
     self:push()
 

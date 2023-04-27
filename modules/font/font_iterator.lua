@@ -4,7 +4,10 @@ local utf8 = require('utf8')
 local Iterator = {}
 Iterator.__index = Iterator
 
-local iterators = setmetatable({}, { __mode = 'k' })
+local metatable_mode_k = { __mode = 'k' }
+local metatable_mode_v = { __mode = 'v' }
+
+local iterators = setmetatable({}, metatable_mode_k)
 
 ---@param text string
 ---@param font JM.Font.Font
@@ -23,8 +26,8 @@ function Iterator:new(text, font)
 
     Iterator.__constructor__(obj, text, font)
 
-    iterators[font] = iterators[font] or setmetatable({}, { __mode = 'k' })
-    iterators[font][text] = iterators[font][text] or setmetatable({}, { __mode = 'v' })
+    iterators[font] = iterators[font] or setmetatable({}, metatable_mode_k)
+    iterators[font][text] = iterators[font][text] or setmetatable({}, metatable_mode_v)
     iterators[font][text][font.__format] = obj
 
     return obj
