@@ -22,6 +22,7 @@ local Phrase = require((...):gsub("jm_font_generator", "font.Phrase"))
 
 local table_insert, str_find, str_format = table.insert, string.find, string.format
 local love_draw, love_set_color = love.graphics.draw, love.graphics.setColor
+local ipairs, pairs = ipairs, pairs
 local MATH_HUGE = math.huge
 
 ---@param nickname string
@@ -966,7 +967,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                     ty + char_obj.h / 2 * char_obj.sy
                 )
             else
-                local quad = char_obj:get_quad()
+                local quad = char_obj.quad
                 local x, y
                 -- x, y = char_obj:get_pos_draw_rec(tx, ty + self.__font_size - height, width, height)
 
@@ -1072,7 +1073,7 @@ do
                                 ty + char_obj.h / 2 * char_obj.sy
                             )
                         else
-                            local quad = char_obj:get_quad()
+                            local quad = char_obj.quad
                             local x, y
 
                             x = tx
