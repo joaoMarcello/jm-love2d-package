@@ -943,8 +943,8 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
         end
 
         if char_string == "\n"
-            or (char_obj and w)
-            and tx + self.__word_space + char_obj:get_width() >= x_origin + w
+            or ((char_obj and w)
+                and tx + self.__word_space + (char_obj.w * self.__scale) >= x_origin + w)
         then
             ty = ty + self.__ref_height * self.__scale + self.__line_space
             tx = x_origin
@@ -980,7 +980,10 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                 end
             end
 
-            tx = tx + char_obj:get_width() + self.__character_space
+            tx = tx
+                -- + char_obj:get_width()
+                + char_obj.w * self.__scale
+                + self.__character_space
         end
 
         i = i + 1
@@ -1092,7 +1095,9 @@ do
                             --char_obj:draw(x, y)
                         end
 
-                        tx = tx + char_obj:get_width()
+                        tx = tx
+                            -- + char_obj:get_width()
+                            + (char_obj.w * self.__scale)
                             + self.__character_space
                     end
                 end
