@@ -23,7 +23,8 @@ local Phrase = require((...):gsub("jm_font_generator", "font.Phrase"))
 local table_insert, str_find, str_format = table.insert, string.find, string.format
 local lgx = love.graphics
 local love_draw, love_set_color = lgx.draw, lgx.setColor
-local ipairs, pairs = ipairs, pairs
+local ipairs, pairs, unpack = ipairs, pairs, unpack
+
 local MATH_HUGE = math.huge
 
 ---@param nickname string
@@ -1044,7 +1045,7 @@ do
     ---@param ty number
     ---@param index_action table|nil
     ---@param current_color {[1]:JM.Color}
-        function(self, word_list, tx, ty, index_action, exceed_space, current_color)
+        function(self, word_list, tx, ty, index_action, exceed_space, current_color, N_word)
             exceed_space = exceed_space or 0
 
             if ty > self.__bounds.bottom
@@ -1053,11 +1054,16 @@ do
                 return
             end
 
+            N_word = N_word or #word_list
+
             for _, batch in pairs(self.batches) do
                 batch:clear()
             end
 
-            for k, word in ipairs(word_list) do
+            -- for k, word in ipairs(word_list) do
+            for k = 1, N_word do
+                local word = word_list[k]
+
                 if index_action then
                     for _, action in ipairs(index_action) do
                         if action.i == k then
@@ -1090,6 +1096,7 @@ do
                             char_obj:draw(tx + char_obj.w / 2 * char_obj.sx,
                                 ty + char_obj.h / 2 * char_obj.sy
                             )
+                            --
                         else
                             local quad = char_obj.quad
                             local x, y
@@ -1100,6 +1107,7 @@ do
 
                             if quad then
                                 self.batches[char_obj.format]:setColor(unpack(char_obj.color))
+
                                 self.batches[char_obj.format]:add(quad, x, y, 0, char_obj.sx, char_obj.sy, 0,
                                     0)
                             end
@@ -1124,7 +1132,7 @@ do
 
             if index_action then
                 for _, action in ipairs(index_action) do
-                    if action.i > #word_list then
+                    if action.i > N_word then
                         if action.args then
                             action.action(unpack(action.args))
                         else
@@ -1140,9 +1148,9 @@ do
     ---@param self JM.Font.Font
     ---@param line table
     ---@return number
-        function(self, line)
+        function(self, line, N)
             local total = 0
-            local N = #line
+            N = N or #line
 
             local word
             for i = 1, N do
@@ -1393,6 +1401,8 @@ function Font:printf(text, x, y, align, limit_right)
             end
         end
 
+        all_lines.N_lines = #all_lines.lines
+
         printf_lines[self] = printf_lines[self]
             or setmetatable({}, metatable_mode_k)
 
@@ -1403,7 +1413,7 @@ function Font:printf(text, x, y, align, limit_right)
     end
 
     local ty = y
-    local N = #(all_lines.lines)
+    local N = all_lines.N_lines --#(all_lines.lines)
     -- x = 0
     lgx.push()
     lgx.translate(tx, 0)
@@ -1411,9 +1421,10 @@ function Font:printf(text, x, y, align, limit_right)
     for i = 1, N do
         local line = all_lines.lines[i]
         local actions = all_lines.actions[i]
-        local lw = line_width(self, line)
+        local N_line = #line
+        local lw = line_width(self, line, N_line)
 
-        local div = #line - 1
+        local div = N_line - 1
         div = div <= 0 and 1 or div
 
         local ex_sp = align == "justify"
@@ -1427,7 +1438,7 @@ function Font:printf(text, x, y, align, limit_right)
             or (align == "center" and x + limit_right * 0.5 - lw * 0.5)
             or x
 
-        print(self, line, pos_to_draw, ty, actions, ex_sp, current_color)
+        print(self, line, pos_to_draw, ty, actions, ex_sp, current_color, N_line)
 
         ty = ty + self.__ref_height * self.__scale
             + self.__line_space
@@ -1500,9 +1511,11 @@ end
 ---@class JM.Font.Generator
 local Generator = {
     new = function(self, args)
-        local f = Font
+        -- local f = Font
         return Font.new(Font, args)
     end,
+    --
+    --
     new_by_ttf = function(self, args)
         args = args or {}
         local imgData, glyphs, quads_pos = load_by_tff(args.name,
