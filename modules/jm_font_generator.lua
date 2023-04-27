@@ -1314,6 +1314,7 @@ function Font:printf(text, x, y, align, limit_right)
                     action_args = { original_color }
                     --
                 end
+
                 line_actions = line_actions or {}
 
                 table_insert(line_actions, {
