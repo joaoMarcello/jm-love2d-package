@@ -998,7 +998,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
     return tx, ty
 end
 
-local get_char_obj
+-- local get_char_obj
 local len
 local print
 local line_width
@@ -1006,22 +1006,28 @@ local next_not_command_index
 local get_words
 local metatable_mode_k = { __mode = 'k' }
 local metatable_mode_v = { __mode = 'v' }
+local color_pointer = {}
 
 --- The functions below are used in the printf method
 do
-    get_char_obj =
-    ---@return JM.Font.Glyph
-        function(param)
-            return param
-        end
+    -- get_char_obj =
+    -- ---@return JM.Font.Glyph
+    --     function(param)
+    --         return param
+    --     end
 
     len =
+    ---@param self JM.Font.Font
     ---@param args table
     ---@return number width
         function(self, args)
             local width = 0
-            for _, obj in ipairs(args) do
-                local char_obj = get_char_obj(args[_])
+            local N = #args
+
+            for i = 1, N do
+                ---@type JM.Font.Glyph
+                local char_obj = args[i] --get_char_obj(args[_])
+
                 width = width
                     -- + char_obj:get_width()
                     + char_obj.w * self.__scale
@@ -1035,7 +1041,7 @@ do
     ---@param word_list table
     ---@param tx number
     ---@param ty number
-    ---@param index_action table
+    ---@param index_action table|nil
     ---@param current_color {[1]:JM.Color}
         function(self, word_list, tx, ty, index_action, exceed_space, current_color)
             exceed_space = exceed_space or 0
@@ -1054,7 +1060,11 @@ do
                 if index_action then
                     for _, action in ipairs(index_action) do
                         if action.i == k then
-                            action.action()
+                            if action.args then
+                                action.action(unpack(action.args))
+                            else
+                                action.action()
+                            end
                         end
                     end
                 end
@@ -1062,8 +1072,9 @@ do
                 for i = 1, #(word) do
                     ---@type JM.Font.Glyph
                     local char_obj = word[i] --get_char_obj(word[i])
+
                     if char_obj then
-                        char_obj:set_color2(Utils:unpack_color(current_color[1]))
+                        char_obj:set_color2(unpack(current_color[1]))
 
                         char_obj:set_scale(self.__scale)
 
@@ -1107,13 +1118,17 @@ do
 
             love_set_color(1, 1, 1, 1)
             for _, batch in pairs(self.batches) do
-                local r = batch:getCount() > 0 and love_draw(batch)
+                if batch:getCount() > 0 then love_draw(batch) end
             end
 
             if index_action then
                 for _, action in ipairs(index_action) do
                     if action.i > #word_list then
-                        action.action()
+                        if action.args then
+                            action.action(unpack(action.args))
+                        else
+                            action.action()
+                        end
                     end
                 end
             end
@@ -1126,7 +1141,11 @@ do
     ---@return number
         function(self, line)
             local total = 0
-            for _, word in ipairs(line) do
+            local N = #line
+
+            local word
+            for i = 1, N do
+                word = line[i]
                 total = total + len(self, word) + self.__character_space
             end
             return total
@@ -1199,8 +1218,21 @@ do
     end
 end --- End auxiliary methods for printf
 
+local action_set_color = function(m, separated)
+    local parse = Utils:parse_csv_line(separated[m]:sub(2, #separated[m] - 1))
+    local r = parse[2] or 1
+    local g = parse[3] or 0
+    local b = parse[4] or 0
+    local a = parse[5] or 1
 
-local color_pointer = {}
+    color_pointer[1] = Utils:get_rgba(r, g, b, a)
+end
+
+local action_restaure_color = function(original_color)
+    color_pointer[1] = original_color
+end
+
+local printf_lines = setmetatable({}, metatable_mode_k)
 
 ---@param text string
 ---@param x number
@@ -1229,109 +1261,164 @@ function Font:printf(text, x, y, align, limit_right)
 
     local words = get_words(self, separated)
 
-    local total_width = 0
-    local line = {}
-    local line_actions = {}
-    local N = #(words)
+    self.__printf_space_glyph = self.__printf_space_glyph
+        or { self.__space_char }
 
-    for m = 1, N do
-        local command_tag = self:__is_a_command_tag(separated[m])
 
-        if command_tag and command_tag:match("color") then
-            local action_i = #line + 1
-            local action_func
+    local all_lines
 
-            if command_tag == "<color>" then
-                action_func = function()
-                    local parse = Utils:parse_csv_line(separated[m]:sub(2, #separated[m] - 1))
-                    local r = parse[2] or 1
-                    local g = parse[3] or 0
-                    local b = parse[4] or 0
-                    local a = parse[5] or 1
+    local result = printf_lines[self] and printf_lines[self][text]
+    if result then
+        all_lines = result
+    else
+        all_lines = { lines = {}, actions = {} }
 
-                    current_color[1] = Utils:get_rgba(r, g, b, a)
+        local total_width = 0
+        local line = {}
+        local line_actions
+
+        local space_glyph = self.__printf_space_glyph
+
+        local N = #(words)
+
+        for m = 1, N do
+            local command_tag = self:__is_a_command_tag(separated[m])
+
+            if command_tag and command_tag:match("color") then
+                local action_i = #line + 1
+                local action_func, action_args
+
+                if command_tag == "<color>" then
+                    --
+                    action_func = action_set_color
+                    action_args = { m, separated }
+                    --
+                elseif command_tag == "</color>" then
+                    --
+                    action_func = action_restaure_color
+                    action_args = { original_color }
+                    --
                 end
-            elseif command_tag == "</color>" then
-                action_func = function()
-                    current_color[1] = original_color
-                end
+                line_actions = line_actions or {}
+
+                table_insert(line_actions, {
+                    i = action_i,
+                    action = action_func,
+                    args = action_args
+                })
             end
 
-            table_insert(line_actions, { i = action_i, action = action_func })
-        end
+            local current_is_break_line = separated[m] == "\n"
 
-        local current_is_break_line = separated[m] == "\n"
+            if not command_tag then
+                -- if not current_is_break_line or true then
+                table_insert(line, words[m])
+                -- end
 
-        if not command_tag then
-            if not current_is_break_line or true then
-                table_insert(
-                    line,
-                    words[m]
-                )
-            end
-
-            local next_index = next_not_command_index(self, m, separated)
-
-            total_width = total_width + len(self, words[m])
-                -- + self.__space_char:get_width()
-                + self.__space_char.w * self.__scale
-                + self.__character_space * 2
-
-            if total_width + (next_index and words[next_index]
-                    and len(self, words[next_index]) or 0) > limit_right
-
-                or current_is_break_line
-            then
-                local lw = line_width(self, line)
-
-                local div = #line - 1
-                div = div <= 0 and 1 or div
-                div = separated[m] == "\n" and lw <= limit_right * 0.8
-                    and 100 or div
-
-                local ex_sp = align == "justify"
-                    and (limit_right - lw) / div
-                    or nil
-
-                local pos_to_draw = (align == "left" and x)
-                    or (align == "right" and (x + limit_right) - lw)
-                    or (align == "center" and x + limit_right / 2 - lw / 2)
-                    or x
-
-                print(self, line, pos_to_draw, ty, line_actions, ex_sp, current_color)
-
-                total_width = 0
-
-                ty = ty + self.__ref_height * self.__scale
-                    + self.__line_space
-
-                line = {}
-                line_actions = {}
-            else
                 local next_index = next_not_command_index(self, m, separated)
 
-                local next_is_broken_line = next_index and separated[next_index]
-                    and separated[next_index] == "\n"
+                total_width = total_width + len(self, words[m])
+                    -- + self.__space_char:get_width()
+                    + self.__space_char.w * self.__scale
+                    + self.__character_space * 2
 
-                if m ~= #words and not next_is_broken_line then
-                    table_insert(
-                        line,
-                        { self.__space_char }
-                    )
+                if total_width + (next_index and words[next_index]
+                        and len(self, words[next_index]) or 0) > limit_right
+
+                    or current_is_break_line
+                then
+                    --
+                    -- local lw = line_width(self, line)
+
+                    -- local div = #line - 1
+                    -- div = div <= 0 and 1 or div
+                    -- div = separated[m] == "\n" and lw <= limit_right * 0.8
+                    --     and 100 or div
+
+                    -- local ex_sp = align == "justify"
+                    --     and (limit_right - lw) / div
+                    --     or nil
+
+                    -- local pos_to_draw = (align == "left" and x)
+                    --     or (align == "right" and (x + limit_right) - lw)
+                    --     or (align == "center" and x + limit_right / 2 - lw / 2)
+                    --     or x
+
+                    -- print(self, line, pos_to_draw, ty, line_actions, ex_sp, current_color)
+
+                    total_width = 0
+
+                    -- ty = ty + self.__ref_height * self.__scale
+                    --     + self.__line_space
+
+                    table_insert(all_lines.lines, line)
+                    all_lines.actions[#all_lines.lines] = line_actions
+
+                    line = {}
+                    line_actions = nil --{}
+                else
+                    local next_index = next_not_command_index(self, m, separated)
+
+                    local next_is_broken_line = next_index
+                        and separated[next_index]
+                        and separated[next_index] == "\n"
+
+                    if m ~= N and not next_is_broken_line then
+                        table_insert(
+                            line,
+                            space_glyph --{ self.__space_char }
+                        )
+                    end
                 end
+            end
+
+            if line and m == N then
+                -- local lw = line_width(self, line)
+
+                -- local pos_to_draw = (align == "left" and x)
+                --     or (align == "right" and tx + limit_right - lw)
+                --     or (align == "center" and tx + limit_right / 2 - lw / 2)
+                --     or x
+
+                -- print(self, line, pos_to_draw, ty, line_actions, nil, current_color)
+
+                table_insert(all_lines.lines, line)
+                all_lines.actions[#all_lines.lines] = line_actions
             end
         end
 
-        if line and m == #words then
-            local lw = line_width(self, line)
+        printf_lines[self] = printf_lines[self]
+            or setmetatable({}, metatable_mode_v)
 
-            local pos_to_draw = (align == "left" and x)
-                or (align == "right" and tx + limit_right - lw)
-                or (align == "center" and tx + limit_right / 2 - lw / 2)
-                or x
+        printf_lines[self][text] = printf_lines[self][text] or all_lines
+    end
 
-            print(self, line, pos_to_draw, ty, line_actions, nil, current_color)
-        end
+    local ty = y
+    local N = #(all_lines.lines)
+
+    for i = 1, N do
+        local line = all_lines.lines[i]
+        local actions = all_lines.actions[i]
+        local lw = line_width(self, line)
+
+        local div = #line - 1
+        div = div <= 0 and 1 or div
+
+        local ex_sp = align == "justify"
+            and (limit_right - lw) / div
+            or nil
+
+        if i == N then ex_sp = nil end
+
+        local pos_to_draw = (align == "left" and x)
+            or (align == "right" and (x + limit_right) - lw)
+            or (align == "center" and x + limit_right * 0.5 - lw * 0.5)
+            or x
+
+        print(self, line, pos_to_draw, ty, actions, ex_sp, current_color)
+
+        ty = ty + self.__ref_height * self.__scale
+            + self.__line_space
     end
 
     self:pop()
