@@ -21,7 +21,8 @@ local Phrase = require((...):gsub("jm_font_generator", "font.Phrase"))
 --====================================================================
 
 local table_insert, str_find, str_format = table.insert, string.find, string.format
-local love_draw, love_set_color = love.graphics.draw, love.graphics.setColor
+local lgx = love.graphics
+local love_draw, love_set_color = lgx.draw, lgx.setColor
 local ipairs, pairs = ipairs, pairs
 local MATH_HUGE = math.huge
 
@@ -1247,10 +1248,12 @@ function Font:printf(text, x, y, align, limit_right)
     self:push()
 
     local tx = x
-    local ty = y
+    x = 0
+
+    -- local ty = y
     align = align or "left"
     limit_right = limit_right or 500.0 --love.mouse.getX() - x
-    limit_right = limit_right - x
+    -- limit_right = limit_right - x
 
     local current_color = color_pointer
     current_color[1] = self.__default_color
@@ -1268,6 +1271,8 @@ function Font:printf(text, x, y, align, limit_right)
     local all_lines
 
     local result = printf_lines[self] and printf_lines[self][text]
+    result = result and result[limit_right]
+
     if result then
         all_lines = result
     else
@@ -1352,10 +1357,11 @@ function Font:printf(text, x, y, align, limit_right)
                     --     + self.__line_space
 
                     table_insert(all_lines.lines, line)
-                    all_lines.actions[#all_lines.lines] = line_actions
+                    all_lines.actions[#(all_lines.lines)] = line_actions
 
                     line = {}
-                    line_actions = nil --{}
+                    line_actions = nil
+                    --
                 else
                     local next_index = next_not_command_index(self, m, separated)
 
@@ -1383,18 +1389,24 @@ function Font:printf(text, x, y, align, limit_right)
                 -- print(self, line, pos_to_draw, ty, line_actions, nil, current_color)
 
                 table_insert(all_lines.lines, line)
-                all_lines.actions[#all_lines.lines] = line_actions
+                all_lines.actions[#(all_lines.lines)] = line_actions
             end
         end
 
         printf_lines[self] = printf_lines[self]
+            or setmetatable({}, metatable_mode_k)
+
+        printf_lines[self][text] = printf_lines[self][text]
             or setmetatable({}, metatable_mode_v)
 
-        printf_lines[self][text] = printf_lines[self][text] or all_lines
+        printf_lines[self][text][limit_right] = all_lines
     end
 
     local ty = y
     local N = #(all_lines.lines)
+    -- x = 0
+    lgx.push()
+    lgx.translate(tx, 0)
 
     for i = 1, N do
         local line = all_lines.lines[i]
@@ -1420,6 +1432,8 @@ function Font:printf(text, x, y, align, limit_right)
         ty = ty + self.__ref_height * self.__scale
             + self.__line_space
     end
+
+    lgx.pop()
 
     self:pop()
 
