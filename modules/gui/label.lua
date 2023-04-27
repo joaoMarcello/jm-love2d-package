@@ -8,6 +8,7 @@ local huge = math.huge
 local Component = require((...):gsub("label", "component"))
 
 local font = _G.JM_Font.current
+local font_config = font:__get_configuration()
 
 -- love.keyboard.setKeyRepeat(true)
 
@@ -18,9 +19,13 @@ end
 
 ---@class JM.GUI.Label : JM.GUI.Component
 local Label = setmetatable({
+    --
+    ---@param new_font JM.Font.Font
     set_font = function(self, new_font)
         font = new_font
+        font_config = font:__get_configuration()
     end
+    --
 }, Component)
 Label.__index = Label
 
@@ -142,6 +147,9 @@ function Label:__custom_draw__()
     local px = self.x
 
     lgx.push()
+    font:push()
+    font:set_configuration(font_config)
+
     if self.width > self.w then
         local off = self.width - self.w
 
@@ -180,6 +188,7 @@ function Label:__custom_draw__()
         lgx.setLineWidth(1)
     end
 
+    font:pop()
     lgx.pop()
 
     -- font:print(tostring(self.width), self.x, self.y - 22)
