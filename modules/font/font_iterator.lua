@@ -1,4 +1,5 @@
 local utf8 = require('utf8')
+local tab_insert = table.insert
 
 ---@class JM.Font.GlyphIterator
 local Iterator = {}
@@ -66,7 +67,7 @@ function Iterator:__constructor__(text, font)
             char_obj = font:get_nule_character()
         end
 
-        table.insert(self.__list_obj, char_obj)
+        tab_insert(self.__list_obj, char_obj)
 
         i = i + 1
     end
