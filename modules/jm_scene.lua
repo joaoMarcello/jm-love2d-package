@@ -620,7 +620,7 @@ local function infinity_scroll_x(self, camera, layer)
     r = layer.draw and layer:draw(camera)
 
     local qx = floor((self.screen_w / camera.scale)
-            / width) + 1
+        / width) + 1
 
     --==================================================
     if abs(layer.pos_x + camera.x)
@@ -658,7 +658,7 @@ local function infinity_scroll_y(self, camera, layer)
     infinity_scroll_x(self, camera, layer)
 
     local qy = floor((self.screen_h / camera.scale)
-            / height) + 1
+        / height) + 1
 
     if abs(sum) < height then
         translate(0, -height)
@@ -990,6 +990,116 @@ local draw = function(self)
 
     setColor(1, 1, 1, 1)
     love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
+end
+
+---@param self JM.Scene
+local mousepressed = function(self, x, y, button, istouch, presses)
+    if self.use_vpad and not istouch then
+        local mx, my = mousePosition()
+        VPad:mousepressed(mx, my, button, istouch, presses)
+    end
+
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    local param = self.__param__
+
+    x, y = self:get_mouse_position()
+
+    local r = param.mousepressed and param.mousepressed(x, y, button, istouch, presses)
+end
+
+---@param self JM.Scene
+local mousereleased = function(self, x, y, button, istouch, presses)
+    if self.use_vpad and not istouch then
+        local mx, my = mousePosition()
+        VPad:mousereleased(mx, my, button, istouch, presses)
+    end
+
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    x, y = self:get_mouse_position()
+
+    local param = self.__param__
+    local r = param.mousereleased and param.mousereleased(x, y, button, istouch, presses)
+end
+
+---@param self JM.Scene
+local mousemoved = function(self, x, y, dx, dy, istouch)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    x, y = self:get_mouse_position()
+
+    local param = self.__param__
+
+    local r = param.mousemoved and param.mousemoved(x, y, dx, dy, istouch)
+end
+
+---@param self JM.Scene
+local touchpressed = function(self, id, x, y, dx, dy, pressure)
+    if self.use_vpad then
+        VPad:touchpressed(id, x, y, dx, dy, pressure)
+    end
+
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    local param = self.__param__
+    local r = param.touchpressed and param.touchpressed(x, y, dx, dy, pressure)
+end
+
+---@param self JM.Scene
+local touchreleased = function(self, id, x, y, dx, dy, pressure)
+    if self.use_vpad then
+        VPad:touchreleased(id, x, y, dx, dy, pressure)
+    end
+
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    local param = self.__param__
+    local r = param.touchreleased and param.touchreleased(x, y, dx, dy, pressure)
+end
+
+---@param self JM.Scene
+local keypressed = function(self, key, scancode, isrepeat)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    local param = self.__param__
+    local r = param.keypressed and param.keypressed(key, scancode, isrepeat)
+end
+
+---@param self JM.Scene
+local keyreleased = function(self, key, scancode)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    local param = self.__param__
+    local r = param.keyreleased and param.keyreleased(key, scancode)
 end
 
 ---
@@ -1412,98 +1522,112 @@ function Scene:implements(param)
 
     self.draw = draw
 
-    self.mousepressed = function(self, x, y, button, istouch, presses)
-        if self.use_vpad and not istouch then
-            local mx, my = mousePosition()
-            VPad:mousepressed(mx, my, button, istouch, presses)
-        end
+    -- self.mousepressed = function(self, x, y, button, istouch, presses)
+    --     if self.use_vpad and not istouch then
+    --         local mx, my = mousePosition()
+    --         VPad:mousepressed(mx, my, button, istouch, presses)
+    --     end
 
-        if self.time_pause
-            or (self.transition and self.transition.pause_scene)
-        then
-            return
-        end
+    --     if self.time_pause
+    --         or (self.transition and self.transition.pause_scene)
+    --     then
+    --         return
+    --     end
 
-        x, y = self:get_mouse_position()
+    --     x, y = self:get_mouse_position()
 
-        local r = param.mousepressed and param.mousepressed(x, y, button, istouch, presses)
-    end
+    --     local r = param.mousepressed and param.mousepressed(x, y, button, istouch, presses)
+    -- end
 
-    self.mousereleased = function(self, x, y, button, istouch, presses)
-        if self.use_vpad and not istouch then
-            local mx, my = mousePosition()
-            VPad:mousereleased(mx, my, button, istouch, presses)
-        end
+    self.mousepressed = mousepressed
 
-        if self.time_pause
-            or (self.transition and self.transition.pause_scene)
-        then
-            return
-        end
+    -- self.mousereleased = function(self, x, y, button, istouch, presses)
+    --     if self.use_vpad and not istouch then
+    --         local mx, my = mousePosition()
+    --         VPad:mousereleased(mx, my, button, istouch, presses)
+    --     end
 
-        x, y = self:get_mouse_position()
+    --     if self.time_pause
+    --         or (self.transition and self.transition.pause_scene)
+    --     then
+    --         return
+    --     end
 
-        local r = param.mousereleased and param.mousereleased(x, y, button, istouch, presses)
-    end
+    --     x, y = self:get_mouse_position()
 
-    self.mousemoved = function(self, x, y, dx, dy, istouch)
-        if self.time_pause
-            or (self.transition and self.transition.pause_scene)
-        then
-            return
-        end
+    --     local r = param.mousereleased and param.mousereleased(x, y, button, istouch, presses)
+    -- end
 
-        x, y = self:get_mouse_position()
-        local r = param.mousemoved and param.mousemoved(x, y, dx, dy, istouch)
-    end
+    self.mousereleased = mousereleased
 
-    self.touchpressed = function(self, id, x, y, dx, dy, pressure)
-        if self.use_vpad then
-            VPad:touchpressed(id, x, y, dx, dy, pressure)
-        end
+    -- self.mousemoved = function(self, x, y, dx, dy, istouch)
+    --     if self.time_pause
+    --         or (self.transition and self.transition.pause_scene)
+    --     then
+    --         return
+    --     end
 
-        if self.time_pause
-            or (self.transition and self.transition.pause_scene)
-        then
-            return
-        end
+    --     x, y = self:get_mouse_position()
+    --     local r = param.mousemoved and param.mousemoved(x, y, dx, dy, istouch)
+    -- end
 
-        local r = param.touchpressed and param.touchpressed(x, y, dx, dy, pressure)
-    end
+    self.mousemoved = mousemoved
 
-    self.touchreleased = function(self, id, x, y, dx, dy, pressure)
-        if self.use_vpad then
-            VPad:touchreleased(id, x, y, dx, dy, pressure)
-        end
+    -- self.touchpressed = function(self, id, x, y, dx, dy, pressure)
+    --     if self.use_vpad then
+    --         VPad:touchpressed(id, x, y, dx, dy, pressure)
+    --     end
 
-        if self.time_pause
-            or (self.transition and self.transition.pause_scene)
-        then
-            return
-        end
+    --     if self.time_pause
+    --         or (self.transition and self.transition.pause_scene)
+    --     then
+    --         return
+    --     end
 
-        local r = param.touchreleased and param.touchreleased(x, y, dx, dy, pressure)
-    end
+    --     local r = param.touchpressed and param.touchpressed(x, y, dx, dy, pressure)
+    -- end
 
-    self.keypressed = function(self, key, scancode, isrepeat)
-        if self.time_pause
-            or (self.transition and self.transition.pause_scene)
-        then
-            return
-        end
+    self.touchpressed = touchpressed
 
-        local r = param.keypressed and param.keypressed(key, scancode, isrepeat)
-    end
+    -- self.touchreleased = function(self, id, x, y, dx, dy, pressure)
+    --     if self.use_vpad then
+    --         VPad:touchreleased(id, x, y, dx, dy, pressure)
+    --     end
 
-    self.keyreleased = function(self, key, scancode)
-        if self.time_pause
-            or (self.transition and self.transition.pause_scene)
-        then
-            return
-        end
+    --     if self.time_pause
+    --         or (self.transition and self.transition.pause_scene)
+    --     then
+    --         return
+    --     end
 
-        local r = param.keyreleased and param.keyreleased(key, scancode)
-    end
+    --     local r = param.touchreleased and param.touchreleased(x, y, dx, dy, pressure)
+    -- end
+
+    self.touchreleased = touchreleased
+
+    -- self.keypressed = function(self, key, scancode, isrepeat)
+    --     if self.time_pause
+    --         or (self.transition and self.transition.pause_scene)
+    --     then
+    --         return
+    --     end
+
+    --     local r = param.keypressed and param.keypressed(key, scancode, isrepeat)
+    -- end
+
+    self.keypressed = keypressed
+
+    -- self.keyreleased = function(self, key, scancode)
+    --     if self.time_pause
+    --         or (self.transition and self.transition.pause_scene)
+    --     then
+    --         return
+    --     end
+
+    --     local r = param.keyreleased and param.keyreleased(key, scancode)
+    -- end
+
+    self.keyreleased = keyreleased
 end
 
 function Scene:set_background_draw(action)
