@@ -81,6 +81,17 @@ function Label:textinput(t)
     return false
 end
 
+function Label:set_text(text)
+    local focus = self.on_focus
+    self.on_focus = true
+
+    for _, code in utf8.codes(text) do
+        self:textinput(utf8.char(code))
+    end
+
+    self.on_focus = focus
+end
+
 function Label:key_pressed(key)
     if not self.on_focus then return end
 
