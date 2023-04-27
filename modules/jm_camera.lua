@@ -195,7 +195,7 @@ local function dynamic_x_offset(self, dt)
         or self.viewport_w * 0.3
 
     local move_left_offset = ((not inverted and left_focus > right_focus)
-        or (inverted and left_focus < right_focus))
+            or (inverted and left_focus < right_focus))
         and left_focus or right_focus
 
     local move_right_offset = move_left_offset == right_focus and left_focus or right_focus
@@ -257,7 +257,7 @@ local function dynamic_y_offset(self, dt)
     local inverted = self.invert_dynamic_focus_y
 
     local top_offset = ((not inverted and top_focus > bottom_focus)
-        or (inverted and top_focus < bottom_focus))
+            or (inverted and top_focus < bottom_focus))
         and top_focus or bottom_focus
 
     local bottom_offset = top_offset == top_focus and bottom_focus or top_focus
@@ -1395,8 +1395,6 @@ local function debbug(self)
         Font:print(state,
             vx + border_len + 2,
             vy + vh - border_len - 20)
-
-        -- Font:print(tostring(math.huge - 100), vx + 100, vy + 100)
         Font.current:pop()
 
         -- Showing the message DEBUG MODE

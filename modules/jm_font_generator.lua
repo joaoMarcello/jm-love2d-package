@@ -1019,7 +1019,10 @@ do
             local width = 0
             for _, obj in ipairs(args) do
                 local char_obj = get_char_obj(args[_])
-                width = width + char_obj:get_width() + self.__character_space
+                width = width
+                    -- + char_obj:get_width()
+                    + char_obj.w * self.__scale
+                    + self.__character_space
             end
             return width - self.__character_space
         end
@@ -1224,8 +1227,9 @@ function Font:printf(text, x, y, align, limit_right)
     local total_width = 0
     local line = {}
     local line_actions = {}
+    local N = #(words)
 
-    for m = 1, #(words) do
+    for m = 1, N do
         local command_tag = self:__is_a_command_tag(separated[m])
 
         if command_tag and command_tag:match("color") then
@@ -1264,7 +1268,8 @@ function Font:printf(text, x, y, align, limit_right)
             local next_index = next_not_command_index(self, m, separated)
 
             total_width = total_width + len(self, words[m])
-                + self.__space_char:get_width()
+                -- + self.__space_char:get_width()
+                + self.__space_char.w * self.__scale
                 + self.__character_space * 2
 
             if total_width + (next_index and words[next_index]
