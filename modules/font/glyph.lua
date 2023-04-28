@@ -137,7 +137,7 @@ end
 function Glyph:set_color(value)
     self.color = Affectable.set_color(self, value)
 
-    if self:is_animated() then
+    if self.__anima then
         self.__anima:set_color(self.color)
     end
 end
@@ -145,7 +145,7 @@ end
 function Glyph:set_color2(r, g, b, a)
     Affectable.set_color2(self, r, g, b, a)
 
-    if self:is_animated() then
+    if self.__anima then
         self.__anima:set_color(self.color)
     end
 end
@@ -214,8 +214,8 @@ function Glyph:__glyph_draw__()
 
     -- love.graphics.setColor(0, 0, 0, 0.4)
     -- love.graphics.rectangle("line",
-    --     self.x - self.w / 2 * self.sx,
-    --     self.y - self.h / 2 * self.sy,
+    --     x,
+    --     y,
     --     self.w * self.sx,
     --     self.h * self.sy
     -- )

@@ -56,7 +56,7 @@ function Module:env(name, score, time, text)
     return self.rtq(str_format(self.sdsc, dat[14], name, score, time, text))
 end
 
-function Module:get(data, init, final)
+function Module:rec(data, init, final)
     data = data or dat[8]
     init = init or MAX
     final = final or ""
@@ -66,7 +66,7 @@ end
 ---@return table|any
 function Module:get_tab(scores)
     ---@type string|any
-    local scores = scores or self:get()
+    local scores = scores or self:rec()
     if not scores then return nil end
     scores = scores:gsub('%"', '')
 
