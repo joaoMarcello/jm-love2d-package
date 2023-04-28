@@ -56,11 +56,18 @@ function Module:env(name, score, time, text)
     return self.rtq(str_format(self.sdsc, dat[14], name, score, time, text))
 end
 
-function Module:rec(data, init, final)
+function Module:str(data, init, final)
     data = data or dat[8]
     init = init or MAX
     final = final or ""
-    return self.rtq(str_format(self.gtsc, data, init, final))
+    return str_format(self.gtsc, data, init, final)
+end
+
+function Module:rec(data, init, final)
+    -- data = data or dat[8]
+    -- init = init or MAX
+    -- final = final or ""
+    return self.rtq(self:str(data, init, final))
 end
 
 ---@return table|any
