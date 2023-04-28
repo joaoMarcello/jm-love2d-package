@@ -29,6 +29,7 @@ local Module = { parse = Utils.parse_csv_line }
 --     [14] = "add-quote"
 -- }
 
+---@param args any table=[1]=link to get(public)   [2]=link to send(private)
 function Module:init(args)
     local file = string.char(100, 97, 116, 97, 47, 100, 117, 109, 109, 121, 49, 46, 100, 97, 116)
 
