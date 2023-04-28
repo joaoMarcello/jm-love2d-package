@@ -55,6 +55,7 @@ function Label:__constructor__(args)
     self.show_line = true
     self.text_help = args.text_help
     self.color_background = args.color
+    self.locked = false
 end
 
 function Label:clear()
@@ -69,7 +70,7 @@ function Label:clear()
 end
 
 function Label:textinput(t)
-    if not self.on_focus then return end
+    if not self.on_focus or self.locked then return end
 
     if ((self.filter and self.filter(t)) or not self.use_filter)
         and self.count < self.max
@@ -80,7 +81,7 @@ function Label:textinput(t)
         local glyph = font:__get_char_equals(t)
 
         if glyph then
-            local len = glyph.w * font.__scale
+            local len = glyph.w * font_config.scale
             tab_insert(self.lengths, len)
             self.width = self.width + len
         end
@@ -107,7 +108,7 @@ function Label:set_text(text)
 end
 
 function Label:key_pressed(key)
-    if not self.on_focus then return end
+    if not self.on_focus or self.locked then return end
 
     if key == "backspace" and self.count > 0 then
         local byteoffset = utf8.offset(self.text, -1)
@@ -131,6 +132,8 @@ function Label:key_pressed(key)
 end
 
 function Label:mouse_pressed(x, y, button, istouch, presses)
+    if self.locked then return end
+
     if self.on_focus and not self:check_collision(x, y, 0, 0) then
         self:set_focus(false)
         --
@@ -143,6 +146,8 @@ function Label:mouse_pressed(x, y, button, istouch, presses)
 end
 
 function Label:touch_pressed(id, x, y, dx, dy, pressure)
+    if self.locked then return end
+
     if not self.on_focus and self:check_collision(x, y, 0, 0) then
         self:set_focus(true)
         self.time = -0.5
@@ -202,21 +207,21 @@ function Label:__custom_draw__()
 
     if self.align == "center" then
         px = self.x + self.w * 0.5 - self.width * 0.5
-        font:print(self.text, px, self.y + 2, huge)
+        font:print(self.text, px, self.y, huge)
 
 
         --
     elseif self.align == "right" then
         px = self.x + self.w - self.width
-        font:print(self.text, px, self.y + 2, huge)
+        font:print(self.text, px, self.y, huge)
         --
     else
-        font:print(self.text, self.x, self.y + 2, huge)
+        font:print(self.text, self.x, self.y, huge)
     end
 
 
     if self.text_help and not self.on_focus and self.count <= 0 then
-        font:print(self.text_help, self.x, self.y + 1, huge)
+        font:print(self.text_help, self.x, self.y, huge)
         --
     elseif self.show_line and self.on_focus then
         local px2 = px + self.width + 2

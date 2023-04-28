@@ -552,7 +552,7 @@ function Font:get_nule_character()
     return char_
 end
 
----@alias JM.Font.Configuration {font_size: number, character_space: number, color: JM.Color, line_space: number, word_space: number, tab_size: number, format: JM.Font.FormatOptions }
+---@alias JM.Font.Configuration {font_size: number, character_space: number, color: JM.Color, line_space: number, word_space: number, tab_size: number, format: JM.Font.FormatOptions, scale:number }
 
 local results_get_config = setmetatable({}, metatable_mode_k)
 
@@ -591,6 +591,7 @@ function Font:__get_configuration()
         word_space = self.__word_space,
         tab_size = self.__tab_size,
         format = self.__format,
+        scale = self.__scale
     }
 
     results_get_config[self] = results_get_config[self] or setmetatable({}, metatable_mode_v)
