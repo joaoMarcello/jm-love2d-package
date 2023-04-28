@@ -56,6 +56,17 @@ function Label:__constructor__(args)
     self.text_help = args.text_help
 end
 
+function Label:clear()
+    self.text = ""
+    self.count = 0
+    self.width = 0
+
+    local N = #self.lengths
+    for i = 1, N do
+        self.lengths[i] = nil
+    end
+end
+
 function Label:textinput(t)
     if not self.on_focus then return end
 
@@ -84,6 +95,8 @@ end
 function Label:set_text(text)
     local focus = self.on_focus
     self.on_focus = true
+
+    self:clear()
 
     for _, code in utf8.codes(text) do
         self:textinput(utf8.char(code))

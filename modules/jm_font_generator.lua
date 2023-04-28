@@ -421,7 +421,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
     self.__imgs[format] = img
 end
 
-local function load_by_tff(name, path, dpi)
+local function load_by_tff(name, path, dpi, save)
     if not name or not path then return end
 
     ---@type love.Rasterizer
@@ -537,7 +537,9 @@ local function load_by_tff(name, path, dpi)
         end
     end
 
-    font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
+    if save then
+        font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
+    end
 
     return font_imgdata, glyphs, quad_pos
 end
@@ -1443,6 +1445,8 @@ local phrase_construct_table = {}
 ---@param self JM.Font.Font
 function Font:generate_phrase(text, x, y, right, align)
     align = align or "left"
+    x = x or 0
+    y = y or 0
     right = right or (MATH_HUGE - x)
 
     self.buffer__ = self.buffer__ or setmetatable({}, metatable_mode_k)
