@@ -1400,9 +1400,11 @@ local function debbug(self)
         -- Showing the message DEBUG MODE
         Font.current:push()
         Font.current:set_font_size(8)
-        self.phrase_debug = self.phrase_debug or
-            Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
-        local fr = self.phrase_debug
+
+        -- self.phrase_debug = self.phrase_debug or
+        --     Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
+
+        local fr = Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
         fr.__bounds.right = math.huge
         fr:draw(
             vx + vw - border_len - fr:width() - 10,

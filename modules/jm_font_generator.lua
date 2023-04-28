@@ -20,10 +20,10 @@ local Phrase = require((...):gsub("jm_font_generator", "font.Phrase"))
 
 --====================================================================
 
-local table_insert, str_find, str_format = table.insert, string.find, string.format
+local table_insert, table_remove, str_find, str_format = table.insert, table.remove, string.find, string.format
 local lgx = love.graphics
 local love_draw, love_set_color = lgx.draw, lgx.setColor
-local ipairs, pairs, unpack = ipairs, pairs, unpack
+local ipairs, pairs, unpack, assert = ipairs, pairs, unpack, assert
 
 local MATH_HUGE = math.huge
 
@@ -635,7 +635,7 @@ function Font:push()
     assert(#self.__config_stack__ >= 0, "\nError: Too many push operations. Are you using more push than pop?")
 
     local config = self:__get_configuration()
-    table.insert(self.__config_stack__, config)
+    table_insert(self.__config_stack__, config)
 end
 
 ---@param config JM.Font.Configuration
@@ -653,7 +653,7 @@ function Font:pop()
     assert(self.__config_stack__ and #self.__config_stack__ > 0,
         "\nError: You're using a pop operation without using a push before.")
 
-    local config = table.remove(self.__config_stack__, #self.__config_stack__)
+    local config = table_remove(self.__config_stack__, #self.__config_stack__)
 
     self:set_configuration(config)
 end
