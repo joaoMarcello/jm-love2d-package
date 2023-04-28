@@ -20,12 +20,16 @@ local Phrase = require((...):gsub("jm_font_generator", "font.Phrase"))
 
 --====================================================================
 
-local table_insert, table_remove, str_find, str_format = table.insert, table.remove, string.find, string.format
+local tab_insert, tab_remove, str_find, str_format = table.insert, table.remove, string.find, string.format
 local lgx = love.graphics
 local love_draw, love_set_color = lgx.draw, lgx.setColor
 local ipairs, pairs, unpack, assert = ipairs, pairs, unpack, assert
 
 local MATH_HUGE = math.huge
+
+local metatable_mode_k = { __mode = 'k' }
+local metatable_mode_v = { __mode = 'v' }
+local metatable_mode_kv = { __mode = 'kv' }
 
 ---@param nickname string
 ---@return string|nil
@@ -33,7 +37,7 @@ local function is_valid_nickname(nickname)
     return #nickname > 4 and nickname:match("%-%-[^%-][%w%p]-%-%-") or nil
 end
 
-local getGlyphsResult = setmetatable({}, { __mode = 'kv' })
+local getGlyphsResult = setmetatable({}, metatable_mode_kv)
 
 ---@param s string
 local function get_glyphs(s)
@@ -44,7 +48,7 @@ local function get_glyphs(s)
 
     local t = {}
     for p, c in utf8.codes(s) do
-        table_insert(t, utf8.char(c))
+        tab_insert(t, utf8.char(c))
     end
 
     getGlyphsResult[s] = t
@@ -52,7 +56,7 @@ local function get_glyphs(s)
     return t
 end
 
-local findNicksResult = setmetatable({}, { __mode = 'v' })
+local findNicksResult = setmetatable({}, metatable_mode_v)
 
 ---@param t table
 local function find_nicks(t)
@@ -85,12 +89,12 @@ local function find_nicks(t)
                 end
 
                 if is_valid_nickname(s) then
-                    table_insert(new_table, s)
+                    tab_insert(new_table, s)
                     i = next
                 end
             end
         else
-            table_insert(new_table, t[i])
+            tab_insert(new_table, t[i])
         end
 
         i = i + 1
@@ -237,16 +241,18 @@ function Font:__constructor__(args)
 
     self.__default_color = args.color or { 0.1, 0.1, 0.1, 1 }
 
-    self.__bounds = { left = 0, top = 0, right = love.graphics.getWidth(), bottom = love.graphics.getHeight() }
+    self.__bounds = { left = 0, top = 0, right = lgx.getWidth(), bottom = lgx.getHeight() }
 
     self.batches = {
         [FontFormat.normal] = self.__imgs[FontFormat.normal] and
-            love.graphics.newSpriteBatch(self.__imgs[FontFormat.normal])
+            lgx.newSpriteBatch(self.__imgs[FontFormat.normal])
             or nil,
+        --
         [FontFormat.bold] = self.__imgs[FontFormat.bold] and
-            love.graphics.newSpriteBatch(self.__imgs[FontFormat.bold]) or nil,
+            lgx.newSpriteBatch(self.__imgs[FontFormat.bold]) or nil,
+        --
         [FontFormat.italic] = self.__imgs[FontFormat.italic] and
-            love.graphics.newSpriteBatch(self.__imgs[FontFormat.italic]) or nil
+            lgx.newSpriteBatch(self.__imgs[FontFormat.italic]) or nil
     }
 end
 
@@ -264,42 +270,6 @@ end
 function Font:get_format_mode()
     return self.__format
 end
-
--- function Font:__load_caracteres_from_csv(list, name, img, extend, format)
---     if not extend then extend = "" end
-
---     local lines = Utils:get_lines_in_file("/JM_love2d_package/data/Font/" .. name .. "/" .. name .. extend .. ".txt")
-
---     for i = 2, #lines do
---         local parse = Utils:parse_csv_line(lines[i])
---         local id = (parse[1])
---         if id == "" then
---             id = ","
---         elseif id == [[_"]] then
---             id = [["]]
---         end
---         local left = tonumber(parse[2])
---         local right = tonumber(parse[3])
---         local top = tonumber(parse[4])
---         local bottom = tonumber(parse[5])
---         local offset_y = tonumber(parse[6])
---         local offset_x = tonumber(parse[7])
-
---         if not left then
---             break
---         end
-
---         local character_obj = Glyph:new(img,
---             { id = id, x = left, y = top, w = right - left, h = bottom - top, bottom = offset_y, format = format }
---         )
-
---         list[character_obj.__id] = character_obj
---     end
-
---     local nule_char = self:get_nule_character()
-
---     list[nule_char.__id] = nule_char
--- end
 
 ---@param path any
 ---@param format JM.Font.FormatOptions
@@ -342,7 +312,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                 end
             end
         end
-        img = love.graphics.newImage(data)
+        img = lgx.newImage(data)
         img:setFilter(min_filter or "linear", max_filter or "linear")
         data:release()
     end
@@ -406,7 +376,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                 list[glyph.id] = glyph
 
                 if is_valid_nickname(glyph.id) then
-                    table_insert(self.__nicknames, glyph.id)
+                    tab_insert(self.__nicknames, glyph.id)
                 end
 
                 cur_id = cur_id + 1
@@ -582,7 +552,7 @@ end
 
 ---@alias JM.Font.Configuration {font_size: number, character_space: number, color: JM.Color, line_space: number, word_space: number, tab_size: number, format: JM.Font.FormatOptions }
 
-local results_get_config = setmetatable({}, { __mode = 'k' })
+local results_get_config = setmetatable({}, metatable_mode_k)
 
 ---@return JM.Font.Configuration
 function Font:__get_configuration()
@@ -621,7 +591,7 @@ function Font:__get_configuration()
         format = self.__format,
     }
 
-    results_get_config[self] = results_get_config[self] or setmetatable({}, { __mode = 'v' })
+    results_get_config[self] = results_get_config[self] or setmetatable({}, metatable_mode_v)
     results_get_config[self][index] = config
 
     return config
@@ -635,7 +605,7 @@ function Font:push()
     assert(#self.__config_stack__ >= 0, "\nError: Too many push operations. Are you using more push than pop?")
 
     local config = self:__get_configuration()
-    table_insert(self.__config_stack__, config)
+    tab_insert(self.__config_stack__, config)
 end
 
 ---@param config JM.Font.Configuration
@@ -653,7 +623,7 @@ function Font:pop()
     assert(self.__config_stack__ and #self.__config_stack__ > 0,
         "\nError: You're using a pop operation without using a push before.")
 
-    local config = table_remove(self.__config_stack__, #self.__config_stack__)
+    local config = tab_remove(self.__config_stack__, #self.__config_stack__)
 
     self:set_configuration(config)
 end
@@ -701,7 +671,7 @@ function Font:add_nickname_animated(nickname, args)
         h = self.__ref_height
     })
 
-    table_insert(self.__nicknames, nickname)
+    tab_insert(self.__nicknames, nickname)
 
     for _, format in pairs(FontFormat) do
         self.__characters[format][nickname] = new_character
@@ -728,9 +698,9 @@ end
 
 ---
 function Font:update(dt)
-    for i = 1, #(self.__nicknames), 1 do
-        local character = self:__get_char_equals(self.__nicknames[i])
-        local r = character and character:update(dt)
+    for i = 1, #(self.__nicknames) do
+        local glyph = self:__get_char_equals(self.__nicknames[i])
+        if glyph then glyph:update(dt) end
     end
 end
 
@@ -739,19 +709,19 @@ end
 function Font:__get_char_equals(c)
     if not c then return nil end
 
-    local char_ = self.__characters[self.__format][c]
+    local glyph = self.__characters[self.__format][c]
 
-    if not char_ and is_valid_nickname(c) then
+    if not glyph and is_valid_nickname(c) then
         for _, format in pairs(FontFormat) do
-            char_ = self.__characters[format][c]
-            if char_ then return char_ end
+            glyph = self.__characters[format][c]
+            if glyph then return glyph end
         end
     end
 
-    return char_
+    return glyph
 end
 
-local result_sep_text = setmetatable({}, { __mode = 'kv' })
+local result_sep_text = setmetatable({}, metatable_mode_kv)
 
 ---@param s string
 function Font:separate_string(s, list)
@@ -780,7 +750,7 @@ function Font:separate_string(s, list)
                 self:separate_string(prev_s, words)
             end
 
-            table_insert(words, sub_s)
+            tab_insert(words, sub_s)
             current_init = endp
         elseif nick and nick ~= "----" then
             local startp, endp = string.find(s, "%-%-%w-%-%-", current_init)
@@ -792,7 +762,7 @@ function Font:separate_string(s, list)
             end
 
             if sub_s ~= "" and sub_s ~= " " then
-                table_insert(words, sub_s)
+                tab_insert(words, sub_s)
             end
 
             current_init = endp
@@ -801,11 +771,11 @@ function Font:separate_string(s, list)
             local sub_s = s:sub(startp, endp - 1)
 
             if sub_s ~= "" and sub_s ~= " " then
-                table_insert(words, sub_s)
+                tab_insert(words, sub_s)
             end
 
             if s:sub(endp, endp) == "\n" then
-                table_insert(words, "\n")
+                tab_insert(words, "\n")
             end
 
             current_init = endp
@@ -819,7 +789,7 @@ function Font:separate_string(s, list)
     local rest = s:sub(current_init, #s)
 
     if rest ~= "" and not rest:match(" *") then
-        table_insert(words, s:sub(current_init, #s))
+        tab_insert(words, s:sub(current_init, #s))
     end
 
     result_sep_text[s] = words
@@ -858,7 +828,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
     self:push()
 
     w = w or nil --love.graphics.getWidth() - 100
-    h = h or love.graphics.getHeight()
+    h = h or lgx.getHeight()
 
     local tx = x
     local ty = y
@@ -1006,8 +976,7 @@ local print
 local line_width
 local next_not_command_index
 local get_words
-local metatable_mode_k = { __mode = 'k' }
-local metatable_mode_v = { __mode = 'v' }
+
 local color_pointer = {}
 
 --- The functions below are used in the printf method
@@ -1179,7 +1148,7 @@ do
             return current_index
         end
 
-    local results_get_word = setmetatable({}, { __mode = 'kv' })
+    local results_get_word = setmetatable({}, metatable_mode_kv)
 
     ---@param self JM.Font.Font
     ---@param separated any
@@ -1216,7 +1185,7 @@ do
             local characters = self:get_text_iterator(cur_word)
             characters = characters:get_characters_list()
 
-            table_insert(list, characters)
+            tab_insert(list, characters)
 
             i = i + 1
         end
@@ -1262,7 +1231,7 @@ function Font:printf(text, x, y, align, limit_right)
 
     -- local ty = y
     align = align or "left"
-    limit_right = limit_right or 500.0 --love.mouse.getX() - x
+    limit_right = limit_right or lgx.getWidth() --love.mouse.getX() - x
     -- limit_right = limit_right - tx
 
     local current_color = color_pointer
@@ -1317,7 +1286,7 @@ function Font:printf(text, x, y, align, limit_right)
 
                 line_actions = line_actions or {}
 
-                table_insert(line_actions, {
+                tab_insert(line_actions, {
                     i = action_i,
                     action = action_func,
                     args = action_args
@@ -1328,7 +1297,7 @@ function Font:printf(text, x, y, align, limit_right)
 
             if not command_tag then
                 -- if not current_is_break_line or true then
-                table_insert(line, words[m])
+                tab_insert(line, words[m])
                 -- end
 
                 local next_index = next_not_command_index(self, m, separated)
@@ -1367,7 +1336,7 @@ function Font:printf(text, x, y, align, limit_right)
                     -- ty = ty + self.__ref_height * self.__scale
                     --     + self.__line_space
 
-                    table_insert(all_lines.lines, line)
+                    tab_insert(all_lines.lines, line)
                     if line_actions then
                         all_lines.actions = all_lines.actions or {}
                         all_lines.actions[#(all_lines.lines)] = line_actions
@@ -1384,7 +1353,7 @@ function Font:printf(text, x, y, align, limit_right)
                         and separated[next_index] == "\n"
 
                     if m ~= N and not next_is_broken_line then
-                        table_insert(
+                        tab_insert(
                             line,
                             space_glyph --{ self.__space_char }
                         )
@@ -1402,7 +1371,7 @@ function Font:printf(text, x, y, align, limit_right)
 
                 -- print(self, line, pos_to_draw, ty, line_actions, nil, current_color)
 
-                table_insert(all_lines.lines, line)
+                tab_insert(all_lines.lines, line)
                 if line_actions then
                     all_lines.actions = all_lines.actions or {}
                     all_lines.actions[#(all_lines.lines)] = line_actions

@@ -88,6 +88,13 @@ function Glyph:__constructor__(img, args)
     -- self.bounds = { left = 0, top = 0, right = love.graphics.getWidth(), bottom = love.graphics.getHeight() }
 
     self.quad = self:get_quad()
+
+    self.update = Glyph.update
+    self.draw = Glyph.draw
+    self.set_color = Glyph.set_color
+    self.set_color2 = Glyph.set_color2
+    self.set_scale = Glyph.set_scale
+    self.__glyph_draw__ = Glyph.__glyph_draw__
 end
 
 function Glyph:update(dt)

@@ -35,7 +35,12 @@ function Word:__constructor__(args)
 
     self.font_format = format
 
-    self.last_x, self.last_y = math.huge, math.huge
+    -- self.last_x, self.last_y = math.huge, math.huge
+
+    self.update = Word.update
+    self.draw = Word.draw
+    self.get_width = Word.get_width
+    self.get_height = Word.get_height
 end
 
 ---@param mode JM.Font.FormatOptions
