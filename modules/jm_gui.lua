@@ -2,6 +2,9 @@
 local path = ...
 path = path:gsub("jm_gui", "")
 
+---@type JM.GUI.Component
+local Component = require(path .. "gui.component")
+
 ---@type JM.GUI.Button
 local Button = require(path .. "gui.button")
 
@@ -20,14 +23,19 @@ local TouchButton = require(path .. "gui.touch_button")
 ---@type JM.GUI.VirtualStick
 local VirtualStick = require(path .. "gui.stick")
 
----@class JM.GUI
-local GUI = {}
+---@type JM.GUI.Label
+local Label = require(path .. "gui.label")
 
-GUI.Button = Button
-GUI.Container = Container
-GUI.TextBox = TextBox
-GUI.Icon = Icon
-GUI.TouchButton = TouchButton
-GUI.VirtualStick = VirtualStick
+---@class JM.GUI
+local GUI = {
+    Component = Component,
+    Button = Button,
+    Container = Container,
+    TextBox = TextBox,
+    Icon = Icon,
+    TouchButton = TouchButton,
+    VirtualStick = VirtualStick,
+    Label = Label,
+}
 
 return GUI

@@ -2,14 +2,14 @@ local str_format = string.format
 local str_find = string.find
 local tab_insert = table.insert
 local tonumber = tonumber
----@type JM.Loader
-local Loader = require((...):gsub("jm_melrs", "jm_loader"))
----@type JM.Utils
-local Utils = require((...):gsub("jm_melrs", "jm_utils"))
+
+local Loader = _G.JM_Ldr  --require((...):gsub("jm_melrs", "jm_loader"))
+local Utils = _G.JM_Utils --require((...):gsub("jm_melrs", "jm_utils"))
 local http
 local dat
 local MAX
 
+---@class JM.LeaderBoard
 local Module = { parse = Utils.parse_csv_line }
 
 -- local dummy = {
@@ -49,15 +49,23 @@ function Module:init(args)
     MAX = args[3] or 10
 end
 
-function Module:env(name, score, time, text)
+function Module:str_env(name, score, time, text)
     if not name then return false end
     score = score and tostring(score) or ""
     time = time and tostring(time) or ""
     text = text or ""
-    return self.rtq(str_format(self.sdsc, dat[14], name, score, time, text))
+    return str_format(self.sdsc, dat[14], name, score, time, text)
 end
 
-function Module:str(data, init, final)
+function Module:env(name, score, time, text)
+    -- if not name then return false end
+    -- score = score and tostring(score) or ""
+    -- time = time and tostring(time) or ""
+    -- text = text or ""
+    return self.rtq(self:str_env(name, score, time, text))
+end
+
+function Module:str_rec(data, init, final)
     data = data or dat[8]
     init = init or MAX
     final = final or ""
@@ -68,7 +76,7 @@ function Module:rec(data, init, final)
     -- data = data or dat[8]
     -- init = init or MAX
     -- final = final or ""
-    return self.rtq(self:str(data, init, final))
+    return self.rtq(self:str_rec(data, init, final))
 end
 
 ---@return table|any

@@ -31,7 +31,7 @@ Label.__index = Label
 
 ---@return JM.GUI.Label
 function Label:new(args)
-    args.h = args.h or (font.__font_size + 4)
+    args.h = args.h or (font_config.font_size + 4)
 
     local obj = Component:new(args)
     setmetatable(obj, self)
@@ -54,6 +54,7 @@ function Label:__constructor__(args)
     self.speed = 0.5
     self.show_line = true
     self.text_help = args.text_help
+    self.color_background = args.color
 end
 
 function Label:clear()
@@ -130,7 +131,10 @@ function Label:key_pressed(key)
 end
 
 function Label:mouse_pressed(x, y, button, istouch, presses)
-    if not self.on_focus and self:check_collision(x, y, 0, 0) then
+    if self.on_focus and not self:check_collision(x, y, 0, 0) then
+        self:set_focus(false)
+        --
+    elseif not self.on_focus and self:check_collision(x, y, 0, 0) then
         self:set_focus(true)
         self.time = -0.5
         self.show_line = true
@@ -163,10 +167,20 @@ function Label:update(dt)
 end
 
 function Label:__custom_draw__()
+    if self.color_background then
+        lgx.setColor(self.color_background)
+        lgx.rectangle("fill", self.x, self.y, self.w, self.h)
+    end
+
     if self.draw_border then
-        lgx.setColor(0, 0, 0)
+        if type(self.draw_border) == "table" then
+            lgx.setColor(self.draw_border)
+        else
+            lgx.setColor(0, 0, 0)
+        end
         lgx.rectangle("line", self.x, self.y, self.w, self.h)
     end
+
 
     local px = self.x
 
@@ -208,9 +222,9 @@ function Label:__custom_draw__()
         local px2 = px + self.width + 2
 
         lgx.setColor(font.__default_color)
-        lgx.setLineWidth(1)
+        -- lgx.setLineWidth(1)
         lgx.line(px2, self.y + 1, px2, self.y + self.h - 1)
-        lgx.setLineWidth(1)
+        -- lgx.setLineWidth(1)
     end
 
     font:pop()

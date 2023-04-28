@@ -35,6 +35,10 @@ JM.Camera = require(string.gsub(path, "init", "modules.jm_camera"))
 JM.SceneManager = require(string.gsub(path, "init", "modules.jm_scene_manager"))
 JM_SceneManager = JM.SceneManager
 
+---@type JM.Loader
+JM.Ldr = require(string.gsub(path, "init", "modules.jm_loader"))
+JM_Ldr = JM.Ldr
+
 ---@type JM.Scene
 JM.Scene = require(string.gsub(path, "init", "modules.jm_scene"))
 
@@ -50,9 +54,11 @@ JM.Sound = require(string.gsub(path, "init", "modules.jm_sound"))
 ---@type JM.TileSet
 JM.TileSet = require(string.gsub(path, "init", "modules.tile.tile_set"))
 
+---@type JM.LeaderBoard
+JM.Mlrs = require(string.gsub(path, "init", "modules.jm_melrs"))
+
 ---@type JM.TileMap
 JM.TileMap = require(string.gsub(path, "init", "modules.tile.tile_map"))
-
 
 function JM:update(dt)
     self.Sound:update(dt)
