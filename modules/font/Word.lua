@@ -22,18 +22,18 @@ function Word:__constructor__(args)
 
     self.text = args.text
     self.__font = args.font
-    self.__args = args
+    -- self.__args = args
 
     self.__font_config = self.__font:__get_configuration()
 
     self.__characters = {}
 
-    local format = args.format or self.__font.format_options.normal
-    self:__load_characters(format)
+    -- local format = args.format or self.__font.format_options.normal
+    self.font_format = args.format or self.__font.format_options.normal
+
+    self:__load_characters(self.font_format)
 
     self.__N_characters = #(self.__characters)
-
-    self.font_format = format
 
     -- self.last_x, self.last_y = math.huge, math.huge
 
@@ -53,16 +53,16 @@ function Word:__load_characters(mode)
     local iterator = self.__font:get_text_iterator(self.text)
 
     while (iterator:has_next()) do
-        local char_obj = iterator:next()
+        local glyph = iterator:next()
 
-        char_obj = char_obj:copy()
-        char_obj:set_color(self.__font.__default_color)
+        glyph = glyph:copy()
+        glyph:set_color(self.__font.__default_color)
 
-        table.insert(self.__characters, char_obj)
+        table.insert(self.__characters, glyph)
 
-        if char_obj:is_animated() then
-            char_obj:set_color2(1, 1, 1, 1)
-            char_obj.__anima:set_size(nil, self.__font.__font_size * 1.1, nil, nil)
+        if glyph:is_animated() then
+            glyph:set_color2(1, 1, 1, 1)
+            glyph.__anima:set_size(nil, self.__font.__font_size * 1.1, nil, nil)
         end
     end
 
@@ -71,7 +71,13 @@ end
 
 ---
 function Word:copy()
-    local cpy = Word:new(self.__args)
+    local args = {
+        text = self.text,
+        font = self.__font,
+        format = self.font_format
+    }
+
+    local cpy = Word:new(args)
     return cpy
 end
 

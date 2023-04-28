@@ -43,7 +43,7 @@ function Iterator:__constructor__(text, font)
 
     local i = 1
     while (i <= #text) do
-        local current_char, char_obj
+        local current_char, glyph
 
         local is_nick = font:__is_a_nickname(text, i)
         if is_nick then
@@ -53,21 +53,21 @@ function Iterator:__constructor__(text, font)
             current_char = text:match(".", i)
         end
 
-        char_obj = font:__get_char_equals(current_char)
+        glyph = font:__get_char_equals(current_char)
 
-        if not char_obj then
-            char_obj = font:__get_char_equals(text:match("..", i))
-            if char_obj then
+        if not glyph then
+            glyph = font:__get_char_equals(text:match("..", i))
+            if glyph then
                 current_char = text:sub(i, i + 1)
                 i = i + 1
             end
         end
 
-        if not char_obj and current_char ~= "\n" then
-            char_obj = font:get_nule_character()
+        if not glyph and current_char ~= "\n" then
+            glyph = font:get_nule_character()
         end
 
-        tab_insert(self.__list_obj, char_obj)
+        tab_insert(self.__list_obj, glyph)
 
         i = i + 1
     end
