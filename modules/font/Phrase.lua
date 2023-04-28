@@ -34,8 +34,8 @@ function Phrase:__constructor__(args)
     self.text = args.text
     self.__font = args.font
 
-    self.x = args.x or 0
-    self.y = args.y or 0
+    -- self.x = args.x or 0
+    -- self.y = args.y or 0
 
     self.__font_config = self.__font:__get_configuration()
 
@@ -557,8 +557,8 @@ function Phrase:draw(x, y, align, __max_char__, dt)
 
     push()
 
-    self.x = 0
-    self.y = 0
+    -- self.x = 0
+    -- self.y = 0
 
     translate(x, y)
     -- x = 0
