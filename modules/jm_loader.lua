@@ -19,6 +19,7 @@ local str, bytedata, format_comp, format_enc, format_enc2
 
 ---@class JM.Loader
 local Loader = {
+    ser = myserial,
     --
     save = function(data, path)
         ---@type any
