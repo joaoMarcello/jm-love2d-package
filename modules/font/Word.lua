@@ -2,7 +2,9 @@
 local EffectManager = require((...):gsub("font.Word", "jm_effect_manager"))
 
 ---@class JM.Font.Word
-local Word = {}
+local Word = {
+    eff_wave_range = 2,
+}
 
 ---@param args {text: string, font: JM.Font.Font, format: JM.Font.FormatOptions}
 ---@return JM.Font.Word phrase
@@ -120,7 +122,7 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
             if glyph.id == " " then
                 skip = true
             else
-                eff = EffectManager:generate_effect("float", { range = 2, rad = rad_wave, speed = 0.5 })
+                eff = EffectManager:generate_effect("float", { range = Word.eff_wave_range, rad = rad_wave, speed = 0.5 })
                 -- goto continue
             end
         elseif effect_type == "goddess" then
