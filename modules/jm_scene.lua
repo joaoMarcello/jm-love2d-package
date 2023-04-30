@@ -989,8 +989,8 @@ local draw = function(self)
 
     setScissor(sx, sy, sw, sh)
 
-    setColor(1, 1, 1, 1)
-    love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
+    -- setColor(1, 1, 1, 1)
+    -- love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
 end
 
 ---@param self JM.Scene
