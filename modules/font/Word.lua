@@ -4,6 +4,8 @@ local EffectManager = require((...):gsub("font.Word", "jm_effect_manager"))
 ---@class JM.Font.Word
 local Word = {
     eff_wave_range = 2,
+    eff_scream_range_x = 1,
+    eff_scream_range_y = 2,
 }
 
 ---@param args {text: string, font: JM.Font.Font, format: JM.Font.FormatOptions}
@@ -143,8 +145,8 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
                 {
                     speed_x = speed_x,
                     speed_y = speed_x,
-                    range_x = 1,
-                    range_y = 2,
+                    range_x = Word.eff_scream_range_x,
+                    range_y = Word.eff_scream_range_y,
                     rad_x = math.random() * math.pi * 2,
                     rad_y = math.random() * math.pi * 2,
                     random = true
