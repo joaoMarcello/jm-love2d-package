@@ -222,6 +222,9 @@ end
 ---@class JM.Physics.Body
 local Body = {
     Types = BodyTypes,
+    filter_col_y = coll_y_filter,
+    filter_col_x = coll_y_filter,
+    filter_default = default_filter,
 }
 do
     ---@return JM.Physics.Body
@@ -557,7 +560,7 @@ do
 
                 most_right = most_right or item
                 most_right = ((item.x + item.w)
-                    > (most_right.x + most_right.w) and item)
+                        > (most_right.x + most_right.w) and item)
                     or most_left
 
                 most_up = most_up or item
@@ -566,7 +569,7 @@ do
 
                 most_bottom = most_bottom or item
                 most_bottom = ((item.y + item.h)
-                    > (most_bottom.y + most_bottom.h) and item)
+                        > (most_bottom.y + most_bottom.h) and item)
                     or most_bottom
             end
         end
@@ -589,7 +592,7 @@ do
         local offset = 0.1
 
         collisions.end_x = (diff_x >= 0 and most_left
-            and most_left.x - self.w - offset)
+                and most_left.x - self.w - offset)
             or (diff_x < 0 and most_right and most_right:right() + offset)
             or goal_x
 
@@ -602,7 +605,7 @@ do
             end
         else
             collisions.end_y = (diff_y >= 0 and most_up
-                and most_up.y - self.h - offset)
+                    and most_up.y - self.h - offset)
                 or (diff_y < 0 and most_bottom and most_bottom:bottom() + offset) or goal_y
         end
 
