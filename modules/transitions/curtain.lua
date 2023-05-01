@@ -39,9 +39,9 @@ end
 
 function Curtain:finished()
     if self.mode_out then
-        return self.mult and self.mult >= 1
+        return self:get_mult() >= 1
     else
-        return self.mult and self.mult <= 0
+        return self:get_mult() <= 0.0065
     end
 end
 
