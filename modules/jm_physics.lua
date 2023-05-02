@@ -1459,7 +1459,10 @@ do
         return false
     end
 
+    local dt_lim = 1 / 30
     function World:update(dt)
+        dt = dt > dt_lim and dt_lim or dt
+
         for i = self.bodies_number, 1, -1 do
             ---@type JM.Physics.Body|any
             local obj = self.bodies[i]
