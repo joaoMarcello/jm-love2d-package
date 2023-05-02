@@ -1220,9 +1220,15 @@ local printf_lines = setmetatable({}, metatable_mode_k)
 ---@param text string
 ---@param x number
 ---@param y number
----@param align "left"|"right"|"center"|"justify"|nil
+---@param align "left"|"right"|"center"|"justify"|any
 ---@param limit_right number|nil
 function Font:printf(text, x, y, align, limit_right)
+    --
+    if type(align) == "number" then
+        ---@diagnostic disable-next-line: cast-local-type
+        align, limit_right = limit_right, align
+    end
+
     if not text or text == "" then
         return false --{ tx = x, ty = y }
     end
@@ -1481,6 +1487,10 @@ end
 ---@param right any
 ---@param align any
 function Font:printx(text, x, y, right, align)
+    if type(right) == "string" then
+        right, align = align, right
+    end
+
     local fr = self:generate_phrase(text, x, y, right, align)
     local value = fr:draw(x, y, align)
 
