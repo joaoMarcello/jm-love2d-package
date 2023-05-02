@@ -10,7 +10,7 @@ local dat
 local MAX
 
 ---@class JM.LeaderBoard
-local Module = { parse = Utils.parse_csv_line }
+local Module = { parse = Utils.parse_csv_line, Ldr = Loader }
 
 -- local dummy = {
 --     [1] = "socket.http",
