@@ -1,6 +1,7 @@
 local m_sin, m_cos, m_min, m_max, PI = math.sin, math.cos, math.min, math.max, math.pi
 
-local MSG_using_effect_with_no_associated_affectable = "\nError: Trying to use a 'Effect' object without associate him to a 'Affectable' object.\n\nTip: Try use the ':apply' method from the 'Effect' object."
+local MSG_using_effect_with_no_associated_affectable =
+"\nError: Trying to use a 'Effect' object without associate him to a 'Affectable' object.\n\nTip: Try use the ':apply' method from the 'Effect' object."
 
 --- Check if object implements all the needed Affectable methods and fields.
 ---@param object table
@@ -29,26 +30,26 @@ end
 ---
 ---@enum JM.Effect.id_number
 local TYPE_ = {
-    generic = 0, --***
-    flash = 1, --***
-    flickering = 2, --***
-    pulse = 3, --***
-    colorFlick = 4, --***
-    popin = 5, --***
-    popout = 6, --***
-    fadein = 7, --***
-    fadeout = 8, --***
-    ghost = 9, --***
+    generic = 0,           --***
+    flash = 1,             --***
+    flickering = 2,        --***
+    pulse = 3,             --***
+    colorFlick = 4,        --***
+    popin = 5,             --***
+    popout = 6,            --***
+    fadein = 7,            --***
+    fadeout = 8,           --***
+    ghost = 9,             --***
     spin = 10,
-    clockWise = 11, --***
+    clockWise = 11,        --***
     counterClockWise = 12, --***
-    swing = 13, --***
+    swing = 13,            --***
     pop = 14,
     growth = 15,
-    disc = 16, --***
-    idle = 17, --***
+    disc = 16,     --***
+    idle = 17,     --***
     echo = 18,
-    float = 19, --***
+    float = 19,    --***
     pointing = 20, --***
     darken = 21,
     brighten = 22,
@@ -56,20 +57,20 @@ local TYPE_ = {
     line = 24,
     zoomInOut = 25,
     stretchHorizontal = 26, --***
-    stretchVertical = 27, --***
-    circle = 28, --***
-    eight = 29, --***
-    bounce = 30, --***
-    heartBeat = 31, --***
-    butterfly = 32, --***
-    jelly = 33, --***
+    stretchVertical = 27,   --***
+    circle = 28,            --***
+    eight = 29,             --***
+    bounce = 30,            --***
+    heartBeat = 31,         --***
+    butterfly = 32,         --***
+    jelly = 33,             --***
     shake = 34,
-    clickHere = 35, --***
+    clickHere = 35,         --***
     jump = 36,
-    ufo = 37, --***
+    ufo = 37,               --***
     pendulum = 38,
-    earthquake = 39, --***
-    ghostShader = 40, --***
+    earthquake = 39,        --***
+    ghostShader = 40,       --***
 }
 
 ---
@@ -88,7 +89,6 @@ Effect.TYPE = TYPE_
 ---@param args any
 ---@return JM.Effect effect
 function Effect:new(object, args)
-
     ---@type JM.Effect
     local effect = {}
     setmetatable(effect, self)
@@ -229,7 +229,6 @@ function Effect:__update__(dt)
     if self.__max_sequence
         and self.__ends_by_cycle
         and (self.cycle_count >= self.__max_sequence) then
-
         self.__remove = true
     end
 
@@ -244,21 +243,21 @@ end
 function Effect:restaure_object()
     assert(self.__object, MSG_using_effect_with_no_associated_affectable)
 
-    if Effect.__id == Effect.TYPE.flash
-        or Effect.__id == Effect.TYPE.fadein
-        or Effect.__id == Effect.TYPE.fadeout
-        or Effect.__id == Effect.TYPE.ghost
-        or Effect.__id == Effect.TYPE.flickering
+    if self.__id == Effect.TYPE.flash
+        or self.__id == Effect.TYPE.fadein
+        or self.__id == Effect.TYPE.fadeout
+        or self.__id == Effect.TYPE.ghost
+        or self.__id == Effect.TYPE.flickering
     then
-
         self.__object:set_color(self.__obj_initial_color)
     end
 
-    if Effect.__id == Effect.TYPE.flickering
-        or Effect.__id == Effect.TYPE.popout
+    if self.__id == Effect.TYPE.flickering
+        or self.__id == Effect.TYPE.popout
     then
         self.__object:set_visible(true)
     end
+    -- self.__object:set_visible(true)
 
     self.__object:set_effect_transform("rot", self.__type_transform.rot and 0)
     self.__object:set_effect_transform("sx", self.__type_transform.sx and 1)
