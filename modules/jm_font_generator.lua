@@ -1221,7 +1221,7 @@ local printf_lines = setmetatable({}, metatable_mode_k)
 ---@param x number
 ---@param y number
 ---@param align "left"|"right"|"center"|"justify"|any
----@param limit_right number|nil
+---@param limit_right number|any
 function Font:printf(text, x, y, align, limit_right)
     --
     if type(align) == "number" then
