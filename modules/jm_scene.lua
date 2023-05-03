@@ -375,12 +375,13 @@ function Scene:main_camera()
     return self.camera
 end
 
-function Scene:pause(time, action)
+function Scene:pause(time, action, draw)
     if self.time_pause then
         return
     end
     self.time_pause = time
     self.pause_action = action or nil
+    self.pause_draw = draw or nil
 end
 
 function Scene:is_paused()
@@ -695,6 +696,7 @@ local update = function(self, dt)
         if self.time_pause <= 0 then
             self.time_pause = nil
             self.pause_action = nil
+            self.pause_draw = nil
         else
             local r = self.pause_action and self.pause_action(dt)
             return
@@ -936,7 +938,13 @@ local draw = function(self)
             camera:detach()
             --
         end
-    end
+
+        if self.time_pause and self.pause_draw then
+            camera:attach(nil, self.subpixel)
+            self.pause_draw()
+            camera:detach()
+        end
+    end -- END FOR CAMERAS
 
 
     if self.transition then
