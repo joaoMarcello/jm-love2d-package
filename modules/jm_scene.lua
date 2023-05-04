@@ -22,6 +22,7 @@ local getScissor = lgx.getScissor
 local setScissor = lgx.setScissor
 local love_rect = lgx.rectangle
 local mousePosition = love.mouse.getPosition
+local collectgarbage = collectgarbage
 
 local Transitions = {
     cartoon = require(string.gsub(path, "jm_scene", "transitions.cartoon")),
@@ -384,6 +385,7 @@ function Scene:pause(time, action, draw)
     self.time_pause = time
     self.pause_action = action or nil
     self.pause_draw = draw or nil
+    collectgarbage("step")
 end
 
 function Scene:is_paused()
