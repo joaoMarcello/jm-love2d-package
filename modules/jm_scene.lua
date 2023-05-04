@@ -35,6 +35,8 @@ local Transitions = {
     tile = require(string.gsub(path, "jm_scene", "transitions.tile")),
 }
 
+---@alias JM.Transitions.TypeNames "cartoon"|"curtain"|"diamond"|"door"|"fade"|"masker"|"pass"|"stripe"|"tile"
+
 local SceneManager = _G.JM_SceneManager
 
 ---@type JM.GUI.VPad
@@ -434,6 +436,8 @@ end
 --     love.graphics.rectangle("fill", 0, 0, self.dispositive_w, self.dispositive_h)
 -- end
 
+---@param type_ JM.Transitions.TypeNames
+---@param mode "in"|"out"
 function Scene:add_transition(type_, mode, config, action, endAction, camera)
     type_ = type_ or "fade"
     mode = mode or "out"

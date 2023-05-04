@@ -65,5 +65,6 @@ function JM:update(dt)
 end
 
 JM_Love2D_Package = JM
+JM_Package = JM
 
 return JM
