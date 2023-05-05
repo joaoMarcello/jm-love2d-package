@@ -664,7 +664,7 @@ local update = function(self, dt)
     end
 
     if self.transition then
-        local dt = dt > (1 / 30) and (1 / 30) or dt
+        -- local dt = dt > (1 / 30) and (1 / 30) or dt
         self.transition:__update__(dt)
         local r = self.trans_action and self.trans_action(dt)
 
