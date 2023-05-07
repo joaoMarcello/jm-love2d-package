@@ -111,12 +111,31 @@ Scene.__index = Scene
 ---@param self JM.Scene
 ---@return JM.Scene
 function Scene:new(x, y, w, h, canvas_w, canvas_h, bounds, config)
+    if type(x) == "table" then return self:new2(x) end
+
     local obj = {}
     setmetatable(obj, self)
 
     Scene.__constructor__(obj, x, y, w, h, canvas_w, canvas_h, bounds, config)
 
     return obj
+end
+
+---@param self JM.Scene
+---@return JM.Scene
+function Scene:new2(args)
+    local bounds
+    if args.bound_left or args.bound_right or args.bound_top or args.bound_bottom then
+        bounds = {
+            left = args.bound_left,
+            right = args.bound_right,
+            top = args.bound_top,
+            bottom = args.bound_bottom,
+        }
+    end
+
+    return self:new(args.x, args.y, args.w, args.h, args.canvas_w or args.canvas_width,
+        args.canvas_h or args.canvas_height, bounds, args)
 end
 
 function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
@@ -664,7 +683,7 @@ local update = function(self, dt)
     end
 
     if self.transition then
-        -- local dt = dt > (1 / 30) and (1 / 30) or dt
+        local dt = dt > (1 / 15) and (1 / 15) or dt
         self.transition:__update__(dt)
         local r = self.trans_action and self.trans_action(dt)
 
