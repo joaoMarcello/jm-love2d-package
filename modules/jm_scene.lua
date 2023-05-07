@@ -134,6 +134,14 @@ function Scene:new2(args)
         }
     end
 
+    args.x = args.x or 0
+    args.y = args.y or 0
+    args.w = args.w and (args.x + args.w) or love.graphics.getWidth()
+    args.h = args.h and (args.y + args.h) or love.graphics.getHeight()
+
+    -- args.w = args.w - args.x
+    -- args.h = args.h - args.y
+
     return self:new(args.x, args.y, args.w, args.h, args.canvas_w or args.canvas_width,
         args.canvas_h or args.canvas_height, bounds, args)
 end
@@ -258,6 +266,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.canvas_layer = nil
 
     self.use_vpad = conf.use_vpad or false
+
+    self.show_border = conf.show_border
 end
 
 function Scene:get_vpad()
@@ -934,8 +944,10 @@ local draw = function(self)
 
     setScissor(sx, sy, sw, sh)
 
-    -- setColor(1, 1, 1, 1)
-    -- love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
+    if self.show_border then
+        setColor(1, 1, 1, 1)
+        love_rect('line', self.x, self.y, self.w - self.x, self.h - self.y)
+    end
 end
 
 ---@param self JM.Scene
