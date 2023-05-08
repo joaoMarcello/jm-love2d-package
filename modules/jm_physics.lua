@@ -4,7 +4,10 @@ local table_insert, table_remove, table_sort = table.insert, table.remove, table
 
 local pairs = pairs
 
-local reuse_tab = {}
+local metatable_mode_v = { __mode = 'v' }
+local metatable_mode_k = { __mode = 'k' }
+
+local reuse_tab = setmetatable({}, metatable_mode_k)
 local function empty_table()
     for index, _ in pairs(reuse_tab) do
         reuse_tab[index] = nil
@@ -12,7 +15,7 @@ local function empty_table()
     return reuse_tab
 end
 
-local reuse_tab2 = {}
+local reuse_tab2 = setmetatable({}, metatable_mode_v)
 local function empty_table_for_coll()
     -- for index, _ in pairs(reuse_tab2) do
     --     reuse_tab2[index] = nil
@@ -24,8 +27,7 @@ local function empty_table_for_coll()
     return reuse_tab2
 end
 
-local metatable_mode_v = { __mode = 'v' }
-local metatable_mode_k = { __mode = 'k' }
+
 
 ---@enum JM.Physics.BodyTypes
 local BodyTypes = {
@@ -253,12 +255,14 @@ local Body = {
     empty_table = empty_table,
     empty_table_for_coll = empty_table_for_coll,
 }
+Body.__index = Body
+
 do
     ---@return JM.Physics.Body
     function Body:new(x, y, w, h, type_, world, id)
         local obj = {}
         setmetatable(obj, self)
-        self.__index = self
+        -- self.__index = self
 
         Body.__constructor__(obj, x, y, w, h, type_, world, id)
         return obj
