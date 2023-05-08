@@ -770,9 +770,11 @@ local draw = function(self)
         --
         ---@type JM.Camera.Camera
         local camera = self.cameras_list[i]
+        local cam_is_visible = camera.is_visible
 
         if param.layers then
             for i = 1, self.n_layers, 1 do
+                if not cam_is_visible then break end
                 --
                 ---@type JM.Scene.Layer
                 local layer = param.layers[i]
@@ -879,12 +881,8 @@ local draw = function(self)
             end -- END FOR Layers
         end
 
-        if param.draw then
-            ---
-            -- if camera.color and not param.layers then
-            --     camera:draw_background()
-            -- end
-
+        if param.draw and cam_is_visible then
+            --
             camera:attach(nil, self.subpixel)
 
             param.draw(camera)
@@ -895,7 +893,7 @@ local draw = function(self)
             --
         end
 
-        if self.time_pause and self.pause_draw then
+        if self.time_pause and self.pause_draw and cam_is_visible then
             camera:attach(nil, self.subpixel)
             self.pause_draw()
             camera:detach()

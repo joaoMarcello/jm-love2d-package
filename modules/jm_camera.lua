@@ -669,6 +669,7 @@ local CAMERA_TYPES = {
 ---@class JM.Camera.Camera
 local Camera = {}
 Camera.__index = Camera
+
 Camera.MoveTypes = {
     chase_y_when_not_moving = chase_y_when_not_moving,
     dynamic_y_offset = dynamic_y_offset,
@@ -820,6 +821,8 @@ function Camera:__constructor__(
     -- self.canvas:setFilter("linear", "nearest")
 
     self.zoom_rad = 0
+
+    self.is_visible = true
 end
 
 function Camera:set_device_screen(w, h)
