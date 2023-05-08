@@ -1357,16 +1357,11 @@ local function debbug(self)
         Font.current:push()
         Font.current:set_font_size(8)
 
-        -- self.phrase_debug = self.phrase_debug or
-        --     Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
-
-        local fr = Font:get_phrase("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE")
-        fr.__bounds.right = math.huge
-        fr:draw(
-            vx + vw - border_len - fr:width() - 10,
-            vy + border_len + 10,
-            "left"
-        )
+        lgx.push()
+        lgx.translate(vx, vy)
+        Font.current:printx("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE", 0, border_len + 10,
+            vw - border_len - 10, "right")
+        lgx.pop()
         Font.current:pop()
     end
 end

@@ -2,6 +2,31 @@ local abs, mfloor, mceil, sqrt, min, max = math.abs, math.floor, math.ceil, math
 
 local table_insert, table_remove, table_sort = table.insert, table.remove, table.sort
 
+local pairs = pairs
+
+local reuse_tab = {}
+local function empty_table()
+    for index, _ in pairs(reuse_tab) do
+        reuse_tab[index] = nil
+    end
+    return reuse_tab
+end
+
+local reuse_tab2 = {}
+local function empty_table_for_coll()
+    -- for index, _ in pairs(reuse_tab2) do
+    --     reuse_tab2[index] = nil
+    -- end
+    local N = #reuse_tab2
+    for i = N, 1, -1 do
+        reuse_tab2[i] = nil
+    end
+    return reuse_tab2
+end
+
+local metatable_mode_v = { __mode = 'v' }
+local metatable_mode_k = { __mode = 'k' }
+
 ---@enum JM.Physics.BodyTypes
 local BodyTypes = {
     dynamic = 1,
@@ -225,6 +250,8 @@ local Body = {
     filter_col_y = coll_y_filter,
     filter_col_x = coll_y_filter,
     filter_default = default_filter,
+    empty_table = empty_table,
+    empty_table_for_coll = empty_table_for_coll,
 }
 do
     ---@return JM.Physics.Body
@@ -486,7 +513,7 @@ do
     -- end
 
     ---@return JM.Physics.Collisions collisions
-    function Body:check(goal_x, goal_y, filter)
+    function Body:check(goal_x, goal_y, filter, empty_tab, tab_for_items)
         goal_x = goal_x or self.x
         goal_y = goal_y or self.y
         filter = filter or default_filter
@@ -502,7 +529,7 @@ do
 
         local x, y, w, h = left, top, right - left, bottom - top
 
-        local items = self.world:get_items_in_cell_obj(x, y, w, h)
+        local items = self.world:get_items_in_cell_obj(x, y, w, h, empty_tab)
 
         if not items then
             self.colls.n = 0
@@ -544,7 +571,7 @@ do
 
             -- and self.extra_filter(self, item)
             then
-                col_items = col_items or {}
+                col_items = col_items or tab_for_items or {}
 
                 table_insert(col_items, item)
 
@@ -882,7 +909,7 @@ do
                     ex = obj.speed_y < 0 and -1 or ex
 
                     ---@type JM.Physics.Collisions
-                    local col = obj:check(nil, goaly + ex, coll_y_filter)
+                    local col = obj:check(nil, goaly + ex, coll_y_filter, empty_table(), empty_table_for_coll())
 
                     if col.n > 0 then -- collision!
                         obj:resolve_collisions_y(col)
@@ -984,7 +1011,7 @@ do
 
                     --- will store the body collisions with other bodies
                     ---@type JM.Physics.Collisions
-                    local col = obj:check(goalx + ex, nil, collision_x_filter)
+                    local col = obj:check(goalx + ex, nil, collision_x_filter, empty_table(), empty_table_for_coll())
 
                     if col.n > 0 then -- had collision!
                         obj:resolve_collisions_x(col)
@@ -1324,10 +1351,10 @@ do
     end
 
     function World:add_obj_to_cell(obj, cx, cy)
-        self.grid[cy] = self.grid[cy] or setmetatable({}, { __mode = 'v' })
+        self.grid[cy] = self.grid[cy] or setmetatable({}, metatable_mode_v)
         local row = self.grid[cy]
 
-        row[cx] = row[cx] or { count = 0, x = cx, y = cy, items = setmetatable({}, { __mode = 'k' }) }
+        row[cx] = row[cx] or { count = 0, x = cx, y = cy, items = setmetatable({}, metatable_mode_k) }
 
         local cell = row[cx]
         self.non_empty_cells[cell] = true
@@ -1360,9 +1387,9 @@ do
     ---@param w number
     ---@param h number
     ---@return table|nil
-    function World:get_items_in_cell_obj(x, y, w, h)
+    function World:get_items_in_cell_obj(x, y, w, h, empty_tab)
         local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
-        local items --= {}
+        local items --= empty_tab
 
         for cy = ct, (ct + ch - 1) do
             local row = self.grid[cy]
@@ -1373,7 +1400,7 @@ do
                     local cell = row[cx]
 
                     if cell and cell.count > 0 then
-                        items = items or {}
+                        items = items or empty_tab or {}
 
                         for item, _ in pairs(cell.items) do
                             items[item] = true
