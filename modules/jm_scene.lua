@@ -267,7 +267,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     self.use_vpad = conf.use_vpad or false
 
-    self.show_border = conf.show_border
+    self.show_border = conf.show_border or false
 end
 
 function Scene:get_vpad()

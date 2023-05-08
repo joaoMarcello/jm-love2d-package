@@ -1,18 +1,19 @@
-local love_translate = love.graphics.translate
-local love_pop = love.graphics.pop
-local love_push = love.graphics.push
-local love_scale = love.graphics.scale
-local love_get_scissor = love.graphics.getScissor
-local love_set_scissor = love.graphics.setScissor
-local love_set_blend_mode = love.graphics.setBlendMode
-local love_get_blend_mode = love.graphics.getBlendMode
-local love_set_color = love.graphics.setColor
-local love_clear = love.graphics.clear
-local love_get_canvas = love.graphics.getCanvas
-local love_set_canvas = love.graphics.setCanvas
-local love_draw = love.graphics.draw
-local love_rect = love.graphics.rectangle
-local love_line = love.graphics.line
+local lgx = love.graphics
+local love_translate = lgx.translate
+local love_pop = lgx.pop
+local love_push = lgx.push
+local love_scale = lgx.scale
+-- local love_get_scissor = lgx.getScissor
+local love_set_scissor = lgx.setScissor
+-- local love_set_blend_mode = lgx.setBlendMode
+-- local love_get_blend_mode = lgx.getBlendMode
+local love_set_color = lgx.setColor
+local love_clear = lgx.clear
+-- local love_get_canvas = lgx.getCanvas
+-- local love_set_canvas = lgx.setCanvas
+-- local love_draw = lgx.draw
+local love_rect = lgx.rectangle
+local love_line = lgx.line
 local sin, cos, atan2, sqrt, abs = math.sin, math.cos, math.atan2, math.sqrt, math.abs
 local mfloor, mceil = math.floor, math.ceil
 local m_min, m_max = math.min, math.max
@@ -667,13 +668,20 @@ local CAMERA_TYPES = {
 
 ---@class JM.Camera.Camera
 local Camera = {}
+Camera.__index = Camera
+Camera.MoveTypes = {
+    chase_y_when_not_moving = chase_y_when_not_moving,
+    dynamic_y_offset = dynamic_y_offset,
+    dynamic_x_offset = dynamic_x_offset,
+    chase_target_x = chase_target_x,
+    chase_target_y = chase_target_y,
+}
 
 ---@param self JM.Camera.Camera
 ---@return JM.Camera.Camera
 function Camera:new(args)
     local obj = {}
     setmetatable(obj, self)
-    self.__index = self
 
     Camera.__constructor__(obj,
         args.x, args.y, args.w, args.h, args.bounds,
@@ -683,8 +691,6 @@ function Camera:new(args)
         args.show_grid, args.grid_tile_size, args.show_world_bounds,
         args.border_color
     )
-
-    args = nil
 
     return obj
 end
@@ -1225,59 +1231,6 @@ function Camera:set_custom_update(custom)
     self.custom_update = custom
 end
 
-function Camera:update(dt)
-    assert(self.scale and self.scale ~= 0, ">> Error: Scale cannot be zero or nil !!!")
-
-    local last_x, last_y = self.x, self.y
-
-    if self.custom_update then
-        self:custom_update(dt)
-    end
-
-    if self.target then
-        local r = self.movement_x and self.movement_x(self, dt)
-        r = self.movement_y and self.movement_y(self, dt)
-    end
-
-    -- if self.is_shaking then
-    shake_update(self, dt)
-    -- end
-
-    dynamic_zoom_update(self, dt)
-    -- local temp = self:target_on_focus()
-    -- self.zoom_rad = self.zoom_rad + (math.pi * 2) / 4 * dt
-    -- -- self.scale = 1.5 + 2.9 / 2.0 / 5.0 * cos(self.zoom_rad)
-    -- self.scale = 1.2 + 0.5 / 5.0 * cos(self.zoom_rad)
-    -- if true then
-    --     -- local lx = self.lock_x
-    --     -- self:unlock_x_axis()
-    --     -- self:set_position(0, 0)
-    --     -- self:set_position(self.target.x, self.target.y)
-    --     -- self.target.last_x = self.x
-    --     -- self.target.last_y = self.y
-    --     self.deadzone_w = self.tile_size * 2 * self.scale
-    --     -- self:set_lock_x_axis(lx)
-    -- end
-
-    -- self.zoom_rad = self.zoom_rad + (math.pi * 2) / 10 * dt
-    -- self.angle = self.zoom_rad
-
-    -- local left, top, right, bottom, lock, px, py
-
-    -- left, top = self:screen_to_world(self.bounds_left, self.bounds_top)
-    -- right, bottom = self:screen_to_world(
-    --     self.bounds_right - self.viewport_w / self.scale / self.desired_scale,
-    --     self.bounds_bottom - self.viewport_h / self.scale / self.desired_scale
-    -- )
-    -- px, py = self:screen_to_world(self.x, self.y)
-
-    -- --===================================
-    self:keep_on_bounds()
-
-    self.dx = self.x - last_x
-    self.dy = self.y - last_y
-end
-
 function Camera:keep_on_bounds()
     local px = clamp(self.x, self.bounds_left, self.bounds_right - self.viewport_w / self.scale)
 
@@ -1417,38 +1370,6 @@ end
 
 function Camera:set_shader(shader)
     self.shader = shader
-end
-
-function Camera:attach(lock_shake, subpixel)
-    local x, y, w, h = self:get_viewport()
-
-    if subpixel then
-        x = x * subpixel
-        y = y * subpixel
-        h = h * subpixel
-        w = w * subpixel
-    end
-
-    love_set_scissor(x, y, w, h)
-
-    love_push()
-    love_scale(self.scale)
-
-    local shake_x = (not lock_shake and self.shaking_in_x and self.shake_offset_x) or 0
-
-    local shake_y = (not lock_shake and self.shaking_in_y and self.shake_offset_y) or 0
-
-    love_translate(
-        -self.x + (self.viewport_x / self.scale)
-        + shake_x,
-        -self.y + (self.viewport_y / self.scale)
-        + shake_y
-    )
-end
-
-function Camera:detach()
-    love_pop()
-    love_set_scissor()
 end
 
 function Camera:draw_background()
@@ -1657,6 +1578,91 @@ end
 function Camera:unlock_movements()
     self:set_lock_x_axis(false)
     self:set_lock_y_axis(false)
+end
+
+function Camera:update(dt)
+    assert(self.scale and self.scale ~= 0, ">> Error: Scale cannot be zero or nil !!!")
+
+    local last_x, last_y = self.x, self.y
+
+    if self.custom_update then
+        self:custom_update(dt)
+    end
+
+    if self.target then
+        local r = self.movement_x and self.movement_x(self, dt)
+        r = self.movement_y and self.movement_y(self, dt)
+    end
+
+    -- if self.is_shaking then
+    shake_update(self, dt)
+    -- end
+
+    dynamic_zoom_update(self, dt)
+    -- local temp = self:target_on_focus()
+    -- self.zoom_rad = self.zoom_rad + (math.pi * 2) / 4 * dt
+    -- -- self.scale = 1.5 + 2.9 / 2.0 / 5.0 * cos(self.zoom_rad)
+    -- self.scale = 1.2 + 0.5 / 5.0 * cos(self.zoom_rad)
+    -- if true then
+    --     -- local lx = self.lock_x
+    --     -- self:unlock_x_axis()
+    --     -- self:set_position(0, 0)
+    --     -- self:set_position(self.target.x, self.target.y)
+    --     -- self.target.last_x = self.x
+    --     -- self.target.last_y = self.y
+    --     self.deadzone_w = self.tile_size * 2 * self.scale
+    --     -- self:set_lock_x_axis(lx)
+    -- end
+
+    -- self.zoom_rad = self.zoom_rad + (math.pi * 2) / 10 * dt
+    -- self.angle = self.zoom_rad
+
+    -- local left, top, right, bottom, lock, px, py
+
+    -- left, top = self:screen_to_world(self.bounds_left, self.bounds_top)
+    -- right, bottom = self:screen_to_world(
+    --     self.bounds_right - self.viewport_w / self.scale / self.desired_scale,
+    --     self.bounds_bottom - self.viewport_h / self.scale / self.desired_scale
+    -- )
+    -- px, py = self:screen_to_world(self.x, self.y)
+
+    -- --===================================
+    self:keep_on_bounds()
+
+    self.dx = self.x - last_x
+    self.dy = self.y - last_y
+end
+
+function Camera:attach(lock_shake, subpixel)
+    local x, y, w, h = self:get_viewport()
+
+    if subpixel then
+        x = x * subpixel
+        y = y * subpixel
+        h = h * subpixel
+        w = w * subpixel
+    end
+
+    love_set_scissor(x, y, w, h)
+
+    love_push()
+    love_scale(self.scale)
+
+    local shake_x = (not lock_shake and self.shaking_in_x and self.shake_offset_x) or 0
+
+    local shake_y = (not lock_shake and self.shaking_in_y and self.shake_offset_y) or 0
+
+    love_translate(
+        -self.x + (self.viewport_x / self.scale)
+        + shake_x,
+        -self.y + (self.viewport_y / self.scale)
+        + shake_y
+    )
+end
+
+function Camera:detach()
+    love_pop()
+    love_set_scissor()
 end
 
 return Camera

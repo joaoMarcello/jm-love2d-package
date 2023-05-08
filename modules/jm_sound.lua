@@ -79,7 +79,7 @@ end
 
 function Sound:update(dt)
     if self.__fade_out then
-        local volume = love_get_volume() - 1 / self.fade_out_speed * dt
+        local volume = love_get_volume() - 1.0 / self.fade_out_speed * dt
         volume = clamp(volume, 0, 1)
 
         love_set_volume(volume)
@@ -89,7 +89,7 @@ function Sound:update(dt)
         end
         ---
     elseif self.__fade_in then
-        local volume = love_get_volume() + 1 / self.fade_in_speed * dt
+        local volume = love_get_volume() + 1.0 / self.fade_in_speed * dt
         love_set_volume(volume)
         if volume >= 1 then
             self.__fade_in = false
@@ -170,6 +170,9 @@ function Sound:play_song(name)
     local audio = list_song[name]
     if not audio then return false end
 
+    if current_song and current_song.name == name then
+        return
+    end
     -- stopping all others songs
     for _, audio in pairs(list_song) do
         ---@type JM.Sound.Audio
