@@ -23,6 +23,7 @@ local setScissor = lgx.setScissor
 local love_rect = lgx.rectangle
 local mousePosition = love.mouse.getPosition
 local collectgarbage = collectgarbage
+local tab_insert, tab_sort, tab_remove = table.insert, table.sort, table.remove
 
 local Transitions = {
     cartoon = require(string.gsub(path, "jm_scene", "transitions.cartoon")),
@@ -268,6 +269,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.use_vpad = conf.use_vpad or false
 
     self.show_border = conf.show_border or false
+
+    self.game_objects = {}
 end
 
 function Scene:get_vpad()
@@ -1215,6 +1218,58 @@ function Scene:rect_is_on_view(x, y, w, h)
     end
 
     return false
+end
+
+local sort_update = function(a, b) return a.update_order > b.update_order end
+local sort_draw = function(a, b) return a.draw_order < b.draw_order end
+
+function Scene:remove_object(index)
+    ---@type GameObject | BodyObject
+    local obj = self.game_objects[index]
+
+    if obj then
+        if obj.body then obj.body.__remove = true end
+
+        return tab_remove(self.game_objects, index)
+    end
+end
+
+function Scene:add_object(obj)
+    tab_insert(self.game_objects, obj)
+    return obj
+end
+
+function Scene:update_game_objects(dt)
+    local list = self.game_objects
+    tab_sort(list, sort_update)
+
+    for i = #list, 1, -1 do
+        ---@type GameObject
+        local gc = list[i]
+
+        if gc.is_enable and not gc.__remove then
+            gc:update(dt)
+        end
+
+        if gc.__remove then
+            self:remove_object(i)
+        end
+    end
+end
+
+---@param camera JM.Camera.Camera | any
+function Scene:draw_game_object(camera)
+    local list = self.game_objects
+    tab_sort(list, sort_draw)
+
+    for i = 1, #list do
+        -- -@type GameObject
+        local gc = list[i]
+
+        if gc.draw then
+            gc:draw(camera)
+        end
+    end
 end
 
 return Scene
