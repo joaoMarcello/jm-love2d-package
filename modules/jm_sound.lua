@@ -6,9 +6,12 @@ local volume_song = 1
 ---@type JM.Sound.Audio|nil
 local current_song = nil
 
+local song_mode = "stream"
+
 --==========================================================================
 local love_get_volume = love.audio.getVolume
 local love_set_volume = love.audio.setVolume
+local pairs = pairs
 
 local function clamp(value, min, max)
     return math.min(math.max(value, min), max)
@@ -24,9 +27,9 @@ do
     ---@param name string
     ---@param volume number|nil
     ---@param type "stream"|"static"|"queue"
-    function Audio:new(path, name, volume, type)
+    function Audio:new(path, name, volume, type, is_song)
         local obj = setmetatable({}, self)
-        Audio.__constructor__(obj, path, name, volume or 1, type or "static")
+        Audio.__constructor__(obj, path, name, volume or 1, type or "static", is_song)
         return obj
     end
 
@@ -34,12 +37,12 @@ do
     ---@param name string
     ---@param volume number
     ---@param type "stream"|"static"|"queue"
-    function Audio:__constructor__(path, name, volume, type)
+    function Audio:__constructor__(path, name, volume, type, is_song)
         self.source = love.audio.newSource(path, type)
         self.name = name:lower()
         self.volume = volume
 
-        if type == "static" then
+        if type == "static" and not is_song then
             list_sfx[name] = self
         else
             list_song[name] = self
@@ -112,7 +115,7 @@ function Sound:add_sfx(path, name, volume)
 end
 
 function Sound:add_song(path, name, volume)
-    local audio = Audio:new(path, name, volume, "stream")
+    local audio = Audio:new(path, name, volume, song_mode, true)
     audio.source:setLooping(true)
     audio.source:setVolume(audio.volume * volume_song)
 end
@@ -210,6 +213,11 @@ function Sound:stop_all()
     for _, audio in pairs(list_sfx) do
         audio.source:stop()
     end
+end
+
+---@param value  "stream"|"static"
+function Sound:set_song_mode(value)
+    song_mode = value
 end
 
 return Sound
