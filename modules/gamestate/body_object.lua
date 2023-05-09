@@ -8,8 +8,11 @@ local GC = require((...):gsub("body_object", "game_object"))
 local Component = JM_Utils:create_class(Affectable, GC)
 
 ---@return table
-function Component:new(x, y, w, h, draw_order, update_order, bd_type)
-    local obj = GC:new(x, y, w, h, draw_order, update_order)
+function Component:new(
+    x, y, w, h, draw_order, update_order,
+    bd_type, reuse_tab
+)
+    local obj = GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
 
     setmetatable(obj, self)
     Affectable.__constructor__(obj)

@@ -1303,11 +1303,12 @@ end
 
 ---@class JM.Physics.World
 local World = {}
+World.__index = World
 do
     function World:new(args)
         local obj = {}
         setmetatable(obj, self)
-        self.__index = self
+        -- self.__index = self
 
         World.__constructor__(obj, args or {})
         return obj

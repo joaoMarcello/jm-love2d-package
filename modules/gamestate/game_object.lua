@@ -8,13 +8,13 @@ GC.__index = GC
 ---@param gamestate JM.Scene
 ---@param world JM.Physics.World
 function GC:init_state(gamestate, world)
-    self.gamestate = gamestate
-    self.world = world
+    GC.gamestate = gamestate
+    GC.world = world
 end
 
 ---@return table
-function GC:new(x, y, w, h, draw_order, update_order)
-    local obj = setmetatable(Affectable:new(), GC)
+function GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
+    local obj = setmetatable(Affectable:new(nil, reuse_tab), GC)
     GC.__constructor__(obj, x, y, w, h, draw_order, update_order)
     return obj
 end

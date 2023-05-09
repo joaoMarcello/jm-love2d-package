@@ -18,9 +18,9 @@ local Affectable = {}
 Affectable.__index = Affectable
 
 ---@param obj_draw function|nil
-function Affectable:new(obj_draw)
-    local obj = {}
-    self.__index = self
+function Affectable:new(obj_draw, reuse_table)
+    local obj = reuse_table or {}
+    -- self.__index = self
     setmetatable(obj, self)
 
     Affectable.__constructor__(obj, obj_draw)

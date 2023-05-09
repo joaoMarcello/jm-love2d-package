@@ -1247,13 +1247,25 @@ function Scene:update_game_objects(dt)
         ---@type GameObject
         local gc = list[i]
 
-        if gc.is_enable and not gc.__remove then
-            gc:update(dt)
-        end
-
         if gc.__remove then
             self:remove_object(i)
+        else
+            if gc.update and gc.is_enable then
+                gc:update(dt)
+            end
+
+            if gc.__remove then
+                gc.update_order = -100000
+            end
+            --
         end
+        -- if gc.is_enable and not gc.__remove then
+        --     gc:update(dt)
+        -- end
+
+        -- if gc.__remove then
+        --     self:remove_object(i)
+        -- end
     end
 end
 
@@ -1263,10 +1275,10 @@ function Scene:draw_game_object(camera)
     tab_sort(list, sort_draw)
 
     for i = 1, #list do
-        -- -@type GameObject
+        ---@type GameObject
         local gc = list[i]
 
-        if gc.draw then
+        if gc.draw and not gc.__remove then
             gc:draw(camera)
         end
     end
