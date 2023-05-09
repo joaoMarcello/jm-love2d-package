@@ -1,6 +1,5 @@
 local Affectable = _G.JM_Affectable
 
-
 ---@class GameObject: JM.Template.Affectable
 local GC = setmetatable({}, Affectable)
 GC.__index = GC

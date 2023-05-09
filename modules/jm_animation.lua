@@ -67,16 +67,13 @@ end
 ---@class JM.Anima.Frame
 --- Internal class Frame.
 local Frame = {}
+Frame.__index = Frame
 do
     ---@param args {left: number, right:number, top:number, bottom:number, speed:number, ox:number, oy:number}
     function Frame:new(args)
-        local obj = {}
-
-        setmetatable(obj, self)
-        self.__index = self
-
+        --
+        local obj = setmetatable({}, self)
         Frame.__constructor__(obj, args)
-
         return obj
     end
 
@@ -91,10 +88,10 @@ do
         self.y = top
         self.w = right - left
         self.h = bottom - top
-        self.ox = args.ox or (self.w / 2)
-        self.oy = args.oy or (self.h / 2)
+        self.ox = args.ox or (self.w * 0.5)
+        self.oy = args.oy or (self.h * 0.5)
 
-        self.speed = args.speed or nil
+        self.speed = args.speed or false
 
         self.bottom = self.y + self.h
     end
@@ -168,15 +165,15 @@ function Anima:new(args)
     return animation
 end
 
----
---- Internal method for constructor.
----
---- @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number, min_filter: string, max_filter:string}  # A table containing the follow fields:
----
+-- -
+-- - Internal method for constructor.
+-- -
+-- - @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number, min_filter: string, max_filter:string}  # A table containing the follow fields:
+-- -
 function Anima:__constructor__(args)
-    self.args = args
+    -- self.args = args
 
-    self:set_img(args.img)
+    self:set_img(args.img, args.min_filter, args.max_filter)
 
     self.__amount_frames = (args.frames_list and #args.frames_list) or (args.frames) or 1
 
@@ -190,7 +187,7 @@ function Anima:__constructor__(args)
 
     self:set_reverse_mode(args.is_reversed)
 
-    self:set_color(args.color or { 1, 1, 1, 1 })
+    self:set_color(args.color or self:generate_color(1, 1, 1, 1))
 
     self.rotation = args.rotation or 0
     self.speed = args.speed or 0.3
@@ -211,46 +208,49 @@ function Anima:__constructor__(args)
     self.scale_y = 1
     self:set_scale(args.scale and args.scale.x, args.scale and args.scale.y)
 
-    self.frames_list = {}
+    self.frames_list = args.__frame_obj_list__ or {}
 
-    if not args.frames_list then
-        args.frames_list = {}
-        local w = self.img:getWidth() / self.__amount_frames
-        for i = 1, self.__amount_frames do
-            table.insert(args.frames_list, {
-                (i - 1) * w,
-                (i - 1) * w + w,
-                0,
-                args.bottom or self.img:getHeight()
-            })
+    if not args.__frame_obj_list__ then
+        --
+        if not args.frames_list then
+            args.frames_list = {}
+            local w = self.img:getWidth() / self.__amount_frames
+            for i = 1, self.__amount_frames do
+                table.insert(args.frames_list, {
+                    (i - 1) * w,
+                    (i - 1) * w + w,
+                    0,
+                    args.bottom or self.img:getHeight()
+                })
+            end
         end
+
+        -- Generating the Frame objects and inserting them into the frames_list
+        for i = 1, #args.frames_list do
+            self.frames_list[i] = Frame:new(args.frames_list[i])
+        end -- END FOR for generate frames objects
+        --
     end
-
-
-    -- Generating the Frame objects and inserting them into the frames_list
-    for i = 1, #args.frames_list do
-        self.frames_list[i] = Frame:new(args.frames_list[i])
-    end -- END FOR for generate frames objects
 
 
     if args.width or args.height then
         self:set_size(args.width, args.height, args.ref_width, args.ref_height)
     end
 
-    self.quad = love.graphics.newQuad(0, 0,
+    self.quad = args.__quad__ or love.graphics.newQuad(0, 0,
         args.frames_list[1][1],
         args.frames_list[1][2],
         self.img:getDimensions()
     )
 end
 
-function Anima:copy()
-    self.args.img = self.img
-    local anim = Anima:new(self.args)
-    anim:set_color(self:get_color())
-    anim:set_scale(self:get_scale())
-    return anim
-end
+-- function Anima:copy()
+--     self.args.img = self.img
+--     local anim = Anima:new(self.args)
+--     anim:set_color(self:get_color())
+--     anim:set_scale(self:get_scale())
+--     return anim
+-- end
 
 ---@param n integer
 ---@param config {left:number, right:number, top:number, bottom:number, speed:number, ox:number, oy:number}
@@ -351,13 +351,13 @@ end
 --
 ---@overload fun(self: table, image: love.Image)
 ---@param file_name string # The file path for source image.
-function Anima:set_img(file_name)
+function Anima:set_img(file_name, min_filter, max_filter)
     if type(file_name) == "string" then
         self.img = love.graphics.newImage(file_name)
     else
         self.img = file_name
     end
-    self.img:setFilter(self.args.min_filter or "linear", self.args.max_filter or "nearest")
+    self.img:setFilter(min_filter or "linear", max_filter or "nearest")
     return self.img
 end
 
@@ -372,11 +372,11 @@ function Anima:set_flip_y(flip)
 end
 
 function Anima:toggle_flip_x()
-    self.flip_x = self.flip_x * ( -1)
+    self.flip_x = self.flip_x * (-1)
 end
 
 function Anima:toggle_flip_y()
-    self.flip_y = self.flip_y * ( -1)
+    self.flip_y = self.flip_y * (-1)
 end
 
 ---@param x number|nil
@@ -581,8 +581,8 @@ function Anima:update(dt)
                     --     self:pause()
                     -- end
                 end -- END ELSE animation in "back and forth" state
-            end -- END ELSE if animation is repeating
-        else -- ELSE direction is negative
+            end     -- END ELSE if animation is repeating
+        else        -- ELSE direction is negative
             if self.current_frame < 1 then
                 if is_in_looping_state(self) then
                     self.current_frame = self.__amount_frames
@@ -598,7 +598,7 @@ function Anima:update(dt)
                 else -- ELSE animation is not repeating
                     self.current_frame = 1
                     self.time_frame = self.time_frame + speed
-                    self.direction = self.direction * ( -1)
+                    self.direction = self.direction * (-1)
 
                     if self.direction == self.initial_direction then
                         self.cycle_count = (self.cycle_count + 1) % 600000
@@ -611,8 +611,8 @@ function Anima:update(dt)
                     -- end
                 end -- END ELSE animation is not repeating
             end
-        end -- END if in normal direction (positive direction)
-    end -- END IF time update bigger than speed
+        end         -- END if in normal direction (positive direction)
+    end             -- END IF time update bigger than speed
 
     if last_frame ~= self.current_frame then
         dispatch_event(self, Event.frame_change)

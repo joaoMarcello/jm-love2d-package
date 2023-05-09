@@ -48,6 +48,10 @@ function Affectable:__constructor__(obj_draw)
     self.__specific_draw__ = obj_draw
 end
 
+function Affectable:generate_color(r, g, b, a)
+    return Utils:get_rgba(r, g, b, a)
+end
+
 ---
 ---@param object JM.Template.Affectable
 ---@param value JM.Color
