@@ -1,5 +1,7 @@
 local Affectable = _G.JM_Affectable
 
+local pairs = pairs
+
 ---@class GameObject: JM.Template.Affectable
 local GC = setmetatable({}, Affectable)
 GC.__index = GC
@@ -13,6 +15,12 @@ end
 
 ---@return table
 function GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
+    if reuse_tab then
+        for i, _ in pairs(reuse_tab) do
+            reuse_tab[i] = nil
+        end
+    end
+
     local obj = setmetatable(Affectable:new(nil, reuse_tab), GC)
     GC.__constructor__(obj, x, y, w, h, draw_order, update_order)
     return obj

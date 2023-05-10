@@ -7,9 +7,9 @@ local Utils = _G.JM_Utils
 local EffectManager = require((...):gsub("templates.Affectable", "jm_effect_manager"))
 
 
-local love_graphics_apply_transform = love.graphics.applyTransform
-local love_push = love.graphics.push
-local love_pop = love.graphics.pop
+local lgx_applyTransform = love.graphics.applyTransform
+local lgx_push = love.graphics.push
+local lgx_pop = love.graphics.pop
 
 ---@alias JM.Effect.TransformObject {x: number, y: number, rot: number, sx: number, sy: number, ox: number, oy: number, kx: number, ky: number}
 
@@ -143,7 +143,7 @@ local function apply_transform(self, x, y)
             eff_transf.ky
         )
 
-        love_graphics_apply_transform(self.__transform)
+        lgx_applyTransform(self.__transform)
     end
 end
 
@@ -155,7 +155,7 @@ end
 ---@param ... unknown
 function Affectable:__draw__(draw, ...)
     --if not draw then return end
-    love_push()
+    lgx_push()
     apply_transform(self, self.x, self.y)
     local args = (...) and { ... }
     if args then
@@ -163,7 +163,7 @@ function Affectable:__draw__(draw, ...)
     else
         draw(self)
     end
-    love_pop()
+    lgx_pop()
 end
 
 ---@param custom_draw function|nil

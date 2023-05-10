@@ -53,6 +53,7 @@ local function desired_size(width, height, ref_width, ref_height, keep_proportio
         end
     end
 
+    ---@diagnostic disable-next-line: return-type-mismatch
     return dw, dh
 end
 
