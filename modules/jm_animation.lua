@@ -30,6 +30,7 @@ local ANIMA_STATES = {
     repeating_last_n_frames = 4
 }
 
+local QUADS = setmetatable({}, { __mode = 'kv' })
 
 ---@param width any
 ---@param height any
@@ -237,11 +238,13 @@ function Anima:__constructor__(args)
         self:set_size(args.width, args.height, args.ref_width, args.ref_height)
     end
 
-    self.quad = args.__quad__ or love.graphics.newQuad(0, 0,
+    self.quad = QUADS[self.img] or love.graphics.newQuad(0, 0,
         args.frames_list[1][1],
         args.frames_list[1][2],
         self.img:getDimensions()
     )
+
+    QUADS[self.img] = self.quad
 end
 
 -- function Anima:copy()
