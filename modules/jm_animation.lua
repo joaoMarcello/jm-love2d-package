@@ -245,7 +245,9 @@ function Anima:__constructor__(args)
         self.img:getDimensions()
     )
 
-    QUADS[self.img] = self.quad
+    if not QUADS[self.img] then
+        QUADS[self.img] = self.quad
+    end
 end
 
 -- function Anima:copy()
