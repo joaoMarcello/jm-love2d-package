@@ -279,9 +279,9 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
                 nil, cur_char.__anima:get_current_frame().h
             )
 
-            local pos_y = y + cur_char.h / 2 * cur_char.sy
+            local pos_y = y + cur_char.h * 0.5 * cur_char.sy
 
-            local pos_x = tx + cur_char.w / 2 * cur_char.sx
+            local pos_x = tx + cur_char.w * 0.5 * cur_char.sx
 
             cur_char:draw(pos_x, pos_y)
         end

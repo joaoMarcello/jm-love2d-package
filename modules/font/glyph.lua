@@ -80,6 +80,7 @@ function Glyph:__constructor__(img, args)
     ---@type JM.Anima
     self.__anima = args.anima
 
+    -- self.color = { 1, 0, 0, 1 }
     self:set_color2(1, 1, 1, 1)
 
     self.ox = (self.w) * 0.5 --* self.sx
@@ -153,7 +154,7 @@ function Glyph:set_color2(r, g, b, a)
     Affectable.set_color2(self, r, g, b, a)
 
     if self.__anima then
-        self.__anima:set_color(self.color)
+        self.__anima:set_color2(r, g, b, a)
     end
 end
 
@@ -200,7 +201,8 @@ function Glyph:__glyph_draw__()
     local x, y = self.x + self.ox * self.sx, self.y + self.oy * self.sy
 
     if self.__anima then
-        self.__anima:draw(x, y)
+        self.__anima:set_color(self.color)
+        self.__anima:draw(x - self.ox * self.sx, y - self.oy * self.sy)
         --
     elseif not self.img then
         lgx_setColor(0, 0, 0, 0.2)
