@@ -85,6 +85,7 @@ function Phrase:__constructor__(args)
 
             prev_word = (not is_command_tag and w) or prev_word
         end
+        -- break
     end
 
     Word:restaure_effect()

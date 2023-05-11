@@ -21,8 +21,7 @@ function Iterator:new(text, font)
         return obj
     end
 
-
-    obj = {}
+    local obj = {}
     setmetatable(obj, self)
 
     Iterator.__constructor__(obj, text, font)
@@ -67,7 +66,9 @@ function Iterator:__constructor__(text, font)
             glyph = font:get_nule_character()
         end
 
-        tab_insert(self.__list_obj, glyph)
+        if glyph then
+            tab_insert(self.__list_obj, glyph)
+        end
 
         i = i + 1
     end

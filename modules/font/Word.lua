@@ -7,13 +7,14 @@ local Word = {
     eff_scream_range_x = 1,
     eff_scream_range_y = 2,
 }
+Word.__index = Word
 
 ---@param args {text: string, font: JM.Font.Font, format: JM.Font.FormatOptions}
 ---@return JM.Font.Word phrase
 function Word:new(args)
     local obj = {}
     setmetatable(obj, self)
-    self.__index = self
+    -- self.__index = self
 
     Word.__constructor__(obj, args)
 
@@ -62,7 +63,9 @@ function Word:__load_characters(mode)
         glyph = glyph:copy()
         glyph:set_color(self.__font.__default_color)
 
+        -- if not glyph.__anima then
         table.insert(self.__characters, glyph)
+        -- end
 
         if glyph:is_animated() then
             glyph:set_color2(1, 1, 1, 1)

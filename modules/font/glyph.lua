@@ -131,11 +131,11 @@ function Glyph:copy()
     tab_cpy.sy = self.sy
     tab_cpy.format = self.format
 
-    if self.__anima then
-        tab_cpy.anima = self.__anima:copy()
-    end
-
     local obj = Glyph:new(self.img, tab_cpy)
+
+    if self.__anima then
+        obj.__anima = self.__anima:copy()
+    end
 
     return obj
 end
