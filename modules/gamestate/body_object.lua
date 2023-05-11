@@ -62,7 +62,8 @@ function Component:get_cy()
 end
 
 function Component:update(dt)
-    Affectable.update(self, dt)
+    -- Affectable.update(self, dt)
+    self.__effect_manager:update(dt)
     self.x, self.y = self.body.x, self.body.y
 end
 

@@ -88,7 +88,8 @@ function GC:apply_effect(eff_type, eff_args, force)
 end
 
 function GC:update(dt)
-    Affectable.update(self, dt)
+    -- Affectable.update(self, dt)
+    self.__effect_manager:update(dt)
 end
 
 ---@param custom_draw function|nil

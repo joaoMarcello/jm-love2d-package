@@ -258,6 +258,26 @@ end
 --     return anim
 -- end
 
+local args = {}
+function Anima:copy()
+    args.img = self.img
+    args.frames = self.__amount_frames
+    args.color = self.color
+    args.rotation = self.rotation
+    args.speed = self.speed
+    args.stop_at_the_end = self.__stop_at_the_end
+    args.amount_cycle = self.max_cycle
+    args.n = self.__N__
+    args.__frame_obj_list__ = self.frames_list
+
+    ---@type JM.Anima
+    local anim = Anima:new(args)
+
+    anim.current_state = self.current_state
+    anim:set_scale(self.scale_x, self.scale_y)
+    return anim
+end
+
 ---@param n integer
 ---@param config {left:number, right:number, top:number, bottom:number, speed:number, ox:number, oy:number}
 function Anima:config_frame(n, config)
