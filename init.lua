@@ -61,6 +61,7 @@ JM.Mlrs = require(string.gsub(path, "init", "modules.jm_melrs"))
 JM.TileMap = require(string.gsub(path, "init", "modules.tile.tile_map"))
 
 function JM:update(dt)
+    JM_Font.current:update(dt)
     self.Sound:update(dt)
 end
 

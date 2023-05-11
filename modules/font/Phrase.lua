@@ -50,12 +50,18 @@ function Phrase:__constructor__(args)
     self.tags = {}
     self.word_to_tag = {}
 
+    local word_arg = { font = self.__font }
+
     for i = 1, #self.__separated_string do
-        local w = Word:new({
-            text = self.__separated_string[i],
-            font = self.__font,
-            format = self.__font:get_format_mode()
-        })
+        word_arg.text = self.__separated_string[i]
+        word_arg.format = self.__font:get_format_mode()
+
+        -- local w = Word:new({
+        --     text = self.__separated_string[i],
+        --     font = self.__font,
+        --     format = self.__font:get_format_mode()
+        -- })
+        local w = Word:new(word_arg)
 
         local tag_values = self:__verify_commands(w.text)
 
