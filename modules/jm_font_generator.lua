@@ -689,7 +689,7 @@ end
 ---@param img love.Image | any
 ---@param align "center"|"bottom"|"top"
 function Font:add_glyph_xp(nick, img, qx, qy, qw, qh, align, scale)
-    assert(is_valid_nickname(nick))
+    nick = assert(is_valid_nickname(nick))
 
     self.nick_to_glyph_xp = self.nick_to_glyph_xp or {}
     self.glyphs_xp = self.glyphs_xp or {}
