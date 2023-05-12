@@ -34,7 +34,10 @@ local metatable_mode_kv = { __mode = 'kv' }
 ---@param nickname string
 ---@return string|nil
 local function is_valid_nickname(nickname)
-    return #nickname > 4 and nickname:match("%-%-[^%-][%w%p]-%-%-") or nil
+    local N = #nickname
+    -- local r = N > 4 and nickname:match("%-%-[^%-][%w%p]-%-%-") or nil
+    local r = N > 2 and nickname:match("%:[^ %p][%w%-%_]-%:")
+    return r
 end
 
 local getGlyphsResult = setmetatable({}, metatable_mode_kv)
