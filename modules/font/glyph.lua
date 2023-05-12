@@ -201,8 +201,9 @@ function Glyph:__glyph_draw__()
     local x, y = self.x + self.ox * self.sx, self.y + self.oy * self.sy
 
     if self.__anima then
-        self.__anima:set_color(self.color)
-        self.__anima:draw(x - self.ox * self.sx, y - self.oy * self.sy)
+        -- self.__anima:set_color(self.color)
+        -- self.__anima:draw(x - self.ox * self.sx, y - self.oy * self.sy)
+        self.__anima:draw(x, y)
         --
     elseif not self.img then
         lgx_setColor(0, 0, 0, 0.2)

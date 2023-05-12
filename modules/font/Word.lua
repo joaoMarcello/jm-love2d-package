@@ -161,11 +161,11 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
         if not skip then
             if not eff then break end
 
-            if glyph and glyph:is_animated() then
-                eff:apply(glyph.__anima, true)
-            else
-                eff:apply(glyph, true)
-            end
+            -- if glyph and glyph:is_animated() and false then
+            --     eff:apply(glyph.__anima, true)
+            -- else
+            eff:apply(glyph, true)
+            -- end
         end
         -- ::continue::
     end
@@ -255,44 +255,68 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
 
     local tx = x
     local font = self.__font
-    local cur_char
+    local glyph
     local N = self.__N_characters
 
     for i = 1, N do
         ---@type JM.Font.Glyph
-        cur_char = self.__characters[i]
+        glyph = self.__characters[i]
 
-        cur_char:set_color(cur_char.color)
-        cur_char:set_scale(font.__scale)
+        glyph:set_color(glyph.color)
+        glyph:set_scale(font.__scale)
 
-        if not cur_char:is_animated() then
+        if font:is_glyph_xp(glyph) then
+            local prop = font.nick_to_glyph_xp[glyph.id]
+
+            glyph:set_color2(1, 1, 1, glyph.color[4])
+            local sc = prop.scale or (font.__font_size / glyph.h)
+            glyph:set_scale(sc)
+
+            local x = tx
+            local y = bottom - glyph.h * sc
+
+            if prop.align == "center" then
+                y = bottom - font.__font_size * 0.5 - glyph.h * sc * 0.5
+            elseif prop.align == "top" then
+                y = bottom - font.__font_size
+            end
+
+            if glyph.__anima then
+                -- cur_char.__anima:set_color2(1, 1, 1, 0.1)
+                glyph.__anima:set_scale(sc, sc)
+                -- x = tx + glyph.ox
+            end
+
+            glyph:draw(x, y)
+            --
+        elseif not glyph:is_animated() then
             local px, py
             -- py = bottom - cur_char.h / 2 * cur_char.sy
             -- px = tx + cur_char.w / 2 * cur_char.sx
 
-            py = bottom - cur_char.h * cur_char.sy
+            py = bottom - glyph.h * glyph.sy
             px = tx
-            cur_char:draw(px, py)
+            glyph:draw(px, py)
         else
-            cur_char.__anima:set_size(
+            glyph.__anima:set_size(
                 nil, self.__font.__font_size * 1.4,
-                nil, cur_char.__anima:get_current_frame().h
+                nil, glyph.__anima:get_current_frame().h
             )
 
-            local pos_y = y + cur_char.h * 0.5 * cur_char.sy
+            local pos_y = y + glyph.h * 0.5 * glyph.sy
 
-            local pos_x = tx + cur_char.w * 0.5 * cur_char.sx
+            local pos_x = tx + glyph.w * 0.5 * glyph.sx
 
-            cur_char:draw(pos_x, pos_y)
+            glyph:draw(pos_x, pos_y)
         end
 
-        tx = tx + cur_char.w * font.__scale + font.__character_space
+        tx = tx + glyph.w * glyph.sx + font.__character_space
 
         if __glyph_count__ then
             __glyph_count__[1] = __glyph_count__[1] + 1
 
             if __max_char__ and __glyph_count__[1] >= __max_char__ then
-                return tx, cur_char
+                return tx, glyph
             end
         end
     end

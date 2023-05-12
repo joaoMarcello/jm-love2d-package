@@ -90,10 +90,10 @@ do
         self.y = top
         self.w = right - left
         self.h = bottom - top
-        self.ox = args.ox or (self.w * 0.5)
-        self.oy = args.oy or (self.h * 0.5)
+        self.ox = args[6] or args.ox or (self.w * 0.5)
+        self.oy = args[7] or args.oy or (self.h * 0.5)
 
-        self.speed = args.speed or false
+        self.speed = args[5] or args.speed or false
 
         self.bottom = self.y + self.h
     end
@@ -217,6 +217,7 @@ function Anima:__constructor__(args)
         if not args.frames_list then
             args.frames_list = {}
             local w = self.img:getWidth() / self.__amount_frames
+
             for i = 1, self.__amount_frames do
                 table.insert(args.frames_list, {
                     (i - 1) * w,
@@ -228,7 +229,7 @@ function Anima:__constructor__(args)
         end
 
         -- Generating the Frame objects and inserting them into the frames_list
-        for i = 1, #args.frames_list do
+        for i = 1, #(args.frames_list) do
             self.frames_list[i] = Frame:new(args.frames_list[i])
         end -- END FOR for generate frames objects
         --

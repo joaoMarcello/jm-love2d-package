@@ -683,6 +683,51 @@ function Font:add_nickname_animated(nickname, args)
     return animation
 end
 
+---@param img love.Image | any
+---@param align "center"|"bottom"|"top"
+function Font:add_glyph_xp(nick, img, qx, qy, qw, qh, align, scale)
+    assert(is_valid_nickname(nick))
+
+    self.nick_to_glyph_xp = self.nick_to_glyph_xp or {}
+    self.glyphs_xp = self.glyphs_xp or {}
+
+    local glyph = Glyph:new(img, {
+        id = nick,
+        x = qx,
+        y = qy,
+        w = qw,
+        h = qh,
+    })
+
+    self.nick_to_glyph_xp[nick] = {
+        glyph = glyph,
+        align = align,
+        scale = scale
+    }
+    tab_insert(self.glyphs_xp, nick)
+
+    for _, format in pairs(FontFormat) do
+        self.__characters[format][nick] = glyph
+    end
+
+    return glyph
+end
+
+function Font:add_animated_glyph_xp(nick, width, height, align, scale, anima)
+    if scale then
+        width = width * scale
+        height = height * scale
+    end
+    local glyph = self:add_glyph_xp(nick, nil, nil, nil, width, height, align or "center", scale)
+    glyph.__anima = anima
+    return glyph
+end
+
+---@param glyph JM.Font.Glyph
+function Font:is_glyph_xp(glyph)
+    return self.nick_to_glyph_xp and self.nick_to_glyph_xp[glyph.id]
+end
+
 ---@param s string
 ---@return string|nil nickname
 function Font:__is_a_nickname(s, index)
@@ -691,6 +736,17 @@ function Font:__is_a_nickname(s, index)
             return nickname
         end
     end
+
+    local glyphs_xp = self.glyphs_xp
+    if glyphs_xp then
+        for i = 1, #glyphs_xp do
+            local id = glyphs_xp[i]
+            if s:sub(index, index + #id - 1) == id then
+                return id
+            end
+        end
+    end
+
     return nil
 end
 
@@ -704,6 +760,18 @@ function Font:update(dt)
     for i = 1, #(self.__nicknames) do
         local glyph = self:__get_char_equals(self.__nicknames[i])
         if glyph then glyph:update(dt) end
+    end
+
+    local xp = self.glyphs_xp
+    if xp then
+        for i = 1, #xp do
+            ---@type JM.Font.Glyph
+            local glyph = self.__characters[FontFormat.normal][xp[i]]
+
+            if glyph.__anima then
+                glyph:update(dt)
+            end
+        end
     end
 end
 
@@ -853,12 +921,12 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
     end
 
     while (i <= text_size) do
-        local char_string = text:sub(i, i)
+        local glyph_id = text:sub(i, i)
         local is_a_nick = self:__is_a_nickname(text, i)
 
         if is_a_nick then
-            char_string = is_a_nick
-            i = i + #char_string - 1
+            glyph_id = is_a_nick
+            i = i + #glyph_id - 1
         end
 
         local tag = text:match("<.->", i)
@@ -903,61 +971,85 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                 end
                 tx = r_tx
                 ty = r_ty
-                char_string = ""
+                glyph_id = ""
             end
         end
 
         self:set_format_mode(current_format)
 
-        local char_obj = self:__get_char_equals(char_string)
+        local glyph = self:__get_char_equals(glyph_id)
 
 
-        if not char_obj then
-            char_obj = self:__get_char_equals(text:sub(i, i + 1))
-            if char_obj then i = i + 1 end
+        if not glyph then
+            glyph = self:__get_char_equals(text:sub(i, i + 1))
+            if glyph then i = i + 1 end
         end
 
-        if char_string == "\n"
-            or ((char_obj and w)
-                and tx + self.__word_space + (char_obj.w * self.__scale) >= x_origin + w)
+        if glyph_id == "\n"
+            or ((glyph and w)
+                and tx + self.__word_space + (glyph.w * self.__scale) >= x_origin + w)
         then
             ty = ty + self.__ref_height * self.__scale + self.__line_space
             tx = x_origin
         end
 
-        if char_obj then
-            char_obj:set_color(current_color)
+        if glyph then
+            glyph:set_color(current_color)
 
-            char_obj:set_scale(self.__scale)
+            glyph:set_scale(self.__scale)
 
-            if char_obj:is_animated() then
-                char_obj:set_color2(1, 1, 1, 1)
+            if self:is_glyph_xp(glyph) then
+                --
+                local prop = self.nick_to_glyph_xp[glyph.id]
 
-                char_obj.__anima:set_size(
+                glyph:set_color2(1, 1, 1, glyph.color[4])
+                local sc = prop.scale or (self.__font_size / glyph.h)
+                glyph:set_scale(sc)
+
+                local x = tx
+                local y = ty + self.__font_size - glyph.h * sc
+
+                if prop.align == "center" then
+                    y = ty + self.__font_size * 0.5 - glyph.h * sc * 0.5
+                elseif prop.align == "top" then
+                    y = ty
+                end
+
+                if glyph.__anima then
+                    glyph.__anima:set_scale(sc, sc)
+                    -- x = tx + glyph.ox
+                end
+
+                glyph:draw(x, y)
+                --
+            elseif glyph:is_animated() then
+                glyph:set_color2(1, 1, 1, 1)
+
+                glyph.__anima:set_size(
                     nil, self.__font_size * 1.4,
-                    nil, char_obj.__anima:get_current_frame().h
+                    nil, glyph.__anima:get_current_frame().h
                 )
 
-                char_obj:draw(tx + char_obj.w / 2 * char_obj.sx,
-                    ty + char_obj.h / 2 * char_obj.sy
+                glyph:draw(tx + glyph.w * 0.5 * glyph.sx,
+                    ty + glyph.h * 0.5 * glyph.sy
                 )
             else
-                local quad = char_obj.quad
+                local quad = glyph.quad
                 local x, y
                 -- x, y = char_obj:get_pos_draw_rec(tx, ty + self.__font_size - height, width, height)
 
                 x = tx
-                y = ty + self.__font_size - char_obj.h * char_obj.sy
+                y = ty + self.__font_size - glyph.h * glyph.sy
 
                 if quad then
-                    self.batches[char_obj.format]:setColor(current_color)
-                    self.batches[char_obj.format]:add(quad, x, y, 0, char_obj.sx, char_obj.sy, 0, 0)
+                    self.batches[glyph.format]:setColor(current_color)
+                    self.batches[glyph.format]:add(quad, x, y, 0, glyph.sx, glyph.sy, 0, 0)
                 end
             end
 
             tx = tx
                 -- + char_obj:get_width()
-                + char_obj.w * self.__scale
+                + glyph.w * glyph.sx
                 + self.__character_space
         end
 
@@ -1056,10 +1148,33 @@ do
 
                     if glyph then
                         glyph:set_color2(unpack(current_color[1]))
-
                         glyph:set_scale(self.__scale)
 
-                        if glyph:is_animated() then
+                        if self:is_glyph_xp(glyph) then
+                            --
+                            local prop = self.nick_to_glyph_xp[glyph.id]
+
+                            glyph:set_color2(1, 1, 1, glyph.color[4])
+                            local sc = prop.scale or (self.__font_size / glyph.h)
+                            glyph:set_scale(sc)
+
+                            local x = tx
+                            local y = ty + self.__font_size - glyph.h * sc
+
+                            if prop.align == "center" then
+                                y = ty + self.__font_size * 0.5 - glyph.h * sc * 0.5
+                            elseif prop.align == "top" then
+                                y = ty
+                            end
+
+                            if glyph.__anima then
+                                glyph.__anima:set_scale(sc, sc)
+                                -- x = tx + glyph.ox
+                            end
+
+                            glyph:draw(x, y)
+                            --
+                        elseif glyph:is_animated() then
                             glyph:set_color2(1, 1, 1, 1)
 
                             glyph.__anima:set_size(
@@ -1067,8 +1182,8 @@ do
                                 nil, glyph.__anima:get_current_frame().h
                             )
 
-                            glyph:draw(tx + glyph.w / 2 * glyph.sx,
-                                ty + glyph.h / 2 * glyph.sy
+                            glyph:draw(tx + glyph.w * 0.5 * glyph.sx,
+                                ty + glyph.h * 0.5 * glyph.sy
                             )
                             --
                         else
@@ -1091,7 +1206,7 @@ do
 
                         tx = tx
                             -- + char_obj:get_width()
-                            + (glyph.w * self.__scale)
+                            + (glyph.w * glyph.sx)
                             + self.__character_space
                     end
                 end
