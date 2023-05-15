@@ -1,6 +1,35 @@
 local Phys = _G.JM_Package.Physics
 local Utils = _G.JM_Utils
 
+local IMG = {}
+local QUADS = {}
+
+---@type JM.Physics.World
+local world
+
+---@type JM.Scene
+local gamestate
+
+-- local Emitter = require((...):gsub("particle", "emitter"))
+
+---@type JM.Emitter
+local Emitter
+--=========================================================================
+local floor = math.floor
+local function round(x)
+    local f = floor(x + 0.5)
+    if (x == f) or (x % 2.0 == 0.5) then
+        return f
+    else
+        return floor(x + 0.5)
+    end
+end
+
+local setColor = love.graphics.setColor
+local draw = love.graphics.draw
+--=========================================================================
+
+
 ---@class JM.Particle
 ---@field x number
 ---@field y number
@@ -13,6 +42,8 @@ local Utils = _G.JM_Utils
 ---@field oy number
 ---@field angle number
 ---@field lifetime number
+---@field delay number|boolean
+---@field color JM.Color
 ---@field gravity number
 ---@field speed_x number
 ---@field speed_y number
@@ -28,19 +59,15 @@ local Utils = _G.JM_Utils
 ---@field draw function
 ---@field __remove boolean
 ---@field draw_order number
+---@field id string|any
 local Particle = {}
 Particle.__index = Particle
 
-local IMG = {}
-local QUADS = {}
-
----@type JM.Physics.World
-local world
-
----@type JM.Scene
-local gamestate
-
-function Particle:init_module(imgs_dir, _world, _gamestate)
+---@param imgs_dir table
+---@param _world JM.Physics.World
+---@param _gamestate JM.Scene
+---@param emitter JM.Emitter
+function Particle:init_module(imgs_dir, _world, _gamestate, emitter)
     if imgs_dir then
         local N = #imgs_dir
         for i = 1, N do
@@ -53,7 +80,12 @@ function Particle:init_module(imgs_dir, _world, _gamestate)
 
     world = _world
     gamestate = _gamestate
+    Emitter = emitter
+
+    Particle.IMG = IMG
 end
+
+local white = Utils:get_rgba(1, 1, 1, 1)
 
 ---@param img_dir string|any
 function Particle:new(
@@ -61,7 +93,7 @@ function Particle:new(
     qx, qy, qw, qh,
     rot, sx, sy, ox, oy,
     angle, lifetime, gravity, speed_x, speed_y, acc_x, acc_y, mass,
-    draw_order
+    draw_order, delay, color, id, reuse_table
 )
     local img, quad
 
@@ -83,7 +115,9 @@ function Particle:new(
     ox = ox or (w * 0.5)
     oy = oy or (h * 0.5)
 
-    local obj = setmetatable({
+    reuse_table = reuse_table or Emitter:pop_particle_reuse_table()
+
+    local obj = setmetatable(reuse_table or {
         img = img,
         quad = quad,
         x = x,
@@ -95,9 +129,12 @@ function Particle:new(
         sy = sy or 1,
         ox = ox,
         oy = oy,
+        color = color or white,
         --
+        id = id or false,
         angle = angle or 0,
         lifetime = lifetime or 1,
+        delay = delay or 0.0,
         gravity = gravity or world.gravity,
         speed_x = speed_x or 0.0,
         speed_y = speed_y or 0.0,
@@ -115,17 +152,63 @@ function Particle:new(
         --
     }, Particle)
 
+    if reuse_table then
+        --
+        reuse_table.img = img
+        reuse_table.quad = quad
+        reuse_table.x = x
+        reuse_table.y = y
+        reuse_table.w = w
+        reuse_table.h = h
+        reuse_table.rot = rot or 0
+        reuse_table.sx = sx or 1
+        reuse_table.sy = sy or 1
+        reuse_table.ox = ox
+        reuse_table.oy = oy
+        reuse_table.color = color or white
+        --
+        reuse_table.id = id or false
+        reuse_table.angle = angle or 0
+        reuse_table.lifetime = lifetime or 1
+        reuse_table.delay = delay or false
+        reuse_table.gravity = gravity or world.gravity
+        reuse_table.speed_x = speed_x or 0.0
+        reuse_table.speed_y = speed_y or 0.0
+        reuse_table.acc_x = acc_x or 0.0
+        reuse_table.acc_y = acc_y or 0.0
+        reuse_table.mass = mass or world.default_mass
+        --
+        reuse_table.__remove = false
+        --
+        reuse_table.draw_order = draw_order and (draw_order + math.random())
+            or math.random()
+        --
+        reuse_table.update = Particle.update
+        reuse_table.draw = Particle.draw_normal
+
+        if reuse_table.anima then
+            reuse_table.anima = false
+        end
+
+        if reuse_table.body then
+            reuse_table.body = false
+        end
+
+        reuse_table.__custom_update__ = false
+    end
+
     return obj
 end
 
 function Particle:newAnimated(
     anima, x, y, w, h,
-    lifetime, angle, gravity, speed_x, speed_y, acc_x, acc_y, mass
+    lifetime, angle, gravity, speed_x, speed_y, acc_x, acc_y, delay, mass,
+    draw_order, id
 )
     --
     local obj = self:new(nil, x, y, w or 16, h or 16, nil, nil, nil, nil, nil, nil, nil, nil, nil, angle, lifetime,
         gravity, speed_x,
-        speed_y, acc_x, acc_y, mass)
+        speed_y, acc_x, acc_y, mass, draw_order, delay, nil, id)
 
     obj.anima = anima
     obj.draw = Particle.draw_anima
@@ -142,6 +225,10 @@ function Particle:newBodyAnimated(anima, x, y, w, h, lifetime, angle)
     return obj
 end
 
+function Particle:set_color(r, g, b, a)
+    self.color = Utils:get_rgba(r, g, b, a)
+end
+
 function Particle:update(dt)
     if self.__custom_update__ then
         self:__custom_update__(dt)
@@ -152,8 +239,8 @@ function Particle:update(dt)
     end
 
     if self.body then
-        self.x = Utils:round(self.body.x)
-        self.y = Utils:round(self.body.y)
+        self.x = round(self.body.x)
+        self.y = round(self.body.y)
     end
 
     self.lifetime = self.lifetime - dt
@@ -167,8 +254,8 @@ function Particle:draw_anima()
 end
 
 function Particle:draw_normal()
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(self.img, self.quad, self.x, self.y, self.rot, self.sx, self.sy, self.ox, self.oy)
+    setColor(self.color)
+    draw(self.img, self.quad, self.x, self.y, self.rot, self.sx, self.sy, self.ox, self.oy)
 end
 
 return Particle
