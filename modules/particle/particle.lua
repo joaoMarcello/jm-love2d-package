@@ -27,6 +27,8 @@ end
 
 local setColor = love.graphics.setColor
 local draw = love.graphics.draw
+local random = math.random
+local str_format = string.format
 --=========================================================================
 
 
@@ -93,7 +95,7 @@ function Particle:new(
     qx, qy, qw, qh,
     rot, sx, sy, ox, oy,
     angle, lifetime, gravity, speed_x, speed_y, acc_x, acc_y, mass,
-    draw_order, delay, color, id, reuse_table
+    draw_order, delay, color, id
 )
     local img, quad
 
@@ -101,7 +103,7 @@ function Particle:new(
         IMG[img_dir] = IMG[img_dir] or love.graphics.newImage(img_dir)
         img = IMG[img_dir]
 
-        local key = string.format("%d-%d-%d-%d")
+        local key = str_format("%d-%d-%d-%d")
 
         QUADS[img_dir] = QUADS[img_dir] or {}
         QUADS[img_dir][key] = QUADS[img_dir][key]
@@ -115,7 +117,7 @@ function Particle:new(
     ox = ox or (w * 0.5)
     oy = oy or (h * 0.5)
 
-    reuse_table = reuse_table or Emitter:pop_particle_reuse_table()
+    local reuse_table = Emitter:pop_particle_reuse_table()
 
     local obj = setmetatable(reuse_table or {
         img = img,
@@ -144,8 +146,8 @@ function Particle:new(
         --
         __remove = false,
         --
-        draw_order = draw_order and (draw_order + math.random())
-            or math.random(),
+        draw_order = draw_order and (draw_order + random())
+            or random(),
         --
         update = Particle.update,
         draw = Particle.draw_normal,
@@ -180,8 +182,8 @@ function Particle:new(
         --
         reuse_table.__remove = false
         --
-        reuse_table.draw_order = draw_order and (draw_order + math.random())
-            or math.random()
+        reuse_table.draw_order = draw_order and (draw_order + random())
+            or random()
         --
         reuse_table.update = Particle.update
         reuse_table.draw = Particle.draw_normal

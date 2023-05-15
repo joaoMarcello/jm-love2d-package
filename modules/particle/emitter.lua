@@ -21,8 +21,7 @@ Emitter.__index = Emitter
 -- Emitter.Particle = Particle
 Emitter.Animas = {}
 Emitter.AnimaRecycler = {}
-Emitter.ParticleRecycler = {} --setmetatable({}, { __mode = 'v' })
-Emitter.N_PartRecy = 0
+Emitter.ParticleRecycler = setmetatable({}, mode_k)
 
 ---@param _world JM.Physics.World
 ---@param _gamestate JM.Scene | any
@@ -97,14 +96,12 @@ function Emitter:push_anima(anima, id)
 end
 
 function Emitter:push_particle(p)
-    tab_insert(Emitter.ParticleRecycler, p)
-    Emitter.N_PartRecy = Emitter.N_PartRecy + 1
+    Emitter.ParticleRecycler[p] = true
 end
 
 function Emitter:pop_particle_reuse_table()
-    if Emitter.N_PartRecy > 0 then
-        local tab = tab_remove(Emitter.ParticleRecycler, Emitter.N_PartRecy)
-        Emitter.N_PartRecy = Emitter.N_PartRecy - 1
+    for tab, _ in pairs(Emitter.ParticleRecycler) do
+        Emitter.ParticleRecycler[tab] = nil
         return tab
     end
 end
@@ -151,7 +148,14 @@ function Emitter:update(dt)
             --
         else
             --
-            p:update(dt)
+            if p.delay then
+                p.delay = p.delay - dt
+                if p.delay <= 0.0 then p.delay = false end
+            end
+
+            if not p.delay then
+                p:update(dt)
+            end
 
             if p.__remove then
                 p.draw_order = 100000
@@ -167,7 +171,7 @@ function Emitter:draw()
         ---@type JM.Particle
         local p = list[i]
 
-        if not p.__remove then
+        if not p.__remove and not p.delay then
             p:draw()
         end
     end
