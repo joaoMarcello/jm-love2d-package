@@ -1,8 +1,6 @@
 ---@type GameObject
 local GC = require(_G.JM_Path .. "modules.gamestate.game_object")
 
--- ---@type JM.Particle
--- local Particle = require((...):gsub("emitter", "particle"))
 --========================================================================
 local sort_draw = function(a, b) return a.draw_order < b.draw_order end
 
@@ -18,7 +16,7 @@ local mode_k = { __mode = 'k' }
 ---@field __custom_update__ function
 local Emitter = setmetatable({}, GC)
 Emitter.__index = Emitter
--- Emitter.Particle = Particle
+
 Emitter.Animas = {}
 Emitter.AnimaRecycler = {}
 Emitter.ParticleRecycler = setmetatable({}, mode_k)
@@ -26,7 +24,6 @@ Emitter.ParticleRecycler = setmetatable({}, mode_k)
 ---@param _world JM.Physics.World
 ---@param _gamestate JM.Scene | any
 function Emitter:init_module(_world, _gamestate)
-    -- Particle:init_module(imgs_dir, _world, _gamestate)
     Emitter.gamestate = _gamestate
     Emitter.world = _world
 end

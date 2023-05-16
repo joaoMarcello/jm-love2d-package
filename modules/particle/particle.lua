@@ -1,7 +1,7 @@
 local Phys = _G.JM_Package.Physics
 local Utils = _G.JM_Utils
 
-local IMG = {}
+-- local IMG = {}
 local QUADS = {}
 
 ---@type JM.Physics.World
@@ -13,7 +13,7 @@ local gamestate
 -- local Emitter = require((...):gsub("particle", "emitter"))
 
 ---@type JM.Emitter
-local Emitter
+local Emitter = require(_G.JM_Path .. "modules.particle.emitter")
 --=========================================================================
 local floor = math.floor
 local function round(x)
@@ -65,51 +65,35 @@ local str_format = string.format
 local Particle = {}
 Particle.__index = Particle
 
----@param imgs_dir table
 ---@param _world JM.Physics.World
 ---@param _gamestate JM.Scene
----@param emitter JM.Emitter
-function Particle:init_module(imgs_dir, _world, _gamestate, emitter)
-    if imgs_dir then
-        local N = #imgs_dir
-        for i = 1, N do
-            local dir = imgs_dir[i]
-            if not IMG[dir] then
-                IMG[dir] = love.graphics.newImage(dir)
-            end
-        end
-    end
-
+function Particle:init_module(_world, _gamestate)
     world = _world
     gamestate = _gamestate
-    Emitter = emitter
-
-    Particle.IMG = IMG
 end
 
 local white = Utils:get_rgba(1, 1, 1, 1)
 
----@param img_dir string|any
 function Particle:new(
-    img_dir, x, y, w, h,
+    img, x, y, w, h,
     qx, qy, qw, qh,
     rot, sx, sy, ox, oy,
     angle, lifetime, gravity, speed_x, speed_y, acc_x, acc_y, mass,
     draw_order, delay, color, id
 )
-    local img, quad
+    local quad
 
-    if img_dir then
-        IMG[img_dir] = IMG[img_dir] or love.graphics.newImage(img_dir)
-        img = IMG[img_dir]
+    if img then
+        -- IMG[img_dir] = IMG[img_dir] or love.graphics.newImage(img_dir)
+        -- img = IMG[img_dir]
 
         local key = str_format("%d-%d-%d-%d")
 
-        QUADS[img_dir] = QUADS[img_dir] or {}
-        QUADS[img_dir][key] = QUADS[img_dir][key]
+        QUADS[img] = QUADS[img] or {}
+        QUADS[img][key] = QUADS[img][key]
             or love.graphics.newQuad(qx, qy, qw, qh, img:getDimensions())
 
-        quad = QUADS[img_dir][key]
+        quad = QUADS[img][key]
     end
     --
     w = w or 16

@@ -2,7 +2,7 @@ local abs, mfloor, mceil, sqrt, min, max = math.abs, math.floor, math.ceil, math
 
 local table_insert, table_remove, table_sort = table.insert, table.remove, table.sort
 
-local pairs = pairs
+local pairs, setmetatable = pairs, setmetatable
 
 local metatable_mode_v = { __mode = 'v' }
 local metatable_mode_k = { __mode = 'k' }
@@ -259,10 +259,15 @@ Body.__index = Body
 
 do
     ---@return JM.Physics.Body
-    function Body:new(x, y, w, h, type_, world, id)
-        local obj = {}
+    function Body:new(x, y, w, h, type_, world, id, reuse_tab)
+        if reuse_tab then
+            for key, _ in pairs(reuse_tab) do
+                reuse_tab[key] = nil
+            end
+        end
+
+        local obj = reuse_tab or {}
         setmetatable(obj, self)
-        -- self.__index = self
 
         Body.__constructor__(obj, x, y, w, h, type_, world, id)
         return obj
@@ -308,6 +313,8 @@ do
 
         ---@type JM.Physics.Body|JM.Physics.Slope
         self.ground = nil -- used if body is not static
+
+        self.ceil = nil
 
         -- some properties
         self.bouncing_y = nil -- need to be a number between 0 and 1
