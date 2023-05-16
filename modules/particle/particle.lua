@@ -25,8 +25,9 @@ local function round(x)
     end
 end
 
-local setColor = love.graphics.setColor
-local draw = love.graphics.draw
+local lgx = love.graphics
+local setColor = lgx.setColor
+local draw = lgx.draw
 local random = math.random
 local str_format = string.format
 --=========================================================================
@@ -103,41 +104,6 @@ function Particle:new(
 
     local reuse_table = Emitter:pop_particle_reuse_table()
 
-    local obj = setmetatable(reuse_table or {
-        img = img,
-        quad = quad,
-        x = x,
-        y = y,
-        w = w,
-        h = h,
-        rot = rot or 0,
-        sx = sx or 1,
-        sy = sy or 1,
-        ox = ox,
-        oy = oy,
-        color = color or white,
-        --
-        id = id or false,
-        angle = angle or 0,
-        lifetime = lifetime or 1,
-        delay = delay or 0.0,
-        gravity = gravity or world.gravity,
-        speed_x = speed_x or 0.0,
-        speed_y = speed_y or 0.0,
-        acc_x = acc_x or 0.0,
-        acc_y = acc_y or 0.0,
-        mass = mass or world.default_mass,
-        --
-        __remove = false,
-        --
-        draw_order = draw_order and (draw_order + random())
-            or random(),
-        --
-        update = Particle.update,
-        draw = Particle.draw_normal,
-        --
-    }, Particle)
-
     if reuse_table then
         --
         reuse_table.img = img
@@ -149,8 +115,8 @@ function Particle:new(
         reuse_table.rot = rot or 0
         reuse_table.sx = sx or 1
         reuse_table.sy = sy or 1
-        reuse_table.ox = ox
-        reuse_table.oy = oy
+        reuse_table.ox = ox or 0
+        reuse_table.oy = oy or 0
         reuse_table.color = color or white
         --
         reuse_table.id = id or false
@@ -165,6 +131,7 @@ function Particle:new(
         reuse_table.mass = mass or world.default_mass
         --
         reuse_table.__remove = false
+        reuse_table.__custom_update__ = false
         --
         reuse_table.draw_order = draw_order and (draw_order + random())
             or random()
@@ -182,6 +149,44 @@ function Particle:new(
 
         reuse_table.__custom_update__ = false
     end
+
+    local obj = setmetatable(reuse_table or {
+        img = img,
+        quad = quad,
+        x = x,
+        y = y,
+        w = w,
+        h = h,
+        rot = rot or 0,
+        sx = sx or 1,
+        sy = sy or 1,
+        ox = ox or 0,
+        oy = oy or 0,
+        color = color or white,
+        --
+        id = id or false,
+        angle = angle or 0,
+        lifetime = lifetime or 1,
+        delay = delay or 0.0,
+        gravity = gravity or world.gravity,
+        speed_x = speed_x or 0.0,
+        speed_y = speed_y or 0.0,
+        acc_x = acc_x or 0.0,
+        acc_y = acc_y or 0.0,
+        mass = mass or world.default_mass,
+        --
+        __remove = false,
+        __custom_update__ = false,
+        --
+        draw_order = draw_order and (draw_order + random())
+            or random(),
+        --
+        update = Particle.update,
+        draw = Particle.draw_normal,
+        --
+    }, Particle)
+
+
 
     return obj
 end
@@ -201,9 +206,9 @@ function Particle:newAnimated(
     return obj
 end
 
-function Particle:newBodyAnimated(anima, x, y, w, h, lifetime, angle)
+function Particle:newBodyAnimated(anima, x, y, w, h, lifetime, angle, id)
     local obj = self:new(nil, x, y, w, h, nil, nil, nil, nil, nil, nil, nil, nil, nil, angle, lifetime, nil, nil, nil,
-        nil, nil, nil)
+        nil, nil, nil, nil, nil, nil, id)
 
     obj.body = Phys:newBody(world, x, y, w, h, "dynamic")
     obj.anima = anima
@@ -232,11 +237,21 @@ function Particle:update(dt)
     self.lifetime = self.lifetime - dt
     if self.lifetime <= 0.0 then
         self.__remove = true
+        -- if self.body then
+        --     self.body.__remove = true
+        -- end
     end
 end
 
 function Particle:draw_anima()
-    self.anima:draw(self.x + self.ox, self.y + self.oy)
+    self.anima:set_scale(self.sx, self.sy)
+
+    local bd = self.body
+    if bd then
+        self.anima:draw_rec(self.x, self.y, bd.w, bd.h)
+    else
+        self.anima:draw(self.x + self.ox, self.y + self.oy)
+    end
 end
 
 function Particle:draw_normal()

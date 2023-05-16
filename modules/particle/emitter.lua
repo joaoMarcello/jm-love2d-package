@@ -18,7 +18,7 @@ local Emitter = setmetatable({}, GC)
 Emitter.__index = Emitter
 
 Emitter.Animas = {}
-Emitter.AnimaRecycler = {}
+Emitter.AnimaRecycler = {} --setmetatable({}, mode_k)
 Emitter.ParticleRecycler = setmetatable({}, mode_k)
 
 ---@param _world JM.Physics.World
@@ -42,6 +42,10 @@ function Emitter:flush()
         for anima, _ in pairs(tab) do
             tab[anima] = nil
         end
+    end
+
+    for key, _ in pairs(Emitter.ParticleRecycler) do
+        Emitter.ParticleRecycler[key] = nil
     end
 end
 
@@ -107,6 +111,7 @@ end
 function Emitter:add_particle(p)
     tab_insert(self.particles, p)
     self.N = self.N + 1
+    return p
 end
 
 function Emitter:update(dt)

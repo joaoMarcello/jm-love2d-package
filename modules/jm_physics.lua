@@ -4,6 +4,7 @@ local table_insert, table_remove, table_sort = table.insert, table.remove, table
 
 local pairs, setmetatable = pairs, setmetatable
 
+
 local metatable_mode_v = { __mode = 'v' }
 local metatable_mode_k = { __mode = 'k' }
 
@@ -27,7 +28,18 @@ local function empty_table_for_coll()
     return reuse_tab2
 end
 
+local BodyRecycler = setmetatable({}, metatable_mode_k)
 
+local function push_body(b)
+    BodyRecycler[b] = true
+end
+
+local function pop_body()
+    for bd, _ in pairs(BodyRecycler) do
+        BodyRecycler[bd] = nil
+        return bd
+    end
+end
 
 ---@enum JM.Physics.BodyTypes
 local BodyTypes = {
@@ -256,17 +268,21 @@ local Body = {
     empty_table_for_coll = empty_table_for_coll,
 }
 Body.__index = Body
+Body.BodyRecycler = BodyRecycler
 
 do
     ---@return JM.Physics.Body
-    function Body:new(x, y, w, h, type_, world, id, reuse_tab)
-        if reuse_tab then
-            for key, _ in pairs(reuse_tab) do
-                reuse_tab[key] = nil
+    function Body:new(x, y, w, h, type_, world, id)
+        --
+        local body_reuse_table = pop_body()
+        if body_reuse_table then
+            for key, _ in pairs(body_reuse_table) do
+                body_reuse_table[key] = nil
             end
+            -- body_reuse_table.__remove = false
         end
 
-        local obj = reuse_tab or {}
+        local obj = body_reuse_table or {}
         setmetatable(obj, self)
 
         Body.__constructor__(obj, x, y, w, h, type_, world, id)
@@ -319,8 +335,8 @@ do
         -- some properties
         self.bouncing_y = nil -- need to be a number between 0 and 1
         self.bouncing_x = nil
-        self.__remove = nil
-        self.is_stucked = nil
+        self.__remove = false
+        self.is_stucked = false
 
         self.allowed_air_dacc = false
         self.allowed_gravity = true
@@ -1508,6 +1524,7 @@ do
 
             if obj.__remove then
                 self:remove(obj, i)
+                push_body(obj)
                 obj = nil
             end
 
