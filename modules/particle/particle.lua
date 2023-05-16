@@ -10,8 +10,6 @@ local world
 ---@type JM.Scene
 local gamestate
 
--- local Emitter = require((...):gsub("particle", "emitter"))
-
 ---@type JM.Emitter
 local Emitter = require(_G.JM_Path .. "modules.particle.emitter")
 --=========================================================================
