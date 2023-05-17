@@ -21,7 +21,7 @@ function PS:register_img(path, nick)
         --
         img = path
     end
-
+    img:setFilter("linear", "nearest")
     IMG[nick] = img
 end
 
