@@ -1,4 +1,4 @@
-local Phys = _G.JM_Package.Physics
+local Phys = require(_G.JM_Path .. "modules.jm_physics")
 local Utils = _G.JM_Utils
 
 -- local IMG = {}
@@ -242,13 +242,15 @@ function Particle:update(dt)
 end
 
 function Particle:draw_anima()
-    self.anima:set_scale(self.sx, self.sy)
+    local anima = self.anima
+    anima:set_scale(self.sx, self.sy)
+    anima:set_rotation(self.rot)
 
     local bd = self.body
     if bd then
-        self.anima:draw_rec(self.x, self.y, bd.w, bd.h)
+        anima:draw_rec(self.x, self.y, bd.w, bd.h)
     else
-        self.anima:draw(self.x + self.ox, self.y + self.oy)
+        anima:draw(self.x + self.ox, self.y + self.oy)
     end
 end
 

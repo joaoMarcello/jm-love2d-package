@@ -86,4 +86,13 @@ function PS:newEmitter(x, y, w, h, draw_order, lifetime, custom_action, action_a
     return e
 end
 
+local emitter_time = 0.0
+function PS:update(dt)
+    emitter_time = emitter_time + dt
+    if emitter_time > 30.0 then
+        emitter_time = 0.0
+        Emitter:flush()
+    end
+end
+
 return PS

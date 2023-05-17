@@ -1,5 +1,6 @@
----@type GameObject
-local GC = require(_G.JM_Path .. "modules.gamestate.game_object")
+-- ---@type GameObject
+-- local GC = require(_G.JM_Path .. "modules.gamestate.game_object")
+local GC = _G.JM_Package.GameObject
 
 --========================================================================
 local sort_draw = function(a, b) return a.draw_order < b.draw_order end
@@ -37,15 +38,29 @@ function Emitter:register_anima(anima, nick)
     end
 end
 
+local getTime = love.timer.getTime
+local timer = getTime()
+
 function Emitter:flush()
+    timer = getTime()
+
     for key, tab in pairs(Emitter.AnimaRecycler) do
         for anima, _ in pairs(tab) do
             tab[anima] = nil
         end
+
+        if getTime() - timer > 0.0005 then
+            break
+        end
     end
+
+    timer = getTime()
 
     for key, _ in pairs(Emitter.ParticleRecycler) do
         Emitter.ParticleRecycler[key] = nil
+        if getTime() - timer > 0.0005 then
+            break
+        end
     end
 end
 

@@ -2,6 +2,8 @@ local path = (...)
 _G.JM_Path = string.gsub(path, "init", "")
 
 local JM = {}
+JM_Love2D_Package = JM
+JM_Package = JM
 
 ---@type JM.Utils
 JM.Utils = require(string.gsub(path, "init", "modules.jm_utils"))
@@ -60,12 +62,19 @@ JM.Mlrs = require(string.gsub(path, "init", "modules.jm_melrs"))
 ---@type JM.TileMap
 JM.TileMap = require(string.gsub(path, "init", "modules.tile.tile_map"))
 
+---@type GameObject
+JM.GameObject = require(string.gsub(path, "init", "modules.gamestate.game_object"))
+
+---@type BodyObject
+JM.BodyObject = require(string.gsub(path, "init", "modules.gamestate.body_object"))
+
+---@type JM.ParticleSystem
+JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
+
 function JM:update(dt)
     JM_Font.current:update(dt)
     self.Sound:update(dt)
+    self.ParticleSystem:update(dt)
 end
-
-JM_Love2D_Package = JM
-JM_Package = JM
 
 return JM
