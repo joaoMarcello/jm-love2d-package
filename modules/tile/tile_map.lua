@@ -128,9 +128,15 @@ function TileMap:load_map(filter, regions)
     -- data()
 end
 
+function TileMap:fix_position(x, y)
+    local tile = self.tile_size
+    x = math_floor(x / tile) * tile
+    y = math_floor(y / tile) * tile
+    return x, y
+end
+
 function TileMap:insert_tile(x, y, id)
-    x = math_floor(x / self.tile_size) * self.tile_size
-    y = math_floor(y / self.tile_size) * self.tile_size
+    x, y = self:fix_position(x, y)
 
     self.cells_by_pos[get_index(self, x, y)] = id
 
@@ -141,8 +147,7 @@ function TileMap:insert_tile(x, y, id)
 end
 
 function TileMap:remove_tile(x, y)
-    x = math_floor(x / self.tile_size) * self.tile_size
-    y = math_floor(y / self.tile_size) * self.tile_size
+    x, y = self:fix_position(x, y)
 
     self.cells_by_pos[get_index(self, x, y)] = nil
 
