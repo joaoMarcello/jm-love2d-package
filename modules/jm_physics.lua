@@ -274,13 +274,13 @@ do
     ---@return JM.Physics.Body
     function Body:new(x, y, w, h, type_, world, id)
         --
+        ---@type JM.Physics.Body
         local body_reuse_table = pop_body()
-        if body_reuse_table then
-            for key, _ in pairs(body_reuse_table) do
-                body_reuse_table[key] = nil
-            end
-            -- body_reuse_table.__remove = false
-        end
+        -- if body_reuse_table then
+        --     -- for key, _ in pairs(body_reuse_table) do
+        --     --     body_reuse_table[key] = nil
+        --     -- end
+        -- end
 
         local obj = body_reuse_table or {}
         setmetatable(obj, self)
@@ -318,8 +318,8 @@ do
 
         self.dacc_x = self.world.meter * 3.5
         self.dacc_y = nil
-        self.over_speed_dacc_x = self.dacc_x
-        self.over_speed_dacc_y = self.dacc_x
+        -- self.over_speed_dacc_x = self.dacc_x
+        -- self.over_speed_dacc_y = self.dacc_x
 
         self.force_x = 0.0
         self.force_y = 0.0
@@ -331,6 +331,10 @@ do
         self.ground = nil -- used if body is not static
 
         self.ceil = nil
+        self.wall_left = nil
+        self.wall_right = nil
+
+        self.holder = nil
 
         -- some properties
         self.bouncing_y = nil -- need to be a number between 0 and 1
@@ -351,7 +355,7 @@ do
 
         self.events = {}
 
-        self:extra_collisor_filter(default_filter)
+        -- self:extra_collisor_filter(default_filter)
 
         self.colls = {}
     end
@@ -393,9 +397,9 @@ do
         self.events[evt_type] = nil
     end
 
-    function Body:remove_extra_filter()
-        self:extra_collisor_filter(default_filter)
-    end
+    -- function Body:remove_extra_filter()
+    --     self:extra_collisor_filter(default_filter)
+    -- end
 
     function Body:check_collision(x, y, w, h)
         return collision_rect(self.x, self.y, self.w, self.h,
@@ -448,9 +452,9 @@ do
         self.acc_y = ay
     end
 
-    function Body:extra_collisor_filter(filter)
-        self.extra_filter = filter
-    end
+    -- function Body:extra_collisor_filter(filter)
+    --     self.extra_filter = filter
+    -- end
 
     --- Makes the body jump in the air.
     ---@param desired_height number

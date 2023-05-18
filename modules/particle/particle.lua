@@ -50,6 +50,8 @@ local str_format = string.format
 ---@field speed_y number
 ---@field acc_x number
 ---@field acc_y number
+---@field max_speed_x number | any
+---@field max_speed_y number | any
 ---@field mass number
 ---@field img love.Image
 ---@field quad love.Quad
@@ -78,7 +80,7 @@ function Particle:new(
     qx, qy, qw, qh,
     rot, sx, sy, ox, oy,
     angle, lifetime, gravity, speed_x, speed_y, acc_x, acc_y, mass,
-    draw_order, delay, color, id
+    draw_order, delay, color, id, max_speed_x, max_speed_y
 )
     local quad
 
@@ -126,6 +128,8 @@ function Particle:new(
         reuse_table.speed_y = speed_y or 0.0
         reuse_table.acc_x = acc_x or 0.0
         reuse_table.acc_y = acc_y or 0.0
+        reuse_table.max_speed_x = max_speed_x or false
+        reuse_table.max_speed_y = max_speed_y or false
         reuse_table.mass = mass or world.default_mass
         --
         reuse_table.__remove = false
@@ -171,6 +175,8 @@ function Particle:new(
         speed_y = speed_y or 0.0,
         acc_x = acc_x or 0.0,
         acc_y = acc_y or 0.0,
+        max_speed_x = max_speed_x or false,
+        max_speed_y = max_speed_y or false,
         mass = mass or world.default_mass,
         --
         __remove = false,
