@@ -1,3 +1,4 @@
+---@type JM.Physics
 local Phys = require(_G.JM_Path .. "modules.jm_physics")
 local Utils = _G.JM_Utils
 
@@ -21,6 +22,9 @@ local function round(x)
     else
         return floor(x + 0.5)
     end
+end
+
+local generic = function()
 end
 
 local lgx = love.graphics
@@ -180,7 +184,7 @@ function Particle:new(
         mass = mass or world.default_mass,
         --
         __remove = false,
-        __custom_update__ = false,
+        __custom_update__ = generic,
         --
         draw_order = draw_order and (draw_order + random())
             or random(),
@@ -233,9 +237,10 @@ function Particle:update(dt)
         self.anima:update(dt)
     end
 
-    if self.body then
-        self.x = round(self.body.x)
-        self.y = round(self.body.y)
+    local bd = self.body
+    if bd then
+        self.x = round(bd.x)
+        self.y = round(bd.y)
     end
 
     self.lifetime = self.lifetime - dt

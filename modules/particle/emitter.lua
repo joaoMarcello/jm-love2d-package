@@ -19,8 +19,8 @@ local Emitter = setmetatable({}, GC)
 Emitter.__index = Emitter
 
 Emitter.Animas = {}
-Emitter.AnimaRecycler = {} --setmetatable({}, mode_k)
-Emitter.ParticleRecycler = setmetatable({}, mode_k)
+Emitter.AnimaRecycler = {}    --setmetatable({}, mode_k)
+Emitter.ParticleRecycler = {} --setmetatable({}, mode_k)
 
 ---@param _world JM.Physics.World
 ---@param _gamestate JM.Scene | any

@@ -276,11 +276,26 @@ do
         --
         ---@type JM.Physics.Body
         local body_reuse_table = pop_body()
-        -- if body_reuse_table then
-        --     -- for key, _ in pairs(body_reuse_table) do
-        --     --     body_reuse_table[key] = nil
-        --     -- end
-        -- end
+        if body_reuse_table then
+            -- for key, _ in pairs(body_reuse_table) do
+            --     body_reuse_table[key] = nil
+            -- end
+            local t = body_reuse_table.events
+            if t then
+                for key, v in pairs(t) do
+                    t[key] = nil
+                end
+            end
+            ---@type JM.Physics.Collisions
+            t = body_reuse_table.colls
+            if t then
+                t.items = nil
+                t.n = 0
+                -- for key, v in pairs(t) do
+                --     t[key] = nil
+                -- end
+            end
+        end
 
         local obj = body_reuse_table or {}
         setmetatable(obj, self)
@@ -347,17 +362,17 @@ do
         self.allowed_speed_y_restriction = true
         self.allow_climb_slope = true
 
-        self.shape = BodyShapes.rectangle
+        -- self.shape = BodyShapes.rectangle
 
         -- TODO
-        self.hit_boxes = nil
-        self.hurt_boxes = nil
+        -- self.hit_boxes = nil
+        -- self.hurt_boxes = nil
 
-        self.events = {}
+        self.events = self.events or {}
 
         -- self:extra_collisor_filter(default_filter)
 
-        self.colls = {}
+        self.colls = self.colls or {}
     end
 
     ---@param holder table|nil
