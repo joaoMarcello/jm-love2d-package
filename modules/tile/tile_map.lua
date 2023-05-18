@@ -128,6 +128,38 @@ function TileMap:load_map(filter, regions)
     -- data()
 end
 
+function TileMap:insert_tile(x, y, id)
+    x = math_floor(x / self.tile_size) * self.tile_size
+    y = math_floor(y / self.tile_size) * self.tile_size
+
+    self.cells_by_pos[get_index(self, x, y)] = id
+
+    self:refresh_min_max(x, y)
+
+    self.last_index_top = nil
+    self.__bound_left = nil
+end
+
+function TileMap:remove_tile(x, y)
+    x = math_floor(x / self.tile_size) * self.tile_size
+    y = math_floor(y / self.tile_size) * self.tile_size
+
+    self.cells_by_pos[get_index(self, x, y)] = nil
+
+    self:refresh_min_max(x, y)
+
+    self.last_index_top = nil
+    self.__bound_left = nil
+end
+
+function TileMap:refresh_min_max(x, y)
+    self.min_x = x < self.min_x and x or self.min_x
+    self.min_y = y < self.min_y and y or self.min_y
+
+    self.max_x = x > self.max_x and x or self.max_x
+    self.max_y = y > self.max_y and y or self.max_y
+end
+
 function TileMap:update(dt)
     self.tile_set:update(dt)
 end
@@ -139,16 +171,18 @@ local function draw_with_bounds(self, left, top, right, bottom)
     self.__bound_right = right
     self.__bound_bottom = bottom
 
-    top = math_floor(top / self.tile_size) * self.tile_size
+    local tile_size = self.tile_size
+
+    top = math_floor(top / tile_size) * tile_size
     top = clamp(top, self.min_y, top)
 
-    left = math_floor(left / self.tile_size) * self.tile_size
+    left = math_floor(left / tile_size) * tile_size
     left = clamp(left, self.min_x, left)
 
-    right = math_floor(right / self.tile_size) * self.tile_size
+    right = math_floor(right / tile_size) * tile_size
     right = clamp(right, self.min_x, right)
 
-    bottom = math_floor(bottom / self.tile_size) * self.tile_size
+    bottom = math_floor(bottom / tile_size) * tile_size
     bottom = clamp(bottom, self.min_y, bottom)
 
     -- if left > self.max_x or right < self.min_x
@@ -185,13 +219,13 @@ local function draw_with_bounds(self, left, top, right, bottom)
         return
     end
 
-    for j = top, bottom, self.tile_size do
+    for j = top, bottom, tile_size do
         --
-        local y = j / self.tile_size
+        local y = j / tile_size
 
-        for i = left, right, self.tile_size do
+        for i = left, right, tile_size do
             --
-            local x = i / self.tile_size
+            local x = i / tile_size
 
             local index = y * MAX_COLUMN + x
 
@@ -231,8 +265,8 @@ function TileMap:draw(camera, factor_x, factor_y)
         y = y + (factor_y and round(y * factor_y) or 0)
         local right, bottom = x + w, y + h
 
-        -- x, y = x + 32, y + 32
-        -- right, bottom = right - 32, bottom - 32
+        x, y = x + 16, y + 16
+        right, bottom = right - 16, bottom - 16
 
         if bounds_changed(self, x, y, right, bottom)
             or self.tile_set:frame_changed()
