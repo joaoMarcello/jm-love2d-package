@@ -128,6 +128,10 @@ function TileMap:load_map(filter, regions)
     -- data()
 end
 
+function TileMap:get_index(x, y)
+    return get_index(self, x, y)
+end
+
 function TileMap:fix_position(x, y)
     local tile = self.tile_size
     x = math_floor(x / tile) * tile

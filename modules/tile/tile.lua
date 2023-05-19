@@ -26,8 +26,9 @@ function Tile:__constructor__(id, img, px, py, size_x, size_y)
     self.quad = love.graphics.newQuad(self.qx, self.qy, self.qw, self.qh, img:getDimensions())
 end
 
-function Tile:draw(x, y)
-    love_setColor(1, 1, 1, 1)
+local white = { 1, 1, 1 }
+function Tile:draw(x, y, color)
+    love_setColor(color or white)
     love_draw(self.img, self.quad, x, y)
 end
 
