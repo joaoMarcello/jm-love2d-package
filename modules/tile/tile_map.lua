@@ -274,8 +274,8 @@ function TileMap:draw(camera, factor_x, factor_y)
         y = y + (factor_y and round(y * factor_y) or 0)
         local right, bottom = x + w, y + h
 
-        x, y = x + 16, y + 16
-        right, bottom = right - 16, bottom - 16
+        -- x, y = x + 16, y + 16
+        -- right, bottom = right - 16, bottom - 16
 
         if bounds_changed(self, x, y, right, bottom)
             or self.tile_set:frame_changed()
