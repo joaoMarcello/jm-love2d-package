@@ -346,8 +346,8 @@ local function draw_grid(self)
         if px > vx + vw then break end
 
         if px % (tile * size) == 0 then
-            love_set_color(0, 0, 0, 0.5)
-            love.graphics.setLineWidth(2)
+            love_set_color(0, 0, 0, 0.9)
+            -- love.graphics.setLineWidth(2)
         else
             love_set_color(0, 0, 0, 0.3)
         end
@@ -360,8 +360,8 @@ local function draw_grid(self)
         local py = tile * j
         if py > vy + vh then break end
         if py % (tile * size) == 0 then
-            love_set_color(0, 0, 0, 0.5)
-            love.graphics.setLineWidth(2)
+            love_set_color(0, 0, 0, 0.9)
+            -- love.graphics.setLineWidth(2)
         else
             love_set_color(0, 0, 0, 0.3)
         end
