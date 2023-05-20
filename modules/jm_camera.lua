@@ -339,11 +339,13 @@ local function draw_grid(self)
     local qx = mceil((self.bounds_right - self.bounds_left) / tile)
     local qy = mceil((self.bounds_bottom - self.bounds_top) / tile)
 
+    local size = self.grid_num_tile
+
     for i = mfloor(self.x / tile), qx do
         local px = tile * i
         if px > vx + vw then break end
 
-        if px % (tile * 4) == 0 then
+        if px % (tile * size) == 0 then
             love_set_color(0, 0, 0, 0.5)
             love.graphics.setLineWidth(2)
         else
@@ -357,7 +359,7 @@ local function draw_grid(self)
     for j = mfloor(self.y / tile), qy do
         local py = tile * j
         if py > vy + vh then break end
-        if py % (tile * 4) == 0 then
+        if py % (tile * size) == 0 then
             love_set_color(0, 0, 0, 0.5)
             love.graphics.setLineWidth(2)
         else
@@ -806,7 +808,7 @@ function Camera:__constructor__(
     self.border_color = border_color --or { 1, 0, 0, 1 }
     self.is_showing_grid = self.debug or false
     self.grid_desired_tile = self.tile_size * 1
-
+    self.grid_num_tile = 4
 
     -- self:shake_in_x(nil, self.tile_size * 2 / 4, nil, 7.587)
     -- self:shake_in_y(nil, self.tile_size * 2.34 / 4, nil, 10.7564)
