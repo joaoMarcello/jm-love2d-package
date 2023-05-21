@@ -29,6 +29,13 @@ local filter_default = function(x, y, id)
     return true
 end
 
+---@param self JM.TileMap
+local function get_index(self, x, y)
+    local r = (y / self.tile_size) * MAX_COLUMN + (x / self.tile_size)
+    return r
+    -- return string_format("%d:%d", x, y)
+end
+
 --==========================================================================
 -- Entry x - y - id
 
@@ -68,13 +75,6 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.last_index_right = nil
 
     self:load_map(filter, regions)
-end
-
----@param self JM.TileMap
-local function get_index(self, x, y)
-    local r = (y / self.tile_size) * MAX_COLUMN + (x / self.tile_size)
-    return r
-    -- return string_format("%d:%d", x, y)
 end
 
 ---@param filter function|nil

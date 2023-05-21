@@ -1500,10 +1500,10 @@ do
     end
 
     ---@param obj JM.Physics.Body|JM.Physics.Slope|any
-    function World:remove_by_obj(obj)
+    function World:remove_by_obj(obj, list_opt)
         local index, list
 
-        list = (obj.is_slope and self.bodies_static) or self.bodies
+        list = list_opt or (obj.is_slope and self.bodies_static) or self.bodies
 
         for i = 1, #list do
             if list[i] == obj then
@@ -1585,7 +1585,14 @@ function Phys:newBody(world, x, y, w, h, type_)
 
     local b = Body:new(x, y, w, h, bd_type, world)
 
-    world:add(b)
+
+    local col = b:check2(nil, nil, function(obj, item)
+        return item.is_slope
+    end, x + 1, y + 1, w - 2, h - 2)
+
+    if col.n <= 0 then
+        world:add(b)
+    end
 
     return b
 end
@@ -1659,6 +1666,7 @@ local function merge_slopes(slope, world)
     return slope
 end
 
+---@param world JM.Physics.World
 ---@return JM.Physics.Body|JM.Physics.Slope
 function Phys:newSlope(world, x, y, w, h, slope_type, direction)
     local slope = Slope:new(x, y, w, h, world, direction, slope_type)
@@ -1709,6 +1717,20 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
                 slope.next = col.items[1]
                 next.prev = slope
             end
+        end
+    end
+
+    col = slope:check2(nil, nil,
+        ---@param item JM.Physics.Body
+        function(obj, item)
+            return item.type == BodyTypes.static and item.id == "" and item ~= slope
+        end, x + 1, y + 1, w - 2, h - 2
+    )
+
+    if col.n > 0 then
+        for i = 1, col.n do
+            local bd = col.items[i]
+            world:remove_by_obj(bd, world.bodies_static)
         end
     end
 
