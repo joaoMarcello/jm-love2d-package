@@ -102,7 +102,10 @@ end
 
 function Label:set_text(text)
     local focus = self.on_focus
+    local locked = self.locked
+
     self.on_focus = true
+    self.locked = false
 
     self:clear()
 
@@ -111,6 +114,7 @@ function Label:set_text(text)
     end
 
     self.on_focus = focus
+    self.locked = locked
 end
 
 function Label:key_pressed(key)
