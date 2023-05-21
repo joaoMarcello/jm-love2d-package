@@ -1335,10 +1335,15 @@ function Slope:draw()
         )
     end
 
-    -- local font = JM_Font
-    -- font:print("p:" .. tostring(self.prev and true or false), self.x, self.y - 22)
-    -- font:print("n:" .. tostring(self.next and true or false), self.x, self.y - 44)
-    -- font:print(math.sin(self.angle), self.x, self.y - 22)
+    local font = JM_Font.current
+    font:push()
+    font:set_font_size(6)
+
+    font:print("p:" .. tostring(self.prev and true or false), self.x, self.y - 12)
+    font:print("n:" .. tostring(self.next and true or false), self.x, self.y - 18)
+    -- font:print(tostring(math.sin(self.angle)), self.x, self.y - 22)
+
+    font:pop()
 end
 
 --=============================================================================
