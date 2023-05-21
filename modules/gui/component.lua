@@ -78,14 +78,15 @@ local Component = {
     __custom_draw__ = generic_func,
     __pos_draw__ = generic_func,
     __custom_update__ = generic_func,
-    TYPE = TYPES_
+    TYPE = TYPES_,
+    __is_gui_component__ = true,
 }
 setmetatable(Component, Affectable)
 Component.__index = Component
 Component.MODES = MODES
 Component.collision = collision
 
----@param args {x:number, y:number, w:number, h:number}|nil
+---@param args {x:number, y:number, w:number, h:number, on_focus:boolean}|nil
 ---@return table
 function Component:new(args)
     args = args or {}
@@ -118,6 +119,8 @@ function Component:__constructor__(args)
     self:refresh_corners()
     self.events = {}
     self:init()
+
+    self.__custom_draw__ = args.__custom_draw__
 end
 
 ---@param type_ JM.GUI.EventOptions

@@ -24,7 +24,10 @@ local Label = setmetatable({
     set_font = function(self, new_font)
         font = new_font
         font_config = font:__get_configuration()
-    end
+    end,
+    --
+    __is_label__ = true,
+    --
     --
 }, Component)
 Label.__index = Label
@@ -47,6 +50,9 @@ function Label:__constructor__(args)
     self.width = 0
     self.lengths = {}
     self.filter = (self.use_filter and only_alpha_numeric) or args.filter
+    if self.filter then
+        self.use_filter = true
+    end
     self.align = args.align or "center"
     self.draw_border = args.border
     self.wait_line = args.line or 2
