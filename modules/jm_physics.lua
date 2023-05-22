@@ -1595,7 +1595,49 @@ function Phys:newBody(world, x, y, w, h, type_)
         return item.is_slope
     end, x + 1, y + 1, w - 2, h - 2)
 
-    if col.n <= 0 then
+    if col.n > 0 then
+        ---@type JM.Physics.Slope
+        local slope = col.items[1]
+
+        if b.y < slope.y + slope.h then
+            b:refresh(nil, slope.y + slope.h, nil, b.h - (slope.y + slope.h - b.y))
+        end
+    end
+
+
+    ---@diagnostic disable-next-line: cast-local-type
+    col = b.h > 0 and b:check2(nil, nil, function(_, item)
+        return item.type == BodyTypes.static and item ~= b
+            and not item.is_slope
+            and item.h == b.h
+            and item.y == b.y
+    end, b.x, b.y, b.w + 1, b.h)
+
+    if col and col.n > 0 then
+        ---@type JM.Physics.Body
+        local bd = col.items[1]
+
+        bd:refresh(bd.x - b.w, bd.y, bd.w + b.w, bd.h)
+        b.h = 0
+    end
+
+    ---@diagnostic disable-next-line: cast-local-type
+    col = b.h > 0 and b:check2(nil, nil, function(_, item)
+        return item.type == BodyTypes.static and item ~= b
+            and not item.is_slope
+            and item.h == b.h
+            and item.y == b.y
+    end, b.x - 1, b.y, b.w, b.h)
+
+    if col and col.n > 0 then
+        ---@type JM.Physics.Body
+        local bd = col.items[1]
+
+        bd:refresh(bd.x, bd.y, bd.w + b.w, bd.h)
+        b.h = 0
+    end
+
+    if b.h > 0 then
         world:add(b)
     end
 
@@ -1729,13 +1771,22 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
         ---@param item JM.Physics.Body
         function(obj, item)
             return item.type == BodyTypes.static and item.id == "" and item ~= slope
-        end, x + 1, y + 1, w - 2, h - 2
+        end, slope.x, slope.y, slope.w, slope.h
     )
 
     if col.n > 0 then
         for i = 1, col.n do
+            ---@type JM.Physics.Body
             local bd = col.items[i]
-            world:remove_by_obj(bd, world.bodies_static)
+
+            if bd.y < slope.y + slope.h then
+                local diff = slope.y + slope.h - bd.y
+                bd:refresh(nil, slope.y + slope.h, nil, bd.h - diff)
+            end
+
+            if bd.h <= 0 then
+                world:remove_by_obj(bd, world.bodies_static)
+            end
         end
     end
 
