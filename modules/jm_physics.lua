@@ -1339,8 +1339,15 @@ function Slope:draw()
     font:push()
     font:set_font_size(6)
 
-    font:print("p:" .. tostring(self.prev and true or false), self.x, self.y - 12)
-    font:print("n:" .. tostring(self.next and true or false), self.x, self.y - 18)
+    local py1 = self.y - 12
+    local py2 = self.y - 18
+
+    if not self.is_floor then
+        py1 = self.y + self.h
+        py2 = self.y + self.h + 12
+    end
+    font:print("p:" .. tostring(self.prev and true or false), self.x, py1)
+    font:print("n:" .. tostring(self.next and true or false), self.x, py2)
     -- font:print(tostring(math.sin(self.angle)), self.x, self.y - 22)
 
     font:pop()
@@ -1538,6 +1545,70 @@ do
         return false
     end
 
+    function World:optimize()
+        local N = #self.bodies_static
+
+        for i = N, 1, -1 do
+            ---@type JM.Physics.Collide
+            local bd = self.bodies_static[i]
+
+            if bd and not bd.is_slope then
+                local col = bd:check2(nil, nil, function(_, item)
+                    return item ~= bd and not item.is_slope and item.x == bd.x and item.w == bd.w
+                end, bd.x, bd.y + 1, bd.w, bd.h)
+
+                if col.n > 0 then
+                    self:remove_by_obj(bd, self.bodies_static)
+                    bd.__remove = true
+
+                    ---@type JM.Physics.Body
+                    local c = col.items[1]
+                    c:refresh(nil, c.y - bd.h, nil, c.h + bd.h)
+                end
+
+                -- col = bd:check2(nil, nil, function(_, item)
+                --     return item ~= bd and not item.is_slope and item.x == bd.x and item.w == bd.w
+                -- end, bd.x, bd.y - 1, bd.w, bd.h)
+
+                -- if col.n > 0 then
+                --     self:remove_by_obj(bd, self.bodies_static)
+
+                --     ---@type JM.Physics.Body
+                --     local c = col.items[1]
+                --     c:refresh(nil, c.y, nil, c.h + bd.h)
+                -- end
+
+
+
+                col = bd:check2(nil, nil, function(_, item)
+                    return item ~= bd and not item.is_slope and item.y == bd.y and item.h == bd.h
+                end, bd.x - 1, bd.y, bd.w, bd.h)
+
+                if col.n > 0 then
+                    self:remove_by_obj(bd, self.bodies_static)
+                    bd.__remove = true
+
+                    ---@type JM.Physics.Body
+                    local c = col.items[1]
+                    c:refresh(nil, nil, c.w + bd.w, nil)
+                end
+
+                -- col = bd:check2(nil, nil, function(_, item)
+                --     return item ~= bd and not item.is_slope and item.y == bd.y and item.h == bd.h
+                -- end, bd.x + 1, bd.y, bd.w, bd.h)
+
+                -- if col.n > 0 then
+                --     self:remove_by_obj(bd, self.bodies_static)
+                --     bd.__remove = true
+
+                --     ---@type JM.Physics.Body
+                --     local c = col.items[1]
+                --     c:refresh(c.x - bd.w, nil, c.w + bd.w, nil)
+                -- end
+            end
+        end
+    end
+
     local dt_lim = 1 / 30
     function World:update(dt)
         dt = dt > dt_lim and dt_lim or dt
@@ -1590,53 +1661,90 @@ function Phys:newBody(world, x, y, w, h, type_)
 
     local b = Body:new(x, y, w, h, bd_type, world)
 
+    if b.type == BodyTypes.static then
+        local col = b:check2(nil, nil, function(obj, item)
+            return item.is_slope
+        end, x + 1, y + 1, w - 2, h - 2)
 
-    local col = b:check2(nil, nil, function(obj, item)
-        return item.is_slope
-    end, x + 1, y + 1, w - 2, h - 2)
+        if col.n > 0 then
+            ---@type JM.Physics.Slope
+            local slope = col.items[1]
 
-    if col.n > 0 then
-        ---@type JM.Physics.Slope
-        local slope = col.items[1]
+            local tile = world.tile
+            for j = b.y, b.y + b.h - 1, tile do
+                for i = b.x, b.x + b.w - 1, tile do
+                    if not collision_rect(i + 1, j + 1, tile - 2, tile - 2, slope:rect()) then
+                        Phys:newBody(world, i, j, tile, tile, "static")
+                    end
+                end
+            end
 
-        if b.y < slope.y + slope.h
-            and slope.is_floor
-        then
-            b:refresh(nil, slope.y + slope.h, nil, b.h - (slope.y + slope.h - b.y))
+            b:refresh(nil, nil, 0, 0)
+        end
+
+        ---@diagnostic disable-next-line: cast-local-type
+        col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
+            return item.type == BodyTypes.static and item ~= b
+                and not item.is_slope
+                and item.h == b.h
+                and item.y == b.y
+        end, b.x, b.y, b.w + 1, b.h)
+
+        if col and col.n > 0 then
+            ---@type JM.Physics.Body
+            local bd = col.items[1]
+
+            bd:refresh(bd.x - b.w, bd.y, bd.w + b.w, bd.h)
+            b:refresh(nil, nil, nil, 0)
+        end
+
+        ---@diagnostic disable-next-line: cast-local-type
+        col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
+            return item.type == BodyTypes.static and item ~= b
+                and not item.is_slope
+                and item.h == b.h
+                and item.y == b.y
+        end, b.x - 1, b.y, b.w, b.h)
+
+        if col and col.n > 0 then
+            ---@type JM.Physics.Body
+            local bd = col.items[1]
+
+            bd:refresh(bd.x, bd.y, bd.w + b.w, bd.h)
+            b:refresh(nil, nil, nil, 0)
+        end
+
+        ---@diagnostic disable-next-line: cast-local-type
+        col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
+            return not item.is_slope and item ~= b
+                and item.w == b.w
+                and item.x == b.x
+        end, b.x, b.y - 1, b.w, b.h)
+
+        if col and col.n > 0 then
+            ---@type JM.Physics.Body
+            local bd = col.items[1]
+
+            bd:refresh(nil, nil, nil, bd.h + b.h)
+            b:refresh(nil, nil, nil, 0)
+        end
+
+        ---@diagnostic disable-next-line: cast-local-type
+        col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
+            return not item.is_slope and item ~= b
+                and item.w == b.w
+                and item.x == b.x
+        end, b.x, b.y + 1, b.w, b.h)
+
+        if col and col.n > 0 then
+            ---@type JM.Physics.Body
+            local bd = col.items[1]
+
+            bd:refresh(nil, bd.y - b.h, nil, bd.h + b.h)
+            b:refresh(nil, nil, nil, 0)
         end
     end
 
-    ---@diagnostic disable-next-line: cast-local-type
-    col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
-        return item.type == BodyTypes.static and item ~= b
-            and not item.is_slope
-            and item.h == b.h
-            and item.y == b.y
-    end, b.x, b.y, b.w + 1, b.h)
-
-    if col and col.n > 0 then
-        ---@type JM.Physics.Body
-        local bd = col.items[1]
-
-        bd:refresh(bd.x - b.w, bd.y, bd.w + b.w, bd.h)
-        b.h = 0
-    end
-
-    ---@diagnostic disable-next-line: cast-local-type
-    col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
-        return item.type == BodyTypes.static and item ~= b
-            and not item.is_slope
-            and item.h == b.h
-            and item.y == b.y
-    end, b.x - 1, b.y, b.w, b.h)
-
-    if col and col.n > 0 then
-        ---@type JM.Physics.Body
-        local bd = col.items[1]
-
-        bd:refresh(bd.x, bd.y, bd.w + b.w, bd.h)
-        b.h = 0
-    end
 
     if b.h > 0 and b.w > 0 then
         world:add(b)
@@ -1780,35 +1888,17 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
             ---@type JM.Physics.Body
             local bd = col.items[i]
 
-            if bd.y < slope.y + slope.h
-                and slope.is_floor
-            then
-                local diff = slope.y + slope.h - bd.y
-                bd:refresh(nil, slope.y + slope.h, nil, bd.h - diff)
-            end
+            local tile = world.tile
+            world:remove_by_obj(bd, world.bodies_static)
 
-            if not slope.is_floor and not slope.is_norm
-                and bd.y + bd.h > slope.y
-            then
-                local diff = bd.y + bd.h - slope.y
-                bd:refresh(nil, bd.y, nil, bd.h - diff)
-            end
-
-            if not slope.is_floor and slope.is_norm
-                and bd.x + bd.w > slope.x
-            then
-                local tile = world.tile
-                world:remove_by_obj(bd, world.bodies_static)
-
-                for p = bd.y, bd.y + bd.h - 1, tile do
-                    for k = bd.x, bd.x + bd.w - 1, tile do
-                        if not collision_rect(
-                                k + 1, p + 1, tile - 2, tile - 2,
-                                slope:rect()
-                            )
-                        then
-                            Phys:newBody(world, k, p, tile, tile, "static")
-                        end
+            for p = bd.y, bd.y + bd.h - 1, tile do
+                for k = bd.x, bd.x + bd.w - 1, tile do
+                    if not collision_rect(
+                            k + 1, p + 1, tile - 2, tile - 2,
+                            slope:rect()
+                        )
+                    then
+                        Phys:newBody(world, k, p, tile, tile, "static")
                     end
                 end
             end
