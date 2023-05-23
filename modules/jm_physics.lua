@@ -1662,25 +1662,27 @@ function Phys:newBody(world, x, y, w, h, type_)
     local b = Body:new(x, y, w, h, bd_type, world)
 
     if b.type == BodyTypes.static then
-        local col = b:check2(nil, nil, function(obj, item)
-            return item.is_slope
-        end, x + 1, y + 1, w - 2, h - 2)
+        -- local col = b:check2(nil, nil, function(obj, item)
+        --     return item.is_slope
+        -- end, x + 1, y + 1, w - 2, h - 2)
 
-        if col.n > 0 then
-            ---@type JM.Physics.Slope
-            local slope = col.items[1]
+        -- if col.n > 0 then
+        --     ---@type JM.Physics.Slope
+        --     local slope = col.items[1]
 
-            local tile = world.tile
-            for j = b.y, b.y + b.h - 1, tile do
-                for i = b.x, b.x + b.w - 1, tile do
-                    if not collision_rect(i + 1, j + 1, tile - 2, tile - 2, slope:rect()) then
-                        Phys:newBody(world, i, j, tile, tile, "static")
-                    end
-                end
-            end
+        --     local tile = world.tile
+        --     for j = b.y, b.y + b.h - 1, tile do
+        --         for i = b.x, b.x + b.w - 1, tile do
+        --             if not collision_rect(i + 1, j + 1, tile - 2, tile - 2, slope:rect()) then
+        --                 -- Phys:newBody(world, i, j, tile, tile, "static")
+        --             end
+        --         end
+        --     end
 
-            b:refresh(nil, nil, 0, 0)
-        end
+        --     -- b:refresh(nil, nil, 0)
+        -- end
+
+        local col
 
         ---@diagnostic disable-next-line: cast-local-type
         col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
@@ -1890,12 +1892,13 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
 
             local tile = world.tile
             world:remove_by_obj(bd, world.bodies_static)
+            bd.__remove = true
 
             for p = bd.y, bd.y + bd.h - 1, tile do
                 for k = bd.x, bd.x + bd.w - 1, tile do
                     if not collision_rect(
                             k + 1, p + 1, tile - 2, tile - 2,
-                            slope:rect()
+                            slope.x, slope.y, slope.w, slope.h
                         )
                     then
                         Phys:newBody(world, k, p, tile, tile, "static")
@@ -1904,7 +1907,7 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction)
             end
 
             if bd.h <= 0 or bd.w <= 0 then
-                world:remove_by_obj(bd, world.bodies_static)
+                -- world:remove_by_obj(bd, world.bodies_static)
             end
         end
     end
