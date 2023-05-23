@@ -153,9 +153,93 @@ end
 function TileMap:remove_tile(x, y)
     x, y = self:fix_position(x, y)
 
+    if not self.cells_by_pos[get_index(self, x, y)] then return end
+
     self.cells_by_pos[get_index(self, x, y)] = nil
 
-    self:refresh_min_max(x, y)
+    if x == self.min_x then
+        local min_x = math.huge
+
+        for j = self.min_y, self.max_y, self.tile_size do
+            for i = self.min_x, self.max_x, self.tile_size do
+                local id = self.cells_by_pos[get_index(self, i, j)]
+
+                if id and i < min_x then
+                    min_x = i
+                    break
+                end
+
+                if i > min_x then
+                    break
+                end
+            end
+        end
+
+        self.min_x = min_x
+    end
+
+    if x == self.max_x then
+        local max_x = -math.huge
+
+        for j = self.min_y, self.max_y, self.tile_size do
+            for i = self.max_x, self.min_x, -self.tile_size do
+                local id = self.cells_by_pos[get_index(self, i, j)]
+
+                if id and i > max_x then
+                    max_x = i
+                    break
+                end
+
+                if i < max_x then
+                    break
+                end
+            end
+        end
+
+        self.max_x = max_x
+    end
+
+    if y == self.min_y then
+        local min_y = math.huge
+
+        for i = self.min_x, self.max_x, self.tile_size do
+            for j = self.min_y, self.max_y, self.tile_size do
+                local id = self.cells_by_pos[get_index(self, i, j)]
+
+                if id and j < min_y then
+                    min_y = j
+                    break
+                end
+
+                if j > min_y then
+                    break
+                end
+            end
+        end
+
+        self.min_y = min_y
+    end
+
+    if y == self.max_y then
+        local max_y = -math.huge
+
+        for i = self.min_x, self.max_x, self.tile_size do
+            for j = self.max_y, self.min_y, -self.tile_size do
+                local id = self.cells_by_pos[get_index(self, i, j)]
+
+                if id and j > max_y then
+                    max_y = j
+                    break
+                end
+
+                if j < max_y then
+                    break
+                end
+            end
+        end
+
+        self.max_y = max_y
+    end
 
     self.last_index_top = nil
     self.__bound_left = nil
