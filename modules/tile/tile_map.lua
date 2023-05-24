@@ -253,6 +253,18 @@ function TileMap:refresh_min_max(x, y)
     self.max_y = y > self.max_y and y or self.max_y
 end
 
+function TileMap:clear()
+    self.cells_by_pos = {}
+    self.min_x = math.huge
+    self.min_y = self.min_x
+    self.max_x = -self.min_x
+    self.max_y = -self.min_x
+end
+
+function TileMap:get_id(x, y)
+    return self.cells_by_pos[get_index(self, x, y)]
+end
+
 function TileMap:update(dt)
     self.tile_set:update(dt)
 end
