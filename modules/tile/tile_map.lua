@@ -254,7 +254,11 @@ function TileMap:refresh_min_max(x, y)
 end
 
 function TileMap:clear()
-    self.cells_by_pos = {}
+    -- self.cells_by_pos = {}
+    for i, v in pairs(self.cells_by_pos) do
+        self.cells_by_pos[i] = nil
+    end
+
     self.min_x = math.huge
     self.min_y = self.min_x
     self.max_x = -self.min_x
