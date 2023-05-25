@@ -1628,20 +1628,17 @@ do
                                 and bd.y + bd.h <= item.y + item.h
                             then
                                 bd:refresh(nil, bd.y, nil, nil)
-                                if bd.h <= 0 then
-                                    self:remove_by_obj(bd, self.bodies_static)
-                                    bd.__remove = true
-                                end
                                 --
                             elseif bd.y + bd.h > item.y + item.h
                                 and bd.y >= item.y
                             then
                                 bd:refresh(nil, item.y + item.h, nil, bd.y + bd.h - (item.y + item.h))
-                                if bd.h <= 0 then
-                                    self:remove_by_obj(bd, self.bodies_static)
-                                    bd.__remove = true
-                                end
                                 --
+                            end
+
+                            if bd.h <= 0 then
+                                self:remove_by_obj(bd, self.bodies_static)
+                                bd.__remove = true
                             end
 
                             break
