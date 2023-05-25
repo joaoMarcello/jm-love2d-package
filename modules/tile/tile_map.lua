@@ -2,12 +2,11 @@ local love_set_color = love.graphics.setColor
 local love_draw = love.graphics.draw
 local love_file_load = love.filesystem.load
 local math_floor, math_min, math_max = math.floor, math.min, math.max
-local string_format = string.format
 
 local MAX_COLUMN = 9999
 
 --- -- @alias JM.TileMap.Cell {x:number, y:number, id:number}
----@alias JM.TileMap.Cell number
+-- ---@alias JM.TileMap.Cell number
 
 ---@type JM.TileSet
 local TileSet = require((...):gsub("tile_map", "tile_set"))
@@ -267,6 +266,11 @@ end
 
 function TileMap:get_id(x, y)
     return self.cells_by_pos[get_index(self, x, y)]
+end
+
+function TileMap:reset_spritebatch()
+    self.__bound_left = nil
+    self.last_index_top = nil
 end
 
 function TileMap:update(dt)

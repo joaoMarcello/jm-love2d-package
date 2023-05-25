@@ -1605,6 +1605,51 @@ do
                 --     local c = col.items[1]
                 --     c:refresh(c.x - bd.w, nil, c.w + bd.w, nil)
                 -- end
+
+                local items = self:get_items_in_cell_obj(bd.x + 1, bd.y + 1, bd.w - 2, bd.h - 2)
+
+                if items then
+                    for item, _ in pairs(items) do
+                        ---@type JM.Physics.Collide
+                        local item = item
+
+                        if item ~= bd and not item.__remove
+                            and item.is_enabled and item.is_slope
+                            and collision_rect(bd.x, bd.y, bd.w, bd.h, item:rect())
+                        then
+                            --
+                            if bd.y >= item.y
+                                and bd.y + bd.h <= item.y + item.h
+                            then
+                                self:remove_by_obj(bd, self.bodies_static)
+                                bd.__remove = true
+                                --
+                            elseif bd.y < item.y
+                                and bd.y + bd.h <= item.y + item.h
+                            then
+                                bd:refresh(nil, bd.y, nil, nil)
+                                if bd.h <= 0 then
+                                    self:remove_by_obj(bd, self.bodies_static)
+                                    bd.__remove = true
+                                end
+                                --
+                            elseif bd.y + bd.h > item.y + item.h
+                                and bd.y >= item.y
+                            then
+                                bd:refresh(nil, item.y + item.h, nil, bd.y + bd.h - (item.y + item.h))
+                                if bd.h <= 0 then
+                                    self:remove_by_obj(bd, self.bodies_static)
+                                    bd.__remove = true
+                                end
+                                --
+                            end
+
+                            break
+                        end
+                    end
+                end
+
+                --
             end
         end
     end
@@ -1662,9 +1707,9 @@ function Phys:newBody(world, x, y, w, h, type_)
     local b = Body:new(x, y, w, h, bd_type, world)
 
     if b.type == BodyTypes.static then
-        -- local col = b:check2(nil, nil, function(obj, item)
-        --     return item.is_slope
-        -- end, x + 1, y + 1, w - 2, h - 2)
+        local col = b:check2(nil, nil, function(obj, item)
+            return item.is_slope
+        end, x + 1, y + 1, w - 2, h - 2)
 
         -- if col.n > 0 then
         --     ---@type JM.Physics.Slope
