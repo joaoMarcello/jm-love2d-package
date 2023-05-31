@@ -1284,4 +1284,8 @@ function Scene:draw_game_object(camera)
     end
 end
 
+function Scene:__get_data__()
+    return false
+end
+
 return Scene
