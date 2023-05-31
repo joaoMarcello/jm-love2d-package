@@ -1177,6 +1177,8 @@ function Slope:__constructor__(direction, slope_type)
 
     self._A = self:A()
     self._B = self:B()
+
+    self.on_ground = false -- tell if slope is above ground
 end
 
 function Slope:point_left()
@@ -1543,6 +1545,46 @@ do
         end
 
         return false
+    end
+
+    function World:fix_ground_to_slope()
+        local N = #self.bodies_static
+
+        for i = N, 1, -1 do
+            ---@type JM.Physics.Collide
+            local bd = self.bodies_static[i]
+
+            if bd and not bd.is_slope then
+                local items = self:get_items_in_cell_obj(bd.x - 1, bd.y - 2, bd.w + 2, bd.h + 4)
+
+                if items then
+                    for item, _ in pairs(items) do
+                        ---@type JM.Physics.Collide
+                        local item = item
+
+                        if item ~= bd and not item.__remove
+                            and item.is_enabled and item.is_slope
+                            and collision_rect(bd.x, bd.y - 1, bd.w, bd.h, item:rect())
+                        then
+                            if bd.x < item.x then
+                                local x, y, w, h = bd:rect()
+                                bd:refresh(x, y, (item.x - x), h)
+
+                                if w - bd.w > 0 then
+                                    self:add(Body:new(x + bd.w, y, w - bd.w, h, BodyTypes.static, self))
+                                end
+                                --
+                            elseif bd.x + bd.w > item.x + item.w then
+                                local x, y, w, h = bd:rect()
+                                bd:refresh(item.x + item.w, y, bd:right() - item:right(), h)
+
+                                self:add(Body:new(x, y, item.w, h, BodyTypes.static, self))
+                            end
+                        end
+                    end
+                end
+            end
+        end
     end
 
     function World:optimize()
