@@ -1354,7 +1354,7 @@ function Slope:draw()
     -- font:print(tostring(math.sin(self.angle)), self.x, self.y - 22)
 
     if self.on_ground then
-        font:print("<color>true", self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+        font:print("<color>ground", self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
     else
         font:print(tostring(self.on_ground), self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
     end
