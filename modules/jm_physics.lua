@@ -1179,6 +1179,7 @@ function Slope:__constructor__(direction, slope_type)
     self._B = self:B()
 
     self.on_ground = false -- tell if slope is above ground
+    self.on_ceil = false
 end
 
 function Slope:point_left()
@@ -1346,11 +1347,17 @@ function Slope:draw()
 
     if not self.is_floor then
         py1 = self.y + self.h
-        py2 = self.y + self.h + 12
+        py2 = self.y + self.h + 6
     end
     font:print("p:" .. tostring(self.prev and true or false), self.x, py1)
     font:print("n:" .. tostring(self.next and true or false), self.x, py2)
     -- font:print(tostring(math.sin(self.angle)), self.x, self.y - 22)
+
+    if self.on_ground then
+        font:print("<color>true", self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+    else
+        font:print(tostring(self.on_ground), self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+    end
 
     font:pop()
 end
@@ -1579,6 +1586,39 @@ do
                                 bd:refresh(item.x + item.w, y, bd:right() - item:right(), h)
 
                                 self:add(Body:new(x, y, item.w, h, BodyTypes.static, self))
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    function World:fix_slope()
+        local N = #self.bodies_static
+
+        for i = N, 1, -1 do
+            ---@type JM.Physics.Collide
+            local bd = self.bodies_static[i]
+
+            if bd and bd.is_slope then
+                local items = self:get_items_in_cell_obj(bd.x - 1, bd.y - 2, bd.w + 2, bd.h + 4)
+
+                if items then
+                    for item, _ in pairs(items) do
+                        ---@type JM.Physics.Collide
+                        local item = item
+
+                        if item ~= bd and not item.__remove
+                            and item.is_enabled and not item.is_slope
+                            and collision_rect(bd.x, bd.y, bd.w, bd.h + 1, item:rect())
+                        then
+                            if bd.is_floor then
+                                if bd.is_norm then
+                                    bd.on_ground = item.x < bd.x
+                                else
+                                    bd.on_ground = item:right() > bd:right()
+                                end
                             end
                         end
                     end
