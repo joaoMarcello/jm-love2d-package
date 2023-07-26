@@ -1757,12 +1757,19 @@ do
         end
     end
 
-    function World:draw()
+    function World:draw(draw_static)
         for i = 1, self.bodies_number do
             ---@type JM.Physics.Body|JM.Physics.Slope
             local obj = self.bodies[i]
 
             local r = obj.draw and obj:draw()
+        end
+
+        if draw_static then
+            for i = 1, #self.bodies_static do
+                local obj = self.bodies_static[i]
+                local r = obj.draw and obj:draw()
+            end
         end
     end
 end
