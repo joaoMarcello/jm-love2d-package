@@ -89,7 +89,7 @@ Effect.TYPE = TYPE_
 ---@param args any
 ---@return JM.Effect effect
 function Effect:new(object, args)
-    ---@type JM.Effect
+    -- ---@type JM.Effect
     local effect = {}
     setmetatable(effect, self)
 
