@@ -1222,6 +1222,32 @@ end
 
 local sort_update = function(a, b) return a.update_order > b.update_order end
 local sort_draw = function(a, b) return a.draw_order < b.draw_order end
+local pairs = pairs
+
+local ObjectRecycler = setmetatable({}, { __mode = 'k' })
+
+local function push_object(obj)
+    ObjectRecycler[obj] = true
+end
+
+local function pop_object(skip_clear)
+    for obj, _ in pairs(ObjectRecycler) do
+        ObjectRecycler[obj] = nil
+
+        if not skip_clear then
+            for key, v in pairs(obj) do
+                obj[key] = nil
+            end
+        end
+
+        return obj
+    end
+    return nil
+end
+
+Scene.ObjectRecycler = ObjectRecycler
+Scene.push_object = push_object
+Scene.pop_object = pop_object
 
 function Scene:remove_object(index)
     ---@type GameObject | BodyObject
@@ -1249,6 +1275,7 @@ function Scene:update_game_objects(dt)
 
         if gc.__remove then
             self:remove_object(i)
+            Scene.push_object(gc)
         else
             if gc.update and gc.is_enable then
                 gc:update(dt)
