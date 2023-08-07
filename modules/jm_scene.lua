@@ -1311,6 +1311,7 @@ function Scene:draw_game_object(camera)
     end
 end
 
+---@return any
 function Scene:__get_data__()
     return false
 end
