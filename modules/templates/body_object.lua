@@ -1,4 +1,4 @@
-local GC = _G.Pack.BodyObject
+local GC = _G.JM_Package.BodyObject
 
 ---@class GenericBodyObject : BodyObject
 local Object = setmetatable({}, GC)

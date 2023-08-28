@@ -1,4 +1,4 @@
-local GC = _G.Pack.GameObject
+local GC = _G.JM_Package.GameObject
 
 ---@class GenericObject : GameObject
 local Object = setmetatable({}, GC)
