@@ -80,7 +80,7 @@ local BodyEvents = {
     leaving_x_axis_body = 14
 }
 
----@alias JM.Physics.Collide JM.Physics.Body|JM.Physics.Slope
+---@alias JM.Physics.Collide JM.Physics.Body|JM.Physics.Slope|any
 
 ---@alias JM.Physics.Cell {count:number, x:number, y:number, items:table}
 

@@ -145,6 +145,8 @@ function Emitter:update(dt)
         self:__custom_update__(dt, self.update_args)
     end
 
+    N = self.N
+
     tab_sort(list, sort_draw)
 
     for i = N, 1, -1 do
