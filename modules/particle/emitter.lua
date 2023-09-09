@@ -143,9 +143,9 @@ function Emitter:update(dt)
         --
     elseif self.__custom_update__ and not self.pause then
         self:__custom_update__(dt, self.update_args)
+        N = self.N
     end
 
-    N = self.N
 
     tab_sort(list, sort_draw)
 
