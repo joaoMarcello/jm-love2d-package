@@ -411,6 +411,10 @@ function Scene:main_camera()
 end
 
 function Scene:pause(time, action, draw)
+    if not self:is_current_active() then
+        return
+    end
+
     if self.time_pause then
         return
     end
@@ -512,7 +516,6 @@ function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
 
     local scx, scy, scw, sch = getScissor()
 
-    -- setScissor(0, 0, 20000, 64 * 3)
     setScissor(0, 0, camera.viewport_w * subpix, camera.viewport_h * subpix)
     love_draw(self.canvas, x, y, rot, sx, sy, ox, oy, kx, ky)
 
