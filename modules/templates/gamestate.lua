@@ -1,3 +1,4 @@
+local path = ...
 local Pack = _G.JM_Package
 
 do
