@@ -484,11 +484,16 @@ function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
     kx = kx or 0
     ky = ky or 0
 
+    x = x * scene.subpixel
+    y = y * scene.subpixel
+
     -- local scale = math_min((scene.w - scene.x) / scene.screen_w,
     --     768 / scene.screen_h
     -- )
-    x = x + camera.viewport_x * 2
-    y = y + camera.viewport_y * 2
+    local subpix = self.subpixel
+
+    x = x + camera.viewport_x * subpix
+    y = y + camera.viewport_y * subpix
 
     -- sx = sx * camera.scale
     -- sy = sy * camera.scale
@@ -506,7 +511,9 @@ function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
     setBlendMode("alpha", "premultiplied")
 
     local scx, scy, scw, sch = getScissor()
-    setScissor(x, y, camera.viewport_w * 2, camera.viewport_h * 2)
+
+    -- setScissor(0, 0, 20000, 64 * 3)
+    setScissor(0, 0, camera.viewport_w * subpix, camera.viewport_h * subpix)
     love_draw(self.canvas, x, y, rot, sx, sy, ox, oy, kx, ky)
 
     setBlendMode("alpha")

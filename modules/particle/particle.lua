@@ -32,6 +32,7 @@ local setColor = lgx.setColor
 local draw = lgx.draw
 local random = math.random
 local str_format = string.format
+local abs = math.abs
 --=========================================================================
 
 
@@ -242,6 +243,24 @@ function Particle:update(dt)
         self.x = round(bd.x)
         self.y = round(bd.y)
     end
+
+    --===================================================
+    if self.acc_y ~= 0 or self.speed_y ~= 0 then
+        local goaly = self.y + (self.speed_y * dt)
+            + (self.acc_y * dt * dt) * 0.5
+
+        self.speed_y = self.speed_y + self.acc_y * dt
+        if self.max_speed_y and abs(self.speed_y) > self.max_speed_y then
+            if self.speed_y > 0 then
+                self.speed_y = self.max_speed_y
+            else
+                self.speed_y = -(self.max_speed_y)
+            end
+        end
+
+        self.y = goaly
+    end
+    --===================================================
 
     self.lifetime = self.lifetime - dt
     if self.lifetime <= 0.0 then

@@ -698,7 +698,7 @@ function Camera:new(args)
     return obj
 end
 
----@alias JM.Camera.Target  {x:number, y:number, angle_x:number, angle_y:number, distance:number, range_x:number, range_y:number, last_x:number, last_y:number, direction_x:number, direction_y:number, last_direction_x:number, last_direction_y:number}
+---@alias JM.Camera.Target  {x:number, y:number, angle_x:number, angle_y:number, distance:number, range_x:number, range_y:number, last_x:number, last_y:number, direction_x:number, direction_y:number, last_direction_x:number, last_direction_y:number, last_name:any, name:any}
 
 function Camera:__constructor__(
     x, y, w, h, bounds,
