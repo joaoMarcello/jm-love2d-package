@@ -8,6 +8,10 @@ end
 
 ---@class GenericState : JM.Scene
 local State = Pack.Scene:new {
+    x = nil,
+    y = nil,
+    w = nil,
+    h = nil,
     canvas_w = _G.SCREEN_WIDTH or 320,
     canvas_h = _G.SCREEN_HEIGHT or 180,
     tile = _G.TILE,
