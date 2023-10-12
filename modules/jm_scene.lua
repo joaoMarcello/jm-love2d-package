@@ -488,16 +488,16 @@ function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
     kx = kx or 0
     ky = ky or 0
 
-    x = x * scene.subpixel
-    y = y * scene.subpixel
+    -- x = x * scene.subpixel
+    -- y = y * scene.subpixel
 
     -- local scale = math_min((scene.w - scene.x) / scene.screen_w,
     --     768 / scene.screen_h
     -- )
     local subpix = self.subpixel
 
-    x = x + camera.viewport_x * subpix
-    y = y + camera.viewport_y * subpix
+    -- x = x + camera.viewport_x * subpix
+    -- y = y + camera.viewport_y * scene.subpixel
 
     -- sx = sx * camera.scale
     -- sy = sy * camera.scale
