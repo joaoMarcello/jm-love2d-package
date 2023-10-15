@@ -270,6 +270,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     self.show_border = conf.show_border or false
 
+    self.use_stencil = conf.use_stencil or nil
+
     self.game_objects = {}
 end
 
@@ -763,7 +765,11 @@ local draw = function(self)
     local last_canvas = get_canvas()
     push()
 
-    set_canvas(self.canvas)
+    if self.use_stencil then
+        set_canvas { self.canvas, stencil = true }
+    else
+        set_canvas(self.canvas)
+    end
 
     if self.color_r then
         clear_screen(self.color_r, self.color_g, self.color_b, self.color_a)
