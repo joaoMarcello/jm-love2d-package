@@ -307,16 +307,16 @@ local function init(state)
 end
 
 local function finish()
-    -- if data.img then
-    --     data.img["heart"]:release()
-    --     data.img["made-with"]:release()
-    --     data.img["love-text"]:release()
-    -- end
+    if data.img then
+        data.img["heart"]:release()
+        data.img["made-with"]:release()
+        data.img["love-text"]:release()
+    end
 
-    -- if data.sound then
-    --     data.sound:stop()
-    --     data.sound:release()
-    -- end
+    if data.sound then
+        data.sound:stop()
+        data.sound:release()
+    end
 end
 
 local function keypressed(key)
