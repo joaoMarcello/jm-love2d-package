@@ -77,6 +77,6 @@ function JM:update(dt)
     self.ParticleSystem:update(dt)
 end
 
-JM.SplashScreen = require('jm-love2d-package.modules.templates.splashScreen')
+JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 return JM

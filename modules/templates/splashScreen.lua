@@ -202,10 +202,11 @@ local function load()
         or lgx.newImage("jm-love2d-package/data/img/love-text.png")
 
     data.img["jm-logo"] = data.img["jm-logo"]
-        or lgx.newImage("data/img/jm_icone_game.png")
+        or lgx.newImage("/jm-love2d-package/data/img/jm_icone_game.png")
 
     data.sound = data.sound
-        or love.audio.newSource('data/sfx/simple-clean-logo.ogg', 'static')
+        or (love.filesystem.getInfo('/data/sfx/simple-clean-logo.ogg')
+            and love.audio.newSource('data/sfx/simple-clean-logo.ogg', 'static'))
 end
 
 local function init(state)
@@ -306,16 +307,16 @@ local function init(state)
 end
 
 local function finish()
-    if data.img then
-        data.img["heart"]:release()
-        data.img["made-with"]:release()
-        data.img["love-text"]:release()
-    end
+    -- if data.img then
+    --     data.img["heart"]:release()
+    --     data.img["made-with"]:release()
+    --     data.img["love-text"]:release()
+    -- end
 
-    if data.sound then
-        data.sound:stop()
-        data.sound:release()
-    end
+    -- if data.sound then
+    --     data.sound:stop()
+    --     data.sound:release()
+    -- end
 end
 
 local function keypressed(key)
@@ -350,7 +351,7 @@ end
 
 
 local function love_logo_update(dt)
-    if not data.played_sound then
+    if not data.played_sound and data.sound then
         if data.sound:isPlaying() then data.sound:stop() end
         data.sound:play()
         data.played_sound = true
