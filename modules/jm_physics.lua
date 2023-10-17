@@ -662,7 +662,7 @@ do
         collisions.diff_x = diff_x
         collisions.diff_y = diff_y
 
-        local offset = 0.1
+        local offset = 0.5 --0.1
 
         collisions.end_x = (diff_x >= 0 and most_left
                 and most_left.x - self.w - offset)

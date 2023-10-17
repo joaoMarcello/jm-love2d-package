@@ -292,7 +292,8 @@ local function init(state)
         data.py = 20
         data.width = 50
         data.time_state = 0
-        data.duration = 2
+        data.duration = 2.5
+        data.scale = 1.0
 
         data.jm_logo = JM.Anima:new { img = data.img["jm-logo"], min_filter = 'linear', max_filter = 'linear' }
 
@@ -420,7 +421,6 @@ end
 local jm_update = function(dt)
     data.time_state = data.time_state + dt
 
-    data.scale = data.scale or 1.0
     data.scale = data.scale + (0.2 / 3.5) * dt
     data.jm_logo:set_effect_transform("sx", data.scale)
     data.jm_logo:set_effect_transform("sy", data.scale)
@@ -432,6 +432,7 @@ local jm_update = function(dt)
             function()
                 State:change_gamestate(require(data.next_state), {
                     unload = path,
+                    skip_transition = true,
                     transition = "fade",
                     transition_conf = { delay = 0.2, duration = 0.25 }
                 })
