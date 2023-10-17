@@ -146,7 +146,7 @@ local draw_main = {
         local x = State.screen_w * 0.5
         local y = State.screen_h * 0.5
         local diag = math.sqrt(State.screen_h ^ 2 + State.screen_w ^ 2)
-        local r = diag * 0.5 * 0.2
+        local r = diag * 0.5 * 0.15
 
         -- lgx.circle("fill", x, y, r)
 
@@ -419,6 +419,12 @@ end
 
 local jm_update = function(dt)
     data.time_state = data.time_state + dt
+
+    data.scale = data.scale or 1.0
+    data.scale = data.scale + (0.2 / 3.5) * dt
+    data.jm_logo:set_effect_transform("sx", data.scale)
+    data.jm_logo:set_effect_transform("sy", data.scale)
+
     data.jm_logo:update(dt)
 
     if not State.transition and data.time_state >= data.duration then
