@@ -129,6 +129,10 @@ function Emitter:add_particle(p)
     return p
 end
 
+function Emitter:destroy()
+    self.lifetime = -10000
+end
+
 function Emitter:update(dt)
     local list = self.particles
     local N = self.N
