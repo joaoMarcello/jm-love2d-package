@@ -7,8 +7,15 @@ local string_format, mfloor, m_min, m_max, colorFromBytes, colorToBytes = string
 ---@alias JM.Color {[1]: number, [2]: number, [3]:number, [4]:number}
 --- Represents a color in RGBA space
 
+local ALPHA_MULT = 1
+
 ---@class JM.Utils
 local Utils = {}
+
+function Utils:set_alpha_range(value)
+    value = Utils:clamp(value, 0, 255)
+    ALPHA_MULT = value / 255
+end
 
 ---@param width number|nil
 ---@param height number|nil
@@ -116,15 +123,17 @@ local function search(k, parent_list)
 end
 
 function Utils:create_class(...)
-    local class_ = {} -- the new class
+    local class_ = {}       -- the new class
     local parents = { ... } -- the parents for the new class
 
     -- class will search for absents fields in the parents list
-    setmetatable(class_, { __index = function(t, k)
-        local v = search(k, parents)
-        t[k] = v -- saving for next access
-        return v
-    end })
+    setmetatable(class_, {
+        __index = function(t, k)
+            local v = search(k, parents)
+            t[k] = v -- saving for next access
+            return v
+        end
+    })
 
     -- prepare the class to be the metatable of its instances
     class_.__index = class_
@@ -147,6 +156,7 @@ function Utils:get_rgba(r, g, b, a)
     g = g or 1.0
     b = b or 1.0
     a = a or 1.0
+    a = a
 
     local key = string_format("%d %d %d %d", colorToBytes(r, g, b, a))
     -- local key = string_format("%.15f %.15f %.15f %.15f", r, g, b, a)
@@ -220,9 +230,12 @@ function Utils:rgbToHsl(r, g, b)
     local s, l = h, h
     local d = max - min
     s = l > 0.5 and d / (2 - b) or d / b
-    if max == r then h = (g - b) / d + (g < b and 6 or 0)
-    elseif max == g then h = (b - r) / d + 2
-    elseif max == b then h = (r - g) / d + 4
+    if max == r then
+        h = (g - b) / d + (g < b and 6 or 0)
+    elseif max == g then
+        h = (b - r) / d + 2
+    elseif max == b then
+        h = (r - g) / d + 4
     end
     return h * 0.16667, s, l
 end
