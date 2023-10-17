@@ -262,7 +262,8 @@ local function tanh(x)
     return (E_2x - 1) / (E_2x + 1)
 end
 
-Utils.tanh = tanh
+Utils.E       = E
+Utils.tanh    = tanh
 Utils.sigmoid = sigmoid
 
 return Utils
