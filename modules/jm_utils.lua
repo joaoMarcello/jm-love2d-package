@@ -251,4 +251,18 @@ local function hex_to_rgba(hex)
         #hex == 8 and tonumber("0x" .. hex:sub(7, 8)) or nil
 end
 
+local E = 2.718281828459
+
+local function sigmoid(x)
+    return 1.0 / (1.0 + (E ^ (-x)))
+end
+
+local function tanh(x)
+    local E_2x = E ^ (2 * x)
+    return (E_2x - 1) / (E_2x + 1)
+end
+
+Utils.tanh = tanh
+Utils.sigmoid = sigmoid
+
 return Utils
