@@ -40,6 +40,7 @@ local States = {
     joystick = 2,
     touch = 3,
     mouse = 4,
+    vpad = 5,
 }
 
 local keyboard_is_down = love.keyboard.isDown
@@ -76,9 +77,52 @@ local function pressed_key(self, button, key_pressed)
     end
 end
 
+---@param self JM.Controller
+---@param button JM.Controller.Buttons
+local function pressing_vpad(self, button, x, y, b, istouch, presses)
+    if not self.vpad then return false end
+
+    ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
+    local pad_button = (button == Buttons.dpad_left or button == Buttons.dpad_right)
+        and self.vpad.Stick
+
+    pad_button = not pad_button and button == Buttons.A and self.vpad.A or pad_button
+    if not pad_button then return false end
+
+    if pad_button == self.vpad.Stick then
+        return pad_button:is_pressing(button == Buttons.dpad_left and "left" or "right")
+    elseif pad_button == self.vpad.A then
+
+    end
+end
+
+---@param self JM.Controller
+---@param button JM.Controller.Buttons
+local function pressed_vpad(self, button, x, y, b, istouch, presses)
+    if not self.vpad then return false end
+
+    local bt = button == Buttons.A and self.vpad.A
+    bt = not bt and button == Buttons.X and self.vpad.B or bt
+    if not bt then return false end
+
+    return bt:is_pressed()
+end
+
+---@param self JM.Controller
+---@param button JM.Controller.Buttons
+local function released_vpad(self, button)
+    if not self.vpad then return false end
+    local bt = button == Buttons.A and self.vpad.A
+    bt = not bt and button == Buttons.X and self.vpad.B or bt
+    if not bt then return false end
+
+    return bt:is_released()
+end
+
 --==========================================================================
 
 ---@class JM.Controller
+---@field vpad JM.GUI.VPad
 local Controller = {
     Button = Buttons,
     State = States,
@@ -113,11 +157,20 @@ function Controller:set_state(state)
         end
     elseif state == States.touch then
 
+    elseif state == States.vpad then
+        self.pressing = pressing_vpad
+        self.pressed = pressed_vpad
+        self.released = released_vpad
     end
 
     self.state = state
 
     return true
+end
+
+---@param vpad JM.GUI.VPad
+function Controller:set_vpad(vpad)
+    self.vpad = vpad
 end
 
 return Controller
