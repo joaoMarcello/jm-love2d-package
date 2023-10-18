@@ -20,6 +20,30 @@ local Buttons = {
     R3 = 18,
     start = 19,
     select = 20,
+    left_stick = 21,
+    right_stick = 22,
+}
+
+local ButtonString = {
+    [Buttons.dpad_left] = "dpleft",
+    [Buttons.dpad_right] = "dpright",
+    [Buttons.dpad_up] = "dpup",
+    [Buttons.dpad_down] = "dpdown",
+    [Buttons.A] = "a",
+    [Buttons.B] = "b",
+    [Buttons.X] = "x",
+    [Buttons.Y] = "y",
+    [Buttons.L] = "leftshoulder",
+    [Buttons.R] = "rightshoulder",
+    [Buttons.L3] = "leftstick",
+    [Buttons.R3] = "rightstick",
+    [Buttons.start] = "start",
+    [Buttons.left_stick] = "leftx",
+    [Buttons.right_stick] = "rightx",
+    [Buttons.stick_left] = "left",
+    [Buttons.stick_right] = "right",
+    [Buttons.stick_down] = "down",
+    [Buttons.stick_up] = "up",
 }
 
 local Keys = {
@@ -122,6 +146,34 @@ local function released_vpad(self, button)
     return bt:is_released()
 end
 
+---@param self JM.Controller
+---@param button JM.Controller.Buttons
+local function pressing_joystick(self, button)
+    if self.state ~= States.joystick then return false end
+    local list = love.joystick.getJoysticks()
+    ---@type love.Joystick
+    local joy = list[1]
+    if not joy then return false end
+
+    local bt = ButtonString[button]
+    if not bt then return false end
+
+    if bt == "leftx" or bt == "rightx" then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return joy:getGamepadAxis(bt)
+    elseif bt == "left" or bt == "right" then
+        local r = joy:getGamepadAxis("leftx")
+        if bt == "left" then
+            return r < 0
+        else
+            return r > 0
+        end
+    else
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return joy:isGamepadDown(bt)
+    end
+end
+
 --==========================================================================
 
 ---@class JM.Controller
@@ -158,6 +210,9 @@ function Controller:set_state(state)
         self.pressed = function()
 
         end
+
+        self.pressing = pressing_joystick
+        ---
     elseif state == States.touch then
 
     elseif state == States.vpad then

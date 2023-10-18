@@ -98,6 +98,8 @@ end
 ---@field touchpressed function
 ---@field touchreleased function
 ---@field touchmoved function
+---@field joystickpressed function
+---@field joystickreleased function
 local Scene = {
     ---@param config JM.GameState.Config
     change_gamestate = function(self, new_state, config)
@@ -1082,6 +1084,26 @@ local keyreleased = function(self, key, scancode)
     local r = param.keyreleased and param.keyreleased(key, scancode)
 end
 
+local joystickpressed = function(self, joy, bt)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+    local param = self.__param__
+    local r = param.joystickpressed and param.joystickpressed(joy, bt)
+end
+
+local joystickreleased = function(self, joy, bt)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+    local param = self.__param__
+    local r = param.joystickreleased and param.joystickreleased(joy, bt)
+end
+
 ---
 ---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function}
 ---
@@ -1209,6 +1231,10 @@ function Scene:implements(param)
     self.keypressed = keypressed
 
     self.keyreleased = keyreleased
+
+    self.joystickpressed = joystickpressed
+
+    self.joystickreleased = joystickreleased
 end
 
 function Scene:set_background_draw(action)
