@@ -24,39 +24,44 @@ local Buttons = {
     right_stick = 22,
 }
 
-local ButtonString = {
-    [Buttons.dpad_left] = "dpleft",
-    [Buttons.dpad_right] = "dpright",
-    [Buttons.dpad_up] = "dpup",
-    [Buttons.dpad_down] = "dpdown",
-    [Buttons.A] = "a",
-    [Buttons.B] = "b",
-    [Buttons.X] = "x",
-    [Buttons.Y] = "y",
-    [Buttons.L] = "leftshoulder",
-    [Buttons.R] = "rightshoulder",
-    [Buttons.L3] = "leftstick",
-    [Buttons.R3] = "rightstick",
-    [Buttons.start] = "start",
-    [Buttons.left_stick] = "leftx",
-    [Buttons.right_stick] = "rightx",
-    [Buttons.stick_left] = "left",
-    [Buttons.stick_right] = "right",
-    [Buttons.stick_down] = "down",
-    [Buttons.stick_up] = "up",
-}
+local function default_joystick_map()
+    return {
+        [Buttons.dpad_left] = "dpleft",
+        [Buttons.dpad_right] = "dpright",
+        [Buttons.dpad_up] = "dpup",
+        [Buttons.dpad_down] = "dpdown",
+        [Buttons.A] = "a",
+        [Buttons.B] = "b",
+        [Buttons.X] = "x",
+        [Buttons.Y] = "y",
+        [Buttons.L] = "leftshoulder",
+        [Buttons.R] = "rightshoulder",
+        [Buttons.L3] = "leftstick",
+        [Buttons.R3] = "rightstick",
+        [Buttons.start] = "start",
+        [Buttons.left_stick] = "leftx",
+        [Buttons.right_stick] = "rightx",
+        [Buttons.stick_left] = "left",
+        [Buttons.stick_right] = "right",
+        [Buttons.stick_down] = "down",
+        [Buttons.stick_up] = "up",
+    }
+end
 
-local Keys = {
-    [Buttons.dpad_left] = { 'left', 'a' },
-    [Buttons.dpad_right] = { 'right', 'd' },
-    [Buttons.dpad_down] = { 'down', 's' },
-    [Buttons.dpad_up] = { 'up', 'w' },
-    [Buttons.A] = { 'space', 'up', 'w' },
-    [Buttons.X] = { 'e', 'q', 'f' },
-    [Buttons.start] = { 'return' },
-}
-Keys[Buttons.B] = Keys[Buttons.A]
-Keys[Buttons.Y] = Keys[Buttons.X]
+local function default_keymap()
+    local k = {
+        [Buttons.dpad_left] = { 'left', 'a' },
+        [Buttons.dpad_right] = { 'right', 'd' },
+        [Buttons.dpad_down] = { 'down', 's' },
+        [Buttons.dpad_up] = { 'up', 'w' },
+        [Buttons.A] = { 'space', 'up', 'w' },
+        [Buttons.X] = { 'e', 'q', 'f' },
+        [Buttons.start] = { 'return' },
+    }
+    k[Buttons.B] = k[Buttons.A]
+    k[Buttons.Y] = k[Buttons.X]
+    return k
+end
 
 ---@enum JM.Controller.States
 local States = {
@@ -67,7 +72,7 @@ local States = {
     vpad = 5,
 }
 
-local keyboard_is_down = love.keyboard.isDown
+local keyboard_is_down = love.keyboard.isScancodeDown
 local type = type
 
 ---@param self JM.Controller
@@ -155,7 +160,7 @@ local function pressing_joystick(self, button)
     local joy = list[1]
     if not joy then return false end
 
-    local bt = ButtonString[button]
+    local bt = self.button_string[button]
     if not bt then return false end
 
     if bt == "leftx" or bt == "rightx" then
@@ -196,7 +201,8 @@ function Controller:new(args)
 end
 
 function Controller:__constructor__(args)
-    self.button_to_key = args.keys or Keys
+    self.button_to_key = args.keys or default_keymap()
+    self.button_string = args.button_string or default_joystick_map()
     self:set_state(args.state or States.keyboard)
 end
 
