@@ -25,6 +25,10 @@ function Object:init()
 
 end
 
+function Object:rect()
+    return self.x, self.y, self.w, self.h
+end
+
 function Object:update(dt)
 
 end
