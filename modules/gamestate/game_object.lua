@@ -68,6 +68,10 @@ function GC:finish()
 
 end
 
+function GC:rect()
+    return self.x, self.y, self.w, self.h
+end
+
 ---@param eff_type JM.Effect.id_string
 ---@param eff_args any
 ---@return JM.Effect|any
