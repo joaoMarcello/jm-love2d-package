@@ -37,6 +37,10 @@ local function load()
 
 end
 
+local function finish()
+
+end
+
 local function init(args)
 
 end
@@ -76,6 +80,14 @@ local function touchreleased(id, x, y, dx, dy, pressure)
 
 end
 
+local function gamepadpressed(joystick, button)
+
+end
+
+local function gamepadreleased(joystick, button)
+
+end
+
 local function update(dt)
 
 end
@@ -97,6 +109,7 @@ local layers = {
 State:implements {
     load = load,
     init = init,
+    finish = finish,
     textinput = textinput,
     keypressed = keypressed,
     keyreleased = keyreleased,
@@ -105,6 +118,8 @@ State:implements {
     mousemoved = mousemoved,
     touchpressed = touchpressed,
     touchreleased = touchreleased,
+    gamepadpressed = gamepadpressed,
+    gamepadreleased = gamepadreleased,
     update = update,
     layers = layers,
 }
