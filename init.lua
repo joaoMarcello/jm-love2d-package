@@ -71,6 +71,9 @@ JM.BodyObject = require(string.gsub(path, "init", "modules.gamestate.body_object
 ---@type JM.ParticleSystem
 JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
 
+---@type JM.Controller
+JM.Controller = require(string.gsub(path, "init", "modules.jm_controller"))
+
 function JM:update(dt)
     JM_Font.current:update(dt)
     self.Sound:update(dt)
