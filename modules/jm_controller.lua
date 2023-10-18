@@ -23,10 +23,10 @@ local Buttons = {
 }
 
 local Keys = {
-    [Buttons.stick_left] = { 'left', 'a' },
-    [Buttons.stick_right] = { 'right', 'd' },
-    [Buttons.stick_down] = { 'down', 's' },
-    [Buttons.stick_up] = { 'up', 'w' },
+    [Buttons.dpad_left] = { 'left', 'a' },
+    [Buttons.dpad_right] = { 'right', 'd' },
+    [Buttons.dpad_down] = { 'down', 's' },
+    [Buttons.dpad_up] = { 'up', 'w' },
     [Buttons.A] = { 'space', 'up', 'w' },
     [Buttons.X] = { 'e', 'q', 'f' },
     [Buttons.start] = { 'return' },
@@ -81,6 +81,7 @@ end
 ---@class JM.Controller
 local Controller = {
     Button = Buttons,
+    State = States,
 }
 Controller.__index = Controller
 
@@ -107,7 +108,9 @@ function Controller:set_state(state)
         self.pressed = pressed_key
         ---
     elseif state == States.joystick then
+        self.pressed = function()
 
+        end
     elseif state == States.touch then
 
     end
