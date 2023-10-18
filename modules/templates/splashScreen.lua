@@ -335,11 +335,16 @@ local function keypressed(key)
         if not State.transition then
             State:add_transition("fade", "out", {}, nil,
                 function()
-                    State:change_gamestate(require "lib.gamestate.howToPlay", {
-                        unload = path,
-                        transition = "fade",
-                        transition_conf = { delay = 0.2 }
-                    })
+                    if data.state == States.jm then
+                        State:change_gamestate(require "lib.gamestate.howToPlay", {
+                            unload = path,
+                            transition = "fade",
+                            transition_conf = { delay = 0.2 }
+                        })
+                    else
+                        State:add_transition("fade", "in", { delay = 0.25 })
+                        State:init(States.jm)
+                    end
                 end)
         end
     end

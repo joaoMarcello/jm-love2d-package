@@ -49,6 +49,8 @@ local type = type
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressing_key(self, button)
+    if self.state ~= States.keyboard then return false end
+
     local field = self.button_to_key[button]
     if not field then return nil end
 
@@ -65,6 +67,7 @@ end
 ---@param button JM.Controller.Buttons
 ---@param key_pressed string
 local function pressed_key(self, button, key_pressed)
+    if self.state ~= States.keyboard then return false end
     local field = self.button_to_key[button]
     if not field then return nil end
 
@@ -79,8 +82,8 @@ end
 
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
-local function pressing_vpad(self, button, x, y, b, istouch, presses)
-    if not self.vpad then return false end
+local function pressing_vpad(self, button)
+    if not self.vpad or self.state ~= States.vpad then return false end
 
     ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
     local pad_button = (button == Buttons.dpad_left or button == Buttons.dpad_right)
@@ -99,7 +102,7 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressed_vpad(self, button)
-    if not self.vpad then return false end
+    if not self.vpad or self.state ~= States.vpad then return false end
 
     local bt = button == Buttons.A and self.vpad.A
     bt = not bt and button == Buttons.X and self.vpad.B or bt
@@ -111,7 +114,7 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function released_vpad(self, button)
-    if not self.vpad then return false end
+    if not self.vpad or self.state ~= States.vpad then return false end
     local bt = button == Buttons.A and self.vpad.A
     bt = not bt and button == Buttons.X and self.vpad.B or bt
     if not bt then return false end
