@@ -174,6 +174,10 @@ local function pressing_joystick(self, button)
     end
 end
 
+local function pressed_joystick()
+
+end
+
 --==========================================================================
 
 ---@class JM.Controller
@@ -207,10 +211,7 @@ function Controller:set_state(state)
         self.pressed = pressed_key
         ---
     elseif state == States.joystick then
-        self.pressed = function()
-
-        end
-
+        self.pressed = pressed_joystick
         self.pressing = pressing_joystick
         ---
     elseif state == States.touch then
