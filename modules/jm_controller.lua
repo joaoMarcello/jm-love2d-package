@@ -98,7 +98,7 @@ end
 
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
-local function pressed_vpad(self, button, x, y, b, istouch, presses)
+local function pressed_vpad(self, button)
     if not self.vpad then return false end
 
     local bt = button == Buttons.A and self.vpad.A
