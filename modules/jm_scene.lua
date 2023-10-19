@@ -977,6 +977,22 @@ local draw = function(self)
 end
 
 ---@param self JM.Scene
+local init = function(self, ...)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    if self.use_vpad then
+        Controllers.P1:set_vpad(self:get_vpad())
+    end
+
+    local param = self.__param__
+    local r = param.init and param.init(unpack { ... })
+end
+
+---@param self JM.Scene
 local mousepressed = function(self, x, y, button, istouch, presses)
     if self.use_vpad and not istouch then
         Controllers.P1:set_state(Controllers.State.vpad)
@@ -1297,6 +1313,8 @@ function Scene:implements(param)
     self.update = update
 
     self.draw = draw
+
+    self.init = init
 
     self.mousepressed = mousepressed
 
