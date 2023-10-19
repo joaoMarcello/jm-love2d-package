@@ -287,7 +287,7 @@ function Controller:set_state(state)
     if state == States.keyboard then
         self.pressing = pressing_key
         self.pressed = pressed_key
-        self.released = dummy
+        self.released = pressed_key
         ---
     elseif state == States.joystick then
         self.pressed = pressed_joystick
