@@ -44,6 +44,8 @@ local SceneManager = _G.JM_SceneManager
 ---@type JM.GUI.VPad
 local VPad = require(string.gsub(path, "jm_scene", "jm_virtual_pad"))
 
+local Controllers = JM.Controllers
+
 ---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean}
 
 local function round(value)
@@ -977,6 +979,7 @@ end
 ---@param self JM.Scene
 local mousepressed = function(self, x, y, button, istouch, presses)
     if self.use_vpad and not istouch then
+        Controllers.P1:set_state(Controllers.State.vpad)
         local mx, my = mousePosition()
         VPad:mousepressed(mx, my, button, istouch, presses)
     end
@@ -997,6 +1000,8 @@ end
 ---@param self JM.Scene
 local mousereleased = function(self, x, y, button, istouch, presses)
     if self.use_vpad and not istouch then
+        Controllers.P1:set_state(Controllers.State.vpad)
+
         local mx, my = mousePosition()
         VPad:mousereleased(mx, my, button, istouch, presses)
     end
@@ -1031,6 +1036,7 @@ end
 ---@param self JM.Scene
 local touchpressed = function(self, id, x, y, dx, dy, pressure)
     if self.use_vpad then
+        Controllers.P1:set_state(Controllers.State.vpad)
         VPad:touchpressed(id, x, y, dx, dy, pressure)
     end
 
@@ -1047,6 +1053,7 @@ end
 ---@param self JM.Scene
 local touchreleased = function(self, id, x, y, dx, dy, pressure)
     if self.use_vpad then
+        Controllers.P1:set_state(Controllers.State.vpad)
         VPad:touchreleased(id, x, y, dx, dy, pressure)
     end
 
@@ -1068,6 +1075,8 @@ local keypressed = function(self, key, scancode, isrepeat)
         return
     end
 
+    Controllers.P1:set_state(Controllers.State.keyboard)
+
     local param = self.__param__
     local r = param.keypressed and param.keypressed(key, scancode, isrepeat)
 end
@@ -1080,6 +1089,8 @@ local keyreleased = function(self, key, scancode)
         return
     end
 
+    Controllers.P1:set_state(Controllers.State.keyboard)
+
     local param = self.__param__
     local r = param.keyreleased and param.keyreleased(key, scancode)
 end
@@ -1090,6 +1101,7 @@ local joystickpressed = function(self, joy, bt)
     then
         return
     end
+
     local param = self.__param__
     local r = param.joystickpressed and param.joystickpressed(joy, bt)
 end
@@ -1100,8 +1112,76 @@ local joystickreleased = function(self, joy, bt)
     then
         return
     end
+
     local param = self.__param__
     local r = param.joystickreleased and param.joystickreleased(joy, bt)
+end
+
+local joystickadded = function(self, joy)
+    -- if self.time_pause
+    --     or (self.transition and self.transition.pause_scene)
+    -- then
+    --     return
+    -- end
+    Controllers.P1:set_joystick(joy)
+    Controllers.P1:set_state(Controllers.State.joystick)
+
+    local param = self.__param__
+    local r = param.joystickadded and param.joystickadded(joy)
+end
+
+local joystickremoved = function(self, joy)
+    -- if self.time_pause
+    --     or (self.transition and self.transition.pause_scene)
+    -- then
+    --     return
+    -- end
+
+    if joy == Controllers.P1.joystick then
+        Controllers.P1:remove_joystick()
+    end
+
+    local param = self.__param__
+    local r = param.joystickremoved and param.joystickremoved(joy)
+end
+
+local gamepadpressed = function(self, joy, bt)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    Controllers.P1:set_state(Controllers.State.joystick)
+
+    local param = self.__param__
+    local r = param.gamepadpressed and param.gamepadpressed(joy, bt)
+end
+
+local gamepadreleased = function(self, joy, bt)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    local param = self.__param__
+    local r = param.gamepadreleased and param.gamepadreleased(joy, bt)
+end
+
+local gamepadaxis = function(self, joy, axis, value)
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    if abs(value) > 0.6 then
+        Controllers.P1:set_state(Controllers.State.joystick)
+    end
+
+    local param = self.__param__
+    local r = param.gamepadaxis and param.gamepadaxis(joy, axis, value)
 end
 
 ---
@@ -1235,6 +1315,18 @@ function Scene:implements(param)
     self.joystickpressed = joystickpressed
 
     self.joystickreleased = joystickreleased
+
+    self.joystickadded = joystickadded
+
+    self.joystickremoved = joystickremoved
+
+    self.joystickreleased = joystickreleased
+
+    self.gamepadpressed = gamepadpressed
+
+    self.gamepadreleased = gamepadreleased
+
+    self.gamepadaxis = gamepadaxis
 end
 
 function Scene:set_background_draw(action)
