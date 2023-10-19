@@ -9,10 +9,10 @@ local Buttons = {
     R2 = 5,
     --====================
     home = 6,
-    stick_left = 7,
-    stick_right = 8,
-    stick_up = 9,
-    stick_down = 10,
+    stick_1_left = 7,
+    stick_1_right = 8,
+    stick_1_up = 9,
+    stick_1_down = 10,
     dpad_left = 11,
     dpad_right = 12,
     dpad_up = 13,
@@ -48,14 +48,16 @@ local function default_joystick_map()
         [Buttons.R3] = "rightstick",
         [Buttons.start] = "start",
         [Buttons.select] = "back",
+        ---
         [Buttons.left_stick_x] = "leftx",
         [Buttons.left_stick_y] = "lefty",
         [Buttons.right_stick_x] = "rightx",
         [Buttons.right_stick_y] = "righty",
-        [Buttons.stick_left] = "left",
-        [Buttons.stick_right] = "right",
-        [Buttons.stick_down] = "down",
-        [Buttons.stick_up] = "up",
+        ---
+        [Buttons.stick_1_left] = "leftx",
+        [Buttons.stick_1_right] = "leftx",
+        [Buttons.stick_1_down] = "lefty",
+        [Buttons.stick_1_up] = "lefty",
     }
 end
 
@@ -76,10 +78,10 @@ local function default_keymap()
     }
     k[Buttons.B] = k[Buttons.A]
     k[Buttons.Y] = k[Buttons.X]
-    k[Buttons.stick_left] = k[Buttons.dpad_left]
-    k[Buttons.stick_right] = k[Buttons.dpad_right]
-    k[Buttons.stick_up] = k[Buttons.dpad_up]
-    k[Buttons.stick_down] = k[Buttons.dpad_down]
+    k[Buttons.stick_1_left] = k[Buttons.dpad_left]
+    k[Buttons.stick_1_right] = k[Buttons.dpad_right]
+    k[Buttons.stick_1_up] = k[Buttons.dpad_up]
+    k[Buttons.stick_1_down] = k[Buttons.dpad_down]
     return k
 end
 
@@ -225,23 +227,18 @@ local function pressing_joystick(self, button)
         ---@diagnostic disable-next-line: param-type-mismatch
         return joy:getGamepadAxis(bt)
         ---
-    elseif bt == "left" or bt == "right" then
+    elseif button == Buttons.stick_1_left then
         local r = joy:getGamepadAxis("leftx")
-        if bt == "left" then
-            return r < 0
-        else
-            return r > 0
-        end
+        return r < 0
+    elseif button == Buttons.stick_1_right then
+        return joy:getGamepadAxis("leftx") > 0
         ---
-    elseif bt == "up" or bt == "down" then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        local r = joy:getGamepadAxis(bt)
-
-        if bt == "up" then
-            return r < 0
-        else
-            return r > 0
-        end
+    elseif button == Buttons.stick_1_up then
+        return joy:getGamepadAxis("lefty") < 0
+        ---
+    elseif button == Buttons.stick_1_down then
+        return joy:getGamepadAxis("lefty") > 0
+        ---
     else
         ---@diagnostic disable-next-line: param-type-mismatch
         return joy:isGamepadDown(bt)
@@ -254,6 +251,9 @@ local function pressed_joystick(self, button)
 
 end
 
+local dummy = function()
+
+end
 --==========================================================================
 
 ---@class JM.Controller
@@ -278,19 +278,21 @@ function Controller:__constructor__(args)
     self:set_state(args.state or States.keyboard)
 end
 
----@param state JM.Controller.States
+---@param state JM.Controller.States | any
 function Controller:set_state(state)
-    if self.state == state then
+    if self.state == state or not state then
         return false
     end
 
     if state == States.keyboard then
         self.pressing = pressing_key
         self.pressed = pressed_key
+        self.released = dummy
         ---
     elseif state == States.joystick then
         self.pressed = pressed_joystick
         self.pressing = pressing_joystick
+        self.released = dummy
         ---
     elseif state == States.touch then
 
