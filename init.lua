@@ -4,6 +4,7 @@ _G.JM_Path = string.gsub(path, "init", "")
 local JM = {}
 JM_Love2D_Package = JM
 JM_Package = JM
+_G.JM = JM
 
 ---@type JM.Utils
 JM.Utils = require(string.gsub(path, "init", "modules.jm_utils"))
@@ -41,6 +42,18 @@ JM_SceneManager = JM.SceneManager
 JM.Ldr = require(string.gsub(path, "init", "modules.jm_loader"))
 JM_Ldr = JM.Ldr
 
+--==========================================================================
+
+---@type JM.Controller
+JM.Controller = require(string.gsub(path, "init", "modules.jm_controller"))
+
+JM.Controllers = {
+    P1 = JM.Controller:new(),
+    State = JM.Controller.State,
+    n = 1,
+}
+--==========================================================================
+
 ---@type JM.Scene
 JM.Scene = require(string.gsub(path, "init", "modules.jm_scene"))
 
@@ -71,15 +84,12 @@ JM.BodyObject = require(string.gsub(path, "init", "modules.gamestate.body_object
 ---@type JM.ParticleSystem
 JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
 
----@type JM.Controller
-JM.Controller = require(string.gsub(path, "init", "modules.jm_controller"))
+JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 function JM:update(dt)
     JM_Font.current:update(dt)
     self.Sound:update(dt)
     self.ParticleSystem:update(dt)
 end
-
-JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 return JM
