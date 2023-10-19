@@ -1,31 +1,37 @@
 ---@enum JM.Controller.Buttons
 local Buttons = {
-    stick_left = 1,
-    stick_right = 2,
-    stick_up = 3,
-    stick_down = 4,
-    dpad_left = 5,
-    dpad_right = 6,
-    dpad_up = 7,
-    dpad_down = 8,
-    A = 9,
-    B = 10,
-    X = 11,
-    Y = 12,
-    L = 13,
-    L2 = 14,
-    L3 = 15,
-    R = 16,
-    R2 = 17,
-    R3 = 18,
-    start = 19,
-    select = 20,
-    left_stick = 21,
-    right_stick = 22,
+    ------- Axis -------
+    left_stick_x = 0,
+    right_stick_x = 1,
+    left_stick_y = 2,
+    right_stick_y = 3,
+    L2 = 4,
+    R2 = 5,
+    --====================
+    home = 6,
+    stick_left = 7,
+    stick_right = 8,
+    stick_up = 9,
+    stick_down = 10,
+    dpad_left = 11,
+    dpad_right = 12,
+    dpad_up = 13,
+    dpad_down = 14,
+    A = 15,
+    B = 16,
+    X = 17,
+    Y = 18,
+    L = 19,
+    L3 = 20,
+    R = 21,
+    R3 = 22,
+    start = 23,
+    select = 24,
 }
 
 local function default_joystick_map()
     return {
+        [Buttons.home] = "guide",
         [Buttons.dpad_left] = "dpleft",
         [Buttons.dpad_right] = "dpright",
         [Buttons.dpad_up] = "dpup",
@@ -36,16 +42,26 @@ local function default_joystick_map()
         [Buttons.Y] = "y",
         [Buttons.L] = "leftshoulder",
         [Buttons.R] = "rightshoulder",
+        [Buttons.L2] = "triggerleft",
+        [Buttons.R2] = "triggerright",
         [Buttons.L3] = "leftstick",
         [Buttons.R3] = "rightstick",
         [Buttons.start] = "start",
-        [Buttons.left_stick] = "leftx",
-        [Buttons.right_stick] = "rightx",
+        [Buttons.select] = "back",
+        [Buttons.left_stick_x] = "leftx",
+        [Buttons.left_stick_y] = "lefty",
+        [Buttons.right_stick_x] = "rightx",
+        [Buttons.right_stick_y] = "righty",
         [Buttons.stick_left] = "left",
         [Buttons.stick_right] = "right",
         [Buttons.stick_down] = "down",
         [Buttons.stick_up] = "up",
     }
+end
+
+---@param b JM.Controller.Buttons
+local function is_axis(b)
+    return b <= Buttons.R2
 end
 
 local function default_keymap()
@@ -60,6 +76,10 @@ local function default_keymap()
     }
     k[Buttons.B] = k[Buttons.A]
     k[Buttons.Y] = k[Buttons.X]
+    k[Buttons.stick_left] = k[Buttons.dpad_left]
+    k[Buttons.stick_right] = k[Buttons.dpad_right]
+    k[Buttons.stick_up] = k[Buttons.dpad_up]
+    k[Buttons.stick_down] = k[Buttons.dpad_down]
     return k
 end
 
@@ -78,10 +98,16 @@ local type = type
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressing_key(self, button)
-    if self.state ~= States.keyboard then return false end
+    local button_is_axis = is_axis(button)
+
+    if self.state ~= States.keyboard then
+        return button_is_axis and 0 or false
+    end
 
     local field = self.button_to_key[button]
-    if not field then return nil end
+    if not field then
+        return button_is_axis and 0 or false
+    end
 
     if type(field) == "string" then
         return keyboard_is_down(field)
@@ -96,9 +122,16 @@ end
 ---@param button JM.Controller.Buttons
 ---@param key_pressed string
 local function pressed_key(self, button, key_pressed)
-    if self.state ~= States.keyboard then return false end
+    local button_is_axis = is_axis(button)
+
+    if self.state ~= States.keyboard then
+        return button_is_axis and 0 or false
+    end
+
     local field = self.button_to_key[button]
-    if not field then return nil end
+    if not field then
+        return button_is_axis and 0 or false
+    end
 
     if type(field) == "string" then
         return key_pressed == field
@@ -112,14 +145,19 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressing_vpad(self, button)
-    if not self.vpad or self.state ~= States.vpad then return false end
+    local button_is_axis = is_axis(button)
+
+    if not self.vpad or self.state ~= States.vpad then
+        return button_is_axis and 0 or false
+    end
 
     ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
-    local pad_button = (button == Buttons.dpad_left or button == Buttons.dpad_right)
+    local pad_button = (button == Buttons.dpad_left
+            or button == Buttons.dpad_right)
         and self.vpad.Stick
 
     pad_button = not pad_button and button == Buttons.A and self.vpad.A or pad_button
-    if not pad_button then return false end
+    if not pad_button then return button_is_axis and 0 or false end
 
     if pad_button == self.vpad.Stick then
         return pad_button:is_pressing(button == Buttons.dpad_left and "left" or "right")
@@ -131,11 +169,18 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressed_vpad(self, button)
-    if not self.vpad or self.state ~= States.vpad then return false end
+    local button_is_axis = is_axis(button)
+
+    if not self.vpad or self.state ~= States.vpad then
+        return button_is_axis and 0 or false
+    end
 
     local bt = button == Buttons.A and self.vpad.A
     bt = not bt and button == Buttons.X and self.vpad.B or bt
-    if not bt then return false end
+
+    if not bt then
+        return button_is_axis and 0 or false
+    end
 
     return bt:is_pressed()
 end
@@ -143,10 +188,18 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function released_vpad(self, button)
-    if not self.vpad or self.state ~= States.vpad then return false end
+    local button_is_axis = is_axis(button)
+
+    if not self.vpad or self.state ~= States.vpad then
+        return button_is_axis and 0 or false
+    end
+
     local bt = button == Buttons.A and self.vpad.A
     bt = not bt and button == Buttons.X and self.vpad.B or bt
-    if not bt then return false end
+
+    if not bt then
+        return button_is_axis and 0 or false
+    end
 
     return bt:is_released()
 end
@@ -154,21 +207,37 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressing_joystick(self, button)
-    if self.state ~= States.joystick then return false end
-    local list = love.joystick.getJoysticks()
+    local button_is_axis = is_axis(button)
+
+    if self.state ~= States.joystick then
+        return button_is_axis and 0 or false
+    end
+
     ---@type love.Joystick
-    local joy = list[1]
-    if not joy then return false end
+    local joy = self.joystick
+
+    if not joy or not joy:isConnected() then return false end
 
     local bt = self.button_string[button]
-    if not bt then return false end
+    if not bt then return button_is_axis and 0 or false end
 
-    if bt == "leftx" or bt == "rightx" then
+    if button_is_axis then
         ---@diagnostic disable-next-line: param-type-mismatch
         return joy:getGamepadAxis(bt)
+        ---
     elseif bt == "left" or bt == "right" then
         local r = joy:getGamepadAxis("leftx")
         if bt == "left" then
+            return r < 0
+        else
+            return r > 0
+        end
+        ---
+    elseif bt == "up" or bt == "down" then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local r = joy:getGamepadAxis(bt)
+
+        if bt == "up" then
             return r < 0
         else
             return r > 0
@@ -179,7 +248,9 @@ local function pressing_joystick(self, button)
     end
 end
 
-local function pressed_joystick()
+---@param self JM.Controller
+---@param button JM.Controller.Buttons
+local function pressed_joystick(self, button)
 
 end
 
@@ -187,6 +258,7 @@ end
 
 ---@class JM.Controller
 ---@field vpad JM.GUI.VPad
+---@field joystick love.Joystick | any
 local Controller = {
     Button = Buttons,
     State = States,
@@ -236,6 +308,23 @@ end
 ---@param vpad JM.GUI.VPad
 function Controller:set_vpad(vpad)
     self.vpad = vpad
+end
+
+---@param joystick love.Joystick
+function Controller:set_joystick(joystick, force)
+    if self.joystick and not force then
+        return false
+    end
+    self.joystick = joystick
+    return true
+end
+
+function Controller:remove_joystick()
+    if self.joystick then
+        self.joystick = false
+        return true
+    end
+    return false
 end
 
 return Controller
