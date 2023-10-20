@@ -295,7 +295,7 @@ function Controller:set_state(state)
         self.released = dummy
         ---
     elseif state == States.touch then
-
+        ---
     elseif state == States.vpad then
         self.pressing = pressing_vpad
         self.pressed = pressed_vpad
