@@ -93,6 +93,7 @@ local States = {
     mouse = 4,
     vpad = 5,
 }
+--==========================================================================
 
 local keyboard_is_down = love.keyboard.isScancodeDown
 local type = type
@@ -102,7 +103,7 @@ local type = type
 local function pressing_key(self, button)
     local button_is_axis = is_axis(button)
 
-    if self.state ~= States.keyboard then
+    if self.state ~= States.keyboard or not self.is_keyboard_owner then
         return button_is_axis and 0 or false
     end
 
@@ -126,7 +127,7 @@ end
 local function pressed_key(self, button, key_pressed)
     local button_is_axis = is_axis(button)
 
-    if self.state ~= States.keyboard then
+    if self.state ~= States.keyboard or not self.is_keyboard_owner then
         return button_is_axis and 0 or false
     end
 
@@ -275,6 +276,7 @@ end
 function Controller:__constructor__(args)
     self.button_to_key = args.keys or default_keymap()
     self.button_string = args.button_string or default_joystick_map()
+    self.is_keyboard_owner = true
     self:set_state(args.state or States.keyboard)
 end
 
