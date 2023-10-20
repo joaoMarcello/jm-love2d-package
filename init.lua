@@ -47,16 +47,8 @@ JM_Ldr = JM.Ldr
 ---@type JM.Controller
 JM.Controller = require(string.gsub(path, "init", "modules.jm_controller"))
 
-JM.Controllers = {
-    P1 = JM.Controller:new(),
-    P2 = JM.Controller:new(),
-    State = JM.Controller.State,
-    n = 2,
-    joy_to_controller = {},
-}
-JM.Controllers.keyboard_owner = JM.Controllers.P1
-JM.Controllers[1] = JM.Controllers.P1
-JM.Controllers[2] = JM.Controllers.P2
+---@type JM.ControllerManager
+JM.ControllerManager = require(string.gsub(path, "init", "modules.jm_controller_manager"))
 --==========================================================================
 
 ---@type JM.Scene
