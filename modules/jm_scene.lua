@@ -1149,6 +1149,8 @@ local joystickadded = function(self, joy)
         if r then
             joystick:set_state(Controllers.State.joystick)
             Controllers.joy_to_controller[joy] = joystick
+
+            Controllers:switch_keyboard_owner(Controllers[i + 1])
             break
         end
         i = i + 1
