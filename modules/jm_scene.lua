@@ -1091,7 +1091,10 @@ local keypressed = function(self, key, scancode, isrepeat)
         return
     end
 
-    Controllers.P1:set_state(Controllers.State.keyboard)
+    local keyboard_owner = Controllers.keyboard_owner
+    if keyboard_owner then
+        keyboard_owner:set_state(Controllers.State.keyboard)
+    end
 
     local param = self.__param__
     local r = param.keypressed and param.keypressed(key, scancode, isrepeat)
@@ -1105,7 +1108,10 @@ local keyreleased = function(self, key, scancode)
         return
     end
 
-    Controllers.P1:set_state(Controllers.State.keyboard)
+    local keyboard_owner = Controllers.keyboard_owner
+    if keyboard_owner then
+        keyboard_owner:set_state(Controllers.State.keyboard)
+    end
 
     local param = self.__param__
     local r = param.keyreleased and param.keyreleased(key, scancode)
@@ -1134,27 +1140,37 @@ local joystickreleased = function(self, joy, bt)
 end
 
 local joystickadded = function(self, joy)
-    -- if self.time_pause
-    --     or (self.transition and self.transition.pause_scene)
-    -- then
-    --     return
-    -- end
-    Controllers.P1:set_joystick(joy)
-    Controllers.P1:set_state(Controllers.State.joystick)
+    local i = 1
+    while i <= Controllers.n do
+        ---@type JM.Controller
+        local joystick = Controllers[i]
+
+        local r = joystick:set_joystick(joy)
+        if r then
+            joystick:set_state(Controllers.State.joystick)
+            Controllers.joy_to_controller[joy] = joystick
+            break
+        end
+        i = i + 1
+    end
 
     local param = self.__param__
     local r = param.joystickadded and param.joystickadded(joy)
 end
 
 local joystickremoved = function(self, joy)
-    -- if self.time_pause
-    --     or (self.transition and self.transition.pause_scene)
-    -- then
-    --     return
-    -- end
+    local i = 1
 
-    if joy == Controllers.P1.joystick then
-        Controllers.P1:remove_joystick()
+    while i <= Controllers.n do
+        ---@type JM.Controller
+        local joystick = Controllers[i]
+
+        if joystick == joy then
+            joystick:remove_joystick()
+            Controllers.joy_to_controller[joy] = nil
+            break
+        end
+        i = i + 1
     end
 
     local param = self.__param__
@@ -1168,7 +1184,12 @@ local gamepadpressed = function(self, joy, bt)
         return
     end
 
-    Controllers.P1:set_state(Controllers.State.joystick)
+    ---@type JM.Controller
+    local vcontroller = Controllers.joy_to_controller[joy]
+
+    if vcontroller then
+        vcontroller:set_state(Controllers.State.joystick)
+    end
 
     local param = self.__param__
     local r = param.gamepadpressed and param.gamepadpressed(joy, bt)
@@ -1179,6 +1200,13 @@ local gamepadreleased = function(self, joy, bt)
         or (self.transition and self.transition.pause_scene)
     then
         return
+    end
+
+    ---@type JM.Controller
+    local vcontroller = Controllers.joy_to_controller[joy]
+
+    if vcontroller then
+        vcontroller:set_state(Controllers.State.joystick)
     end
 
     local param = self.__param__
@@ -1192,8 +1220,11 @@ local gamepadaxis = function(self, joy, axis, value)
         return
     end
 
-    if abs(value) > 0.6 then
-        Controllers.P1:set_state(Controllers.State.joystick)
+    ---@type JM.Controller
+    local vcontroller = Controllers.joy_to_controller[joy]
+
+    if vcontroller and abs(value) > 0.6 then
+        vcontroller:set_state(Controllers.State.joystick)
     end
 
     local param = self.__param__
