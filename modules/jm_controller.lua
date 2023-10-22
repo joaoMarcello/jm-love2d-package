@@ -276,7 +276,7 @@ end
 function Controller:__constructor__(args)
     self.button_to_key = args.keys or default_keymap()
     self.button_string = args.button_string or default_joystick_map()
-    self.is_keyboard_owner = true
+    self.is_keyboard_owner = false
     self:set_state(args.state or States.keyboard)
 end
 
