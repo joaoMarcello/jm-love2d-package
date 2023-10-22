@@ -364,6 +364,12 @@ local function mousepressed(x, y, bt, istouch)
     data:skip_state()
 end
 
+local function gamepadpressed(joy, bt)
+    if bt == 'a' or bt == 'start' then
+        data:skip_state()
+    end
+end
+
 local function love_logo_update(dt)
     if not data.played_sound and data.sound then
         if data.sound:isPlaying() then data.sound:stop() end
@@ -492,6 +498,7 @@ State:implements {
     keypressed = keypressed,
     keyreleased = keyreleased,
     mousepressed = mousepressed,
+    gamepadpressed = gamepadpressed,
     update = update,
 
     layers = {
