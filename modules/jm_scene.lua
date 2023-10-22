@@ -1165,11 +1165,14 @@ local joystickremoved = function(self, joy)
 
     while i <= Controllers.n do
         ---@type JM.Controller
-        local joystick = Controllers[i]
+        local controller = Controllers[i]
 
-        if joystick == joy then
-            joystick:remove_joystick()
+        if controller.joystick == joy then
+            controller:remove_joystick()
             Controllers.joy_to_controller[joy] = nil
+            Controllers:switch_keyboard_owner(Controllers.P1)
+            -- Controllers.keyboard_owner = Controllers.P1
+            -- Controllers.P1.is_keyboard_owner = true
             break
         end
         i = i + 1
@@ -1246,16 +1249,16 @@ function Scene:implements(param)
         "errorhandler",
         "filedropped",
         "finish",
-        "gamepadaxis",
-        "gamepadpressed",
-        "gamepadreleased",
+        -- "gamepadaxis",
+        -- "gamepadpressed",
+        -- "gamepadreleased",
         "init",
-        "joystickadded",
+        -- "joystickadded",
         "joystickaxis",
         "joystickhat",
-        "joystickpressed",
-        "joystickreleased",
-        "joystickremoved",
+        -- "joystickpressed",
+        -- "joystickreleased",
+        -- "joystickremoved",
         -- "keypressed",
         -- "keyreleased",
         "load",
@@ -1371,7 +1374,7 @@ function Scene:implements(param)
 
     self.joystickremoved = joystickremoved
 
-    self.joystickreleased = joystickreleased
+    -- self.joystickreleased = joystickreleased
 
     self.gamepadpressed = gamepadpressed
 
