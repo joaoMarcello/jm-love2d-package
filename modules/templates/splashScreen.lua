@@ -54,7 +54,27 @@ local data = {
     result_mask = 1,
     --
     next_state = 'lib.gamestate.howToPlay',
+    --
+    skip_state = function(self)
+        if not State.transition then
+            State:add_transition("fade", "out", { duration = 0.8 }, nil,
+                function()
+                    if self.state == States.jm then
+                        State:change_gamestate(require "lib.gamestate.howToPlay", {
+                            unload = path,
+                            transition = "fade",
+                            transition_conf = { delay = 0.2, duration = 0.25 }
+                        })
+                    else
+                        State:add_transition("fade", "in", { delay = 0.25, duration = 0.8 })
+                        State:init(States.jm)
+                    end
+                end)
+        end
+    end,
+    ---
 }
+
 
 ---@return JM.GameState.Splash.Data
 function State:__get_data__()
@@ -331,22 +351,8 @@ local function keypressed(key)
         State:init()
     end
 
-    if key == "return" then
-        if not State.transition then
-            State:add_transition("fade", "out", { duration = 0.8 }, nil,
-                function()
-                    if data.state == States.jm then
-                        State:change_gamestate(require "lib.gamestate.howToPlay", {
-                            unload = path,
-                            transition = "fade",
-                            transition_conf = { delay = 0.2, duration = 0.25 }
-                        })
-                    else
-                        State:add_transition("fade", "in", { delay = 0.25, duration = 0.8 })
-                        State:init(States.jm)
-                    end
-                end)
-        end
+    if key == "return" or key == "space" then
+        data:skip_state()
     end
 end
 
@@ -354,7 +360,9 @@ local function keyreleased(key)
 
 end
 
-
+local function mousepressed(x, y, bt, istouch)
+    data:skip_state()
+end
 
 local function love_logo_update(dt)
     if not data.played_sound and data.sound then
@@ -483,6 +491,7 @@ State:implements {
     finish = finish,
     keypressed = keypressed,
     keyreleased = keyreleased,
+    mousepressed = mousepressed,
     update = update,
 
     layers = {
