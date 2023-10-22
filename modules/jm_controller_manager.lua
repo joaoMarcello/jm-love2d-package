@@ -8,8 +8,10 @@ local Manager = {
     n = 2,
     joy_to_controller = {},
 }
+
 Manager.keyboard_owner = Manager.P1
-Manager.P2.is_keyboard_owner = true
+Manager.P1.is_keyboard_owner = true
+
 Manager[1] = Manager.P1
 Manager[2] = Manager.P2
 
