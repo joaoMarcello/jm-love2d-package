@@ -1228,7 +1228,7 @@ local gamepadaxis = function(self, joy, axis, value)
     ---@type JM.Controller
     local vcontroller = Controllers.joy_to_controller[joy]
 
-    if vcontroller and abs(value) > 0.6 then
+    if vcontroller then
         vcontroller:set_state(Controllers.State.joystick)
     end
 
