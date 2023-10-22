@@ -96,7 +96,7 @@ local States = {
 --==========================================================================
 
 local keyboard_is_down = love.keyboard.isScancodeDown
-local type = type
+local type, abs = type, math.abs
 
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
@@ -248,8 +248,39 @@ end
 
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
-local function pressed_joystick(self, button)
+---@param joy love.Joystick
+---@param bt love.GamepadButton|love.GamepadAxis
+---@param value number|any
+local function pressed_joystick(self, button, joy, bt, value)
+    local button_is_axis = is_axis(button)
+    local gamepad_bt = self.virtual_to_gamepad[button]
 
+    if self.state ~= States.joystick or not gamepad_bt
+        or self.joystick ~= joy or bt ~= gamepad_bt
+    then
+        return button_is_axis and 0 or false
+    end
+
+    if button_is_axis then
+        if not value then
+            ---@diagnostic disable-next-line: param-type-mismatch
+            return self.joystick:getAxis(gamepad_bt)
+        elseif abs(value) > 0.5 then
+            return value
+        else
+            return 0
+        end
+    elseif button == Buttons.stick_1_left then
+        return value < 0.5
+    elseif button == Buttons.stick_1_right then
+        return value > 0.5
+    elseif button == Buttons.stick_1_up then
+        return value < 0.5
+    elseif button == Buttons.stick_1_down then
+        return value > 0.5
+    else
+        return bt == gamepad_bt
+    end
 end
 
 local dummy = function()
@@ -277,6 +308,32 @@ function Controller:__constructor__(args)
     self.button_to_key = args.keys or default_keymap()
     self.button_string = args.button_string or default_joystick_map()
     self.is_keyboard_owner = false
+
+    self.virtual_to_gamepad = {
+        [Buttons.A] = 'a',
+        [Buttons.B] = 'b',
+        [Buttons.X] = 'x',
+        [Buttons.Y] = 'y',
+        [Buttons.L] = 'leftshoulder',
+        [Buttons.R] = 'rightshoulder',
+        [Buttons.L3] = 'leftstick',
+        [Buttons.R3] = 'rightstick',
+        [Buttons.dpad_up] = 'dpup',
+        [Buttons.dpad_down] = 'dpdown',
+        [Buttons.dpad_left] = 'dpleft',
+        [Buttons.dpad_right] = 'dpright',
+        [Buttons.select] = 'back',
+        [Buttons.start] = 'start',
+        [Buttons.home] = 'guide',
+        ---
+        [Buttons.left_stick_x] = 'leftx',
+        [Buttons.left_stick_y] = 'lefty',
+        [Buttons.right_stick_x] = 'rightx',
+        [Buttons.right_stick_y] = 'righty',
+        [Buttons.L2] = 'triggerleft',
+        [Buttons.R2] = 'triggerright',
+    }
+
     self:set_state(args.state or States.keyboard)
 end
 
@@ -294,7 +351,7 @@ function Controller:set_state(state)
     elseif state == States.joystick then
         self.pressed = pressed_joystick
         self.pressing = pressing_joystick
-        self.released = dummy
+        self.released = pressed_joystick
         ---
     elseif state == States.touch then
         ---
