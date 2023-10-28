@@ -162,8 +162,11 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     conf = conf or {}
 
     -- the dispositive's screen dimensions
-    self.dispositive_w = love.graphics.getWidth()
-    self.dispositive_h = love.graphics.getHeight()
+    -- self.dispositive_w = love.graphics.getWidth()
+    -- self.dispositive_h = love.graphics.getHeight()
+
+    local dispositive_w = love.graphics.getWidth()
+    local dispositive_h = love.graphics.getHeight()
 
     self.prev_state = nil
 
@@ -172,8 +175,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.y = y or 0
 
     -- the scene dimensions
-    self.w = w or self.dispositive_w
-    self.h = h or self.dispositive_h
+    self.w = w or dispositive_w
+    self.h = h or dispositive_h
 
     -- self.h = self.h - self.y
     -- self.w = self.w - self.x
@@ -317,8 +320,8 @@ function Scene:add_camera(config)
     )
 
     if self.camera then
-        config.device_width = self.camera.device_width
-        config.device_height = self.camera.device_height
+        -- config.device_width = self.camera.device_width
+        -- config.device_height = self.camera.device_height
 
         config.desired_canvas_w = self.screen_w
         config.desired_canvas_h = self.screen_h
@@ -1266,6 +1269,7 @@ function Scene:implements(param)
         -- "mousemoved",
         -- "mousepressed",
         -- "mousereleased",
+        "resize",
         "textedited",
         "textinput",
         "threaderror",
