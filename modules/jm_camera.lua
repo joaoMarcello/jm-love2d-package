@@ -1126,6 +1126,41 @@ function Camera:set_position(x, y)
     self.y = round(self.y)
 end
 
+function Camera:set_zoom(value)
+    if value <= 0 then return false end
+    local cur_scale = self.scale
+
+    value = clamp(value, self.min_zoom, self.max_zoom)
+
+    local offx = round(self.focus_x / cur_scale)
+    local offy = round(self.focus_y / cur_scale)
+
+    if value < cur_scale then
+        self.scale = value
+        local vx, vy, vw, vh = self:get_viewport_in_world_coord()
+        local width = self.bounds_right - self.bounds_left
+        local height = self.bounds_bottom - self.bounds_top
+
+        if (vw - vx) > width
+            or (vh - vy) > height
+        then
+            self.scale = cur_scale
+            return false
+        end
+    else
+        self.scale = value
+    end
+
+    local x = offx - round(self.focus_x / self.scale)
+    local y = offy - round(self.focus_y / self.scale)
+
+    self.x = round(self.x + x)
+    self.y = round(self.y + y)
+    -- self:keep_on_bounds()
+
+    return true
+end
+
 function Camera:jump_to(x, y)
     self:set_position(
         x - self.focus_x / self.scale,
