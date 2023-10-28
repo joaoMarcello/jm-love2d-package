@@ -27,6 +27,10 @@ local Buttons = {
     R3 = 22,
     start = 23,
     select = 24,
+    stick_2_left = 25,
+    stick_2_right = 26,
+    stick_2_up = 27,
+    stick_2_down = 28,
 }
 
 local function default_joystick_map()
