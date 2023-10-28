@@ -816,6 +816,9 @@ function Camera:__constructor__(
     self.min_zoom = 0.5
     self.max_zoom = 1.5
 
+    self.catch_target_x = nil
+    self.catch_target_y = nil
+
     -- self.canvas = love.graphics.newCanvas(
     --     self.viewport_w / self.desired_scale * (1 / self.min_zoom),
     --     self.viewport_h / self.desired_scale * (1 / self.min_zoom)
