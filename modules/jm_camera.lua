@@ -830,15 +830,15 @@ function Camera:__constructor__(
     self.is_visible = true
 end
 
-function Camera:set_device_screen(w, h)
-    w = w or self.device_width
-    h = h or self.device_height
+-- function Camera:set_device_screen(w, h)
+--     w = w or self.device_width
+--     h = h or self.device_height
 
-    if w ~= self.device_width or h ~= self.device_height then
-        self.device_width = w
-        self.device_height = h
-    end
-end
+--     if w ~= self.device_width or h ~= self.device_height then
+--         self.device_width = w
+--         self.device_height = h
+--     end
+-- end
 
 function Camera:get_color()
     return self.color_r, self.color_g, self.color_b, self.color_a
