@@ -706,11 +706,14 @@ function Camera:__constructor__(
     tile_size, color, scale, type_,
     allow_grid, grid_tile_size, show_world_bounds, border_color
 )
-    self.device_width = device_width or love.graphics.getWidth()
-    self.device_height = device_height or love.graphics.getHeight()
+    local device_width = love.graphics.getWidth()
+    local device_height = love.graphics.getHeight()
 
-    self.desired_canvas_w = desired_canvas_w or self.device_width
-    self.desired_canvas_h = desired_canvas_h or self.device_height
+    -- self.device_width = device_width or love.graphics.getWidth()
+    -- self.device_height = device_height or love.graphics.getHeight()
+
+    self.desired_canvas_w = desired_canvas_w or device_width  --self.device_width
+    self.desired_canvas_h = desired_canvas_h or device_height --self.device_height
 
     self.scale = scale or 1.0
 
@@ -718,8 +721,8 @@ function Camera:__constructor__(
     self.viewport_x = x or 0
     self.viewport_y = y or 0
 
-    self.viewport_w = w or self.device_width
-    self.viewport_h = h or self.device_height
+    self.viewport_w = w or device_width  -- self.device_width
+    self.viewport_h = h or device_height -- self.device_height
 
     self.tile_size = tile_size or 32
 
@@ -1148,6 +1151,7 @@ function Camera:set_zoom(value)
             or (vh - vy) > height
         then
             self.scale = cur_scale
+            
             return false
         end
     else
