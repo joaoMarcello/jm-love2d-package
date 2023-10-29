@@ -1138,32 +1138,31 @@ function Camera:set_zoom(value)
 
     value = clamp(value, self.min_zoom, self.max_zoom)
 
-    local offx = round(self.focus_x / cur_scale)
-    local offy = round(self.focus_y / cur_scale)
+    local offx = (self.focus_x / self.scale)
+    local offy = (self.focus_y / self.scale)
 
     if value < cur_scale then
-        self.scale = value
-        local vx, vy, vw, vh = self:get_viewport_in_world_coord()
-        local width = self.bounds_right - self.bounds_left
-        local height = self.bounds_bottom - self.bounds_top
+        local width = (self.bounds_right - self.bounds_left)
+        local height = (self.bounds_bottom - self.bounds_top)
 
-        if (vw - vx) > width
-            or (vh - vy) > height
-        then
-            self.scale = cur_scale
-            
+        local minscale = m_max(self.viewport_w / width, self.viewport_h / height)
+
+        if value < minscale then
+            self.scale = minscale
+            self:keep_on_bounds()
             return false
         end
-    else
-        self.scale = value
     end
+    self.scale = value
 
-    local x = offx - round(self.focus_x / self.scale)
-    local y = offy - round(self.focus_y / self.scale)
+    assert(self.scale and self.scale ~= 0, ">> Error: Scale cannot be zero or nil !!!")
 
+    local x = offx - (self.focus_x / self.scale)
+    local y = offy - (self.focus_y / self.scale)
     self.x = round(self.x + x)
     self.y = round(self.y + y)
-    -- self:keep_on_bounds()
+
+    self:keep_on_bounds()
 
     return true
 end
