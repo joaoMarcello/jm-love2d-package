@@ -55,6 +55,8 @@ local function load_tiles(self, img_data)
     end
     -- img_data:release()
 end
+--===================================================================
+local pairs = pairs
 
 ---@class JM.TileSet
 local TileSet = {}
