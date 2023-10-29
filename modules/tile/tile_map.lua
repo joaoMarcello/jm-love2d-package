@@ -361,6 +361,17 @@ local function draw_with_bounds(self, left, top, right, bottom)
     -- Font:print("" .. (self.n_cells), 32 * 15, 32 * 8)
 end
 
+---@param tileset JM.TileSet
+function TileMap:change_tileset(tileset)
+    if not tileset or tileset.img == self.sprite_batch:getTexture()
+    then
+        return false
+    end
+
+    self.sprite_batch:setTexture(tileset.img)
+    self:reset_spritebatch()
+    return true
+end
 
 ---@param self JM.TileMap
 local function bounds_changed(self, left, top, right, bottom)
