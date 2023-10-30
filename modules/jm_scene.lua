@@ -394,7 +394,7 @@ function Scene:get_mouse_position(camera)
 end
 
 ---@param camera JM.Camera.Camera|nil
-function Scene:point_screen_to_world(x, y, camera)
+function Scene:point_monitor_to_world(x, y, camera)
     camera = camera or self.camera
     x = x or 0
     y = y or 0
