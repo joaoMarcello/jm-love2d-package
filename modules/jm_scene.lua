@@ -393,6 +393,28 @@ function Scene:get_mouse_position(camera)
     return x - camera.viewport_x / camera.scale, y - camera.viewport_y / camera.scale
 end
 
+---@param camera JM.Camera.Camera
+function Scene:point_screen_to_world(x, y, camera)
+    camera = camera or self.camera
+    x = x or 0
+    y = y or 0
+
+    local ds = min((self.w - self.x) / self.screen_w,
+        (self.h - self.y) / self.screen_h
+    )
+
+    local offset_x = self.offset_x
+    local off_y = self.offset_y
+
+    -- turning the mouse position into Camera's screen coordinates
+    x, y = x / ds, y / ds
+    x, y = x - (self.x + offset_x) / ds, y - (self.y + off_y) / ds
+
+    x, y = camera:screen_to_world(x, y)
+
+    return x - camera.viewport_x / camera.scale, y - camera.viewport_y / camera.scale
+end
+
 function Scene:to_camera_screen(x, y)
     x, y = x or 0, y or 0
 
