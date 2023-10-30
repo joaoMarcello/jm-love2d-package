@@ -1125,6 +1125,13 @@ function Camera:set_focus_y(value)
     end
 end
 
+function Camera:set_focus(x, y)
+    x = x and round(x) or self.focus_x
+    y = y and round(y) or self.focus_y
+    self.focus_x = x
+    self.focus_y = y
+end
+
 function Camera:set_position(x, y)
     self.x = (not self.lock_x and x) or self.x
     self.y = (not self.lock_y and y) or self.y
