@@ -393,7 +393,7 @@ function Scene:get_mouse_position(camera)
     return x - camera.viewport_x / camera.scale, y - camera.viewport_y / camera.scale
 end
 
----@param camera JM.Camera.Camera
+---@param camera JM.Camera.Camera|nil
 function Scene:point_screen_to_world(x, y, camera)
     camera = camera or self.camera
     x = x or 0
