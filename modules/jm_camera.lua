@@ -712,8 +712,8 @@ function Camera:__constructor__(
     -- self.device_width = device_width or love.graphics.getWidth()
     -- self.device_height = device_height or love.graphics.getHeight()
 
-    self.desired_canvas_w = desired_canvas_w or device_width  --self.device_width
-    self.desired_canvas_h = desired_canvas_h or device_height --self.device_height
+    -- self.desired_canvas_w = desired_canvas_w or device_width  --self.device_width
+    -- self.desired_canvas_h = desired_canvas_h or device_height --self.device_height
 
     self.scale = scale or 1.0
 
@@ -1220,8 +1220,12 @@ function Camera:rect_is_on_view(x, y, w, h)
     w, h = w * self.scale, h * self.scale
 
     local cx, cy = self:world_to_screen(self.x, self.y)
-    local cw, ch = self.desired_canvas_w,
-        self.desired_canvas_h
+    -- cx = cx + self.viewport_x
+    -- cy = cy + self.viewport_y
+    local cw, ch = self.viewport_w,
+        self.viewport_h
+    -- local cw, ch = self.desired_canvas_w,
+    --     self.desired_canvas_h
 
     -- do
     --     -- cx = cx + 32
