@@ -162,8 +162,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     conf = conf or {}
 
     -- the dispositive's screen dimensions
-    -- self.dispositive_w = love.graphics.getWidth()
-    -- self.dispositive_h = love.graphics.getHeight()
+    self.dispositive_w = love.graphics.getWidth()
+    self.dispositive_h = love.graphics.getHeight()
 
     local dispositive_w = love.graphics.getWidth()
     local dispositive_h = love.graphics.getHeight()
