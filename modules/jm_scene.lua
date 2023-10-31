@@ -415,6 +415,19 @@ function Scene:point_monitor_to_world(x, y, camera)
     return x - camera.viewport_x / camera.scale, y - camera.viewport_y / camera.scale
 end
 
+---@param value number|nil number in monitor coordinates size
+---@param cam JM.Camera.Camera|nil
+---@return number v the value scaled to camera's coordinates
+function Scene:monitor_length_to_world(value, cam)
+    value = value or 0
+    cam = cam or self.camera
+
+    local ds = min((self.w - self.x) / self.screen_w,
+        (self.h - self.y) / self.screen_h
+    )
+    return value / ds / cam.scale
+end
+
 function Scene:to_camera_screen(x, y)
     x, y = x or 0, y or 0
 
@@ -1087,6 +1100,8 @@ local touchpressed = function(self, id, x, y, dx, dy, pressure)
         return
     end
 
+    -- x, y = self:point_monitor_to_world(x, y)
+
     local param = self.__param__
     local r = param.touchpressed and param.touchpressed(x, y, dx, dy, pressure)
 end
@@ -1104,8 +1119,27 @@ local touchreleased = function(self, id, x, y, dx, dy, pressure)
         return
     end
 
+    -- x, y = self:point_monitor_to_world(x, y)
+
     local param = self.__param__
     local r = param.touchreleased and param.touchreleased(x, y, dx, dy, pressure)
+end
+
+---@param self JM.Scene
+local touchmoved = function(self, id, x, y, dx, dy, pressure)
+    -- if self.use_vpad then
+
+    -- end
+    if self.time_pause
+        or (self.transition and self.transition.pause_scene)
+    then
+        return
+    end
+
+    -- x, y = self:point_monitor_to_world(x, y)
+
+    local param = self.__param__
+    local r = param.touchmoved and param.touchmoved(x, y, dx, dy, pressure)
 end
 
 ---@param self JM.Scene
@@ -1297,7 +1331,7 @@ function Scene:implements(param)
         "threaderror",
         -- "touchpressed",
         -- "touchreleased",
-        "touchmoved",
+        -- "touchmoved",
         "unload",
         -- "update",
         "visible",
@@ -1387,6 +1421,8 @@ function Scene:implements(param)
     self.touchpressed = touchpressed
 
     self.touchreleased = touchreleased
+
+    self.touchmoved = touchmoved
 
     self.keypressed = keypressed
 
