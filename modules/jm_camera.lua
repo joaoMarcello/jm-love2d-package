@@ -1704,12 +1704,15 @@ function Camera:attach(lock_shake, subpixel)
 
     local shake_y = (not lock_shake and self.shaking_in_y and self.shake_offset_y) or 0
 
-    love_translate(
-        -self.x + (self.viewport_x / self.scale)
-        + shake_x,
-        -self.y + (self.viewport_y / self.scale)
-        + shake_y
-    )
+    local tx = -self.x + (self.viewport_x / self.scale) + shake_x
+    local ty = -self.y + (self.viewport_y / self.scale) + shake_y
+    love_translate((tx), (ty))
+    -- love_translate(
+    --     -self.x + (self.viewport_x / self.scale)
+    --     + shake_x,
+    --     -self.y + (self.viewport_y / self.scale)
+    --     + shake_y
+    -- )
 end
 
 function Camera:detach()
