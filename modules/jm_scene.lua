@@ -1103,7 +1103,7 @@ local touchpressed = function(self, id, x, y, dx, dy, pressure)
     -- x, y = self:point_monitor_to_world(x, y)
 
     local param = self.__param__
-    local r = param.touchpressed and param.touchpressed(x, y, dx, dy, pressure)
+    local r = param.touchpressed and param.touchpressed(id, x, y, dx, dy, pressure)
 end
 
 ---@param self JM.Scene
@@ -1122,14 +1122,11 @@ local touchreleased = function(self, id, x, y, dx, dy, pressure)
     -- x, y = self:point_monitor_to_world(x, y)
 
     local param = self.__param__
-    local r = param.touchreleased and param.touchreleased(x, y, dx, dy, pressure)
+    local r = param.touchreleased and param.touchreleased(id, x, y, dx, dy, pressure)
 end
 
 ---@param self JM.Scene
 local touchmoved = function(self, id, x, y, dx, dy, pressure)
-    -- if self.use_vpad then
-
-    -- end
     if self.time_pause
         or (self.transition and self.transition.pause_scene)
     then
@@ -1139,7 +1136,7 @@ local touchmoved = function(self, id, x, y, dx, dy, pressure)
     -- x, y = self:point_monitor_to_world(x, y)
 
     local param = self.__param__
-    local r = param.touchmoved and param.touchmoved(x, y, dx, dy, pressure)
+    local r = param.touchmoved and param.touchmoved(id, x, y, dx, dy, pressure)
 end
 
 ---@param self JM.Scene
