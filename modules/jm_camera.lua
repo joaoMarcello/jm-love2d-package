@@ -1139,7 +1139,7 @@ function Camera:set_position(x, y)
     self.y = round(self.y)
 end
 
-function Camera:set_zoom(value)
+function Camera:set_zoom(value, clamp_to_minscale)
     if value <= 0 then return false end
     local cur_scale = self.scale
 
@@ -1155,7 +1155,7 @@ function Camera:set_zoom(value)
         local minscale = m_max(self.viewport_w / width, self.viewport_h / height)
 
         if value < minscale then
-            self.scale = minscale
+            self.scale = clamp_to_minscale and minscale or cur_scale
             self:keep_on_bounds()
             return false
         end
