@@ -114,6 +114,14 @@ function Utils:getText(path)
     return text
 end
 
+Utils.shuffle = function(self, t, n)
+    local N = n or #t
+    for i = N, 2, -1 do
+        local j = math.random(i)
+        t[i], t[j] = t[j], t[i]
+    end
+end
+
 -- look up for 'k' in parent_list
 local function search(k, parent_list)
     for i = 1, #parent_list do
