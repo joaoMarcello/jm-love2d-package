@@ -60,7 +60,7 @@ local data = {
             State:add_transition("fade", "out", { duration = 0.8 }, nil,
                 function()
                     if self.state == States.jm then
-                        State:change_gamestate(require "lib.gamestate.howToPlay", {
+                        State:change_gamestate(require(self.next_state), {
                             unload = path,
                             transition = "fade",
                             transition_conf = { delay = 0.2, duration = 0.25 }
@@ -73,6 +73,9 @@ local data = {
         end
     end,
     ---
+    set_next_state_string = function(self, value)
+        self.next_state = value
+    end
 }
 
 
