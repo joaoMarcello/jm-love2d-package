@@ -1241,8 +1241,8 @@ function Camera:rect_is_on_view(x, y, w, h)
     --     -- ch = ch - 32
     -- end
 
-    return x + w > cx and x < cx + cw
-        and y + h > cy and y < cy + ch
+    return x + w >= cx and x <= cx + cw
+        and y + h >= cy and y <= cy + ch
 end
 
 --- Checks if point is on screen.
