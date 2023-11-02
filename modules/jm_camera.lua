@@ -1125,6 +1125,8 @@ function Camera:set_focus_y(value)
     end
 end
 
+---@param x any value in screen coordinates
+---@param y any value in screen coordinates
 function Camera:set_focus(x, y)
     x = x and round(x) or self.focus_x
     y = y and round(y) or self.focus_y
