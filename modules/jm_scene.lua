@@ -1331,8 +1331,27 @@ local gamepadaxis = function(self, joy, axis, value)
     local r = param.gamepadaxis and param.gamepadaxis(joy, axis, value)
 end
 
+---@param self JM.Scene
+local resize = function(self, w, h)
+    local prop_x = self.x / self.dispositive_w
+    local prop_y = self.y / self.dispositive_h
+    local prop_w = self.w / self.dispositive_w
+    local prop_h = self.h / self.dispositive_h
+
+    self.w = w * prop_w
+    self.h = h * prop_h
+    self.x = w * prop_x
+    self.y = h * prop_y
+
+    self:calc_canvas_scale()
+    self.dispositive_w, self.dispositive_h = w, h
+
+    local param = self.__param__
+    local r = param.resize and param.resize(w, h)
+end
+
 ---
----@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function}
+---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function}
 ---
 function Scene:implements(param)
     assert(param, "\n>> Error: No parameter passed to method.")
@@ -1361,7 +1380,7 @@ function Scene:implements(param)
         -- "mousemoved",
         -- "mousepressed",
         -- "mousereleased",
-        "resize",
+        -- "resize",
         "textedited",
         "textinput",
         "threaderror",
@@ -1479,6 +1498,8 @@ function Scene:implements(param)
     self.gamepadreleased = gamepadreleased
 
     self.gamepadaxis = gamepadaxis
+
+    self.resize = resize
 end
 
 function Scene:set_background_draw(action)
