@@ -793,7 +793,13 @@ local update = function(self, dt)
         end
     end
 
+
+
     local r = param.update and param.update(dt)
+
+    Controllers.P1:update(dt)
+    Controllers.P2:update(dt)
+
 
     for i = 1, self.amount_cameras do
         ---@type JM.Camera.Camera
@@ -1227,6 +1233,7 @@ local joystickremoved = function(self, joy)
             controller:remove_joystick()
             Controllers.joy_to_controller[joy] = nil
             Controllers:switch_keyboard_owner(Controllers.P1)
+            controller:set_state(controller.State.keyboard)
             -- Controllers.keyboard_owner = Controllers.P1
             -- Controllers.P1.is_keyboard_owner = true
             break
