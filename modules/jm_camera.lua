@@ -1706,7 +1706,8 @@ function Camera:attach(lock_shake, subpixel)
 
     local tx = -self.x + (self.viewport_x / self.scale) + shake_x
     local ty = -self.y + (self.viewport_y / self.scale) + shake_y
-    love_translate((tx), (ty))
+    return love_translate(tx, ty)
+
     -- love_translate(
     --     -self.x + (self.viewport_x / self.scale)
     --     + shake_x,
@@ -1717,7 +1718,7 @@ end
 
 function Camera:detach()
     love_pop()
-    love_set_scissor()
+    return love_set_scissor()
 end
 
 return Camera
