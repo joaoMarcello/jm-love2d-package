@@ -286,6 +286,38 @@ function Scene:get_vpad()
     return VPad
 end
 
+function Scene:change_game_screen(w, h)
+    w = w or self.screen_w
+    h = h or self.screen_h
+
+    if w ~= self.screen_w or h ~= self.screen_h then
+        for i = 1, self.amount_cameras do
+            ---@type JM.Camera.Camera
+            local cam = self.cameras_list[i]
+
+            local prop_x = cam.viewport_x / self.screen_w
+            local prop_y = cam.viewport_y / self.screen_h
+            local prop_w = cam.viewport_w / self.screen_w
+            local prop_h = cam.viewport_h / self.screen_h
+
+            cam:set_viewport(w * prop_x, h * prop_y, w * prop_w, h * prop_h)
+        end
+        self.canvas:release()
+        if self.canvas_layer then self.canvas_layer:release() end
+
+        self.screen_w = w
+        self.screen_h = h
+        self.canvas = nil
+        self.canvas_layer = nil
+        self:restaure_canvas()
+        self:calc_canvas_scale()
+
+        collectgarbage()
+        return true
+    end
+    return false
+end
+
 function Scene:restaure_canvas()
     if not self.canvas then
         self.canvas = create_canvas(self.screen_w, self.screen_h, self.canvas_filter, self.subpixel)
