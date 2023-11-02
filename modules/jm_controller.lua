@@ -223,14 +223,24 @@ local function pressing_joystick(self, button)
     ---@type love.Joystick
     local joy = self.joystick
 
-    if not joy or not joy:isConnected() then return false end
+    if not joy or not joy:isConnected() then
+        return button_is_axis and 0 or false
+    end
 
     local bt = self.button_string[button]
     if not bt then return button_is_axis and 0 or false end
 
     if button_is_axis then
+        -- if self.time_button[button] ~= 0.0 and not force then return 0 end
+
         ---@diagnostic disable-next-line: param-type-mismatch
-        return joy:getGamepadAxis(bt)
+        local r = joy:getGamepadAxis(bt)
+
+        -- if math.abs(r) > 0 and not force then
+        --     self.time_button[button] = self.time_delay_button[button]
+        -- end
+
+        return r
         ---
     elseif button == Buttons.stick_1_left then
         local r = joy:getGamepadAxis("leftx")
@@ -248,6 +258,10 @@ local function pressing_joystick(self, button)
         ---@diagnostic disable-next-line: param-type-mismatch
         return joy:isGamepadDown(bt)
     end
+end
+
+local function released_joystick(self, button, joy)
+
 end
 
 ---@param self JM.Controller
@@ -338,6 +352,13 @@ function Controller:__constructor__(args)
         [Buttons.R2] = 'triggerright',
     }
 
+    self.time_button = {}
+    self.time_delay_button = {}
+    for i = 0, 28 do
+        self.time_button[i] = 0
+        self.time_delay_button[i] = 0
+    end
+
     self:set_state(args.state or States.keyboard)
 end
 
@@ -390,6 +411,40 @@ function Controller:remove_joystick()
         return true
     end
     return false
+end
+
+---@param bt JM.Controller.Buttons
+function Controller:pressing_time(bt)
+    if self.state ~= States.joystick or not self.joystick or not self.joystick:isConnected() then
+        return false
+    end
+
+    if self.time_button[bt] ~= 0 then return false end
+
+    local r = self:pressing(bt)
+    if type(r) == "number" and math.abs(r) > 0 then
+        self.time_button[bt] = self.time_delay_button[bt]
+    end
+
+    return r --self:pressing(bt)
+end
+
+function Controller:update(dt)
+    local i = 0
+    while i <= Buttons.R2 do
+        local r = self:pressing(i)
+        if type(r) == "number" and math.abs(r) == 0 then
+            self.time_button[i] = 0.0
+        end
+
+        if self.time_button[i] > 0.0 then
+            self.time_button[i] = self.time_button[i] - dt
+            if self.time_button[i] < 0.0 then
+                self.time_button[i] = 0.0
+            end
+        end
+        i = i + 1
+    end
 end
 
 return Controller
