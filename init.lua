@@ -57,8 +57,6 @@ JM.Scene = require(string.gsub(path, "init", "modules.jm_scene"))
 ---@type JM.Physics
 JM.Physics = require(string.gsub(path, "init", "modules.jm_physics"))
 
----@type JM.GUI
-JM.GUI = require(string.gsub(path, "init", "modules.jm_gui"))
 
 ---@type JM.Sound
 JM.Sound = require(string.gsub(path, "init", "modules.jm_sound"))
@@ -77,6 +75,9 @@ JM.GameObject = require(string.gsub(path, "init", "modules.gamestate.game_object
 
 ---@type BodyObject
 JM.BodyObject = require(string.gsub(path, "init", "modules.gamestate.body_object"))
+
+---@type JM.GUI
+JM.GUI = require(string.gsub(path, "init", "modules.jm_gui"))
 
 ---@type JM.ParticleSystem
 JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
