@@ -87,23 +87,23 @@ function Container:update(dt)
     end
 end
 
-function Container:mouse_pressed(x, y)
+function Container:mouse_pressed(x, y, bt, istouch, presses)
     for i = 1, #(self.components) do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
         local r = gc.is_enable and not gc.__remove
-            and gc:mouse_pressed(x, y)
+            and gc:mouse_pressed(x, y, bt, istouch, presses)
     end
 end
 
-function Container:mouse_released(x, y)
+function Container:mouse_released(x, y, bt, istouch, presses)
     for i = 1, #(self.components) do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
         local r = gc.is_enable and not gc.__remove
-            and gc:mouse_released(x, y)
+            and gc:mouse_released(x, y, bt, istouch, presses)
     end
 end
 
@@ -131,9 +131,12 @@ end
 function Container:draw(camera)
     local sx, sy, sw, sh = love_get_scissor()
 
-    local sx1, sy1, sw1, sh1 = camera:scissor_transform(self.x, self.y, self.w, self.h, self.scene.subpixel)
+    if camera then
+        local sx1, sy1, sw1, sh1 = camera:scissor_transform(self.x, self.y, self.w, self.h, self.scene.subpixel)
 
-    love_set_scissor(sx1, sy1, sw1, sh1)
+        love_set_scissor(sx1, sy1, sw1, sh1)
+    end
+
 
     for i = 1, #(self.components) do
         ---@type JM.GUI.Component
