@@ -14,7 +14,6 @@ Button.__index = Button
 
 ---@return JM.GUI.Component
 function Button:new(args)
-
     local obj = Component:new(args)
     setmetatable(obj, self)
 
@@ -59,7 +58,6 @@ function Button:__constructor__(args)
     self:on_event("key_pressed", function()
         --self:set_color2(math.random(), math.random(), math.random(), 1)
     end)
-
 end
 
 function Button:init()
@@ -67,7 +65,6 @@ function Button:init()
 end
 
 function Button:__custom_draw__()
-
     love.graphics.setColor(self.color)
     love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
 
@@ -76,11 +73,11 @@ function Button:__custom_draw__()
     love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
 
-    Font:printx(self.text,
+    Font:printf(self.text,
         self.x,
         self.y + 10,
         "center",
-        self.x + self.w
+        self.w
     )
 
     -- love.graphics.setColor(0, 0, 0, 1)
