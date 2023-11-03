@@ -127,7 +127,7 @@ function Container:key_released(key, scancode)
     end
 end
 
----@param camera JM.Camera.Camera
+---@param camera JM.Camera.Camera|any
 function Container:draw(camera)
     local sx, sy, sw, sh = love_get_scissor()
 
