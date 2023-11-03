@@ -1,5 +1,3 @@
-local love = _G.love
-
 ---@type JM.Utils
 local Utils = _G.JM_Utils
 
@@ -73,7 +71,7 @@ end
 local generic_func = function(self, args)
 end
 
----@class JM.GUI.Component: JM.Template.Affectable
+---@class JM.GUI.Component: JM.Template.Affectable --JM.Template.Affectable
 local Component = {
     __custom_draw__ = generic_func,
     __pos_draw__ = generic_func,
@@ -86,7 +84,6 @@ Component.__index = Component
 Component.MODES = MODES
 Component.collision = collision
 
----@param args {x:number, y:number, w:number, h:number, on_focus:boolean}|nil
 ---@return table
 function Component:new(args)
     args = args or {}
