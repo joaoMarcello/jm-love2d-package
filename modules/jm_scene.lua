@@ -143,7 +143,6 @@ function Scene:new2(args)
     args.y = args.y or 0
     args.w = args.w and (args.x + args.w) or love.graphics.getWidth()
     args.h = args.h and (args.y + args.h) or love.graphics.getHeight()
-
     -- args.w = args.w - args.x
     -- args.h = args.h - args.y
 
@@ -198,6 +197,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
         local config = {
             --
             name = "main",
+            scene = self,
             --
             -- camera's viewport in desired game screen coordinates
             x = 0,
@@ -371,6 +371,7 @@ function Scene:add_camera(config)
     end
 
     local camera = Camera:new(config)
+    camera.scene = self
 
     self.amount_cameras = self.amount_cameras + 1
 
@@ -498,6 +499,12 @@ function Scene:pause(time, action, draw)
     self.pause_action = action or nil
     self.pause_draw = draw or nil
     collectgarbage("step")
+end
+
+function Scene:unpause()
+    self.time_pause = nil
+    self.pause_action = nil
+    self.pause_draw = nil
 end
 
 function Scene:is_paused()
@@ -1126,6 +1133,18 @@ local mousemoved = function(self, x, y, dx, dy, istouch)
 end
 
 ---@param self JM.Scene
+local mousefocus = function(self, f)
+    local param = self.__param__
+    local r = param.mousefocus and param.mousefocus(f)
+end
+
+---@param self JM.Scene
+local focus = function(self, f)
+    local param = self.__param__
+    local r = param.focus and param.focus(f)
+end
+
+---@param self JM.Scene
 local touchpressed = function(self, id, x, y, dx, dy, pressure)
     if self.use_vpad then
         Controllers.P1:set_state(Controllers.State.vpad)
@@ -1351,7 +1370,7 @@ local resize = function(self, w, h)
 end
 
 ---
----@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function}
+---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function, mousefocus:function, focus:function}
 ---
 function Scene:implements(param)
     assert(param, "\n>> Error: No parameter passed to method.")
@@ -1376,7 +1395,7 @@ function Scene:implements(param)
         -- "keypressed",
         -- "keyreleased",
         "load",
-        "mousefocus",
+        -- "mousefocus",
         -- "mousemoved",
         -- "mousepressed",
         -- "mousereleased",
@@ -1472,6 +1491,10 @@ function Scene:implements(param)
     self.mousereleased = mousereleased
 
     self.mousemoved = mousemoved
+
+    self.mousefocus = mousefocus
+
+    self.focus = focus
 
     self.touchpressed = touchpressed
 
