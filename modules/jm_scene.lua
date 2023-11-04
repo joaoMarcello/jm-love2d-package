@@ -1145,6 +1145,12 @@ local focus = function(self, f)
 end
 
 ---@param self JM.Scene
+local visible = function(self, v)
+    local param = self.__param__
+    local r = param.visible and param.visible(v)
+end
+
+---@param self JM.Scene
 local touchpressed = function(self, id, x, y, dx, dy, pressure)
     if self.use_vpad then
         Controllers.P1:set_state(Controllers.State.vpad)
@@ -1370,7 +1376,7 @@ local resize = function(self, w, h)
 end
 
 ---
----@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function, mousefocus:function, focus:function}
+---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function, mousefocus:function, focus:function, visible:function}
 ---
 function Scene:implements(param)
     assert(param, "\n>> Error: No parameter passed to method.")
@@ -1408,7 +1414,7 @@ function Scene:implements(param)
         -- "touchmoved",
         "unload",
         -- "update",
-        "visible",
+        -- "visible",
         "wheelmoved",
         "quit",
     }
@@ -1495,6 +1501,8 @@ function Scene:implements(param)
     self.mousefocus = mousefocus
 
     self.focus = focus
+
+    self.visible = visible
 
     self.touchpressed = touchpressed
 
