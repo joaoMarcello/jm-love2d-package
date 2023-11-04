@@ -249,26 +249,26 @@ function Component:touch_moved(id, x, y, dx, dy, pressure)
     local r = evt and evt.action(id, x, y, dx, dy, pressure)
 end
 
----@param self JM.GUI.Component
-local function mode_mouse_update(self, dt)
-    local x, y
-    if self.__holder then
-        x, y = self.__holder.scene:get_mouse_position()
-    else
-        x, y = love.mouse.getPosition()
-    end
+-- ---@param self JM.GUI.Component
+-- local function mode_mouse_update(self, dt)
+--     local x, y
+--     if self.__holder then
+--         x, y = self.__holder.scene:get_mouse_position()
+--     else
+--         x, y = love.mouse.getPosition()
+--     end
 
-    if self:check_collision(x, y, 0, 0) then
-        if not self.on_focus then
-            self:set_focus(true)
-        end
-    else
-        if self.on_focus then
-            self:set_focus(false)
-            self.__mouse_pressed = false
-        end
-    end
-end
+--     if self:check_collision(x, y, 0, 0) then
+--         if not self.on_focus then
+--             self:set_focus(true)
+--         end
+--     else
+--         if self.on_focus then
+--             self:set_focus(false)
+--             self.__mouse_pressed = false
+--         end
+--     end
+-- end
 
 function Component:update(dt)
     dispatch_event(self, EVENTS.update)
