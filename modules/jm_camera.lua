@@ -692,7 +692,7 @@ function Camera:new(args)
         args.desired_canvas_w, args.desired_canvas_h,
         args.tile_size, args.color, args.scale, args.type,
         args.show_grid, args.grid_tile_size, args.show_world_bounds,
-        args.border_color
+        args.border_color, args.scene
     )
 
     return obj
@@ -704,10 +704,13 @@ function Camera:__constructor__(
     x, y, w, h, bounds,
     device_width, device_height, desired_canvas_w, desired_canvas_h,
     tile_size, color, scale, type_,
-    allow_grid, grid_tile_size, show_world_bounds, border_color
+    allow_grid, grid_tile_size, show_world_bounds, border_color, scene
 )
     local device_width = love.graphics.getWidth()
     local device_height = love.graphics.getHeight()
+
+    ---@type JM.Scene
+    self.scene = scene
 
     -- self.device_width = device_width or love.graphics.getWidth()
     -- self.device_height = device_height or love.graphics.getHeight()
