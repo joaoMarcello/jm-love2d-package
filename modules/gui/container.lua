@@ -35,7 +35,7 @@ end
 ---@param args {scene: JM.Scene, type: string, mode: string, grid_x:number, grid_y: number}
 function Container:__constructor__(args)
     args = args or {}
-    self.scene = args.scene
+    -- self.scene = args.scene
     self.components = {}
     self.space_vertical = 15
     self.space_horizontal = 15
@@ -132,7 +132,7 @@ function Container:draw(camera)
     local sx, sy, sw, sh = love_get_scissor()
 
     if camera then
-        local sx1, sy1, sw1, sh1 = camera:scissor_transform(self.x, self.y, self.w, self.h, self.scene.subpixel)
+        local sx1, sy1, sw1, sh1 = camera:scissor_transform(self.x, self.y, self.w, self.h, camera.scene.subpixel)
 
         love_set_scissor(sx1, sy1, sw1, sh1)
     end
