@@ -4,12 +4,8 @@ local path = ...
 ---@type JM.GUI.Component
 local Component = require(path:gsub("button", "component"))
 
----@type JM.Font.Manager
-local Font = require(path:gsub("gui.button", "jm_font"))
-
 ---@class JM.GUI.Button: JM.GUI.Component, JM.Template.Affectable
-local Button = {}
-setmetatable(Button, { __index = Component })
+local Button = setmetatable({}, Component)
 Button.__index = Button
 
 ---@return JM.GUI.Component
@@ -72,10 +68,10 @@ function Button:__custom_draw__()
     love.graphics.setColor(0, 0, 0, 1)
     love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
-
-    Font:printf(self.text,
+    local font = JM.Font.current
+    font:printf(self.text,
         self.x,
-        self.y + 10,
+        self.y + self.h * 0.5 - font.__font_size * 0.5,
         "center",
         self.w
     )
