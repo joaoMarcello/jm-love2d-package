@@ -20,6 +20,7 @@ local INSERT_MODE = {
 ---@class JM.GUI.Container: JM.GUI.Component
 local Container = setmetatable({}, Component)
 Container.__index = Container
+Container.INSERT_MODE = INSERT_MODE
 
 ---@return JM.GUI.Container
 function Container:new(args)
@@ -37,6 +38,7 @@ function Container:__constructor__(args)
     args = args or {}
     -- self.scene = args.scene
     self.components = {}
+    self.N = 0
     self.space_vertical = 15
     self.space_horizontal = 15
     self.border_x = 15
@@ -66,7 +68,7 @@ function Container:shift_objects(dx, dy)
     dx = dx or 0
     dy = dy or 0
 
-    for i = 1, #(self.components) do
+    for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
@@ -75,12 +77,13 @@ function Container:shift_objects(dx, dy)
 end
 
 function Container:update(dt)
-    for i = #(self.components), 1, -1 do
+    for i = self.N, 1, -1 do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
         if gc.__remove then
             table.remove(self.components, i)
+            self.N = self.N - 1
         else
             local r = gc.is_enable and gc:update(dt)
         end
@@ -88,7 +91,7 @@ function Container:update(dt)
 end
 
 function Container:mouse_pressed(x, y, bt, istouch, presses)
-    for i = 1, #(self.components) do
+    for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
@@ -98,7 +101,7 @@ function Container:mouse_pressed(x, y, bt, istouch, presses)
 end
 
 function Container:mouse_released(x, y, bt, istouch, presses)
-    for i = 1, #(self.components) do
+    for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
@@ -108,7 +111,7 @@ function Container:mouse_released(x, y, bt, istouch, presses)
 end
 
 function Container:key_pressed(key, scancode, isrepeat)
-    for i = 1, #(self.components) do
+    for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
@@ -118,7 +121,7 @@ function Container:key_pressed(key, scancode, isrepeat)
 end
 
 function Container:key_released(key, scancode)
-    for i = 1, #(self.components) do
+    for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
@@ -138,7 +141,7 @@ function Container:draw(camera)
     end
 
 
-    for i = 1, #(self.components) do
+    for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
@@ -153,14 +156,14 @@ function Container:draw(camera)
 
     love_set_scissor(sx, sy, sw, sh)
 
-    do
-        love_set_color(1, 0, 0, 1)
-        love_rectangle("line", self:rect())
+    -- do
+    --     love_set_color(1, 0, 0, 1)
+    --     love_rectangle("line", self:rect())
 
-        love_set_color(0, 1, 1, 1)
-        love_rectangle("line", self.x + self.border_x, self.y + self.border_y, self.w - self.border_x * 2,
-            self.h - self.border_y * 2)
-    end
+    --     love_set_color(0, 1, 1, 1)
+    --     love_rectangle("line", self.x + self.border_x, self.y + self.border_y, self.w - self.border_x * 2,
+    --         self.h - self.border_y * 2)
+    -- end
 end
 
 ---@param obj JM.GUI.Component
@@ -177,6 +180,8 @@ function Container:add(obj)
     table.insert(self.components, obj)
 
     self:__add_behavior__()
+
+    self.N = self.N + 1
     return obj
 end
 
@@ -208,7 +213,7 @@ end
 
 ---@param mode JM.GUI.Container.InsertMode
 function Container:refresh_positions_y(mode)
-    local N = #self.components
+    local N = self.N
     if N <= 0 then return end
 
     local x = self.x + self.border_x
@@ -244,7 +249,7 @@ end
 
 ---@param mode JM.GUI.Container.InsertMode
 function Container:refresh_positions_x(mode)
-    local N = #self.components
+    local N = self.N
     if N <= 0 then return end
 
     local x = self.x + self.border_x
@@ -277,7 +282,7 @@ function Container:refresh_positions_x(mode)
 end
 
 function Container:refresh_pos_grid(row, column)
-    local N = #self.components
+    local N = self.N
     if N <= 0 then return end
 
     row, column = row or 3, column or 2
