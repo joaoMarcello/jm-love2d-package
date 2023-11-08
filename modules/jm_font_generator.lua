@@ -125,7 +125,7 @@ local Font = {
     buffer_time = 0.0
 }
 
----@alias JM.FontGenerator.Args {name: JM.AvailableFonts, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string, dir:string, dir_bold:string, dir_italic:string}
+---@alias JM.FontGenerator.Args {name: string, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string, dir:string, dir_bold:string, dir_italic:string, word_space:number}
 
 ---@overload fun(self: table, args: JM.AvailableFonts)
 ---@param args JM.FontGenerator.Args
@@ -220,7 +220,7 @@ function Font:__constructor__(args)
         or (self:__get_char_equals("0") and self:__get_char_equals("0").h)
         or self.__font_size
 
-    self.__word_space = self.__ref_height * 0.6
+    self.__word_space = args.word_space or (self.__ref_height * 0.6)
 
     self.__tab_size = args.tab_size or 4
 
@@ -1634,6 +1634,7 @@ end
 
 ---@class JM.Font.Generator
 local Generator = {
+    ---@param args JM.FontGenerator.Args
     new = function(self, args)
         -- local f = Font
         return Font.new(Font, args)
