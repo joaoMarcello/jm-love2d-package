@@ -125,8 +125,10 @@ local Font = {
     buffer_time = 0.0
 }
 
+---@alias JM.FontGenerator.Args {name: JM.AvailableFonts, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string, dir:string, dir_bold:string, dir_italic:string}
+
 ---@overload fun(self: table, args: JM.AvailableFonts)
----@param args {name: JM.AvailableFonts, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string}
+---@param args JM.FontGenerator.Args
 ---@return JM.Font.Font new_Font
 function Font:new(args)
     local obj = {}
@@ -139,7 +141,7 @@ function Font:new(args)
 end
 
 ---@overload fun(self: table, args: JM.AvailableFonts)
----@param args {name: JM.AvailableFonts, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string}
+---@param args JM.FontGenerator.Args
 function Font:__constructor__(args)
     if type(args) == "string" then
         local temp_table = {}
@@ -165,12 +167,14 @@ function Font:__constructor__(args)
         [FontFormat.bold_italic] = {}
     }
 
-    local dir = path:gsub("modules.jm_font_generator", "/data/font/")
-        .. "%s/%s.png"
+    -- local dir = path:gsub("modules.jm_font_generator", "/data/font/")
+    --     .. "%s/%s.png"
 
     self:load_characters(args.regular_data
-        or str_format(dir, args.name, args.name),
-        FontFormat.normal, find_nicks(get_glyphs(args.glyphs)),
+        or args.dir,
+        -- or str_format(dir, args.name, args.name),
+        FontFormat.normal,
+        find_nicks(get_glyphs(args.glyphs)),
         args.regular_quads,
         args.min_filter,
         args.max_filter
@@ -179,8 +183,10 @@ function Font:__constructor__(args)
 
     if not args.regular_data or args.bold_data then
         self:load_characters(args.bold_data
-            or str_format(dir, args.name, args.name .. "_bold"),
-            FontFormat.bold, find_nicks(get_glyphs(args.glyphs_bold or args.glyphs)),
+            or args.dir_bold,
+            -- or str_format(dir, args.name, args.name .. "_bold"),
+            FontFormat.bold,
+            find_nicks(get_glyphs(args.glyphs_bold or args.glyphs)),
             args.bold_quads,
             args.min_filter,
             args.max_filter
@@ -192,8 +198,10 @@ function Font:__constructor__(args)
 
     if (not args.regular_data or args.italic_data) then
         self:load_characters(args.italic_data
-            or str_format(dir, args.name, args.name .. "_italic"),
-            FontFormat.italic, find_nicks(get_glyphs(args.glyphs_italic or args.glyphs)),
+            or args.dir_italic,
+            -- or str_format(dir, args.name, args.name .. "_italic"),
+            FontFormat.italic,
+            find_nicks(get_glyphs(args.glyphs_italic or args.glyphs)),
             args.italic_quads,
             args.min_filter,
             args.max_filter
@@ -332,7 +340,10 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
         local j = 0
         while (j <= h - 1) do
             local r, g, b, a = img_data:getPixel(i, j)
-            if a == 0 then
+
+            if a == 0
+                or (not equals(r, g, b, a) and not equals_red(r, g, b, a))
+            then
                 local qx, qy, qw, qh, bottom
                 qx, qy = i, j
 
@@ -439,6 +450,7 @@ local function load_by_tff(name, path, dpi, save)
     if not success or not path then return end
 
     local glyphs = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVxXyYzZ0123456789."
+
     glyphs =
     [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]]
 
@@ -804,6 +816,7 @@ function Font:separate_string(s, list)
     if result then return result end
 
     local sep = "\n "
+    ---@type any
     local current_init = 1
     local words = list or {}
 
@@ -817,7 +830,7 @@ function Font:separate_string(s, list)
 
         if tag then
             local startp, endp = str_find(s, tag_regex, current_init)
-            local sub_s = s:sub(startp, endp)
+            local sub_s = startp and s:sub(startp, endp)
             local prev_s = s:sub(current_init, startp - 1)
 
             if prev_s ~= "" and prev_s ~= " " then
@@ -828,7 +841,7 @@ function Font:separate_string(s, list)
             current_init = endp
         elseif nick and nick ~= "----" then
             local startp, endp = string.find(s, "%-%-%w-%-%-", current_init)
-            local sub_s = s:sub(startp, endp)
+            local sub_s = startp and s:sub(startp, endp)
             local prev_word = s:sub(current_init, startp - 1)
 
             if prev_word and prev_word ~= "" and prev_word ~= " " then
@@ -842,13 +855,13 @@ function Font:separate_string(s, list)
             current_init = endp
         elseif find then
             local startp, endp = str_find(s, regex, current_init)
-            local sub_s = s:sub(startp, endp - 1)
+            local sub_s = startp and s:sub(startp, endp - 1)
 
             if sub_s ~= "" and sub_s ~= " " then
                 tab_insert(words, sub_s)
             end
 
-            if s:sub(endp, endp) == "\n" then
+            if endp and s:sub(endp, endp) == "\n" then
                 tab_insert(words, "\n")
             end
 
