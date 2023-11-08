@@ -90,43 +90,43 @@ function Container:update(dt)
     end
 end
 
-function Container:mouse_pressed(x, y, bt, istouch, presses)
+function Container:mousepressed(x, y, bt, istouch, presses)
     for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
         local r = gc.is_enable and not gc.__remove
-            and gc:mouse_pressed(x, y, bt, istouch, presses)
+            and gc:mousepressed(x, y, bt, istouch, presses)
     end
 end
 
-function Container:mouse_released(x, y, bt, istouch, presses)
+function Container:mousereleased(x, y, bt, istouch, presses)
     for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
         local r = gc.is_enable and not gc.__remove
-            and gc:mouse_released(x, y, bt, istouch, presses)
+            and gc:mousereleased(x, y, bt, istouch, presses)
     end
 end
 
-function Container:key_pressed(key, scancode, isrepeat)
+function Container:keypressed(key, scancode, isrepeat)
     for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
         local r = gc.is_enable and not gc.__remove
-            and gc:key_pressed(key, scancode, isrepeat)
+            and gc:keypressed(key, scancode, isrepeat)
     end
 end
 
-function Container:key_released(key, scancode)
+function Container:keyreleased(key, scancode)
     for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
 
         local r = gc.is_enable and not gc.__remove
-            and gc:key_released(key, scancode)
+            and gc:keyreleased(key, scancode)
     end
 end
 

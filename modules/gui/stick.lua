@@ -79,7 +79,7 @@ function Stick:shrink()
     self:set_effect_transform("sy", 1)
 end
 
-function Stick:mouse_pressed(x, y, button, istouch, presses)
+function Stick:mousepressed(x, y, button, istouch, presses)
     if self.is_mobile then
         local r = Component.collision(x, y, 0, 0,
             self.bounds_left, self.bounds_top,
@@ -96,21 +96,21 @@ function Stick:mouse_pressed(x, y, button, istouch, presses)
     local dist = math_sqrt(dx ^ 2 + dy ^ 2)
 
     if dist <= self.radius then
-        Component.mouse_pressed(self, x, y, button, istouch, presses)
+        Component.mousepressed(self, x, y, button, istouch, presses)
         if self:is_pressed() then
             self:grow()
         end
     end
 end
 
-function Stick:mouse_released(x, y, button, istouch, presses)
+function Stick:mousereleased(x, y, button, istouch, presses)
     if self:is_pressed() then
         self:release()
     end
-    Component.mouse_released(self, x, y, button, istouch, presses)
+    Component.mousereleased(self, x, y, button, istouch, presses)
 end
 
-function Stick:touch_pressed(id, x, y, dx, dy, pressure)
+function Stick:touchpressed(id, x, y, dx, dy, pressure)
     if self.__touch_pressed then return false end
 
     if self.is_mobile then
@@ -129,18 +129,18 @@ function Stick:touch_pressed(id, x, y, dx, dy, pressure)
     local dist = math.sqrt(distx ^ 2 + disty ^ 2)
 
     if dist <= self.radius then
-        Component.touch_pressed(self, id, x, y, dx, dy, pressure)
+        Component.touchpressed(self, id, x, y, dx, dy, pressure)
         if self:is_pressed() then self:grow() end
     end
 end
 
-function Stick:touch_released(id, x, y, dx, dy, pressure)
+function Stick:touchreleased(id, x, y, dx, dy, pressure)
     if id ~= self.__touch_pressed then return false end
 
     if self:is_pressed() then
         self:release()
     end
-    Component.touch_released(self, id, x, y, dx, dy, pressure)
+    Component.touchreleased(self, id, x, y, dx, dy, pressure)
 end
 
 function Stick:release()
@@ -188,9 +188,9 @@ function Stick:is_pressing(direction, constraint, angle_limit)
 
         local abs_angle = math_abs(angle)
         if (direction == "up" and (abs_angle > 90 + angle_limit
-            or abs_angle < 90 - angle_limit))
+                or abs_angle < 90 - angle_limit))
             or (direction == "down" and (abs_angle > 90 + angle_limit
-            or abs_angle < 90 - angle_limit))
+                or abs_angle < 90 - angle_limit))
         then
             return false
         end

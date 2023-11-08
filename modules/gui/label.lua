@@ -151,7 +151,7 @@ function Label:mouse_pressed(x, y, button, istouch, presses)
         self:set_focus(true)
         self.time = -0.5
         self.show_line = true
-        Component.mouse_pressed(self, x, y, button, istouch, presses)
+        Component.mousepressed(self, x, y, button, istouch, presses)
     end
 end
 
@@ -162,7 +162,7 @@ function Label:touch_pressed(id, x, y, dx, dy, pressure)
         self:set_focus(true)
         self.time = -0.5
         self.show_line = true
-        Component.touch_pressed(self, id, x, y, dx, dy, pressure)
+        Component.touchpressed(self, id, x, y, dx, dy, pressure)
     end
 end
 

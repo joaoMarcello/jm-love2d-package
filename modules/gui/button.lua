@@ -24,7 +24,7 @@ function Button:__constructor__(args)
 
     self:set_color2(0.3, 0.8, 0.3, 1.0)
 
-    self:on_event("mouse_pressed", function(x, y)
+    self:on_event("mousepressed", function(x, y)
         self:set_color2(math.random(), math.random(), math.random(), 1)
     end)
 
@@ -47,11 +47,11 @@ function Button:__constructor__(args)
         self.__pulse_eff.__remove = true
     end)
 
-    self:on_event("mouse_released", function()
+    self:on_event("mousereleased", function()
         self:set_color2(math.random(), math.random(), math.random(), 1)
     end)
 
-    self:on_event("key_pressed", function()
+    self:on_event("keypressed", function()
         --self:set_color2(math.random(), math.random(), math.random(), 1)
     end)
 end

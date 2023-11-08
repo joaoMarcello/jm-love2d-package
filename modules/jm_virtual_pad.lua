@@ -61,25 +61,25 @@ local Pad = {
 
 function Pad:mousepressed(x, y, button, istouch, presses)
     for i = 1, self.N do
-        self[i]:mouse_pressed(x, y, button, istouch, presses)
+        self[i]:mousepressed(x, y, button, istouch, presses)
     end
 end
 
 function Pad:mousereleased(x, y, button, istouch, presses)
     for i = 1, self.N do
-        self[i]:mouse_released(x, y, button, istouch, presses)
+        self[i]:mousereleased(x, y, button, istouch, presses)
     end
 end
 
 function Pad:touchpressed(id, x, y, dx, dy, pressure)
     for i = 1, self.N do
-        self[i]:touch_pressed(id, x, y, dx, dy, pressure)
+        self[i]:touchpressed(id, x, y, dx, dy, pressure)
     end
 end
 
 function Pad:touchreleased(id, x, y, dx, dy, pressure)
     for i = 1, self.N do
-        self[i]:touch_released(id, x, y, dx, dy, pressure)
+        self[i]:touchreleased(id, x, y, dx, dy, pressure)
     end
 end
 

@@ -58,20 +58,20 @@ function Button:set_opacity(opacity)
     end
 end
 
-function Button:mouse_pressed(x, y, button, istouch, presses)
+function Button:mousepressed(x, y, button, istouch, presses)
     local dx = x - (self.x + self.w / 2)
     local dy = y - (self.y + self.h / 2)
     local dist = math.sqrt(dx ^ 2 + dy ^ 2)
 
     if self.use_radius and dist <= self.radius or not self.use_radius then
-        Component.mouse_pressed(self, x, y, button, istouch, presses)
+        Component.mousepressed(self, x, y, button, istouch, presses)
         if self.__mouse_pressed then
             self:grow()
         end
     end
 end
 
-function Button:mouse_released(x, y, button, istouch, presses)
+function Button:mousereleased(x, y, button, istouch, presses)
     local dx = x - (self.x + self.w / 2)
     local dy = y - (self.y + self.h / 2)
     local dist = math.sqrt(dx ^ 2 + dy ^ 2)
@@ -81,26 +81,26 @@ function Button:mouse_released(x, y, button, istouch, presses)
     end
 
     if self.use_radius and dist <= self.radius then
-        Component.mouse_released(self, x, y, button, istouch, presses)
+        Component.mousereleased(self, x, y, button, istouch, presses)
     end
 
     self.__mouse_pressed = false
 end
 
-function Button:touch_pressed(id, x, y, dx, dy, pressure)
+function Button:touchpressed(id, x, y, dx, dy, pressure)
     local distx = x - (self.x + self.w / 2)
     local disty = y - (self.y + self.h / 2)
     local dist = math.sqrt(distx ^ 2 + disty ^ 2)
 
     if self.use_radius and dist <= self.radius or not self.use_radius then
-        Component.touch_pressed(self, id, x, y, dx, dy, pressure)
+        Component.touchpressed(self, id, x, y, dx, dy, pressure)
         if self.__touch_pressed then
             self:grow()
         end
     end
 end
 
-function Button:touch_released(id, x, y, dx, dy, pressure)
+function Button:touchreleased(id, x, y, dx, dy, pressure)
     if id ~= self.__touch_pressed then return end
 
     local distx = x - (self.x + self.w / 2)
@@ -112,7 +112,7 @@ function Button:touch_released(id, x, y, dx, dy, pressure)
     end
 
     if self.use_radius and dist <= self.radius or not self.use_radius then
-        Component.touch_released(self, id, x, y, dx, dy, pressure)
+        Component.touchreleased(self, id, x, y, dx, dy, pressure)
     end
 
     self.__touch_pressed = false
