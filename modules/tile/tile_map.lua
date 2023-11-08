@@ -373,6 +373,14 @@ function TileMap:change_tileset(tileset)
     return true
 end
 
+---@param img love.Image
+function TileMap:change_img(img)
+    if not img or img == self.sprite_batch:getTexture() then return false end
+    self.sprite_batch:setTexture(img)
+    self:reset_spritebatch()
+    return true
+end
+
 ---@param self JM.TileMap
 local function bounds_changed(self, left, top, right, bottom)
     return left ~= self.__bound_left
