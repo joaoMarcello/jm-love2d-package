@@ -100,6 +100,7 @@ local function get_tag_args(s)
     if not s or s == "" then return {} end
 
     local N = #s
+    ---@type any
     local i = 1
     local result = {}
 
