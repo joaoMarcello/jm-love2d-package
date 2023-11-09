@@ -144,7 +144,7 @@ local function find_nicks2(t)
 
                 if is_valid_nickname(s) then
                     tab_insert(new_table, s)
-                    i = next + 1
+                    i = next
                 else
                     tab_insert(new_table, t[i])
                 end
