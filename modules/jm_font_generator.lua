@@ -42,7 +42,9 @@ end
 
 local getGlyphsResult = setmetatable({}, metatable_mode_kv)
 
+--- Receive a string and returns a table wich each index is a glyph
 ---@param s string
+---@return table t
 local function get_glyphs(s)
     if not s then return {} end
 
@@ -100,6 +102,59 @@ local function find_nicks(t)
             tab_insert(new_table, t[i])
         end
 
+        i = i + 1
+    end
+
+    findNicksResult[t] = new_table
+    return new_table
+end
+
+local function find_nicks2(t)
+    local result = findNicksResult[t]
+    if result then return result end
+
+    local next_ = function(init, N)
+        local i = init
+        local len = 0
+        while i <= N do
+            if t[i] == ":" and len <= 20 then
+                return i
+            elseif len > 20 then
+                return false
+            else
+                len = len + 1
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    local i = 1
+    local N = #t
+    local new_table = {}
+
+    while i <= N do
+        if t[i] == ":" then
+            local next = next_(i + 1, N)
+            if next then
+                local s = ''
+                for k = i, next do
+                    s = s .. t[k]
+                end
+
+                if is_valid_nickname(s) then
+                    tab_insert(new_table, s)
+                    i = next + 1
+                else
+                    tab_insert(new_table, t[i])
+                end
+                ---
+            else
+                tab_insert(new_table, t[i])
+            end
+        else
+            tab_insert(new_table, t[i])
+        end
         i = i + 1
     end
 
@@ -174,7 +229,7 @@ function Font:__constructor__(args)
         or args.dir,
         -- or str_format(dir, args.name, args.name),
         FontFormat.normal,
-        find_nicks(get_glyphs(args.glyphs)),
+        find_nicks2(get_glyphs(args.glyphs)),
         args.regular_quads,
         args.min_filter,
         args.max_filter
@@ -186,7 +241,7 @@ function Font:__constructor__(args)
             or args.dir_bold,
             -- or str_format(dir, args.name, args.name .. "_bold"),
             FontFormat.bold,
-            find_nicks(get_glyphs(args.glyphs_bold or args.glyphs)),
+            find_nicks2(get_glyphs(args.glyphs_bold or args.glyphs)),
             args.bold_quads,
             args.min_filter,
             args.max_filter
@@ -201,7 +256,7 @@ function Font:__constructor__(args)
             or args.dir_italic,
             -- or str_format(dir, args.name, args.name .. "_italic"),
             FontFormat.italic,
-            find_nicks(get_glyphs(args.glyphs_italic or args.glyphs)),
+            find_nicks2(get_glyphs(args.glyphs_italic or args.glyphs)),
             args.italic_quads,
             args.min_filter,
             args.max_filter
@@ -265,6 +320,13 @@ function Font:__constructor__(args)
         [FontFormat.italic] = self.__imgs[FontFormat.italic] and
             lgx.newSpriteBatch(self.__imgs[FontFormat.italic]) or nil
     }
+
+    self.__batches = {
+        [1] = self.batches[FontFormat.normal],
+        [2] = self.batches[FontFormat.bold],
+        [3] = self.batches[FontFormat.italic],
+    }
+    self.__n_batches = #self.__batches
 end
 
 ---@return JM.Font.GlyphIterator
@@ -391,6 +453,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
 
                 if is_valid_nickname(glyph.id) then
                     tab_insert(self.__nicknames, glyph.id)
+                    -- list[glyph.id] = glyph
                 end
 
                 cur_id = cur_id + 1
@@ -889,6 +952,8 @@ end
 ---@param s string
 ---@return JM.Font.Tags|false
 function Font:__is_a_command_tag(s)
+    if s:sub(1, 1) ~= "<" then return false end
+
     return (s:match("< *bold *[ %w%-]*>") and "<bold>")
         or (s:match("< */ *bold *[ %w%-]*>") and "</bold>")
         or (s:match("< *italic *[ %w%-]*>") and "<italic>")
@@ -1136,8 +1201,15 @@ do
 
             N_word = N_word or #word_list
 
-            for _, batch in pairs(self.batches) do
-                batch:clear()
+            -- for _, batch in pairs(self.batches) do
+            --     batch:clear()
+            -- end
+            local i = 1
+            local batches = self.__batches
+            local n_batches = self.__n_batches
+            while i <= n_batches do
+                batches[i]:clear()
+                i = i + 1
             end
 
             -- for k, word in ipairs(word_list) do
@@ -1231,8 +1303,16 @@ do
             end
 
             love_set_color(1, 1, 1, 1)
-            for _, batch in pairs(self.batches) do
-                if batch:getCount() > 0 then love_draw(batch) end
+            -- for _, batch in pairs(self.batches) do
+            --     if batch:getCount() > 0 then love_draw(batch) end
+            -- end
+            i = 1
+            while i <= n_batches do
+                local batch = batches[i]
+                if batch:getCount() > 0 then
+                    love_draw(batch)
+                end
+                i = i + 1
             end
 
             if index_action then
