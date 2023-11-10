@@ -821,6 +821,8 @@ end
 ---@param s string
 ---@return string|nil nickname
 function Font:__is_a_nickname(s, index)
+    if s:sub(index, index) ~= ":" then return nil end
+
     local nicknames = self.__nicknames
     local N = self.n_nicks --#self.__nicknames
     local i = 1
@@ -978,18 +980,81 @@ function Font:__is_a_command_tag(s)
         or (s:match("< *italic *[ %w%-]*>") and "<italic>")
         or (s:match("< */ *italic *[ %w%-]*>") and "</italic>")
         or (s:match("< *color[%d, .]*>") and "<color>")
+        -- or (s:match("< *color-hex>"))
         or (s:match("< */ *color[ %w%-]*>") and "</color>")
 
         or (s:match("< *effect *=[%w, =%.]* *>") and "<effect>")
         or (s:match("< */ *effect *[ %w%-]*>") and "</effect>")
 
+        or (s:match("< *font *=[%w%d,%. _%-%=%#]*>") and "<font>")
         or (s:match("< *pause *=[ %d%.]*[, %w%-]*>") and "<pause>")
+
+
         or (s:match("< *font%-size *=[ %d%.]*[, %w%-]*>") and "<font-size>")
         or (s:match("< */ *font%-size *[, %w%-]*>") and "</font-size>")
 
         or (s:match("< *text%-box[ ,=%w%._]*>") and "<text-box>")
         or (s:match("< *sep[ %w,%-]*>") and "<sep>")
         or false
+end
+
+---@param s string
+function Font:get_tag_args(s)
+    if not s or s == "" then return {} end
+    s = s:sub(2, #s - 1)
+    if not s or s == "" then return {} end
+
+    local N = #s
+    ---@type any
+    local i = 1
+    local result = {}
+
+    while (i <= N) do
+        local startp, endp = s:find("[=,]", i)
+
+        if startp then
+            local left = s:sub(i, endp - 1):match("[^ ].*[^ ]")
+            local s2, e2 = s:find(",", i)
+
+            i = endp
+            local right
+
+            if s2 then
+                right = s:sub(endp + 1, e2 - 1)
+                i = e2
+            else
+                right = s:sub(endp + 1)
+            end
+
+            if right then
+                if right == "" then
+                    right = true
+                elseif tonumber(right) then
+                    right = tonumber(right)
+                elseif right:match("true") then
+                    right = true
+                elseif right:match("false") then
+                    right = false
+                else
+                    right = right:match("[^ ].*[^ ]")
+                end
+            end
+
+            if left then
+                result[left] = right
+            end
+        else
+            local index = s:sub(i, #s):match("[^ ].*[^ ]")
+            if index then
+                result[s:sub(i, #s):match("[^ ].*[^ ]")] = true
+            end
+            break
+        end
+
+        i = i + 1
+    end
+
+    return result
 end
 
 ---@param text string
@@ -1043,6 +1108,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                 )
             end
 
+
             if match == "<color>" then
                 local parse = Utils:parse_csv_line(text:sub(startp - 1, endp - 1))
                 local r = parse[2] or 1
@@ -1052,6 +1118,18 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
                 current_color = Utils:get_rgba(r, g, b, a)
                 --
+            elseif match == "<font>" then
+                local tag_values = match and self:get_tag_args(tag)
+                local action = tag_values["font"]
+
+                if action == "color-hex" then
+                    local r, g, b, a =
+                        Utils:hex_to_rgba_float(tag_values["value"])
+
+                    current_color = Utils:get_rgba(r, g, b, a)
+                end
+
+                ---
             elseif match == "</color>" then
                 current_color = original_color
             elseif match == "<bold>" then
