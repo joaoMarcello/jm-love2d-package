@@ -739,7 +739,9 @@ end
 ---@param value number
 function Font:set_font_size(value)
     self.__font_size = value
-    self.__scale = Utils:desired_size(nil, self.__font_size, nil, self.__ref_height, true).y
+    -- self.__scale = Utils:desired_size2(nil, self.__font_size, nil, self.__ref_height, true).y
+    local _, y = Utils:desired_size2(nil, self.__font_size, nil, self.__ref_height, true)
+    self.__scale = y
 end
 
 function Font:push_nick_glyph(nick)
@@ -989,7 +991,6 @@ function Font:__is_a_command_tag(s)
         or (s:match("< *font *=[%w%d,%. _%-%=%#]*>") and "<font>")
         or (s:match("< *pause *=[ %d%.]*[, %w%-]*>") and "<pause>")
 
-
         or (s:match("< *font%-size *=[ %d%.]*[, %w%-]*>") and "<font-size>")
         or (s:match("< */ *font%-size *[, %w%-]*>") and "</font-size>")
 
@@ -1058,7 +1059,7 @@ function Font:get_tag_args(s)
 end
 
 ---@param text string
-function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__)
+function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__, __fontsize__)
     if not text or text == "" then return x, y end
 
     self:push()
@@ -1069,11 +1070,14 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
     local tx = x
     local ty = y
 
-    local current_color = __color__ or self.__default_color
+    local cur_color = __color__ or self.__default_color
     local original_color = self.__default_color
 
-    local current_format = __format__ or self.__format
+    local cur_format = __format__ or self.__format
     local original_format = self.__format
+
+    local cur_fontsize = __fontsize__ or self.__font_size
+    local original_fontsize = self.__font_size
 
     local x_origin = __x_origin__ or tx
 
@@ -1104,7 +1108,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
             if match then
                 r_tx, r_ty = self:print(text:sub(i, startp - 1),
                     tx, ty, w, h, 1,
-                    current_color, x_origin, current_format
+                    cur_color, x_origin, cur_format, cur_fontsize
                 )
             end
 
@@ -1116,7 +1120,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                 local b = parse[4] or 0
                 local a = parse[5] or 1
 
-                current_color = Utils:get_rgba(r, g, b, a)
+                cur_color = Utils:get_rgba(r, g, b, a)
                 --
             elseif match == "<font>" then
                 local tag_values = match and self:get_tag_args(tag)
@@ -1125,21 +1129,23 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                 if action == "color-hex" then
                     local r, g, b, a =
                         Utils:hex_to_rgba_float(tag_values["value"])
-
-                    current_color = Utils:get_rgba(r, g, b, a)
+                    cur_color = Utils:get_rgba(r, g, b, a)
+                    ---
+                elseif action == "font-size" then
+                    self:set_font_size(tag_values["value"])
                 end
 
                 ---
             elseif match == "</color>" then
-                current_color = original_color
+                cur_color = original_color
             elseif match == "<bold>" then
-                current_format = self.format_options.bold
+                cur_format = self.format_options.bold
             elseif match == "</bold>" then
-                current_format = original_format
+                cur_format = original_format
             elseif match == "<italic>" then
-                current_format = self.format_options.italic
+                cur_format = self.format_options.italic
             elseif match == "</italic>" then
-                current_format = original_format
+                cur_format = original_format
             end
 
             if match then
@@ -1153,7 +1159,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
             end
         end
 
-        self:set_format_mode(current_format)
+        self:set_format_mode(cur_format)
 
         local glyph = self:__get_char_equals(glyph_id)
 
@@ -1172,7 +1178,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
         end
 
         if glyph then
-            glyph:set_color(current_color)
+            glyph:set_color(cur_color)
 
             glyph:set_scale(self.__scale)
 
@@ -1217,10 +1223,11 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                 -- x, y = char_obj:get_pos_draw_rec(tx, ty + self.__font_size - height, width, height)
 
                 x = tx
-                y = ty + self.__font_size - glyph.h * glyph.sy
+                -- y = ty + self.__font_size - glyph.h * glyph.sy
+                y = ty + cur_fontsize - glyph.h * self.__scale
 
                 if quad then
-                    self.batches[glyph.format]:setColor(current_color)
+                    self.batches[glyph.format]:setColor(cur_color)
                     self.batches[glyph.format]:add(quad, x, y, 0, glyph.sx, glyph.sy, 0, 0)
                 end
             end
@@ -1238,7 +1245,6 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
     for _, batch in pairs(self.batches) do
         if batch:getCount() > 0 then love_draw(batch) end
     end
-
     self:pop()
     return tx, ty
 end

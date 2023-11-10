@@ -39,6 +39,23 @@ function Utils:desired_size(width, height, ref_width, ref_height, keep_proportio
     return { x = dw, y = dh }
 end
 
+function Utils:desired_size2(width, height, ref_width, ref_height, keep_proportions)
+    local dw, dh
+
+    dw = width and width / ref_width or nil
+    dh = height and height / ref_height or nil
+
+    if keep_proportions then
+        if not dw then
+            dw = dh
+        elseif not dh then
+            dh = dw
+        end
+    end
+
+    return dw, dh
+end
+
 function Utils:desired_duration(duration, amount_steps)
     return duration / amount_steps
 end
