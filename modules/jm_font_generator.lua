@@ -1257,6 +1257,7 @@ local next_not_command_index
 local get_words
 
 local color_pointer = {}
+local fontsize_pointer = {}
 
 --- The functions below are used in the printf method
 do
@@ -1293,7 +1294,8 @@ do
     ---@param ty number
     ---@param index_action table|nil
     ---@param current_color {[1]:JM.Color}
-        function(self, word_list, tx, ty, index_action, exceed_space, current_color, N_word)
+    ---@param fontsize {[1]:number}
+        function(self, word_list, tx, ty, index_action, exceed_space, current_color, N_word, fontsize)
             exceed_space = exceed_space or 0
 
             if ty > self.__bounds.bottom
@@ -1303,6 +1305,8 @@ do
             end
 
             N_word = N_word or #word_list
+
+            self:set_font_size(fontsize[1])
 
             -- for _, batch in pairs(self.batches) do
             --     batch:clear()
@@ -1566,6 +1570,9 @@ function Font:printf(text, x, y, align, limit_right)
     local current_color = color_pointer
     current_color[1] = self.__default_color
 
+    local cur_fontsize = fontsize_pointer
+    cur_fontsize[1] = self.__font_size
+
     local original_color = self.__default_color
 
     local separated = self:separate_string(text)
@@ -1620,6 +1627,13 @@ function Font:printf(text, x, y, align, limit_right)
                     local action = tag_values["font"]
                     if action == "color-hex" then
                         action_func = action_set_color_hex
+                        action_args = { tag_values["value"] }
+                        found = true
+                        ---
+                    elseif action == "font-size" then
+                        action_func = function(args)
+                            fontsize_pointer[1] = args
+                        end
                         action_args = { tag_values["value"] }
                         found = true
                     end
@@ -1759,7 +1773,7 @@ function Font:printf(text, x, y, align, limit_right)
             or (align == "center" and x + limit_right * 0.5 - lw * 0.5)
             or x
 
-        print(self, line, pos_to_draw, ty, actions, ex_sp, current_color, N_line)
+        print(self, line, pos_to_draw, ty, actions, ex_sp, current_color, N_line, cur_fontsize)
 
         ty = ty + self.__ref_height * self.__scale
             + self.__line_space
