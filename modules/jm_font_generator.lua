@@ -811,10 +811,16 @@ end
 ---@param s string
 ---@return string|nil nickname
 function Font:__is_a_nickname(s, index)
-    for _, nickname in ipairs(self.__nicknames) do
-        if s:sub(index, index + #nickname - 1) == nickname then
-            return nickname
+    local nicknames = self.__nicknames
+    local N = #self.__nicknames
+    local i = 1
+    -- for _, nickname in ipairs(self.__nicknames) do
+    while i <= N do
+        local nick = nicknames[i]
+        if s:sub(index, index + #nick - 1) == nick then
+            return nick
         end
+        i = i + 1
     end
 
     local glyphs_xp = self.glyphs_xp
