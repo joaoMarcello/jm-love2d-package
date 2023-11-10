@@ -9,69 +9,29 @@ do
     ---@type JM.Font.Generator
     local Generator = require(path:gsub("jm_font", "jm_font_generator"))
 
-    local glyphs =
-    [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢<>¨¬~$&^--dots----trav--]]
-
-    -- local glyphs_bold = [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&]]
-
-    -- local glyphs_italic = [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨<>&$~--heart----dots--]]
-
-
-    -- Font.fonts[1] = Generator:new({
-    --     name = "komika text",
+    -- Font.fonts[1] = Generator:new_by_ttf {
+    --     path = "/jm-love2d-package/data/font/komika text/Komika Text Regular.ttf",
+    --     path_bold = "/jm-love2d-package/data/font/komika text/Komika Text Bold.ttf",
+    --     -- path_italic = "/data/font/Komika Text Italic.ttf",
+    --     dpi = 48,
+    --     name = "komika text 2",
     --     font_size = 12,
     --     tab_size = 4,
-    --     glyphs = glyphs
-    -- })
-
-    -- Font.fonts[1] = Generator:new({
-    --     name = "book antiqua",
-    --     font_size = 12,
-    --     tab_size = 4,
-    --     glyphs = glyphs
-    -- })
-
-
-    Font.fonts[1] = Generator:new_by_ttf({
-        path = "/jm-love2d-package/data/font/komika text/Komika Text Regular.ttf",
-        path_bold = "/jm-love2d-package/data/font/komika text/Komika Text Bold.ttf",
+    --     min_filter = "linear",
+    --     max_filter = "nearest"
+    -- }
+    Font.fonts[1] = Generator:new_by_ttf {
+        path = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
+        path_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
         -- path_italic = "/data/font/Komika Text Italic.ttf",
         dpi = 48,
-        name = "komika text 2",
+        name = "open sans",
         font_size = 12,
+        character_space = 0,
         tab_size = 4,
         min_filter = "linear",
         max_filter = "nearest"
-    })
-
-    -- Font.fonts[1] = Generator:new_by_ttf({
-    --     path = "/data/font/Cyrodiil.otf",
-    --     path_bold = "/data/font/Cyrodiil Bold.otf",
-    --     path_italic = "/data/font/Cyrodiil Italic.otf",
-    --     dpi = 64,
-    --     name = "cyrodiil",
-    --     font_size = 12,
-    --     tab_size = 4
-    -- })
-
-    -- Font.fonts[1] = Generator:new_by_ttf({
-    --     path = "/data/font/Garamond Premier Pro Regular.ttf",
-    --     -- path_bold = "/data/font/Cyrodiil Bold.otf",
-    --     path_italic = "/data/font/Garamond Premier Pro_italic.otf",
-    --     dpi = 64,
-    --     name = "garamond premier",
-    --     font_size = 12,
-    --     tab_size = 4
-    -- })
-
-    -- Font.fonts[3] = Generator:new_by_ttf({
-    --     path = "/data/font/Retro Gaming.ttf",
-    --     dpi = 64,
-    --     name = "retro gaming",
-    --     font_size = 12,
-    --     tab_size = 4,
-    -- })
-
+    }
 
     Font.name2font = {}
     for _, font in pairs(Font.fonts) do
