@@ -1,5 +1,5 @@
 local path = ...
-local Pack = _G.JM_Package
+local JM = _G.JM
 
 do
     _G.SUBPIXEL = _G.SUBPIXEL or 3
@@ -8,7 +8,7 @@ do
 end
 
 ---@class GenericState : JM.Scene
-local State = Pack.Scene:new {
+local State = JM.Scene:new {
     x = nil,
     y = nil,
     w = nil,
