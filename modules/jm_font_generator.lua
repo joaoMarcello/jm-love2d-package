@@ -209,6 +209,8 @@ function Font:__constructor__(args)
     self.__imgs = {}
 
     self.__nicknames = {}
+    self.id_to_nick = {}
+    self.n_nicks = 0
 
     self.__font_size = args.font_size or 20
 
@@ -454,7 +456,8 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                 list[glyph.id] = glyph
 
                 if is_valid_nickname(glyph.id) then
-                    tab_insert(self.__nicknames, glyph.id)
+                    -- tab_insert(self.__nicknames, glyph.id)
+                    self:push_nick_glyph(glyph.id)
                     -- list[glyph.id] = glyph
                 end
 
@@ -739,6 +742,12 @@ function Font:set_font_size(value)
     self.__scale = Utils:desired_size(nil, self.__font_size, nil, self.__ref_height, true).y
 end
 
+function Font:push_nick_glyph(nick)
+    tab_insert(self.__nicknames, nick)
+    self.id_to_nick[nick] = true
+    self.n_nicks = #self.__nicknames
+end
+
 ---@param nickname string
 -- --- @param args {img: love.Image|string, frames: number, frames_list: table,  speed: number, rotation: number, color: JM.Color, scale: table, flip_x: boolean, flip_y: boolean, is_reversed: boolean, stop_at_the_end: boolean, amount_cycle: number, state: JM.AnimaStates, bottom: number, kx: number, ky: number, width: number, height: number, ref_width: number, ref_height: number, duration: number, n: number}
 function Font:add_nickname_animated(nickname, args)
@@ -754,7 +763,8 @@ function Font:add_nickname_animated(nickname, args)
         h = self.__ref_height
     })
 
-    tab_insert(self.__nicknames, nickname)
+    -- tab_insert(self.__nicknames, nickname)
+    self:push_nick_glyph(nickname)
 
     for _, format in pairs(FontFormat) do
         self.__characters[format][nickname] = new_character
@@ -812,7 +822,7 @@ end
 ---@return string|nil nickname
 function Font:__is_a_nickname(s, index)
     local nicknames = self.__nicknames
-    local N = #self.__nicknames
+    local N = self.n_nicks --#self.__nicknames
     local i = 1
     -- for _, nickname in ipairs(self.__nicknames) do
     while i <= N do
@@ -843,7 +853,8 @@ end
 
 ---
 function Font:update(dt)
-    for i = 1, #(self.__nicknames) do
+    -- for i = 1, #(self.__nicknames) do
+    for i = 1, self.n_nicks do
         local glyph = self:__get_char_equals(self.__nicknames[i])
         if glyph then glyph:update(dt) end
     end
