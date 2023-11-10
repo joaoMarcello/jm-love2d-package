@@ -84,6 +84,76 @@ JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
 
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
+
+local fonts = {}
+
+---@alias JM.AvailableFonts "pix5"|"pix8"|"circuit17"|"circuit21"
+
+---@param font JM.AvailableFonts
+function JM:get_font(font)
+    if font == "pix8" then
+        local pix8 = fonts[font] or JM.FontGenerator:new {
+            name            = "pix8",
+            dir             = "jm-love2d-package/data/font/font_pix8-Sheet.png",
+            glyphs          = [[AÀÁÃÄÂaàáãäâBbCcÇçDdEÈÉÊËeèéêëFfGgHhIÌÍÎÏiìíîïJjKkLlMmNnOÒÓÕÔÖoòóõôöPpQqRrSsTtUÙÚÛÜuùúûüVvWwXxYyZz0123456789!?@#$%^&*()<>{}:[]:mult::div::cpy:+-_=¬'"¹²³°ºª\/.:dots:;,:dash:|¢£:blk_bar::arw_fr::arw_bk::arw_up::arw_dw::bt_a::bt_b::bt_x::bt_y::star::heart::circle:]],
+            min_filter      = "linear",
+            max_filter      = "nearest",
+            character_space = 0,
+            word_space      = 5,
+            line_space      = 4,
+        }
+        pix8:set_color(JM.Utils:get_rgba())
+        pix8:set_font_size(pix8.__ref_height)
+        fonts[font] = pix8
+        return pix8
+        ---
+    elseif font == "pix5" then
+        local pix5 = fonts[font] or JM.FontGenerator:new {
+            name = "pix5",
+            dir = "jm-love2d-package/data/font/font_pix5-Sheet.png",
+            glyphs = [[aàáãâäbcçdeèéêëfghiìíîïjklmnoòóõôöpqrstuùúûüvwxyz0123456789-_.:dots::+:square::blk_bar::heart:()[]{}:arw_fr::arw_bk::arw_up::arw_dw::dash:|,;!?\/*~^:arw2_fr::arw2_bk:º°¬'":div:%#¢@]],
+            min_filter = 'linear',
+            max_filter = 'nearest',
+            character_space = 0,
+            word_space = 4,
+            line_space = 1,
+        }
+        pix5:set_color(JM.Utils:get_rgba())
+        pix5:set_font_size(pix5.__ref_height)
+        fonts[font] = pix5
+        return pix5
+        ---
+    elseif font == "circuit21" then
+        local c21 = fonts[font] or JM.FontGenerator:new {
+            name = "circuit21",
+            dir = "/jm-love2d-package/data/font/circuit21-Sheet.png",
+            glyphs = "1234567890-:null:",
+            min_filter = "linear",
+            max_filter = "nearest",
+            word_space = 3,
+        }
+        c21:set_color(JM.Utils:get_rgba())
+        c21:set_font_size(c21.__ref_height)
+        fonts[font] = c21
+        return c21
+        ---
+    elseif font == "circuit17" then
+        local c17 = fonts[font] or JM.FontGenerator:new {
+            name = "circuit17",
+            dir = "/jm-love2d-package/data/font/circuit17-Sheet.png",
+            glyphs = "1234567890-:null:",
+            min_filter = "linear",
+            max_filter = "nearest",
+            word_space = 3,
+        }
+        c17:set_color(JM.Utils:get_rgba())
+        c17:set_font_size(c17.__ref_height)
+        fonts[font] = c17
+        return c17
+        ---
+    end
+end
+
 function JM:update(dt)
     JM_Font.current:update(dt)
     self.Sound:update(dt)

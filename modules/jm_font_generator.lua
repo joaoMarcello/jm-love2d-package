@@ -170,9 +170,9 @@ local FontFormat = {
     bold_italic = 3
 }
 
----@alias JM.AvailableFonts
----|"consolas"
----|"JM caligraphy"
+-- -@alias JM.AvailableFonts
+-- -|"consolas"
+-- -|"JM caligraphy"
 
 ---@class JM.Font.Font
 ---@field __nicknames table
@@ -182,7 +182,8 @@ local Font = {
 
 ---@alias JM.FontGenerator.Args {name: string, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string, dir:string, dir_bold:string, dir_italic:string, word_space:number}
 
----@overload fun(self: table, args: JM.AvailableFonts)
+-- -@overload fun(self: table, args: JM.AvailableFonts)
+
 ---@param args JM.FontGenerator.Args
 ---@return JM.Font.Font new_Font
 function Font:new(args)
@@ -195,7 +196,8 @@ function Font:new(args)
     return obj
 end
 
----@overload fun(self: table, args: JM.AvailableFonts)
+-- -@overload fun(self: table, args: JM.AvailableFonts)
+
 ---@param args JM.FontGenerator.Args
 function Font:__constructor__(args)
     if type(args) == "string" then
