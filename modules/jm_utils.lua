@@ -250,13 +250,28 @@ end
 
 --=====================================================================
 
-local function hex_to_rgba(hex)
+---comment
+---@param hex any
+---@return number? r
+---@return number? g
+---@return number? b
+---@return number|nil a
+function Utils:hex_to_rgba(hex)
+    if not hex then return 255, 255, 255, 255 end
+
     hex = hex:gsub("#", "")
     return tonumber("0x" .. hex:sub(1, 2)),
         tonumber("0x" .. hex:sub(3, 4)),
         tonumber("0x" .. hex:sub(5, 6)),
         --if alpha exists in hex, return it
-        #hex == 8 and tonumber("0x" .. hex:sub(7, 8)) or nil
+        #hex == 8 and tonumber("0x" .. hex:sub(7, 8)) or 255
+end
+
+function Utils:hex_to_rgba_float(hex)
+    if not hex then return 1, 1, 1, 1 end
+
+    local r, g, b, a = self:hex_to_rgba(hex)
+    return r / 255, g / 255, b / 255, a / 255
 end
 
 local E = 2.718281828459
