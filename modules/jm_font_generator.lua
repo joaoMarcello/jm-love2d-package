@@ -908,7 +908,7 @@ function Font:separate_string(s, list)
 
     while (current_init <= #(s)) do
         local regex = str_format("[^[ ]]*.-[%s]", sep)
-        local tag_regex = "< *[%d, =._%w/%-]*>"
+        local tag_regex = "< *[%d, =._%w/%-%#]*>"
 
         local tag = s:match(tag_regex, current_init)
         local find = not tag and s:match(regex, current_init)
@@ -988,7 +988,7 @@ function Font:__is_a_command_tag(s)
         or (s:match("< *effect *=[%w, =%.]* *>") and "<effect>")
         or (s:match("< */ *effect *[ %w%-]*>") and "</effect>")
 
-        or (s:match("< *font *=[%w%d,%. _%-%=%#]*>") and "<font>")
+        or (s:match("< *font *= *[%w%d,%. _%-%=%#]*>") and "<font>")
         or (s:match("< *pause *=[ %d%.]*[, %w%-]*>") and "<pause>")
 
         or (s:match("< *font%-size *=[ %d%.]*[, %w%-]*>") and "<font-size>")
@@ -1525,6 +1525,12 @@ local action_set_color = function(m, separated)
     color_pointer[1] = Utils:get_rgba(r, g, b, a)
 end
 
+local action_set_color_hex = function(s)
+    local r, g, b, a = Utils:hex_to_rgba_float(s)
+
+    color_pointer[1] = Utils:get_rgba(r, g, b, a)
+end
+
 local action_restaure_color = function(original_color)
     color_pointer[1] = original_color
 end
@@ -1591,29 +1597,43 @@ function Font:printf(text, x, y, align, limit_right)
         for m = 1, N do
             local command_tag = self:__is_a_command_tag(separated[m])
 
-            if command_tag and command_tag:match("color") then
+            -- if command_tag and command_tag:match("color") then
+            if command_tag then
                 local action_i = #line + 1
                 local action_func, action_args
+                local found = false
 
                 if command_tag == "<color>" then
                     --
                     action_func = action_set_color
                     action_args = { m, separated }
+                    found = true
                     --
                 elseif command_tag == "</color>" then
                     --
                     action_func = action_restaure_color
                     action_args = { original_color }
+                    found = true
                     --
+                elseif command_tag == "<font>" then
+                    local tag_values = self:get_tag_args(separated[m])
+                    local action = tag_values["font"]
+                    if action == "color-hex" then
+                        action_func = action_set_color_hex
+                        action_args = { tag_values["value"] }
+                        found = true
+                    end
                 end
 
-                line_actions = line_actions or {}
+                if found then
+                    line_actions = line_actions or {}
 
-                tab_insert(line_actions, {
-                    i = action_i,
-                    action = action_func,
-                    args = action_args
-                })
+                    tab_insert(line_actions, {
+                        i = action_i,
+                        action = action_func,
+                        args = action_args
+                    })
+                end
             end
 
             local current_is_break_line = separated[m] == "\n"
