@@ -14,14 +14,13 @@ local Utils = _G.JM_Utils
 
 ---@class JM.Font.Phrase
 local Phrase = {}
+Phrase.__index = Phrase
 
 ---@param args {text: string, font: JM.Font.Font, x:any, y:any}
 ---@return JM.Font.Phrase phrase
 function Phrase:new(args)
-    local obj = {}
-    setmetatable(obj, self)
-    self.__index = self
-
+    local obj = setmetatable({}, Phrase)
+    -- self.__index = self
     Phrase.__constructor__(obj, args)
 
     return obj
@@ -56,11 +55,6 @@ function Phrase:__constructor__(args)
         word_arg.text = self.__separated_string[i]
         word_arg.format = self.__font:get_format_mode()
 
-        -- local w = Word:new({
-        --     text = self.__separated_string[i],
-        --     font = self.__font,
-        --     format = self.__font:get_format_mode()
-        -- })
         local w = Word:new(word_arg)
 
         local tag_values = self:__verify_commands(w.text)
@@ -174,7 +168,16 @@ function Phrase:__verify_commands(text)
             local b = tonumber(parse[4]) or 0
             local a = tonumber(parse[5]) or 1
 
-            self.__font:set_color({ r, g, b, a })
+            -- self.__font:set_color({ r, g, b, a })
+            self.__font:set_color(Utils:get_rgba(r, g, b, a))
+            ---
+        elseif result == "<font>" then
+            local action = tag_values["font"]
+            if action == "color-hex" then
+                local r, g, b, a = Utils:hex_to_rgba_float(tag_values["value"])
+                self.__font:set_color(Utils:get_rgba(r, g, b, a))
+            end
+            ---
         elseif result:match("< */ *color *>") then
             self.__font:set_color(self.__font_config.color)
         elseif result:match("< *italic *>") then
@@ -420,7 +423,9 @@ function Phrase:get_glyph(n, lines)
     end
 end
 
+---@param cur_word JM.Font.Word|"__first__"|nil|false
 local apply_commands = function(self, cur_word, init_font_size)
+    if not cur_word then return false end
     local tags = self.word_to_tag[cur_word]
     if tags then
         for i = 1, #tags do
