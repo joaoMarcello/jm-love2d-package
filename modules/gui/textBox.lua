@@ -54,6 +54,8 @@ local UpdateMode = {
     by_screen = 3
 }
 
+local lgx = love.graphics
+
 ---@param self JM.GUI.TextBox
 ---@param type_ JM.GUI.TextBox.EventTypes
 local function dispatch_event(self, type_)
@@ -93,13 +95,17 @@ function TextBox:__constructor__(args, w)
     local lines_width = {}
     local max_width = -math.huge
 
+    -- local LINE_LENGTH = Phrase.LINE_WIDTH[self.lines]
+
     for _, line in ipairs(self.lines) do
+        -- local w = LINE_LENGTH[line] or 0
+
         lines_width[line] = self.sentence:__line_length(line)
         max_width = lines_width[line] > max_width and lines_width[line]
             or max_width
     end
 
-    self.align = "center"
+    self.align = "right"
     self.text_align = Align.center
     self.w = w or max_width
     self.h = -math.huge
@@ -339,6 +345,10 @@ function TextBox:update(dt)
         self.time_glyph = self.time_glyph - self.max_time_glyph
             - self.extra_time
 
+        if self.time_glyph > self.max_time_glyph + self.extra_time then
+            self.time_glyph = 0
+        end
+
         if self.cur_glyph then
             self.cur_glyph = self.cur_glyph + 1
             dispatch_event(self, Event.glyphChange)
@@ -411,21 +421,17 @@ end
 -- local Font = _G.JM_Font
 
 function TextBox:__draw()
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.rectangle("line", self:rect())
+    lgx.setColor(1, 1, 1, 1)
+    lgx.rectangle("line", self:rect())
 
     local screen = self.screens[self.cur_screen]
+    local font = self.font
+    local sentence = self.sentence
 
-    -- self.sentence:set_bounds(nil, nil,
-    --     self.x + self.w --(self.screen_width[screen] or self.w)
-    -- )
+    font:push()
+    font:set_configuration(self.font_config)
 
-    -- self.sentence.__bounds.right = self.x + self.w
-
-    self.font:push()
-    self.font:set_configuration(self.font_config)
-
-    local height = self.sentence:text_height(screen)
+    local height = sentence:text_height(screen)
 
     local py = self.y
 
@@ -437,14 +443,24 @@ function TextBox:__draw()
         --
     end
 
-    local tx, ty, glyph = self.sentence:draw_lines(
+    lgx.push()
+    -- if self.align == "right" then
+    --     lgx.translate(0, py)
+    -- elseif self.align == "center" then
+    --     lgx.translate(-self.w / 2, py)
+    -- else
+    --     lgx.translate(self.x, py)
+    -- end
+    -- lgx.translate(32 * 4, 0)
+    local tx, ty, glyph = sentence:draw_lines(
         screen,
         self.x, py,
-        self.align, nil,
+        self.align, self.w,
         self.cur_glyph
     )
+    lgx.pop()
 
-    self.font:pop()
+    font:pop()
     --==========================================================
 
     -- Font:print(self.__finish and "<color>true" or "<color, 1, 1, 1>false", self.x, self.y - 20)

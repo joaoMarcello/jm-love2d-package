@@ -222,13 +222,13 @@ function Glyph:__glyph_draw__()
     --     love.graphics.rectangle("line", x - self.ox * self.sx, y - self.oy * self.sy, self.w * self.sx, self.h * self.sy)
     -- end
 
-    -- love.graphics.setColor(0, 0, 0, 0.4)
-    -- love.graphics.rectangle("line",
-    --     x,
-    --     y,
-    --     self.w * self.sx,
-    --     self.h * self.sy
-    -- )
+    love.graphics.setColor(0, 0, 0, 0.4)
+    love.graphics.rectangle("line",
+        x,
+        y,
+        self.w * self.sx,
+        self.h * self.sy
+    )
 end
 
 -- function Glyph:get_pos_draw_rec(x, y, w, h)

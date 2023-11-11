@@ -212,7 +212,8 @@ local metatable_mode_k = { __mode = 'k' }
 
 local results_get_lines = setmetatable({}, metatable_mode_k)
 
-local results_get_line_width = setmetatable({}, metatable_mode_k)
+-- local results_get_line_width = setmetatable({}, metatable_mode_k)
+-- Phrase.LINE_WIDTH = results_get_line_width
 
 ---@return table
 function Phrase:get_lines()
@@ -310,7 +311,7 @@ function Phrase:get_lines()
             if tx + r > self.__bounds.right
                 or current_word.text:match("\n ?")
             then
-                if current_word.text:match("\n ?") then
+                if current_word.text:match("\n ?") and false then
                     line_width[cur_line] = tx - brk_line_glyph:get_width() - word_char:get_width()
                 else
                     line_width[cur_line] = tx - word_char:get_width()
@@ -375,7 +376,7 @@ function Phrase:get_lines()
         or setmetatable({}, metatable_mode_v)
     results_get_lines[self][key] = lines
 
-    results_get_line_width[lines] = line_width
+    -- results_get_line_width[lines] = line_width
 
     return lines
 end -- END function get_lines()
@@ -394,14 +395,52 @@ function Phrase:text_height(lines)
     return 0
 end
 
+local line_length = setmetatable({}, metatable_mode_k)
+
 function Phrase:__line_length(line)
+    do
+        local r = line_length[line] and line_length[line][self.__font.__font_size]
+        if r then return r end
+    end
+
     local total_len = 0
 
+    local font = self.__font
+    local original_fontsize = font.__font_size
+    local prev_word
+
+    font:push()
     for i = 1, #line do
         ---@type JM.Font.Word
         local word = line[i]
+
+        local tags = self.word_to_tag[prev_word]
+            or (not prev_word and self.word_to_tag["__first__"])
+
+        if tags then
+            for i = 1, #tags do
+                local tag = tags[i]
+                local tag_name = tag["tag_name"]
+
+                if tag_name == "<font>" then
+                    local action = tag["font"]
+                    if action == "font-size" then
+                        font:set_font_size(tag["value"] or original_fontsize)
+                        -- total_len = total_len - word:get_width()
+                        -- total_len = total_len - font.__word_space * font.__scale
+                    end
+                end
+            end
+        end
         total_len = total_len + word:get_width()
+
+        prev_word = word
     end
+    font:pop()
+
+    line_length[line] = {}
+    line_length[line][original_fontsize] = total_len
+    -- line_length[line] = total_len
 
     return total_len
 end
@@ -500,7 +539,7 @@ local pointer_char_count = { [1] = 0 }
 ---@return number|nil tx
 ---@return number|nil ty
 ---@return JM.Font.Glyph|nil glyph
-function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
+function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__, __master_lines__)
     if not align then align = "left" end
     if not threshold then threshold = #lines end
 
@@ -517,20 +556,21 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
     local init_font_size = self.__font.__font_size
 
-    local line_length = results_get_line_width[lines]
+    -- local line_length = results_get_line_width[lines]
 
     for i = 1, #lines do
         if align == "right" then
-            -- tx = self.__bounds.right - self:__line_length(lines[i])
-            tx = self.__bounds.right - (line_length[i] or 0)
+            tx = self.__bounds.right - self:__line_length(lines[i])
+            -- tx = self.__bounds.right - (line_length and line_length[i] or self:__line_length(lines[i]))
             --
         elseif align == "center" then
-            -- tx = x + (self.__bounds.right - x) * 0.5 - self:__line_length(lines[i]) * 0.5
-            tx = x + (self.__bounds.right - x) * 0.5 - (line_length[i] or 0) * 0.5
+            tx = x + (self.__bounds.right - x) * 0.5 - self:__line_length(lines[i]) * 0.5
+            -- tx = x + (self.__bounds.right - x) * 0.5 -
+            --     (line_length and line_length[i] or self:__line_length(lines[i])) * 0.5
             --
         elseif align == "justify" then
             -- local total = self:__line_length(lines[i])
-            local total = line_length[i] or 0
+            local total = line_length and line_length[i] or self:__line_length(lines[i])
 
             local len_line = #lines[i]
             local q = len_line - 1
