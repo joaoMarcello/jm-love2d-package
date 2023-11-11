@@ -173,9 +173,14 @@ function Phrase:__verify_commands(text)
             ---
         elseif result == "<font>" then
             local action = tag_values["font"]
+
             if action == "color-hex" then
                 local r, g, b, a = Utils:hex_to_rgba_float(tag_values["value"])
                 self.__font:set_color(Utils:get_rgba(r, g, b, a))
+                ---
+            elseif action == "font-size" then
+                -- self.__font:set_font_size(tag_values["value"] or 12)
+                ---
             end
             ---
         elseif result:match("< */ *color *>") then
@@ -203,7 +208,11 @@ function Phrase:get_word_by_index(index)
 end
 
 local metatable_mode_v = { __mode = 'v' }
-local results_get_lines = setmetatable({}, { __mode = 'k' })
+local metatable_mode_k = { __mode = 'k' }
+
+local results_get_lines = setmetatable({}, metatable_mode_k)
+
+local results_get_line_width = setmetatable({}, metatable_mode_k)
 
 ---@return table
 function Phrase:get_lines()
@@ -214,6 +223,8 @@ function Phrase:get_lines()
     if result then return result end
 
     local lines = {}
+    local line_width = {}
+
     local tx = 0 --x
     local cur_line = 1
     local word_char = Word:new { text = " ", font = self.__font }
@@ -221,6 +232,8 @@ function Phrase:get_lines()
     local effect = nil
     local eff_args = nil
     local prev_word
+    local original_fontsize = self.__font.__font_size
+    local original_scale = self.__font.__scale
 
     for i = 1, #self.__words do
         ---@type JM.Font.Word
@@ -247,8 +260,6 @@ function Phrase:get_lines()
                     table_remove(lines[cur_line], #lines[cur_line])
                 end
             end
-
-            -- goto skip_word
             --
         else
             do
@@ -270,6 +281,16 @@ function Phrase:get_lines()
                         elseif tag_name == "</effect>" then
                             effect = nil
                             eff_args = nil
+                        elseif tag_name == "<font>" then
+                            local action = tag["font"]
+
+                            if action == "font-size" then
+                                -- a = nil * 3
+
+                                r = r - current_word:get_width() - word_char:get_width()
+                                self.__font:set_font_size(tag["value"] or original_fontsize)
+                                r = r + current_word:get_width() + word_char:get_width()
+                            end
                         end
                     end
                 end
@@ -285,10 +306,15 @@ function Phrase:get_lines()
                 end
             end
 
-
             if tx + r > self.__bounds.right
-                or current_word.text:match("\n ?") then
-                tx = 0 --x
+                or current_word.text:match("\n ?")
+            then
+                line_width[cur_line] = tx - word_char:get_width()
+                tx = 0
+
+                -- if current_word.text:match("\n ?") then
+                --     line_width[cur_line] = line_width[cur_line] - self.__font.__word_space * self.__font.__scale
+                -- end
 
                 -- Try remove the last added space word
                 ---@type JM.Font.Word
@@ -308,16 +334,18 @@ function Phrase:get_lines()
 
             if current_word.text ~= "\n" then
                 table_insert(lines[cur_line], current_word)
+                ---
             else
                 if lines[cur_line - 1] then
                     table_insert(lines[cur_line - 1], current_word)
                 end
             end
 
-            if i ~= #(self.__words)
+            if i < #(self.__words)
                 and current_word.text ~= "\t"
                 and current_word.text ~= "\n"
                 and next_word and next_word.text ~= "\t"
+            -- and not next_word.text:match("\n ?")
             then
                 table_insert(lines[cur_line], word_char)
             end
@@ -331,10 +359,13 @@ function Phrase:get_lines()
         lines[cur_line],
         Word:new { text = "\n", font = self.__font }
     )
+    line_width[cur_line] = tx - word_char:get_width() * (cur_line > 1 and 1 or 1)
 
     results_get_lines[self] = results_get_lines[self]
         or setmetatable({}, metatable_mode_v)
     results_get_lines[self][key] = lines
+
+    results_get_line_width[lines] = line_width
 
     return lines
 end -- END function get_lines()
@@ -423,6 +454,7 @@ function Phrase:get_glyph(n, lines)
     end
 end
 
+---@param self JM.Font.Phrase
 ---@param cur_word JM.Font.Word|"__first__"|nil|false
 local apply_commands = function(self, cur_word, init_font_size)
     if not cur_word then return false end
@@ -436,6 +468,11 @@ local apply_commands = function(self, cur_word, init_font_size)
                 self.__font:set_font_size(tag["font-size"])
             elseif name == "</font-size>" then
                 self.__font:set_font_size(init_font_size)
+            elseif name == "<font>" then
+                local action = tag["font"]
+                if action == "font-size" then
+                    self.__font:set_font_size(tag['value'] or init_font_size)
+                end
             end
         end
         return true
@@ -470,9 +507,12 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
     local init_font_size = self.__font.__font_size
 
+    local line_length = results_get_line_width[lines]
+
     for i = 1, #lines do
         if align == "right" then
-            tx = self.__bounds.right - self:__line_length(lines[i])
+            -- tx = self.__bounds.right - self:__line_length(lines[i])
+            tx = self.__bounds.right - (line_length[i] or 0)
             --
         elseif align == "center" then
             tx = x + (self.__bounds.right - x) * 0.5 - self:__line_length(lines[i]) * 0.5
