@@ -525,10 +525,12 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
             tx = self.__bounds.right - (line_length[i] or 0)
             --
         elseif align == "center" then
-            tx = x + (self.__bounds.right - x) * 0.5 - self:__line_length(lines[i]) * 0.5
+            -- tx = x + (self.__bounds.right - x) * 0.5 - self:__line_length(lines[i]) * 0.5
+            tx = x + (self.__bounds.right - x) * 0.5 - (line_length[i] or 0) * 0.5
             --
         elseif align == "justify" then
-            local total = self:__line_length(lines[i])
+            -- local total = self:__line_length(lines[i])
+            local total = line_length[i] or 0
 
             local len_line = #lines[i]
             local q = len_line - 1
