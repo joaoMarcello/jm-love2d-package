@@ -228,6 +228,7 @@ function Phrase:get_lines()
     local tx = 0 --x
     local cur_line = 1
     local word_char = Word:new { text = " ", font = self.__font }
+    local brk_line_glyph = Word:new { text = "\n", font = self.__font }
 
     local effect = nil
     local eff_args = nil
@@ -309,7 +310,11 @@ function Phrase:get_lines()
             if tx + r > self.__bounds.right
                 or current_word.text:match("\n ?")
             then
-                line_width[cur_line] = tx - word_char:get_width()
+                if current_word.text:match("\n ?") then
+                    line_width[cur_line] = tx - brk_line_glyph:get_width() - word_char:get_width()
+                else
+                    line_width[cur_line] = tx - word_char:get_width()
+                end
                 tx = 0
 
                 -- if current_word.text:match("\n ?") then
@@ -359,7 +364,12 @@ function Phrase:get_lines()
         lines[cur_line],
         Word:new { text = "\n", font = self.__font }
     )
-    line_width[cur_line] = tx - word_char:get_width() * (cur_line > 1 and 1 or 1)
+
+    if cur_line > 1 then
+        line_width[cur_line] = tx - word_char:get_width() * 2 - brk_line_glyph:get_width() * 2
+    else
+        line_width[cur_line] = tx - word_char:get_width()
+    end
 
     results_get_lines[self] = results_get_lines[self]
         or setmetatable({}, metatable_mode_v)
