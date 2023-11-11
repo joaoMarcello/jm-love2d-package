@@ -426,8 +426,8 @@ function Phrase:__line_length(line)
                 if tag_name == "<font>" then
                     local action = tag["font"]
                     if action == "font-size" then
-                        font:set_font_size(tag["value"] or original_fontsize)
                         -- total_len = total_len - word:get_width()
+                        font:set_font_size(tag["value"] or original_fontsize)
                         -- total_len = total_len - font.__word_space * font.__scale
                     end
                 end
@@ -539,7 +539,7 @@ local pointer_char_count = { [1] = 0 }
 ---@return number|nil tx
 ---@return number|nil ty
 ---@return JM.Font.Glyph|nil glyph
-function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__, __master_lines__)
+function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
     if not align then align = "left" end
     if not threshold then threshold = #lines end
 
@@ -561,16 +561,15 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__, __master
     for i = 1, #lines do
         if align == "right" then
             tx = self.__bounds.right - self:__line_length(lines[i])
-            -- tx = self.__bounds.right - (line_length and line_length[i] or self:__line_length(lines[i]))
+
             --
         elseif align == "center" then
             tx = x + (self.__bounds.right - x) * 0.5 - self:__line_length(lines[i]) * 0.5
-            -- tx = x + (self.__bounds.right - x) * 0.5 -
-            --     (line_length and line_length[i] or self:__line_length(lines[i])) * 0.5
+
             --
         elseif align == "justify" then
-            -- local total = self:__line_length(lines[i])
-            local total = line_length and line_length[i] or self:__line_length(lines[i])
+            local total = self:__line_length(lines[i])
+
 
             local len_line = #lines[i]
             local q = len_line - 1

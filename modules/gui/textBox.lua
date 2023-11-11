@@ -105,7 +105,7 @@ function TextBox:__constructor__(args, w)
             or max_width
     end
 
-    self.align = "right"
+    self.align = "left"
     self.text_align = Align.center
     self.w = w or max_width
     self.h = -math.huge
