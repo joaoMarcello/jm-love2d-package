@@ -970,7 +970,7 @@ function Font:separate_string(s, list)
     return words
 end
 
----@alias JM.Font.Tags "<bold>"|"</bold>"|"<italic>"|"</italic>"|"<color>"|"</color>"|"<effect>"|"</effect>"|"<pause>"
+---@alias JM.Font.Tags "<bold>"|"</bold>"|"<italic>"|"</italic>"|"<color>"|"</color>"|"<effect>"|"</effect>"|"<pause>"|"<font>"|"<sep>"
 
 ---@param s string
 ---@return JM.Font.Tags|false
@@ -1085,8 +1085,12 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
     local text_size = #(text)
 
-    for _, batch in pairs(self.batches) do
-        batch:clear()
+    -- for _, batch in pairs(self.batches) do
+    --     batch:clear()
+    -- end
+
+    for i = 1, self.__n_batches do
+        self.__batches[i]:clear()
     end
 
     while (i <= text_size) do
@@ -1132,7 +1136,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                     cur_color = Utils:get_rgba(r, g, b, a)
                     ---
                 elseif action == "font-size" then
-                    self:set_font_size(tag_values["value"])
+                    self:set_font_size(tag_values["value"] or original_fontsize)
                 end
 
                 ---
@@ -1306,17 +1310,17 @@ do
 
             N_word = N_word or #word_list
 
-            self:set_font_size(fontsize[1])
+            -- self:set_font_size(fontsize[1])
 
             -- for _, batch in pairs(self.batches) do
             --     batch:clear()
             -- end
-            local i = 1
+            -- local i = 1
             local batches = self.__batches
             local n_batches = self.__n_batches
-            while i <= n_batches do
+
+            for i = 1, n_batches do
                 batches[i]:clear()
-                i = i + 1
             end
 
             -- for k, word in ipairs(word_list) do
@@ -1354,10 +1358,10 @@ do
                             glyph:set_scale(sc)
 
                             local x = tx
-                            local y = ty + self.__font_size - glyph.h * sc
+                            local y = ty + fontsize[1] - glyph.h * sc
 
                             if prop.align == "center" then
-                                y = ty + self.__font_size * 0.5 - glyph.h * sc * 0.5
+                                y = ty + fontsize[1] * 0.5 - glyph.h * sc * 0.5
                             elseif prop.align == "top" then
                                 y = ty
                             end
@@ -1386,7 +1390,7 @@ do
                             local x, y
 
                             x = tx
-                            y = ty + self.__font_size
+                            y = ty + fontsize[1]
                                 - (glyph.h) * glyph.sy
 
                             if quad then
@@ -1410,16 +1414,12 @@ do
             end
 
             love_set_color(1, 1, 1, 1)
-            -- for _, batch in pairs(self.batches) do
-            --     if batch:getCount() > 0 then love_draw(batch) end
-            -- end
-            i = 1
-            while i <= n_batches do
-                local batch = batches[i]
-                if batch:getCount() > 0 then
-                    love_draw(batch)
+
+            for i = 1, n_batches do
+                local bt = batches[i]
+                if bt:getCount() > 0 then
+                    love_draw(bt)
                 end
-                i = i + 1
             end
 
             if index_action then
@@ -1484,6 +1484,9 @@ do
 
         local current_format = self.__format
         local original_format = self.__format
+        local cur_fontsize = self.__font_size
+        local original_fontsize = self.__font_size
+
         local i = 1
 
         while (i <= #(separated)) do
@@ -1591,7 +1594,7 @@ function Font:printf(text, x, y, align, limit_right)
     if result then
         all_lines = result
     else
-        all_lines = { lines = {}, actions = nil }
+        all_lines = { lines = {}, actions = nil, width = {} }
 
         local total_width = 0
         local line = {}
@@ -1604,42 +1607,42 @@ function Font:printf(text, x, y, align, limit_right)
         for m = 1, N do
             local command_tag = self:__is_a_command_tag(separated[m])
 
-            -- if command_tag and command_tag:match("color") then
             if command_tag then
                 local action_i = #line + 1
                 local action_func, action_args
-                local found = false
+
+
 
                 if command_tag == "<color>" then
-                    --
                     action_func = action_set_color
                     action_args = { m, separated }
-                    found = true
                     --
                 elseif command_tag == "</color>" then
-                    --
                     action_func = action_restaure_color
                     action_args = { original_color }
-                    found = true
                     --
                 elseif command_tag == "<font>" then
                     local tag_values = self:get_tag_args(separated[m])
                     local action = tag_values["font"]
+
+                    if tag_values["no-space"] then
+                        -- total_width = total_width - self.__word_space * self.__scale
+                    end
+
                     if action == "color-hex" then
                         action_func = action_set_color_hex
                         action_args = { tag_values["value"] }
-                        found = true
                         ---
                     elseif action == "font-size" then
-                        action_func = function(args)
-                            fontsize_pointer[1] = args
-                        end
-                        action_args = { tag_values["value"] }
-                        found = true
+                        action_func = self.set_font_size
+                        local size = tag_values["value"] or cur_fontsize[1]
+                        action_args = { self, size }
+                        self:set_font_size(size)
                     end
+                    ---
                 end
 
-                if found then
+                if action_func then
                     line_actions = line_actions or {}
 
                     tab_insert(line_actions, {
@@ -1660,7 +1663,6 @@ function Font:printf(text, x, y, align, limit_right)
                 local next_index = next_not_command_index(self, m, separated)
 
                 total_width = total_width + len(self, words[m])
-                    -- + self.__space_char:get_width()
                     + self.__space_char.w * self.__scale
                     + self.__character_space * 2
 
@@ -1669,29 +1671,8 @@ function Font:printf(text, x, y, align, limit_right)
 
                     or current_is_break_line
                 then
-                    --
-                    -- local lw = line_width(self, line)
-
-                    -- local div = #line - 1
-                    -- div = div <= 0 and 1 or div
-                    -- div = separated[m] == "\n" and lw <= limit_right * 0.8
-                    --     and 100 or div
-
-                    -- local ex_sp = align == "justify"
-                    --     and (limit_right - lw) / div
-                    --     or nil
-
-                    -- local pos_to_draw = (align == "left" and x)
-                    --     or (align == "right" and (x + limit_right) - lw)
-                    --     or (align == "center" and x + limit_right / 2 - lw / 2)
-                    --     or x
-
-                    -- print(self, line, pos_to_draw, ty, line_actions, ex_sp, current_color)
-
+                    tab_insert(all_lines.width, total_width - self.__word_space * self.__scale * 2)
                     total_width = 0
-
-                    -- ty = ty + self.__ref_height * self.__scale
-                    --     + self.__line_space
 
                     tab_insert(all_lines.lines, line)
                     if line_actions then
@@ -1712,23 +1693,16 @@ function Font:printf(text, x, y, align, limit_right)
                     if m ~= N and not next_is_broken_line then
                         tab_insert(
                             line,
-                            space_glyph --{ self.__space_char }
+                            space_glyph
                         )
                     end
                 end
             end
 
             if line and m == N then
-                -- local lw = line_width(self, line)
-
-                -- local pos_to_draw = (align == "left" and x)
-                --     or (align == "right" and tx + limit_right - lw)
-                --     or (align == "center" and tx + limit_right / 2 - lw / 2)
-                --     or x
-
-                -- print(self, line, pos_to_draw, ty, line_actions, nil, current_color)
-
                 tab_insert(all_lines.lines, line)
+                tab_insert(all_lines.width, total_width - self.__word_space * self.__scale)
+
                 if line_actions then
                     all_lines.actions = all_lines.actions or {}
                     all_lines.actions[#(all_lines.lines)] = line_actions
@@ -1753,11 +1727,14 @@ function Font:printf(text, x, y, align, limit_right)
     lgx.push()
     lgx.translate(tx, 0)
 
+    self:set_font_size(cur_fontsize[1])
+
     for i = 1, N do
         local line = all_lines.lines[i]
         local actions = all_lines.actions and all_lines.actions[i]
         local N_line = #line
-        local lw = line_width(self, line, N_line)
+        -- local lw = line_width(self, line, N_line)
+        local lw = all_lines.width[i]
 
         local div = N_line - 1
         div = div <= 0 and 1 or div
