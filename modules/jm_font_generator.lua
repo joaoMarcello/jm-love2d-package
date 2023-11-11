@@ -1625,9 +1625,9 @@ function Font:printf(text, x, y, align, limit_right)
                     local tag_values = self:get_tag_args(separated[m])
                     local action = tag_values["font"]
 
-                    if tag_values["no-space"] then
-                        -- total_width = total_width - self.__word_space * self.__scale
-                    end
+                    -- if tag_values["no-space"] then
+                    --     -- total_width = total_width - self.__word_space * self.__scale
+                    -- end
 
                     if action == "color-hex" then
                         action_func = action_set_color_hex
@@ -1672,9 +1672,12 @@ function Font:printf(text, x, y, align, limit_right)
                     or current_is_break_line
                 then
                     tab_insert(all_lines.width, total_width - self.__word_space * self.__scale * 2)
+
+
                     total_width = 0
 
                     tab_insert(all_lines.lines, line)
+
                     if line_actions then
                         all_lines.actions = all_lines.actions or {}
                         all_lines.actions[#(all_lines.lines)] = line_actions
