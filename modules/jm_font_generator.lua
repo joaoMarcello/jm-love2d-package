@@ -991,8 +991,8 @@ function Font:__is_a_command_tag(s)
         or (s:match("< *font *= *[%w%d,%. _%-%=%#]*>") and "<font>")
         or (s:match("< *pause *=[ %d%.]*[, %w%-]*>") and "<pause>")
 
-        or (s:match("< *font%-size *=[ %d%.]*[, %w%-]*>") and "<font-size>")
-        or (s:match("< */ *font%-size *[, %w%-]*>") and "</font-size>")
+        -- or (s:match("< *font%-size *=[ %d%.]*[, %w%-]*>") and "<font-size>")
+        -- or (s:match("< */ *font%-size *[, %w%-]*>") and "</font-size>")
 
         or (s:match("< *text%-box[ ,=%w%._]*>") and "<text-box>")
         or (s:match("< *sep[ %w,%-]*>") and "<sep>")
