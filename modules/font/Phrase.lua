@@ -416,6 +416,7 @@ function Phrase:__line_length(line)
 
         local tags = self.word_to_tag[prev_word]
             or (not prev_word and self.word_to_tag["__first__"])
+        total_len = total_len + word:get_width()
 
         if tags then
             for i = 1, #tags do
@@ -432,7 +433,6 @@ function Phrase:__line_length(line)
                 end
             end
         end
-        total_len = total_len + word:get_width()
 
         prev_word = word
     end
