@@ -40,8 +40,18 @@ function Iterator:__constructor__(text, font)
     self.__current_index = 1
     self.__list_obj = {}
 
+    local codes = font.CODES[text]
+    if not codes then
+        codes = {}
+        for p, c in utf8.codes(text) do
+            codes[p] = utf8.char(c)
+        end
+        font.CODES[text] = codes
+    end
+
     local i = 1
-    while (i <= #text) do
+    -- while (i <= #text) do
+    while i <= #codes do
         local current_char, glyph
 
         local is_nick = font:__is_a_nickname(text, i)
@@ -49,18 +59,19 @@ function Iterator:__constructor__(text, font)
             current_char = is_nick
             i = i + #(is_nick) - 1
         else
-            current_char = text:match(".", i)
+            -- current_char = text:match(".", i)
+            current_char = codes[i] --text:match(".", i)
         end
 
         glyph = font:__get_char_equals(current_char)
 
-        if not glyph then
-            glyph = font:__get_char_equals(text:match("..", i))
-            if glyph then
-                current_char = text:sub(i, i + 1)
-                i = i + 1
-            end
-        end
+        -- if not glyph then
+        --     glyph = font:__get_char_equals(text:match("..", i))
+        --     if glyph then
+        --         current_char = text:sub(i, i + 1)
+        --         i = i + 1
+        --     end
+        -- end
 
         if not glyph and current_char ~= "\n" then
             glyph = font:get_nule_character()
