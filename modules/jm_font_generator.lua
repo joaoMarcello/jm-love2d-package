@@ -353,7 +353,7 @@ local function symbols_unicode()
         [":cpy:"] = "\u{a9}",
         [":enne_up:"] = "\u{d1}",
         [":enne:"] = "\u{f1}",
-        ["mult"] = "\u{2715}",
+        [":mult:"] = "\u{2715}",
     }
 end
 
@@ -943,19 +943,19 @@ function Font:separate_string(s, list)
             tab_insert(words, sub_s)
             current_init = endp
         elseif nick and nick ~= "----" then
-            local startp, endp = string.find(s, "%-%-%w-%-%-", current_init)
-            local sub_s = startp and s:sub(startp, endp)
-            local prev_word = s:sub(current_init, startp - 1)
+            -- local startp, endp = string.find(s, "%-%-%w-%-%-", current_init)
+            -- local sub_s = startp and s:sub(startp, endp)
+            -- local prev_word = s:sub(current_init, startp - 1)
 
-            if prev_word and prev_word ~= "" and prev_word ~= " " then
-                self:separate_string(prev_word, words)
-            end
+            -- if prev_word and prev_word ~= "" and prev_word ~= " " then
+            --     self:separate_string(prev_word, words)
+            -- end
 
-            if sub_s ~= "" and sub_s ~= " " then
-                tab_insert(words, sub_s)
-            end
+            -- if sub_s ~= "" and sub_s ~= " " then
+            --     tab_insert(words, sub_s)
+            -- end
 
-            current_init = endp
+            -- current_init = endp
         elseif find then
             local startp, endp = str_find(s, regex, current_init)
             local sub_s = startp and s:sub(startp, endp - 1)
@@ -1076,6 +1076,7 @@ function Font:get_tag_args(s)
 end
 
 local codes_result = setmetatable({}, metatable_mode_k)
+Font.CODES = codes_result
 
 ---@param text string
 function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__, __fontsize__)
