@@ -416,16 +416,17 @@ function Phrase:__line_length(line, prev)
     local total_len = 0
 
     local original_fontsize = font.__font_size
-    local prev_word = prev
+    -- local prev_word = prev
 
     font:push()
     for i = 1, #line do
         ---@type JM.Font.Word
         local word = line[i]
 
-        prev_word = word
+        -- prev_word = word
         -- local tags = prev_word and self.word_to_tag[prev_word]
-        local tags = prev_word and self.word_to_prev_tag[prev_word]
+        -- local tags = prev_word and self.word_to_prev_tag[prev_word]
+        local tags = self.word_to_prev_tag[word]
 
         if tags then
             for i = 1, #tags do
@@ -442,7 +443,7 @@ function Phrase:__line_length(line, prev)
         end
 
         total_len = total_len + word:get_width()
-        prev_word = word
+        -- prev_word = word
     end
     font:pop()
 
@@ -628,6 +629,8 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
         for j = 1, #lines[i] do
             ---@type JM.Font.Word
             local current_word = lines[i][j]
+
+            local next_word = lines[i][j + 1]
 
             -- local first = apply_commands(self,
             --     (i == 1 and j == 1 and "__first__")
