@@ -536,21 +536,49 @@ local function load_by_tff(name, path, dpi, save)
     -- local glyphs = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVxXyYzZ0123456789."
 
     local glyphs =
-    [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]] --.. "\u{A9}\u{A7}\u{d1}\u{ae}"
+        [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]] ..
+        "\u{A9}\u{A7}\u{d1}\u{ae}\u{b1}"
 
     -- local glyph_table = get_glyphs(glyphs)
+
     local glyph_table = {}
     --- Latin  --- 0000 : 007F
+    local glyphs = ""
+
     for i = 0, 126 do
-        tab_insert(glyph_table, utf8.char(i))
+        local glyph_s = utf8.char(i)
+        local glyph = render:getGlyphData(glyph_s)
+        if glyph then
+            local w, h = glyph:getDimensions()
+            if w > 0 and h > 0 then
+                tab_insert(glyph_table, glyph_s)
+                glyphs = glyphs .. glyph_s
+            end
+        end
     end
     --- Latin-1 Suplement ---- 0080 : 00FF
-    for i = 128, 255 do
-        tab_insert(glyph_table, utf8.char(i))
+    for i = 127, 255 do
+        local glyph_s = utf8.char(i)
+        local glyph = render:getGlyphData(glyph_s)
+        if glyph then
+            local w, h = glyph:getDimensions()
+            if w > 0 and h > 0 then
+                tab_insert(glyph_table, glyph_s)
+                glyphs = glyphs .. glyph_s
+            end
+        end
     end
     --- Latin Extend-A  ---- 0100 : 017F
     for i = 256, 383 do
-        tab_insert(glyph_table, utf8.char(i))
+        local glyph_s = utf8.char(i)
+        local glyph = render:getGlyphData(glyph_s)
+        if glyph then
+            local w, h = glyph:getDimensions()
+            if w > 0 and h > 0 then
+                tab_insert(glyph_table, glyph_s)
+                glyphs = glyphs .. glyph_s
+            end
+        end
     end
 
     local cur_x = 4
