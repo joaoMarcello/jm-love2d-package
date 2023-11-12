@@ -221,16 +221,28 @@ end
 
 ---
 function Word:get_width()
-    local w = 0
-    local N = self.__N_characters --#self.__characters
-    for i = 1, N do
-        local cur_char = self:__get_char_by_index(i)
+    local font = self.__font
+    self.widths = self.widths or {}
 
-        w = w + (cur_char.w * self.__font.__scale)
-            + self.__font.__character_space
+    do
+        local r = self.widths[font.__font_size]
+        if r then return r end
     end
 
-    return w - self.__font.__character_space
+    local w = 0
+    local N = self.__N_characters --#self.__characters
+    local glyphs = self.__characters
+
+    for i = 1, N do
+        ---@type JM.Font.Glyph
+        local cur_char = glyphs[i] --self:__get_char_by_index(i)
+
+        w = w + (cur_char.w * font.__scale)
+            + font.__character_space
+    end
+
+    self.widths[font.__font_size] = w - font.__character_space
+    return self.widths[font.__font_size] --w - font.__character_space
 end
 
 ---
@@ -257,10 +269,11 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
     local font = self.__font
     local glyph
     local N = self.__N_characters
+    local list_glyphs = self.__characters
 
     for i = 1, N do
         ---@type JM.Font.Glyph
-        glyph = self.__characters[i]
+        glyph = list_glyphs[i]
 
         glyph:set_color(glyph.color)
         glyph:set_scale(font.__scale)
