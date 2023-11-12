@@ -20,12 +20,14 @@ local Event = {
 --     rainbow = 4
 -- }
 
+local goddess_args = { speed = 0.2 }
 local function mode_goddess(g)
-    g:apply_effect("fadein", { speed = 0.2 })
+    g:apply_effect("fadein", goddess_args)
 end
 
+local popin_args = { speed = 0.2 }
 local function mode_popin(g)
-    g:apply_effect("popin", { speed = 0.2 })
+    g:apply_effect("popin", popin_args)
 end
 
 local function mode_rainbow(g)
@@ -40,11 +42,19 @@ local ModeAction = {
 }
 ---@alias JM.GUI.TextBox.Modes "normal"|"goddess"|"popin"|"rainbow"|nil
 
----@enum JM.GUI.TextBox.AlignOptions
-local Align = {
+---@enum JM.GUI.TextBox.AlignOptionsY
+local AlignY = {
     top = 1,
     bottom = 2,
     center = 3
+}
+
+---@enum JM.GUI.TextBox.AlignOptionsX
+local AlignX = {
+    left = "left",
+    right = "right",
+    center = "center",
+    justify = "justify",
 }
 
 ---@enum JM.GUI.TextBox.UpdateModes
@@ -66,20 +76,51 @@ end
 ---@class JM.GUI.TextBox: JM.Template.Affectable
 local TextBox = setmetatable({}, Affectable)
 TextBox.UpdateMode = UpdateMode
-TextBox.AlignOptions = Align
+TextBox.AlignY = AlignY
+TextBox.AlignX = AlignX
 TextBox.__index = TextBox
 
+---@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes}
+
+---
+---@overload fun(self: any, args:JM.TextBox.ArgsConstructor)
+---@param text string
 ---@return JM.GUI.TextBox
 function TextBox:new(text, font, x, y, w)
-    local obj = Affectable:new()
-    setmetatable(obj, self)
+    local obj = setmetatable(Affectable:new(), TextBox)
 
     -- text = "<effect=goddess, delay=0.05>" .. text
-    TextBox.__constructor__(obj, { text = text, x = x, y = y, font = font }, w)
+    local args
+
+    if type(text) == "table" then
+        local t = text
+        t.text = t.text or "No text!"
+        t.x = t.x or 0
+        t.y = t.y or 0
+
+        t.w = t.w or math.huge
+        t.font = t.font or JM:get_font()
+        t.align = t.align or "left"
+        t.text_align = t.text_align or AlignY.center
+        t.speed = t.speed or 0.05
+        t.simulate_speak = t.simulate_speak == nil
+        t.n_lines = t.n_lines or 4
+        t.mode = t.mode or "normal"
+        t.update_mode = t.update_mode or UpdateMode.by_glyph
+        args = t
+    else
+        return TextBox:new { text = text, font = font, x = x, y = y, w = w }
+    end
+    -- TextBox.__constructor__(obj, { text = text, x = x, y = y, font = font }, w)
+
+    TextBox.__constructor__(obj, args)
     return obj
 end
 
-function TextBox:__constructor__(args, w)
+---@param args JM.TextBox.ArgsConstructor
+function TextBox:__constructor__(args)
+    self.args = args
+
     self.x = args.x --self.sentence.x
     self.y = args.y --self.sentence.y
 
@@ -88,7 +129,7 @@ function TextBox:__constructor__(args, w)
 
     self.sentence = Phrase:new(args)
     -- self.sentence:set_bounds(nil, nil, args.x + (w or (math.huge - args.x)))
-    self.sentence.__bounds.right = w or math.huge
+    self.sentence.__bounds.right = args.w or math.huge
 
     self.lines = self.sentence:get_lines()
 
@@ -105,26 +146,26 @@ function TextBox:__constructor__(args, w)
             or max_width
     end
 
-    self.align = "left"
-    self.text_align = Align.center
-    self.w = w or max_width
+    self.align = args.align
+    self.text_align = args.text_align
+    self.w = args.w or max_width
     self.h = -math.huge
     self.is_visible = true
 
     self.cur_glyph = 0
     self.time_glyph = 0.0
-    self.max_time_glyph = 0.05
+    self.max_time_glyph = args.speed -- 0.05
     self.extra_time = 0.0
 
     self.time_pause = 0.0
 
-    self.simulate_speak = true
-    self.update_mode = UpdateMode.by_glyph
+    self.simulate_speak = args.simulate_speak
+    self.update_mode = args.update_mode
 
     self.font = self.sentence.__font
     self.font_config = self.font:__get_configuration()
 
-    self.amount_lines = 4
+    self.amount_lines = args.n_lines
     self.amount_screens = math.ceil(#self.lines / self.amount_lines) --3
 
     local N = #self.lines
@@ -183,10 +224,14 @@ function TextBox:__constructor__(args, w)
     --     --self.screen_width[screen] = max_len > self.w and max_len or self.w
     -- end
 
-    self.ox = self.w / 2
-    self.oy = self.h / 2
+    self.ox = self.w * 0.5
+    self.oy = self.h * 0.5
 
     self.sentence.__bounds.right = self.x + self.w
+    self.prev_word = "__first__"
+
+    self.update = TextBox.update
+    self.draw = TextBox.draw
 end
 
 -- ---@return number
@@ -196,20 +241,24 @@ end
 --     return width or self.w
 -- end
 
-function TextBox:resetToDefault()
-    self.align = "left"
-    self.text_align = Align.center
+--- Resets the textbox configuration to intial state
+function TextBox:reset()
+    local args = self.args
+    self.align = args.align
+    self.text_align = args.text_align
     self.is_visible = true
-    self.max_time_glyph = 0.05
-    self.update_mode = UpdateMode.by_glyph
+    self.max_time_glyph = args.speed
+    self.update_mode = args.update_mode
+    self.simulate_speak = args.simulate_speak
+    return self:set_mode(args.mode)
 end
 
 function TextBox:do_the_thing(index, args)
     if not index then return end
     local field = self[index]
     if type(field) == "function" then
-        field(self, args)
-    else
+        return field(self, args)
+    elseif field then
         self[index] = args or self[index]
     end
 end
@@ -230,7 +279,7 @@ function TextBox:rect()
     return self.x, self.y, self.w, self.h
 end
 
-function TextBox:key_pressed(key)
+function TextBox:keypressed(key)
     if key == "space" then
         local r = self:go_to_next_screen()
 
@@ -257,10 +306,12 @@ function TextBox:go_to_next_screen()
     return false
 end
 
+--- Go back to first screen
 function TextBox:restart()
     self.cur_screen = 1
     self.used_tags = nil
     self.waiting = false
+    self.prev_word = "__first__"
     self:refresh()
 end
 
@@ -368,6 +419,7 @@ function TextBox:update(dt)
                     dispatch_event(self, Event.wordChange)
                 end
             end
+            -- self.prev_word = w
         end -- END if cur_glyph is not nil
     end
 
@@ -435,32 +487,24 @@ function TextBox:__draw()
 
     local py = self.y
 
-    if self.text_align == Align.center then
+    if self.text_align == AlignY.center then
         py = py + self.h * 0.5 - height * 0.5
         --
-    elseif self.text_align == Align.bottom then
+    elseif self.text_align == AlignY.bottom then
         py = py + self.h - height
         --
     end
 
-    lgx.push()
-    -- if self.align == "right" then
-    --     lgx.translate(0, py)
-    -- elseif self.align == "center" then
-    --     lgx.translate(-self.w / 2, py)
-    -- else
-    --     lgx.translate(self.x, py)
-    -- end
-    -- lgx.translate(32 * 4, 0)
     local tx, ty, glyph = sentence:draw_lines(
         screen,
         self.x, py,
+
+        ---@diagnostic disable-next-line: param-type-mismatch
         self.align, self.w,
         self.cur_glyph
     )
-    lgx.pop()
 
-    font:pop()
+    return font:pop()
     --==========================================================
 
     -- Font:print(self.__finish and "<color>true" or "<color, 1, 1, 1>false", self.x, self.y - 20)
