@@ -519,7 +519,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
     self.__imgs[format] = img
 end
 
-local function load_by_tff(name, path, dpi, save)
+local function load_by_tff(name, path, dpi, save, threshold)
     if not name or not path then return end
 
     ---@type love.Rasterizer
@@ -541,56 +541,75 @@ local function load_by_tff(name, path, dpi, save)
     -- local glyph_table = get_glyphs(glyphs)
 
     local glyph_table = {}
-    --- Latin  --- 0000 : 007F
     local glyphs = ""
 
-    for i = 33, 126 do
-        local glyph_s = utf8.char(i)
-        local glyph = render:getGlyphData(glyph_s)
-        if glyph then
-            local w, h = glyph:getDimensions()
-            if w > 0 and h > 0 then
-                tab_insert(glyph_table, glyph_s)
-                glyphs = glyphs .. glyph_s
+    local threshold = threshold or { { 33, 126 }, { 128, 255 }, { 256, 383 } }
+
+    for k = 1, #threshold do
+        local lim = threshold[k]
+        assert(lim[1] < lim[2])
+        for i = lim[1], lim[2] do
+            local glyph_s = utf8.char(i)
+            local glyph = render:getGlyphData(glyph_s)
+            if glyph then
+                local w, h = glyph:getDimensions()
+                if w > 0 and h > 0 then
+                    tab_insert(glyph_table, glyph_s)
+                    glyphs = glyphs .. glyph_s
+                end
             end
         end
     end
-    --- Latin-1 Suplement ---- 0080 : 00FF
-    for i = 128, 255 do
-        local glyph_s = utf8.char(i)
-        local glyph = render:getGlyphData(glyph_s)
-        if glyph then
-            local w, h = glyph:getDimensions()
-            if w > 0 and h > 0 then
-                tab_insert(glyph_table, glyph_s)
-                glyphs = glyphs .. glyph_s
-            end
-        end
+
+    do
+        -- for i = 33, 126 do
+        --     local glyph_s = utf8.char(i)
+        --     local glyph = render:getGlyphData(glyph_s)
+        --     if glyph then
+        --         local w, h = glyph:getDimensions()
+        --         if w > 0 and h > 0 then
+        --             tab_insert(glyph_table, glyph_s)
+        --             glyphs = glyphs .. glyph_s
+        --         end
+        --     end
+        -- end
+        -- --- Latin-1 Suplement ---- 0080 : 00FF
+        -- for i = 128, 255 do
+        --     local glyph_s = utf8.char(i)
+        --     local glyph = render:getGlyphData(glyph_s)
+        --     if glyph then
+        --         local w, h = glyph:getDimensions()
+        --         if w > 0 and h > 0 then
+        --             tab_insert(glyph_table, glyph_s)
+        --             glyphs = glyphs .. glyph_s
+        --         end
+        --     end
+        -- end
+        -- --- Latin Extend-A  ---- 0100 : 017F
+        -- for i = 256, 383 do
+        --     local glyph_s = utf8.char(i)
+        --     local glyph = render:getGlyphData(glyph_s)
+        --     if glyph then
+        --         local w, h = glyph:getDimensions()
+        --         if w > 0 and h > 0 then
+        --             tab_insert(glyph_table, glyph_s)
+        --             glyphs = glyphs .. glyph_s
+        --         end
+        --     end
+        -- end
+        -- -- --- Latin Extend-B  ---- 0180 : 024F
+        -- -- for i = 384, 591 do
+        -- --     local glyph_s = utf8.char(i)
+        -- --     local glyph = render:getGlyphData(glyph_s)
+        -- --     if glyph then
+        -- --         local w, h = glyph:getDimensions()
+        -- --         if w > 0 and h > 0 then
+        -- --             tab_insert(glyph_table, glyph_s)
+        -- --             glyphs = glyphs .. glyph_s
+        -- --         end
+        -- --     end
+        -- -- end
     end
-    --- Latin Extend-A  ---- 0100 : 017F
-    for i = 256, 383 do
-        local glyph_s = utf8.char(i)
-        local glyph = render:getGlyphData(glyph_s)
-        if glyph then
-            local w, h = glyph:getDimensions()
-            if w > 0 and h > 0 then
-                tab_insert(glyph_table, glyph_s)
-                glyphs = glyphs .. glyph_s
-            end
-        end
-    end
-    -- --- Latin Extend-B  ---- 0180 : 024F
-    -- for i = 384, 591 do
-    --     local glyph_s = utf8.char(i)
-    --     local glyph = render:getGlyphData(glyph_s)
-    --     if glyph then
-    --         local w, h = glyph:getDimensions()
-    --         if w > 0 and h > 0 then
-    --             tab_insert(glyph_table, glyph_s)
-    --             glyphs = glyphs .. glyph_s
-    --         end
-    --     end
-    -- end
 
 
     local cur_x = 4
