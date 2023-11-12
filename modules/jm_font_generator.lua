@@ -561,57 +561,6 @@ local function load_by_tff(name, path, dpi, save, threshold)
         end
     end
 
-    do
-        -- for i = 33, 126 do
-        --     local glyph_s = utf8.char(i)
-        --     local glyph = render:getGlyphData(glyph_s)
-        --     if glyph then
-        --         local w, h = glyph:getDimensions()
-        --         if w > 0 and h > 0 then
-        --             tab_insert(glyph_table, glyph_s)
-        --             glyphs = glyphs .. glyph_s
-        --         end
-        --     end
-        -- end
-        -- --- Latin-1 Suplement ---- 0080 : 00FF
-        -- for i = 128, 255 do
-        --     local glyph_s = utf8.char(i)
-        --     local glyph = render:getGlyphData(glyph_s)
-        --     if glyph then
-        --         local w, h = glyph:getDimensions()
-        --         if w > 0 and h > 0 then
-        --             tab_insert(glyph_table, glyph_s)
-        --             glyphs = glyphs .. glyph_s
-        --         end
-        --     end
-        -- end
-        -- --- Latin Extend-A  ---- 0100 : 017F
-        -- for i = 256, 383 do
-        --     local glyph_s = utf8.char(i)
-        --     local glyph = render:getGlyphData(glyph_s)
-        --     if glyph then
-        --         local w, h = glyph:getDimensions()
-        --         if w > 0 and h > 0 then
-        --             tab_insert(glyph_table, glyph_s)
-        --             glyphs = glyphs .. glyph_s
-        --         end
-        --     end
-        -- end
-        -- -- --- Latin Extend-B  ---- 0180 : 024F
-        -- -- for i = 384, 591 do
-        -- --     local glyph_s = utf8.char(i)
-        -- --     local glyph = render:getGlyphData(glyph_s)
-        -- --     if glyph then
-        -- --         local w, h = glyph:getDimensions()
-        -- --         if w > 0 and h > 0 then
-        -- --             tab_insert(glyph_table, glyph_s)
-        -- --             glyphs = glyphs .. glyph_s
-        -- --         end
-        -- --     end
-        -- -- end
-    end
-
-
     local cur_x = 4
     local cur_y = 2
 
