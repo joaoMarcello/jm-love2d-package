@@ -73,9 +73,9 @@ function Iterator:__constructor__(text, font)
         --     end
         -- end
 
-        if not glyph and current_char ~= "\n" then
-            glyph = font:get_nule_character()
-        end
+        -- if not glyph and current_char ~= "\n" then
+        --     glyph = font:get_nule_character()
+        -- end
 
         if glyph then
             tab_insert(self.__list_obj, glyph)
