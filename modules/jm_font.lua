@@ -20,18 +20,21 @@ do
     --     min_filter = "linear",
     --     max_filter = "nearest"
     -- }
-    Font.fonts[1] = Generator:new_by_ttf {
-        path = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
-        path_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
-        -- path_italic = "/data/font/Komika Text Italic.ttf",
-        dpi = 48,
-        name = "open sans",
-        font_size = 12,
-        character_space = 0,
-        tab_size = 4,
-        min_filter = "linear",
-        max_filter = "nearest"
-    }
+
+    -- Font.fonts[1] = Generator:new_by_ttf {
+    --     path = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
+    --     path_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
+    --     -- path_italic = "/data/font/Komika Text Italic.ttf",
+    --     dpi = 48,
+    --     name = "open sans",
+    --     font_size = 12,
+    --     character_space = 0,
+    --     tab_size = 4,
+    --     min_filter = "linear",
+    --     max_filter = "nearest"
+    -- }
+
+    Font.fonts[1] = JM:get_font()
 
     Font.name2font = {}
     for _, font in pairs(Font.fonts) do
