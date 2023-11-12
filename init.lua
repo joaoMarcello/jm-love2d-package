@@ -27,70 +27,14 @@ JM_Anima = JM.Anima
 ---@type JM.Font.Generator
 JM.FontGenerator = require(string.gsub(path, "init", "modules.jm_font_generator"))
 
----@type JM.Font.Manager
-JM.Font = require(string.gsub(path, "init", "modules.jm_font"))
-JM_Font = JM.Font
-
----@type JM.Camera.Camera
-JM.Camera = require(string.gsub(path, "init", "modules.jm_camera"))
-
----@type JM.SceneManager
-JM.SceneManager = require(string.gsub(path, "init", "modules.jm_scene_manager"))
-JM_SceneManager = JM.SceneManager
-
----@type JM.Loader
-JM.Ldr = require(string.gsub(path, "init", "modules.jm_loader"))
-JM_Ldr = JM.Ldr
-
---==========================================================================
-
----@type JM.Controller
-JM.Controller = require(string.gsub(path, "init", "modules.jm_controller"))
-
----@type JM.ControllerManager
-JM.ControllerManager = require(string.gsub(path, "init", "modules.jm_controller_manager"))
---==========================================================================
-
----@type JM.Scene
-JM.Scene = require(string.gsub(path, "init", "modules.jm_scene"))
-
----@type JM.Physics
-JM.Physics = require(string.gsub(path, "init", "modules.jm_physics"))
-
-
----@type JM.Sound
-JM.Sound = require(string.gsub(path, "init", "modules.jm_sound"))
-
----@type JM.TileSet
-JM.TileSet = require(string.gsub(path, "init", "modules.tile.tile_set"))
-
----@type JM.LeaderBoard
-JM.Mlrs = require(string.gsub(path, "init", "modules.jm_melrs"))
-
----@type JM.TileMap
-JM.TileMap = require(string.gsub(path, "init", "modules.tile.tile_map"))
-
----@type GameObject
-JM.GameObject = require(string.gsub(path, "init", "modules.gamestate.game_object"))
-
----@type BodyObject
-JM.BodyObject = require(string.gsub(path, "init", "modules.gamestate.body_object"))
-
----@type JM.GUI
-JM.GUI = require(string.gsub(path, "init", "modules.jm_gui"))
-
----@type JM.ParticleSystem
-JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
-
-JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
-
-
 local fonts = {}
 
----@alias JM.AvailableFonts "pix5"|"pix8"|"circuit17"|"circuit21"
+---@alias JM.AvailableFonts "pix5"|"pix8"|"circuit17"|"circuit21"|"default"|nil
 
 ---@param font JM.AvailableFonts
 function JM:get_font(font)
+    font = font or "default"
+
     if font == "pix8" then
         local pix8 = fonts[font] or JM.FontGenerator:new {
             name            = "pix8",
@@ -151,8 +95,83 @@ function JM:get_font(font)
         fonts[font] = c17
         return c17
         ---
+    else
+        local f = fonts[font] or JM.FontGenerator:new_by_ttf {
+            path = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
+            path_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
+            -- path_italic = "/data/font/Komika Text Italic.ttf",
+            dpi = 48,
+            name = "open sans",
+            font_size = 12,
+            character_space = 0,
+            tab_size = 4,
+            min_filter = "linear",
+            max_filter = "nearest"
+        }
+        fonts[font] = f
+        return f
     end
 end
+
+---@type JM.Font.Manager
+JM.Font = require(string.gsub(path, "init", "modules.jm_font"))
+JM_Font = JM.Font
+
+---@type JM.Camera.Camera
+JM.Camera = require(string.gsub(path, "init", "modules.jm_camera"))
+
+---@type JM.SceneManager
+JM.SceneManager = require(string.gsub(path, "init", "modules.jm_scene_manager"))
+JM_SceneManager = JM.SceneManager
+
+---@type JM.Loader
+JM.Ldr = require(string.gsub(path, "init", "modules.jm_loader"))
+JM_Ldr = JM.Ldr
+
+--==========================================================================
+
+---@type JM.Controller
+JM.Controller = require(string.gsub(path, "init", "modules.jm_controller"))
+
+---@type JM.ControllerManager
+JM.ControllerManager = require(string.gsub(path, "init", "modules.jm_controller_manager"))
+--==========================================================================
+
+---@type JM.Scene
+JM.Scene = require(string.gsub(path, "init", "modules.jm_scene"))
+
+---@type JM.Physics
+JM.Physics = require(string.gsub(path, "init", "modules.jm_physics"))
+
+
+---@type JM.Sound
+JM.Sound = require(string.gsub(path, "init", "modules.jm_sound"))
+
+---@type JM.TileSet
+JM.TileSet = require(string.gsub(path, "init", "modules.tile.tile_set"))
+
+---@type JM.LeaderBoard
+JM.Mlrs = require(string.gsub(path, "init", "modules.jm_melrs"))
+
+---@type JM.TileMap
+JM.TileMap = require(string.gsub(path, "init", "modules.tile.tile_map"))
+
+---@type GameObject
+JM.GameObject = require(string.gsub(path, "init", "modules.gamestate.game_object"))
+
+---@type BodyObject
+JM.BodyObject = require(string.gsub(path, "init", "modules.gamestate.body_object"))
+
+---@type JM.GUI
+JM.GUI = require(string.gsub(path, "init", "modules.jm_gui"))
+
+---@type JM.ParticleSystem
+JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
+
+JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
+
+
+
 
 function JM:update(dt)
     JM_Font.current:update(dt)
