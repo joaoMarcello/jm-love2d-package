@@ -1271,11 +1271,19 @@ do
     --         return param
     --     end
 
+    -- local len_result = setmetatable({}, metatable_mode_k)
+
     len =
     ---@param self JM.Font.Font
     ---@param args table
     ---@return number width
         function(self, args)
+            if not args then return 0 end
+            -- do
+            --     local r = len_result[args]
+            --         and len_result[args][self.__font_size]
+            --     if r then return r end
+            -- end
             local width = 0
             local N = #args
 
@@ -1288,7 +1296,11 @@ do
                     + char_obj.w * self.__scale
                     + self.__character_space
             end
+            -- len_result[args] = len_result[args] or {}
+            -- len_result[args][self.__font_size] = width - self.__character_space
+
             return width - self.__character_space
+            -- return len_result[args][self.__font_size]
         end
 
     print =
@@ -1603,6 +1615,8 @@ function Font:printf(text, x, y, align, limit_right)
         local space_glyph = self.__printf_space_glyph
 
         local N = #(words)
+        local prev_word
+        local next_word
 
         for m = 1, N do
             local command_tag = self:__is_a_command_tag(separated[m])
@@ -1610,8 +1624,6 @@ function Font:printf(text, x, y, align, limit_right)
             if command_tag then
                 local action_i = #line + 1
                 local action_func, action_args
-
-
 
                 if command_tag == "<color>" then
                     action_func = action_set_color
@@ -1638,6 +1650,7 @@ function Font:printf(text, x, y, align, limit_right)
                         local size = tag_values["value"] or cur_fontsize[1]
                         action_args = { self, size }
                         self:set_font_size(size)
+                        -- total_width = total_width - len(self, prev_word)
                     end
                     ---
                 end
@@ -1656,6 +1669,9 @@ function Font:printf(text, x, y, align, limit_right)
             local current_is_break_line = separated[m] == "\n"
 
             if not command_tag then
+                prev_word = words[m]
+                next_word = words[m + 1]
+
                 -- if not current_is_break_line or true then
                 tab_insert(line, words[m])
                 -- end
@@ -1668,13 +1684,13 @@ function Font:printf(text, x, y, align, limit_right)
 
                 if total_width + (next_index and words[next_index]
                         and len(self, words[next_index]) or 0) > limit_right
-
                     or current_is_break_line
                 then
-                    tab_insert(all_lines.width, total_width - self.__word_space * self.__scale * 2)
-
+                    tab_insert(all_lines.width, total_width - self.__word_space * self.__scale)
 
                     total_width = 0
+                    prev_word = nil
+                    next_word = nil
 
                     tab_insert(all_lines.lines, line)
 
@@ -1698,13 +1714,17 @@ function Font:printf(text, x, y, align, limit_right)
                             line,
                             space_glyph
                         )
+                    elseif m ~= N then
+                        total_width = total_width - self.__word_space * self.__scale
                     end
                 end
             end
 
             if line and m == N then
                 tab_insert(all_lines.lines, line)
-                tab_insert(all_lines.width, total_width - self.__word_space * self.__scale)
+                -- tab_insert(all_lines.width, total_width - self.__word_space * self.__scale)
+                tab_insert(all_lines.width, total_width)
+
 
                 if line_actions then
                     all_lines.actions = all_lines.actions or {}
@@ -1731,6 +1751,7 @@ function Font:printf(text, x, y, align, limit_right)
     lgx.translate(tx, 0)
 
     self:set_font_size(cur_fontsize[1])
+    local init_scale = self.__scale
 
     for i = 1, N do
         local line = all_lines.lines[i]
@@ -1755,7 +1776,7 @@ function Font:printf(text, x, y, align, limit_right)
 
         print(self, line, pos_to_draw, ty, actions, ex_sp, current_color, N_line, cur_fontsize)
 
-        ty = ty + self.__ref_height * self.__scale
+        ty = ty + self.__ref_height * init_scale --self.__scale
             + self.__line_space
     end
 
