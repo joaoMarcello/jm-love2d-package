@@ -507,7 +507,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
 
     local symbols = symbols_unicode()
     for k, v in pairs(symbols) do
-        list[v] = list[k]
+        list[v] = list[v] or list[k]
     end
     -- local glyph = list[":cpy:"]
     -- list["\u{A9}"] = glyph
