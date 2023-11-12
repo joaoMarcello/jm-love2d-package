@@ -68,7 +68,7 @@ function Button:__custom_draw__()
     love.graphics.setColor(0, 0, 0, 1)
     love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
-    local font = JM.Font.current
+    local font = JM:get_font() --JM.Font.current
     font:printf(self.text,
         self.x,
         self.y + self.h * 0.5 - font.__font_size * 0.5,

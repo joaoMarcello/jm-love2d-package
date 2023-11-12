@@ -7,7 +7,7 @@ local huge = math.huge
 ---@type JM.GUI.Component
 local Component = require((...):gsub("label", "component"))
 
-local font = _G.JM_Font.current
+local font = JM:get_font() --_G.JM_Font.current
 local font_config = font:__get_configuration()
 
 -- love.keyboard.setKeyRepeat(true)

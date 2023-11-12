@@ -1,7 +1,7 @@
 ---@type JM.GUI.Component
 local Component = require(string.gsub(..., "touch_button", "component"))
 
-local font = _G.JM_Font.current
+local font = JM:get_font() --_G.JM_Font.current
 
 local mouse_get_position = love.mouse.getPosition
 local touch_getPosition = love.touch.getPosition

@@ -1338,7 +1338,7 @@ function Slope:draw()
         )
     end
 
-    local font = JM_Font.current
+    local font = JM:get_font() --JM_Font.current
     font:push()
     font:set_font_size(6)
 

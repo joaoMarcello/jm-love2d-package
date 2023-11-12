@@ -113,9 +113,9 @@ function JM:get_font(font)
     end
 end
 
----@type JM.Font.Manager
-JM.Font = require(string.gsub(path, "init", "modules.jm_font"))
-JM_Font = JM.Font
+-- ---@type JM.Font.Manager
+-- JM.Font = require(string.gsub(path, "init", "modules.jm_font"))
+-- JM_Font = JM.Font
 
 ---@type JM.Camera.Camera
 JM.Camera = require(string.gsub(path, "init", "modules.jm_camera"))
@@ -174,7 +174,8 @@ JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 
 function JM:update(dt)
-    JM_Font.current:update(dt)
+    -- JM_Font.current:update(dt)
+    JM:get_font():update(dt)
     self.Sound:update(dt)
     self.ParticleSystem:update(dt)
 end

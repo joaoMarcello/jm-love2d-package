@@ -1399,29 +1399,29 @@ local function debbug(self)
     local r, g, b, a
     r, g, b, a = 1, 0, 0, 1
 
-    local Font = _G.JM_Font
+    local Font = JM:get_font() --_G.JM_Font
 
     love_set_color(r, g, b, a)
 
     if Font then
-        Font.current:push()
-        Font.current:set_font_size(8)
+        Font:push()
+        Font:set_font_size(8)
         local state = '<color>' .. self:get_state()
         Font:print(state,
             vx + border_len + 2,
             vy + vh - border_len - 20)
-        Font.current:pop()
+        Font:pop()
 
         -- Showing the message DEBUG MODE
-        Font.current:push()
-        Font.current:set_font_size(8)
+        Font:push()
+        Font:set_font_size(8)
 
         lgx.push()
         lgx.translate(vx, vy)
-        Font.current:printx("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE", 0, border_len + 10,
+        Font:printx("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE", 0, border_len + 10,
             vw - border_len - 10, "right")
         lgx.pop()
-        Font.current:pop()
+        Font:pop()
     end
 end
 
