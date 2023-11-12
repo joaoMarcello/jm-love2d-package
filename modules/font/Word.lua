@@ -219,14 +219,22 @@ function Word:__get_char_by_index(index)
     return self.__characters[index]
 end
 
+local mt_mode_k = { __mode = 'k' }
+Word.WIDTHS = setmetatable({}, mt_mode_k)
 ---
 function Word:get_width()
     local font = self.__font
-    self.widths = self.widths or {}
+    -- self.widths = self.widths or {}
 
     do
-        local r = self.widths[font.__font_size]
-        if r then return r end
+        -- local r = self.widths[font.__font_size]
+        -- if r then return r end
+        local r = Word.WIDTHS[font]
+        r = r and r[self.text] or r
+        r = r and r[font.__font_size]
+        if r then
+            return r
+        end
     end
 
     local w = 0
@@ -241,8 +249,15 @@ function Word:get_width()
             + font.__character_space
     end
 
-    self.widths[font.__font_size] = w - font.__character_space
-    return self.widths[font.__font_size] --w - font.__character_space
+    Word.WIDTHS[font] = Word.WIDTHS[font] or setmetatable({}, mt_mode_k)
+    Word.WIDTHS[font][self.text] = Word.WIDTHS[font][self.text]
+        or {}
+    Word.WIDTHS[font][self.text][font.__font_size] = w - font.__character_space
+
+    return Word.WIDTHS[font][self.text][font.__font_size]
+
+    -- self.widths[font.__font_size] = w - font.__character_space
+    -- return self.widths[font.__font_size]
 end
 
 ---
