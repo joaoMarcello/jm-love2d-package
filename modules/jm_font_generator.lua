@@ -533,11 +533,10 @@ local function load_by_tff(name, path, dpi, save)
 
     if not success or not path then return end
 
-    -- local glyphs = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVxXyYzZ0123456789."
 
-    local glyphs =
-        [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]] ..
-        "\u{A9}\u{A7}\u{d1}\u{ae}\u{b1}"
+    -- local glyphs =
+    --     [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]] ..
+    --     "\u{A9}\u{A7}\u{d1}\u{ae}\u{b1}"
 
     -- local glyph_table = get_glyphs(glyphs)
 
@@ -545,7 +544,7 @@ local function load_by_tff(name, path, dpi, save)
     --- Latin  --- 0000 : 007F
     local glyphs = ""
 
-    for i = 0, 126 do
+    for i = 33, 126 do
         local glyph_s = utf8.char(i)
         local glyph = render:getGlyphData(glyph_s)
         if glyph then
@@ -557,7 +556,7 @@ local function load_by_tff(name, path, dpi, save)
         end
     end
     --- Latin-1 Suplement ---- 0080 : 00FF
-    for i = 127, 255 do
+    for i = 128, 255 do
         local glyph_s = utf8.char(i)
         local glyph = render:getGlyphData(glyph_s)
         if glyph then
@@ -580,6 +579,19 @@ local function load_by_tff(name, path, dpi, save)
             end
         end
     end
+    -- --- Latin Extend-B  ---- 0180 : 024F
+    -- for i = 384, 591 do
+    --     local glyph_s = utf8.char(i)
+    --     local glyph = render:getGlyphData(glyph_s)
+    --     if glyph then
+    --         local w, h = glyph:getDimensions()
+    --         if w > 0 and h > 0 then
+    --             tab_insert(glyph_table, glyph_s)
+    --             glyphs = glyphs .. glyph_s
+    --         end
+    --     end
+    -- end
+
 
     local cur_x = 4
     local cur_y = 2
