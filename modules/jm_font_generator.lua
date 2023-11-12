@@ -348,6 +348,15 @@ function Font:get_format_mode()
     return self.__format
 end
 
+local function symbols_unicode()
+    return {
+        [":cpy:"] = "\u{a9}",
+        [":enne_up:"] = "\u{d1}",
+        [":enne:"] = "\u{f1}",
+        ["mult"] = "\u{2715}",
+    }
+end
+
 ---@param path any
 ---@param format JM.Font.FormatOptions
 ---@param glyphs table
@@ -496,6 +505,13 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
         end
     end
 
+    local symbols = symbols_unicode()
+    for k, v in pairs(symbols) do
+        list[v] = list[k]
+    end
+    -- local glyph = list[":cpy:"]
+    -- list["\u{A9}"] = glyph
+
     -- local nule_char = self:get_nule_character()
     -- list[nule_char.__id] = nule_char
 
@@ -517,10 +533,11 @@ local function load_by_tff(name, path, dpi, save)
 
     if not success or not path then return end
 
-    local glyphs = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVxXyYzZ0123456789."
+    -- local glyphs = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVxXyYzZ0123456789."
 
-    glyphs =
-    [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]]
+    local glyphs =
+        [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]] ..
+        "\u{A9}\u{A7}\u{d1}\u{ae}"
 
     local glyph_table = get_glyphs(glyphs)
     -- local N_glyphs = #glyph_table
@@ -1058,6 +1075,8 @@ function Font:get_tag_args(s)
     return result
 end
 
+local codes_result = setmetatable({}, metatable_mode_k)
+
 ---@param text string
 function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__, __fontsize__)
     if not text or text == "" then return x, y end
@@ -1083,18 +1102,26 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
     local i = __i__ or 1
 
-    local text_size = #(text)
-
-    -- for _, batch in pairs(self.batches) do
-    --     batch:clear()
-    -- end
+    -- local text_size = #(text)
 
     for i = 1, self.__n_batches do
         self.__batches[i]:clear()
     end
 
-    while (i <= text_size) do
-        local glyph_id = text:sub(i, i)
+    local codes = codes_result[text]
+
+    if not codes then
+        codes = {}
+        for p, c in utf8.codes(text) do
+            codes[p] = utf8.char(c)
+        end
+        codes_result[text] = codes
+    end
+
+    -- while (i <= text_size) do
+    while i <= #codes do
+        ---
+        local glyph_id = codes[i] --text:sub(i, i)
         local is_a_nick = self:__is_a_nickname(text, i)
 
         if is_a_nick then
@@ -1167,11 +1194,10 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
         local glyph = self:__get_char_equals(glyph_id)
 
-
-        if not glyph then
-            glyph = self:__get_char_equals(text:sub(i, i + 1))
-            if glyph then i = i + 1 end
-        end
+        -- if not glyph then
+        --     glyph = self:__get_char_equals(text:sub(i, i + 1))
+        --     if glyph then i = i + 1 end
+        -- end
 
         if glyph_id == "\n"
             or ((glyph and w)
