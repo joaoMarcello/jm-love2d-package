@@ -350,10 +350,10 @@ end
 
 local function symbols_unicode()
     return {
-        [":cpy:"] = "\u{a9}",
-        [":enne_up:"] = "\u{d1}",
-        [":enne:"] = "\u{f1}",
-        [":mult:"] = "\u{2715}",
+        [":cpy:"] = utf8.char(169),     --"\u{a9}",
+        [":enne_up:"] = utf8.char(209), --"\u{d1}",
+        [":enne:"] = utf8.char(241),    --"\u{f1}",
+        [":mult:"] = utf8.char(10005),  --"\u{2715}",
     }
 end
 
@@ -539,9 +539,20 @@ local function load_by_tff(name, path, dpi, save)
         [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]] ..
         "\u{A9}\u{A7}\u{d1}\u{ae}"
 
-    local glyph_table = get_glyphs(glyphs)
-    -- local N_glyphs = #glyph_table
-    -- local cur_id = 1
+    -- local glyph_table = get_glyphs(glyphs)
+    local glyph_table = {}
+    --- Latin  --- 0000 : 007F
+    for i = 0, 126 do
+        tab_insert(glyph_table, utf8.char(i))
+    end
+    --- Latin-1 Suplement ---- 0080 : 00FF
+    for i = 128, 255 do
+        tab_insert(glyph_table, utf8.char(i))
+    end
+    --- Latin Extend-A  ---- 0100 : 017F
+    for i = 256, 383 do
+        tab_insert(glyph_table, utf8.char(i))
+    end
 
     local cur_x = 4
     local cur_y = 2
@@ -558,15 +569,20 @@ local function load_by_tff(name, path, dpi, save)
             local w, h = glyph:getDimensions()
             -- local bbx, bby, bbw, bbh = glyph:getBoundingBox()
 
-            local glyphData = love.image.newImageData(w, h, "rgba8", glyph:getString():gsub("(.)(.)", "%1%1%1%2"))
-            local glyphDataWidth, glyphDataHeight = glyphData:getDimensions()
+            if type(w) == "number" and type(h) == "number"
+                and w > 0 and h > 0
+            then
+                local glyphData = love.image.newImageData(w, h, "rgba8", glyph:getString():gsub("(.)(.)", "%1%1%1%2"))
 
-            total_width = total_width + glyphDataWidth + 4
-            local height = glyphDataHeight + cur_y + 4
-            max_height = (height > max_height and height) or max_height
+                local glyphDataWidth, glyphDataHeight = glyphData:getDimensions()
 
-            glyphs_obj[glyph_s] = glyph
-            glyphs_data[glyph] = glyphData
+                total_width = total_width + glyphDataWidth + 4
+                local height = glyphDataHeight + cur_y + 4
+                max_height = (height > max_height and height) or max_height
+
+                glyphs_obj[glyph_s] = glyph
+                glyphs_data[glyph] = glyphData
+            end
         end
     end
     -- max_height = max_height + 100
