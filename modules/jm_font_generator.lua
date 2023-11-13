@@ -331,6 +331,10 @@ function Font:__constructor__(args)
         [3] = self.batches[FontFormat.italic],
     }
     self.__n_batches = #self.__batches
+
+    if not args.font_size then
+        self:set_font_size(self.__ref_height)
+    end
 end
 
 ---@return JM.Font.GlyphIterator
@@ -375,11 +379,11 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
     local mask_color = { 1, 1, 0, 1 }
     local mask_color_red = { 1, 0, 0, 1 }
 
-    local function equals(r, g, b, a)
+    local function is_yellow(r, g, b, a)
         return r == mask_color[1] and g == mask_color[2] and b == mask_color[3] and a == mask_color[4]
     end
 
-    local function equals_red(r, g, b, a)
+    local function is_red(r, g, b, a)
         return r == mask_color_red[1] and g == mask_color_red[2] and b == mask_color_red[3] and a == mask_color_red[4]
     end
 
@@ -393,56 +397,125 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
         local w, h = data:getDimensions()
         for i = 0, w - 1 do
             for j = 0, h - 1 do
-                if equals(data:getPixel(i, j)) then
+                if is_yellow(data:getPixel(i, j)) then
                     data:setPixel(i, j, 0, 0, 0, 0)
                 end
             end
         end
         img = lgx.newImage(data)
-        img:setFilter(min_filter or "linear", max_filter or "linear")
+        img:setFilter(min_filter or "linear", max_filter or "nearest")
         data:release()
     end
 
     local w, h = img_data:getDimensions()
     local cur_id = 1
 
-    local i = 0
+    -- local x = 0
     local N_glyphs = #glyphs
+    local founds = {}
 
-    while not quads_pos and (i <= w - 1) do
+    -- while not quads_pos and (x <= w - 1) do
+    --     if cur_id > N_glyphs then break end
+
+    --     local y = 0
+
+    --     while (y <= h - 1) do
+    --         local r, g, b, a = img_data:getPixel(x, y)
+
+    --         if a == 0
+    --             or (not is_yellow(r, g, b, a) and not is_red(r, g, b, a))
+    --         then
+    --             local qx, qy, qw, qh, bottom
+
+    --             qx, qy = x, y
+
+    --             for k = x, w - 1 do
+    --                 if is_yellow(img_data:getPixel(k, y)) then
+    --                     qw = k - qx
+    --                     break
+    --                 end
+    --             end
+
+    --             for p = y, h - 1 do
+    --                 if is_yellow(img_data:getPixel(qx, p)) then
+    --                     qh = p - qy
+    --                     break
+    --                 elseif is_red(img_data:getPixel(qx - 1, p)) then
+    --                     bottom = p
+    --                 end
+    --             end
+
+    --             if not bottom then
+    --                 for p = qh, h - 1 do
+    --                     if is_red(img_data:getPixel(qx - 1, p)) then
+    --                         bottom = p
+    --                         break
+    --                     end
+    --                 end
+    --             end
+
+    --             qh = qh or (h - 1)
+
+    --             local glyph = Glyph:new(img,
+    --                 {
+    --                     id = glyphs[cur_id],
+    --                     x = qx,
+    --                     y = qy,
+    --                     w = qw,
+    --                     h = qh,
+    --                     bottom = bottom or (qy + qh),
+    --                     format = format
+    --                 })
+
+    --             list[glyph.id] = glyph
+
+    --             if is_valid_nickname(glyph.id) then
+    --                 self:push_nick_glyph(glyph.id)
+    --             end
+
+    --             cur_id = cur_id + 1
+    --             x = qx + qw
+    --         end
+    --         y = y + 1
+    --     end
+    --     x = x + 1
+    -- end
+
+    local y = 0
+    while not quads_pos and (y <= h - 1) do
         if cur_id > N_glyphs then break end
 
-        local j = 0
-        while (j <= h - 1) do
-            local r, g, b, a = img_data:getPixel(i, j)
+        local x = 0
+
+        while (x <= w - 1) do
+            local r, g, b, a = img_data:getPixel(x, y)
 
             if a == 0
-                or (not equals(r, g, b, a) and not equals_red(r, g, b, a))
+                or (not is_yellow(r, g, b, a) and not is_red(r, g, b, a))
             then
                 local qx, qy, qw, qh, bottom
-                qx, qy = i, j
 
-                for k = i, w - 1 do
-                    local r, g, b, a = img_data:getPixel(k, j)
-                    if equals(r, g, b, a) then
+                qx, qy = x, y
+
+                for k = x, w - 1 do
+                    if is_yellow(img_data:getPixel(k, y)) then
                         qw = k - qx
                         break
                     end
                 end
 
-                for p = j, h - 1 do
-                    local r, g, b, a = img_data:getPixel(qx, p)
-                    if equals(r, g, b, a) then
+                for p = y, h - 1 do
+                    if is_yellow(img_data:getPixel(qx, p)) then
                         qh = p - qy
                         break
-                    elseif equals_red(img_data:getPixel(qx - 1, p)) then
+                    elseif is_red(img_data:getPixel(qx - 1, p)) then
                         bottom = p
                     end
                 end
 
                 if not bottom then
                     for p = qh, h - 1 do
-                        if equals_red(img_data:getPixel(qx - 1, p)) then
+                        if is_red(img_data:getPixel(qx - 1, p)) then
                             bottom = p
                             break
                         end
@@ -450,6 +523,8 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                 end
 
                 qh = qh or (h - 1)
+
+                print(glyphs[cur_id], qh, x)
 
                 local glyph = Glyph:new(img,
                     {
@@ -465,17 +540,15 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                 list[glyph.id] = glyph
 
                 if is_valid_nickname(glyph.id) then
-                    -- tab_insert(self.__nicknames, glyph.id)
                     self:push_nick_glyph(glyph.id)
-                    -- list[glyph.id] = glyph
                 end
 
                 cur_id = cur_id + 1
-                i = qx + qw
+                x = qx + qw
             end
-            j = j + 1
+            x = x + 1
         end
-        i = i + 1
+        y = y + 1
     end
 
     if quads_pos then
@@ -509,17 +582,13 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
     for k, v in pairs(symbols) do
         list[v] = list[v] or list[k]
     end
-    -- local glyph = list[":cpy:"]
-    -- list["\u{A9}"] = glyph
 
-    -- local nule_char = self:get_nule_character()
-    -- list[nule_char.__id] = nule_char
 
     self.__characters[format] = list
     self.__imgs[format] = img
 end
 
-local function load_by_tff(name, path, dpi, save, threshold)
+local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
     if not name or not path then return end
 
     ---@type love.Rasterizer
@@ -534,11 +603,7 @@ local function load_by_tff(name, path, dpi, save, threshold)
     if not success or not path then return end
 
 
-    -- local glyphs =
-    --     [[aAàÀáÁãÃâÂäÄeEéÉèÈêÊëËiIíÍìÌîÎïÏoOóÓòÒôÔõÕöÖuUúÚùÙûÛüÜbBcCçÇdDfFgGhHjJkKlLmMnNpPqQrRsStTvVwWxXyYzZ0123456789+-=/*%\#§@({[]})|_"'!?,.:;ªº°¹²³£¢¬¨~$<>&^`]] ..
-    --     "\u{A9}\u{A7}\u{d1}\u{ae}\u{b1}"
-
-    -- local glyph_table = get_glyphs(glyphs)
+    if glyphs_str and glyphs_str == "" then glyphs_str = nil end
 
     local glyph_table = {}
     local glyphs = ""
@@ -557,11 +622,16 @@ local function load_by_tff(name, path, dpi, save, threshold)
                 local w, h = glyph:getDimensions()
                 if w > 0 and h > 0 then
                     tab_insert(glyph_table, glyph_s)
-                    glyphs = glyphs .. glyph_s
+
+                    if not glyphs_str then
+                        glyphs = glyphs .. glyph_s
+                    end
                 end
             end
         end
     end
+
+    glyphs = glyphs_str or glyphs
 
     local cur_x = 4
     local cur_y = 2
@@ -925,11 +995,19 @@ function Font:__get_char_equals(c)
 
     local glyph = self.__characters[self.__format][c]
 
-    if not glyph and is_valid_nickname(c) then
-        for _, format in pairs(FontFormat) do
-            glyph = self.__characters[format][c]
-            if glyph then return glyph end
-        end
+    if glyph then return glyph end
+
+    if is_valid_nickname(c) then
+        -- for _, format in pairs(FontFormat) do
+        --     glyph = self.__characters[format][c]
+        --     if glyph then return glyph end
+        -- end
+        glyph = self.__characters[FontFormat.normal][c]
+        if glyph then return glyph end
+        glyph = self.__characters[FontFormat.bold][c]
+        if glyph then return glyph end
+        glyph = self.__characters[FontFormat.italic][c]
+        if glyph then return glyph end
     end
 
     return glyph
@@ -1914,21 +1992,22 @@ local Generator = {
     new_by_ttf = function(self, args)
         args = args or {}
         local imgData, glyphs, quads_pos = load_by_tff(args.name,
-            args.path, args.dpi)
+            args.dir or args.path, args.dpi, nil, nil, nil)
         args.regular_data = imgData
         args.regular_quads = quads_pos
 
         do
-            local data, gly, quads = load_by_tff(args.name .. " bold", args.path_bold, args.dpi)
+            local data, gly, quads = load_by_tff(args.name .. " bold",
+                args.dir_bold or args.path_bold, args.dpi, nil, nil, glyphs)
 
             args.bold_data = data
             args.bold_quads = quads
         end
 
         do
-            local italic_data, glyphs, quads = load_by_tff(
+            local italic_data, gly, quads = load_by_tff(
                 args.name .. " italic",
-                args.path_italic, args.dpi)
+                args.dir_italic or args.path_italic, args.dpi, nil, nil, glyphs)
 
             args.italic_data = italic_data
             args.italic_quads = quads
