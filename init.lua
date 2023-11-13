@@ -101,17 +101,33 @@ function JM:get_font(font)
         return c17
         ---
     else
-        local f = JM.FontGenerator:new_by_ttf {
-            dir = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
-            dir_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
-            -- path_italic = "/data/font/Komika Text Italic.ttf",
-            dpi = 48,
+        -- local f = JM.FontGenerator:new_by_ttf {
+        --     dir = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
+        --     dir_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
+        --     -- path_italic = "/data/font/Komika Text Italic.ttf",
+        --     dpi = 48,
+        --     name = "open sans",
+        --     font_size = 12,
+        --     character_space = 0,
+        --     tab_size = 4,
+        --     min_filter = "linear",
+        --     max_filter = "nearest",
+        --     max_texturesize = 2048,
+        -- }
+        -- fonts[font] = f
+        -- return f
+
+        local glyphs =
+        "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
+
+        local f = JM.FontGenerator:new {
             name = "open sans",
+            dir = "/jm-love2d-package/data/font/open sans.png",
+            glyphs = glyphs,
+            dir_bold = "/jm-love2d-package/data/font/open sans bold.png",
+            glyphs_bold = glyphs,
+            character_space = 1,
             font_size = 12,
-            character_space = 0,
-            tab_size = 4,
-            min_filter = "linear",
-            max_filter = "nearest"
         }
         fonts[font] = f
         return f
