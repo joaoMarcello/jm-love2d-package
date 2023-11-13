@@ -683,17 +683,24 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
     end
     -- max_height = max_height + 100
 
-    cur_x = 4
+    cur_x = 2
     cur_y = 2
-
     local py = 3
 
-    local max_value = 528
+    local limits = love.graphics.getSystemLimits()
+    local max_value = total_width
+    if max_value > limits.texturesize then
+        max_value = limits.texturesize
+    end
+
     local n_lines = math.floor(total_width / max_value)
     n_lines = n_lines == 0 and 1 or n_lines
 
     -- local font_imgdata = love.image.newImageData(total_width, max_height, "rgba8")
-    local font_imgdata = love.image.newImageData(max_value + 4, (max_height) * n_lines + 4, "rgba8")
+    local font_imgdata = love.image.newImageData(
+        max_value,
+        (max_height) * n_lines + 5, "rgba8"
+    )
 
     local data_w, data_h = font_imgdata:getDimensions()
     local quad_pos = {}
@@ -779,8 +786,8 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
 
             local glyphDataWidth, glyphDataHeight = glyphData:getDimensions()
 
-            if cur_x + glyphDataWidth - 1 > max_value then
-                cur_x = 4
+            if cur_x + glyphDataWidth >= max_value then
+                cur_x = 2
                 py = py + max_height - 3
             end
 
@@ -788,34 +795,34 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
             cur_y = py --data_h - 2 - glyphDataHeight + (bby < 0 and bby or 0)
 
             -- turning transparent the glyph quad in the output img (width)
-            for i = -1, glyphDataWidth - 1 do
-                if cur_y - 1 < data_h - 1 and cur_x + i < data_w - 1 then
-                    font_imgdata:setPixel(cur_x + i, cur_y - 1, 0, 0, 0, 0)
+            for i = 0, glyphDataWidth - 1 do
+                if cur_y - 1 < data_h - 1 and cur_x + i <= data_w - 1 then
+                    font_imgdata:setPixel(cur_x + i, cur_y, 0, 0, 0, 0)
                 end
             end
 
-            -- turning transparent the glyph quad in the output img (height)
-            for j = -1, glyphDataHeight - 1 do
-                if cur_y + j < data_h - 1 then
-                    font_imgdata:setPixel(cur_x - 1, cur_y + j, 0, 0, 0, 0)
-                end
-            end
+            -- -- turning transparent the glyph quad in the output img (height)
+            -- for j = -1, glyphDataHeight - 1 do
+            --     if cur_y + j <= data_h - 1 then
+            --         -- font_imgdata:setPixel(cur_x - 1, cur_y + j, 0, 0, 0, 0)
+            --     end
+            -- end
 
             font_imgdata:paste(glyphData, cur_x, cur_y, 0, 0, glyphDataWidth, glyphDataHeight)
 
             local posR_y = math.abs(cur_y + (bby + bbh))
             if posR_y >= 0 and posR_y <= data_h - 1 then
-                font_imgdata:setPixel(cur_x - 2, posR_y, 1, 0, 0, 1)
+                font_imgdata:setPixel(cur_x - 1, posR_y, 1, 0, 0, 1)
             end
 
             local posBlue = math.floor(cur_x + bbw - (bbx > 0 and 0 or -bbx))
-            if posBlue >= 0 and posBlue <= data_w - 1 and cur_y - 2 < data_h - 1 then
-                font_imgdata:setPixel(posBlue, cur_y - 2, 1, 0, 0, 1)
+            if posBlue >= 0 and posBlue <= data_w - 1 and cur_y - 1 < data_h - 1 then
+                font_imgdata:setPixel(posBlue, cur_y - 1, 1, 0, 0, 1)
             end
 
             quad_pos[glyph_s] = {
-                x = cur_x - 1,
-                y = cur_y - 1,
+                x = cur_x,
+                y = cur_y,
                 w = glyphDataWidth + 1,
                 h = glyphDataHeight + 2,
                 bottom = (posR_y >= 0 and posR_y <= data_h - 1 and posR_y)
@@ -829,8 +836,11 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
         end
     end
 
-    if save then
+    if save or true then
         font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
+        -- JM.Ldr.save(glyphs, "glyphs2.txt")
+        -- love.filesystem.write("glyphs.txt", JM.Ldr.ser.pack(glyphs))
+        love.filesystem.write("glyphs_" .. name .. ".txt", glyphs)
     end
 
     return font_imgdata, glyphs, quad_pos
@@ -1123,7 +1133,10 @@ function Font:separate_string(s, list)
     local current_init = 1
     local words = list or {}
 
-    while (current_init <= #(s)) do
+    -- local N = utf8.len(s) -- #s
+    local N = #s
+
+    while (current_init <= N) do
         -- while (current_init <= utf8.len(s)) do
         local regex = str_format("[^[ ]]*.-[%s]", sep)
         local tag_regex = "< *[%d, =._%w/%-%#]*>"
@@ -1134,6 +1147,7 @@ function Font:separate_string(s, list)
 
         if tag then
             local startp, endp = str_find(s, tag_regex, current_init)
+
             local sub_s = startp and s:sub(startp, endp)
             local prev_s = s:sub(current_init, startp - 1)
 
@@ -1159,9 +1173,11 @@ function Font:separate_string(s, list)
             -- current_init = endp
         elseif find then
             local startp, endp = str_find(s, regex, current_init)
+            -- local len
             local sub_s = startp and s:sub(startp, endp - 1)
 
-            if sub_s ~= "" and sub_s ~= " " then
+            if sub_s ~= "" and sub_s ~= " "
+            then
                 tab_insert(words, sub_s)
             end
 
