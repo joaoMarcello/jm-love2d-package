@@ -792,8 +792,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
                 py = py + max_height - 3
             end
 
-            -- cur_y = data_h - 2 - glyphDataHeight + (bby < 0 and bby or 0)
-            cur_y = py --data_h - 2 - glyphDataHeight + (bby < 0 and bby or 0)
+            cur_y = py
 
             -- turning transparent the glyph quad in the output img (width)
             for i = 0, glyphDataWidth - 1 do
@@ -801,13 +800,6 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
                     font_imgdata:setPixel(cur_x + i, cur_y, 0, 0, 0, 0)
                 end
             end
-
-            -- -- turning transparent the glyph quad in the output img (height)
-            -- for j = -1, glyphDataHeight - 1 do
-            --     if cur_y + j <= data_h - 1 then
-            --         -- font_imgdata:setPixel(cur_x - 1, cur_y + j, 0, 0, 0, 0)
-            --     end
-            -- end
 
             for y = cur_y, cur_y + bby + bbh - 1 do
                 for x = cur_x, cur_x + bbw - 1 do
@@ -834,7 +826,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
             quad_pos[glyph_s] = {
                 x = cur_x,
                 y = cur_y,
-                w = glyphDataWidth + 1,
+                w = glyphDataWidth, -- + 1,
                 h = glyphDataHeight + 2,
                 bottom = (posR_y >= 0 and posR_y <= data_h - 1 and posR_y)
                     or nil,
@@ -842,8 +834,6 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
             }
 
             cur_x = cur_x + glyphDataWidth + 4
-
-            -- if _ == 125 then break end
         end
     end
 
@@ -2115,13 +2105,13 @@ local Generator = {
     new_by_ttf = function(self, args)
         args = args or {}
         local imgData, glyphs, quads_pos = load_by_tff(args.name,
-            args.dir or args.path, args.dpi, nil, nil, nil, args.max_texturesize)
+            args.dir or args.path, args.dpi, args.save, nil, nil, args.max_texturesize)
         args.regular_data = imgData
         args.regular_quads = quads_pos
 
         do
             local data, gly, quads = load_by_tff(args.name .. " bold",
-                args.dir_bold or args.path_bold, args.dpi, nil, nil, glyphs, args.max_texturesize)
+                args.dir_bold or args.path_bold, args.dpi, args.save, nil, glyphs, args.max_texturesize)
 
             args.bold_data = data
             args.bold_quads = quads
@@ -2130,7 +2120,7 @@ local Generator = {
         do
             local italic_data, gly, quads = load_by_tff(
                 args.name .. " italic",
-                args.dir_italic or args.path_italic, args.dpi, nil, nil, glyphs, args.max_texturesize)
+                args.dir_italic or args.path_italic, args.dpi, args.save, nil, glyphs, args.max_texturesize)
 
             args.italic_data = italic_data
             args.italic_quads = quads
