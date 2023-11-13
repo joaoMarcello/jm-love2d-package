@@ -1124,6 +1124,7 @@ function Font:separate_string(s, list)
     local words = list or {}
 
     while (current_init <= #(s)) do
+        -- while (current_init <= utf8.len(s)) do
         local regex = str_format("[^[ ]]*.-[%s]", sep)
         local tag_regex = "< *[%d, =._%w/%-%#]*>"
 
