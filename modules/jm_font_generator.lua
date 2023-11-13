@@ -2131,4 +2131,7 @@ local Generator = {
     end
 }
 
+Generator.load_by_img = Generator.new
+Generator.load_by_fontfile = Generator.new_by_ttf
+
 return Generator
