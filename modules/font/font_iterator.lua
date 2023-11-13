@@ -73,7 +73,7 @@ function Iterator:__constructor__(text, font)
         --     end
         -- end
 
-        -- if not glyph and current_char ~= "\n" then
+        -- if not glyph and current_char ~= "\n" and current_char ~= " " then
         --     glyph = font:get_nule_character()
         -- end
 
