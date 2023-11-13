@@ -44,14 +44,13 @@ function Iterator:__constructor__(text, font)
     if not codes then
         codes = {}
         for p, c in utf8.codes(text) do
-            codes[p] = utf8.char(c)
+            codes[p] = tostring(utf8.char(c))
         end
         font.CODES[text] = codes
     end
 
     local i = 1
-    -- while (i <= #text) do
-    local N = utf8.len(text)
+    local N = #codes --utf8.len(text)
     -- while i <= #codes do
 
     while i <= N do
@@ -62,8 +61,7 @@ function Iterator:__constructor__(text, font)
             current_char = is_nick
             i = i + #(is_nick) - 1
         else
-            -- current_char = text:match(".", i)
-            current_char = codes[i] --text:match(".", i)
+            current_char = codes[i]
         end
 
         glyph = font:__get_char_equals(current_char)
