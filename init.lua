@@ -35,8 +35,13 @@ local fonts = {}
 function JM:get_font(font)
     font = font or "default"
 
+    do
+        local r = fonts[font]
+        if r then return r end
+    end
+
     if font == "pix8" then
-        local pix8 = fonts[font] or JM.FontGenerator:new {
+        local pix8 = JM.FontGenerator:new {
             name            = "pix8",
             dir             = "jm-love2d-package/data/font/font_pix8-Sheet.png",
             glyphs          = [[AÀÁÃÄÂaàáãäâBbCcÇçDdEÈÉÊËeèéêëFfGgHhIÌÍÎÏiìíîïJjKkLlMmN:enne_up:n:enne:OÒÓÕÔÖoòóõôöPpQqRrSsTtUÙÚÛÜuùúûüVvWwXxYyZz0123456789!?@#$%^&*()<>{}:[]:mult::div::cpy:+-_=¬'"¹²³°ºª\/.:dots:;,:dash:|¢£:blk_bar::arw_fr::arw_bk::arw_up::arw_dw::bt_a::bt_b::bt_x::bt_y::bt_r::bt_l::star::heart::diamond::circle::arw2_fr::arw2_bk::spa_inter::female::male::check::line::db_comma_init::db_comma_end::comma_init::comma_end::arw_head_fr::arw_head_bk:]],
@@ -52,7 +57,7 @@ function JM:get_font(font)
         return pix8
         ---
     elseif font == "pix5" then
-        local pix5 = fonts[font] or JM.FontGenerator:new {
+        local pix5 = JM.FontGenerator:new {
             name = "pix5",
             dir = "jm-love2d-package/data/font/font_pix5-Sheet.png",
             glyphs = [[aàáãâäbcçdeèéêëfghiìíîïjklmnoòóõôöpqrstuùúûüvwxyz0123456789-_.:dots::+:square::blk_bar::heart:()[]{}:arw_fr::arw_bk::arw_up::arw_dw::dash:|,;!?\/*~^:arw2_fr::arw2_bk:º°¬'":div:%#¢@]],
@@ -68,7 +73,7 @@ function JM:get_font(font)
         return pix5
         ---
     elseif font == "circuit21" then
-        local c21 = fonts[font] or JM.FontGenerator:new {
+        local c21 = JM.FontGenerator:new {
             name = "circuit21",
             dir = "/jm-love2d-package/data/font/circuit21-Sheet.png",
             glyphs = "1234567890-:null:",
@@ -82,7 +87,7 @@ function JM:get_font(font)
         return c21
         ---
     elseif font == "circuit17" then
-        local c17 = fonts[font] or JM.FontGenerator:new {
+        local c17 = JM.FontGenerator:new {
             name = "circuit17",
             dir = "/jm-love2d-package/data/font/circuit17-Sheet.png",
             glyphs = "1234567890-:null:",
@@ -96,9 +101,9 @@ function JM:get_font(font)
         return c17
         ---
     else
-        local f = fonts[font] or JM.FontGenerator:new_by_ttf {
-            path = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
-            path_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
+        local f = JM.FontGenerator:new_by_ttf {
+            dir = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
+            dir_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
             -- path_italic = "/data/font/Komika Text Italic.ttf",
             dpi = 48,
             name = "open sans",
@@ -171,13 +176,14 @@ JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 
-
-
 function JM:update(dt)
     -- JM_Font.current:update(dt)
     JM:get_font():update(dt)
+
     self.Sound:update(dt)
     self.ParticleSystem:update(dt)
 end
+
+JM:get_font()
 
 return JM
