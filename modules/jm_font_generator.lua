@@ -524,27 +524,29 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
 
                 qh = qh or (h - 1)
 
-                print(glyphs[cur_id], qh, x)
+                -- print(glyphs[cur_id], qh, x)
 
-                local glyph = Glyph:new(img,
-                    {
-                        id = glyphs[cur_id],
-                        x = qx,
-                        y = qy,
-                        w = qw,
-                        h = qh,
-                        bottom = bottom or (qy + qh),
-                        format = format
-                    })
+                if qh and qw then
+                    local glyph = Glyph:new(img,
+                        {
+                            id = glyphs[cur_id],
+                            x = qx,
+                            y = qy,
+                            w = qw,
+                            h = qh,
+                            bottom = bottom or (qy + qh),
+                            format = format
+                        })
 
-                list[glyph.id] = glyph
+                    list[glyph.id] = glyph
 
-                if is_valid_nickname(glyph.id) then
-                    self:push_nick_glyph(glyph.id)
+                    if is_valid_nickname(glyph.id) then
+                        self:push_nick_glyph(glyph.id)
+                    end
+
+                    cur_id = cur_id + 1
+                    x = qx + qw
                 end
-
-                cur_id = cur_id + 1
-                x = qx + qw
             end
             x = x + 1
         end
