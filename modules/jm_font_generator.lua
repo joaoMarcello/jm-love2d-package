@@ -826,8 +826,8 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
             quad_pos[glyph_s] = {
                 x = cur_x,
                 y = cur_y,
-                w = glyphDataWidth, -- + 1,
-                h = glyphDataHeight + 2,
+                w = glyphDataWidth,  -- + 1,
+                h = glyphDataHeight, --+ 2,
                 bottom = (posR_y >= 0 and posR_y <= data_h - 1 and posR_y)
                     or nil,
                 right = (posBlue >= 0 and posBlue <= data_w - 1 and posBlue) or nil
