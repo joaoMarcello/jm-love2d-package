@@ -229,7 +229,7 @@ function Font:__constructor__(args)
     -- local dir = path:gsub("modules.jm_font_generator", "/data/font/")
     --     .. "%s/%s.png"
 
-    self:load_characters(args.regular_data
+    self:load_glyphs(args.regular_data
         or args.dir,
         -- or str_format(dir, args.name, args.name),
         FontFormat.normal,
@@ -241,7 +241,7 @@ function Font:__constructor__(args)
 
 
     if not args.regular_data or args.bold_data then
-        self:load_characters(args.bold_data
+        self:load_glyphs(args.bold_data
             or args.dir_bold,
             -- or str_format(dir, args.name, args.name .. "_bold"),
             FontFormat.bold,
@@ -256,7 +256,7 @@ function Font:__constructor__(args)
     end
 
     if (not args.regular_data or args.italic_data) then
-        self:load_characters(args.italic_data
+        self:load_glyphs(args.italic_data
             or args.dir_italic,
             -- or str_format(dir, args.name, args.name .. "_italic"),
             FontFormat.italic,
@@ -361,19 +361,19 @@ local function symbols_unicode()
     }
 end
 
----@param path any
+---@param dir any
 ---@param format JM.Font.FormatOptions
 ---@param glyphs table
-function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_filter)
+function Font:load_glyphs(dir, format, glyphs, quads_pos, min_filter, max_filter)
     -- try load the img data
     local success, img_data = pcall(
         function()
-            return type(path) == "string" and love.image.newImageData(path)
-                or path
+            return type(dir) == "string" and love.image.newImageData(dir)
+                or dir
         end
     )
 
-    if not success or not path then return end
+    if not success or not dir then return end
 
     local list = {} -- list of glyphs
     local mask_color = { 1, 1, 0, 1 }
@@ -482,12 +482,11 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
     -- end
 
     local collision = function(qx, qy)
-        local qw, qh = 0, 0
         for i = 1, n_founds do
             local quad = founds[i]
             local fx, fy, fw, fh = quad[1], quad[2], quad[3], quad[4]
-            local r = qx + qw >= fx and qx <= fx + fw
-                and qy + qh >= fy and qy <= fy + fh
+            local r = qx >= fx and qx <= fx + fw
+                and qy >= fy and qy <= fy + fh
             if r then return true end
         end
     end
