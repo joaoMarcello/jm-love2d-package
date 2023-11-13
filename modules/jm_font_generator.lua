@@ -413,7 +413,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
     -- local x = 0
     local N_glyphs = #glyphs
     local founds = {}
-
+    local n_founds = 0
     -- while not quads_pos and (x <= w - 1) do
     --     if cur_id > N_glyphs then break end
 
@@ -481,6 +481,17 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
     --     x = x + 1
     -- end
 
+    local collision = function(qx, qy)
+        local qw, qh = 0, 0
+        for i = 1, n_founds do
+            local quad = founds[i]
+            local fx, fy, fw, fh = quad[1], quad[2], quad[3], quad[4]
+            local r = qx + qw >= fx and qx <= fx + fw
+                and qy + qh >= fy and qy <= fy + fh
+            if r then return true end
+        end
+    end
+
     local y = 0
     while not quads_pos and (y <= h - 1) do
         if cur_id > N_glyphs then break end
@@ -490,8 +501,9 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
         while (x <= w - 1) do
             local r, g, b, a = img_data:getPixel(x, y)
 
-            if a == 0
-                or (not is_yellow(r, g, b, a) and not is_red(r, g, b, a))
+            if (a == 0
+                    or (not is_yellow(r, g, b, a) and not is_red(r, g, b, a)))
+                and not collision(x, y)
             then
                 local qx, qy, qw, qh, bottom
 
@@ -513,8 +525,9 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                     end
                 end
 
-                if not bottom then
-                    for p = qh, h - 1 do
+                if not bottom and qh then
+                    for p = qy, qy + qh + 5 do
+                        if p > h - 1 then break end
                         if is_red(img_data:getPixel(qx - 1, p)) then
                             bottom = p
                             break
@@ -527,6 +540,9 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                 -- print(glyphs[cur_id], qh, x)
 
                 if qh and qw then
+                    tab_insert(founds, { qx, qy, qw, qh })
+                    n_founds = n_founds + 1
+
                     local glyph = Glyph:new(img,
                         {
                             id = glyphs[cur_id],
@@ -545,7 +561,7 @@ function Font:load_characters(path, format, glyphs, quads_pos, min_filter, max_f
                     end
 
                     cur_id = cur_id + 1
-                    x = qx + qw
+                    x = qx + qw - 1
                 end
             end
             x = x + 1
