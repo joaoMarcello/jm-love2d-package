@@ -605,7 +605,7 @@ function Font:load_glyphs(dir, format, glyphs, quads_pos, min_filter, max_filter
     self.__imgs[format] = img
 end
 
-local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
+local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_texturesize)
     if not name or not path then return end
 
     ---@type love.Rasterizer
@@ -688,12 +688,13 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
     local py = 3
 
     local limits = love.graphics.getSystemLimits()
-    local max_value = total_width
+    local max_value = max_texturesize or total_width
+
     if max_value > limits.texturesize then
         max_value = limits.texturesize
     end
 
-    local n_lines = math.floor(total_width / max_value)
+    local n_lines = math.ceil(total_width / max_value)
     n_lines = n_lines == 0 and 1 or n_lines
 
     -- local font_imgdata = love.image.newImageData(total_width, max_height, "rgba8")
@@ -796,7 +797,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
 
             -- turning transparent the glyph quad in the output img (width)
             for i = 0, glyphDataWidth - 1 do
-                if cur_y - 1 < data_h - 1 and cur_x + i <= data_w - 1 then
+                if cur_y - 1 <= data_h - 1 and cur_x + i <= data_w - 1 then
                     font_imgdata:setPixel(cur_x + i, cur_y, 0, 0, 0, 0)
                 end
             end
@@ -808,7 +809,17 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
             --     end
             -- end
 
+            for y = cur_y, cur_y + bby + bbh - 1 do
+                for x = cur_x, cur_x + bbw - 1 do
+                    if x <= data_w - 1 and y <= data_h - 1 then
+                        font_imgdata:setPixel(x, y, 0, 0, 0, 0)
+                    end
+                end
+            end
+
+
             font_imgdata:paste(glyphData, cur_x, cur_y, 0, 0, glyphDataWidth, glyphDataHeight)
+
 
             local posR_y = math.abs(cur_y + (bby + bbh))
             if posR_y >= 0 and posR_y <= data_h - 1 then
@@ -836,10 +847,8 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
         end
     end
 
-    if save or true then
+    if save then
         font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
-        -- JM.Ldr.save(glyphs, "glyphs2.txt")
-        -- love.filesystem.write("glyphs.txt", JM.Ldr.ser.pack(glyphs))
         love.filesystem.write("glyphs_" .. name .. ".txt", glyphs)
     end
 
@@ -2106,13 +2115,13 @@ local Generator = {
     new_by_ttf = function(self, args)
         args = args or {}
         local imgData, glyphs, quads_pos = load_by_tff(args.name,
-            args.dir or args.path, args.dpi, nil, nil, nil)
+            args.dir or args.path, args.dpi, nil, nil, nil, args.max_texturesize)
         args.regular_data = imgData
         args.regular_quads = quads_pos
 
         do
             local data, gly, quads = load_by_tff(args.name .. " bold",
-                args.dir_bold or args.path_bold, args.dpi, nil, nil, glyphs)
+                args.dir_bold or args.path_bold, args.dpi, nil, nil, glyphs, args.max_texturesize)
 
             args.bold_data = data
             args.bold_quads = quads
@@ -2121,7 +2130,7 @@ local Generator = {
         do
             local italic_data, gly, quads = load_by_tff(
                 args.name .. " italic",
-                args.dir_italic or args.path_italic, args.dpi, nil, nil, glyphs)
+                args.dir_italic or args.path_italic, args.dpi, nil, nil, glyphs, args.max_texturesize)
 
             args.italic_data = italic_data
             args.italic_quads = quads
