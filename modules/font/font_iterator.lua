@@ -51,7 +51,10 @@ function Iterator:__constructor__(text, font)
 
     local i = 1
     -- while (i <= #text) do
-    while i <= #codes do
+    local N = utf8.len(text)
+    -- while i <= #codes do
+
+    while i <= N do
         local current_char, glyph
 
         local is_nick = font:__is_a_nickname(text, i)
