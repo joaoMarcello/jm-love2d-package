@@ -685,7 +685,16 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
 
     cur_x = 4
     cur_y = 2
-    local font_imgdata = love.image.newImageData(total_width, max_height, "rgba8")
+
+    local py = 3
+
+    local max_value = 528
+    local n_lines = math.floor(total_width / max_value)
+    n_lines = n_lines == 0 and 1 or n_lines
+
+    -- local font_imgdata = love.image.newImageData(total_width, max_height, "rgba8")
+    local font_imgdata = love.image.newImageData(max_value + 4, (max_height) * n_lines + 4, "rgba8")
+
     local data_w, data_h = font_imgdata:getDimensions()
     local quad_pos = {}
 
@@ -770,19 +779,26 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
 
             local glyphDataWidth, glyphDataHeight = glyphData:getDimensions()
 
-            -- local py = cur_y
-            cur_y = data_h - 2 - glyphDataHeight + (bby < 0 and bby or 0)
+            if cur_x + glyphDataWidth - 1 > max_value then
+                cur_x = 4
+                py = py + max_height - 3
+            end
+
+            -- cur_y = data_h - 2 - glyphDataHeight + (bby < 0 and bby or 0)
+            cur_y = py --data_h - 2 - glyphDataHeight + (bby < 0 and bby or 0)
 
             -- turning transparent the glyph quad in the output img (width)
             for i = -1, glyphDataWidth - 1 do
-                font_imgdata:setPixel(cur_x + i, cur_y - 1, 0, 0, 0, 0)
-                -- font_imgdata:setPixel(cur_x + i, cur_y + glyphDataHeight, 0, 0, 0, 0)
+                if cur_y - 1 < data_h - 1 and cur_x + i < data_w - 1 then
+                    font_imgdata:setPixel(cur_x + i, cur_y - 1, 0, 0, 0, 0)
+                end
             end
 
             -- turning transparent the glyph quad in the output img (height)
             for j = -1, glyphDataHeight - 1 do
-                font_imgdata:setPixel(cur_x - 1, cur_y + j, 0, 0, 0, 0)
-                -- font_imgdata:setPixel(cur_x + glyphDataWidth, cur_y + j, 0, 0, 0, 0)
+                if cur_y + j < data_h - 1 then
+                    font_imgdata:setPixel(cur_x - 1, cur_y + j, 0, 0, 0, 0)
+                end
             end
 
             font_imgdata:paste(glyphData, cur_x, cur_y, 0, 0, glyphDataWidth, glyphDataHeight)
@@ -793,7 +809,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
             end
 
             local posBlue = math.floor(cur_x + bbw - (bbx > 0 and 0 or -bbx))
-            if posBlue >= 0 and posBlue <= data_w - 1 then
+            if posBlue >= 0 and posBlue <= data_w - 1 and cur_y - 2 < data_h - 1 then
                 font_imgdata:setPixel(posBlue, cur_y - 2, 1, 0, 0, 1)
             end
 
@@ -813,7 +829,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str)
         end
     end
 
-    if save or true then
+    if save then
         font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
     end
 
