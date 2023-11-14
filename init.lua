@@ -101,42 +101,40 @@ function JM:get_font(font)
         return c17
         ---
     else
-        -- local f = JM.FontGenerator:new_by_ttf {
-        --     dir = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
-        --     dir_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
-        --     -- path_italic = "/data/font/Komika Text Italic.ttf",
-        --     dpi = 48,
-        --     name = "open sans",
-        --     font_size = 12,
-        --     character_space = 0,
-        --     tab_size = 4,
-        --     min_filter = "linear",
-        --     max_filter = "nearest",
-        --     max_texturesize = 2048,
-        -- }
-        -- fonts[font] = f
-        -- return f
-
-        local glyphs =
-        "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
-
-        local f = JM.FontGenerator:new {
+        local f = JM.FontGenerator:new_by_ttf {
+            dir = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
+            dir_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
+            -- path_italic = "/data/font/Komika Text Italic.ttf",
+            dpi = 36,
             name = "open sans",
-            dir = "/jm-love2d-package/data/font/open sans.png",
-            glyphs = glyphs,
-            dir_bold = "/jm-love2d-package/data/font/open sans bold.png",
-            glyphs_bold = glyphs,
-            character_space = 1,
             font_size = 12,
+            character_space = 1,
+            tab_size = 4,
+            min_filter = "linear",
+            max_filter = "nearest",
+            max_texturesize = 2048,
+            -- save = true,
+            threshold = { { "00", "7f" }, { "80", "ff" }, { "100", "17f" }, { "180", "24f" }, { "2b0", "2ff" }, { "300", "36f" }, { "370", "3ff" }, { "400", "4ff" }, { "1d00", "1d7f" }, { "1d80", "1dbf" }, { "1e00", "1eff" }, { "2000", "206f" }, { "2070", "209f" }, { "2100", "214f" }, { "2150", "218f" }, { "2200", "22ff" }, { "2300", "23ff" } },
         }
         fonts[font] = f
         return f
+
+        -- local glyphs =
+        -- "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
+
+        -- local f = JM.FontGenerator:new {
+        --     name = "open sans",
+        --     dir = "/jm-love2d-package/data/font/open sans.png",
+        --     glyphs = glyphs,
+        --     dir_bold = "/jm-love2d-package/data/font/open sans bold.png",
+        --     glyphs_bold = glyphs,
+        --     character_space = 1,
+        --     font_size = 12,
+        -- }
+        -- fonts[font] = f
+        -- return f
     end
 end
-
--- ---@type JM.Font.Manager
--- JM.Font = require(string.gsub(path, "init", "modules.jm_font"))
--- JM_Font = JM.Font
 
 ---@type JM.Camera.Camera
 JM.Camera = require(string.gsub(path, "init", "modules.jm_camera"))
