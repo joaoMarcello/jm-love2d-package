@@ -44,14 +44,13 @@ function Iterator:__constructor__(text, font)
     if not codes then
         codes = {}
         for p, c in utf8.codes(text) do
-            codes[p] = tostring(utf8.char(c))
+            tab_insert(codes, utf8.char(c))
         end
         font.CODES[text] = codes
     end
 
     local i = 1
-    local N = #codes --utf8.len(text)
-    -- while i <= #codes do
+    local N = #codes
 
     while i <= N do
         local current_char, glyph
@@ -65,18 +64,6 @@ function Iterator:__constructor__(text, font)
         end
 
         glyph = font:__get_char_equals(current_char)
-
-        -- if not glyph then
-        --     glyph = font:__get_char_equals(text:match("..", i))
-        --     if glyph then
-        --         current_char = text:sub(i, i + 1)
-        --         i = i + 1
-        --     end
-        -- end
-
-        -- if not glyph and current_char ~= "\n" and current_char ~= " " then
-        --     glyph = font:get_nule_character()
-        -- end
 
         if glyph then
             tab_insert(self.__list_obj, glyph)
