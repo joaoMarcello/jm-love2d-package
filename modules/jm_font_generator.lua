@@ -1359,49 +1359,51 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
         if glyph_id == "<" then
             local match = self:__is_a_command_tag(text:sub(pos))
             if match then
-                local startp, endp = text:find("<.->", pos)
+                local startp, endp = text:find(match, pos)
 
                 ---@diagnostic disable-next-line: param-type-mismatch
                 local tag = text:sub(startp, endp)
 
-                if match == "<color>" then
-                    local parse = Utils:parse_csv_line(text:sub(startp - 1, endp - 1))
-                    local r = parse[2] or 1
-                    local g = parse[3] or 0
-                    local b = parse[4] or 0
-                    local a = parse[5] or 1
+                if startp == pos then
+                    if match == "<color>" then
+                        local parse = Utils:parse_csv_line(text:sub(startp - 1, endp - 1))
+                        local r = parse[2] or 1
+                        local g = parse[3] or 0
+                        local b = parse[4] or 0
+                        local a = parse[5] or 1
 
-                    cur_color = Utils:get_rgba(r, g, b, a)
-                    --
-                elseif match == "<font>" then
-                    local tag_values = match and self:get_tag_args(tag)
-                    local action = tag_values["font"]
-
-                    if action == "color-hex" then
-                        local r, g, b, a =
-                            Utils:hex_to_rgba_float(tag_values["value"])
                         cur_color = Utils:get_rgba(r, g, b, a)
+                        --
+                    elseif match == "<font>" then
+                        local tag_values = match and self:get_tag_args(tag)
+                        local action = tag_values["font"]
+
+                        if action == "color-hex" then
+                            local r, g, b, a =
+                                Utils:hex_to_rgba_float(tag_values["value"])
+                            cur_color = Utils:get_rgba(r, g, b, a)
+                            ---
+                        elseif action == "font-size" then
+                            self:set_font_size(tag_values["value"] or original_fontsize)
+                        end
+
                         ---
-                    elseif action == "font-size" then
-                        self:set_font_size(tag_values["value"] or original_fontsize)
+                    elseif match == "</color>" then
+                        cur_color = original_color
+                    elseif match == "<bold>" then
+                        cur_format = self.format_options.bold
+                    elseif match == "</bold>" then
+                        cur_format = original_format
+                    elseif match == "<italic>" then
+                        cur_format = self.format_options.italic
+                    elseif match == "</italic>" then
+                        cur_format = original_format
                     end
 
-                    ---
-                elseif match == "</color>" then
-                    cur_color = original_color
-                elseif match == "<bold>" then
-                    cur_format = self.format_options.bold
-                elseif match == "</bold>" then
-                    cur_format = original_format
-                elseif match == "<italic>" then
-                    cur_format = self.format_options.italic
-                elseif match == "</italic>" then
-                    cur_format = original_format
+                    glyph_id = nil
+                    local off = utf8.offset(text, i) - i
+                    i = endp - off
                 end
-
-                glyph_id = nil
-                local off = utf8.offset(text, i) - i
-                i = endp - off
             end
         end
 
