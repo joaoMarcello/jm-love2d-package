@@ -190,18 +190,161 @@ JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 --===========================================================================
+local SceneManager = JM.SceneManager
+local Sound = JM.Sound
+
+local fullscreen
+
+--- Loads the first game scene.
+---@param s string the directory for the first game scene.
+---@param use_splash boolean|nil if should use splash screen
+function JM:load_initial_state(s, use_splash)
+    fullscreen = love.window.getFullscreen()
+
+    local state
+
+    if use_splash then
+        ---@type JM.GameState.Splash
+        state = require(JM.SplashScreenPath)
+        state:__get_data__():set_next_state_string(s)
+    else
+        state = require(s)
+    end
+    SceneManager:change_gamestate(state, { skip_transition = true })
+    return SceneManager.scene:resize(love.graphics.getDimensions())
+end
 
 function JM:update(dt)
-    -- JM_Font.current:update(dt)
+    SceneManager.scene:update(dt)
+
     JM:get_font():update(dt)
 
-    self.Sound:update(dt)
-    self.ParticleSystem:update(dt)
+    Sound:update(dt)
+    return self.ParticleSystem:update(dt)
 end
+
+function JM:draw()
+    return SceneManager.scene:draw()
+end
+
+--===========================================================================
+
+function JM:textinput(t)
+    return SceneManager.scene:textinput(t)
+end
+
+function JM:keypressed(key, scancode, isrepeat)
+    local scene = SceneManager.scene
+    key = scancode
+
+    if key == "escape" then
+        scene:finish()
+        scene = nil
+        collectgarbage()
+        return love.event.quit()
+    elseif key == "f11" or (key == 'f' and love.keyboard.isDown("lctrl")) then
+        fullscreen = not fullscreen
+        love.window.setFullscreen(fullscreen, 'desktop')
+        scene:resize(love.graphics.getDimensions())
+    end
+
+    return scene:keypressed(key, scancode, isrepeat)
+end
+
+function JM:keyreleased(key, scancode)
+    key = scancode
+    return SceneManager.scene:keyreleased(key, scancode)
+end
+
+function JM:mousepressed(x, y, button, istouch, presses)
+    return SceneManager.scene:mousepressed(x, y, button, istouch, presses)
+end
+
+function JM:mousereleased(x, y, button, istouch, presses)
+    return SceneManager.scene:mousereleased(x, y, button, istouch, presses)
+end
+
+function JM:mousemoved(x, y, dx, dy, istouch)
+    return SceneManager.scene:mousemoved(x, y, dx, dy, istouch)
+end
+
+function JM:focus(f)
+    local scene = SceneManager.scene
+
+    if not f then
+        scene:pause(math.huge)
+    else
+        scene:unpause()
+        scene:resize(love.graphics.getDimensions())
+    end
+
+    return scene:focus(f)
+end
+
+function JM:visible(v)
+    if v then
+        return SceneManager.scene:unpause()
+    else
+        return SceneManager.scene:pause(math.huge)
+    end
+end
+
+function JM:wheelmoved(x, y)
+    return SceneManager.scene:wheelmoved(x, y)
+end
+
+function JM:touchpressed(id, x, y, dx, dy, pressure)
+    return SceneManager.scene:touchpressed(id, x, y, dx, dy, pressure)
+end
+
+function JM:touchreleased(id, x, y, dx, dy, pressure)
+    return SceneManager.scene:touchreleased(id, x, y, dx, dy, pressure)
+end
+
+function JM:touchmoved(id, x, y, dx, dy, pressure)
+    return SceneManager.scene:touchmoved(id, x, y, dx, dy, pressure)
+end
+
+function JM:joystickpressed(joystick, button)
+    return SceneManager.scene:joystickpressed(joystick, button)
+end
+
+function JM:joystickreleased(joystick, button)
+    return SceneManager.scene:joystickreleased(joystick, button)
+end
+
+function JM:joystickaxis(joystick, axis, value)
+    return SceneManager.scene:joystickaxis(joystick, axis, value)
+end
+
+function JM:joystickadded(joystick)
+    return SceneManager.scene:joystickadded(joystick)
+end
+
+function JM:joystickremoved(joystick)
+    return SceneManager.scene:joystickremoved(joystick)
+end
+
+function JM:gamepadpressed(joy, button)
+    return SceneManager.scene:gamepadpressed(joy, button)
+end
+
+function JM:gamepadreleased(joy, button)
+    return SceneManager.scene:gamepadreleased(joy, button)
+end
+
+function JM:gamepadaxis(joy, axis, value)
+    return SceneManager.scene:gamepadaxis(joy, axis, value)
+end
+
+function JM:resize(w, h)
+    return SceneManager.scene:resize(w, h)
+end
+
+--===========================================================================
 
 JM:get_font()
 
-local Sound = JM.Sound
 function Play_sfx(name, force)
     return Sound:play_sfx(name, force)
 end
