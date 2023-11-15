@@ -1291,15 +1291,82 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
             i = i + #glyph_id - 1
         end
 
+        do
+            -- local tag = text:match("<.->", pos)
+            -- if tag then
+            --     local match = self:__is_a_command_tag(tag)
+
+            --     local startp, endp
+            --     if match then
+            --         startp, endp = text:find("<.->", pos)
+            --     end
+
+            --     local r_tx, r_ty
+            --     if match then
+            --         r_tx, r_ty = self:print(text:sub(pos, startp - 1),
+            --             tx, ty, w, h, 1,
+            --             cur_color, x_origin, cur_format, cur_fontsize
+            --         )
+            --     end
+
+            --     if match == "<color>" then
+            --         local parse = Utils:parse_csv_line(text:sub(startp - 1, endp - 1))
+            --         local r = parse[2] or 1
+            --         local g = parse[3] or 0
+            --         local b = parse[4] or 0
+            --         local a = parse[5] or 1
+
+            --         cur_color = Utils:get_rgba(r, g, b, a)
+            --         --
+            --     elseif match == "<font>" then
+            --         local tag_values = match and self:get_tag_args(tag)
+            --         local action = tag_values["font"]
+
+            --         if action == "color-hex" then
+            --             local r, g, b, a =
+            --                 Utils:hex_to_rgba_float(tag_values["value"])
+            --             cur_color = Utils:get_rgba(r, g, b, a)
+            --             ---
+            --         elseif action == "font-size" then
+            --             self:set_font_size(tag_values["value"] or original_fontsize)
+            --         end
+
+            --         ---
+            --     elseif match == "</color>" then
+            --         cur_color = original_color
+            --     elseif match == "<bold>" then
+            --         cur_format = self.format_options.bold
+            --     elseif match == "</bold>" then
+            --         cur_format = original_format
+            --     elseif match == "<italic>" then
+            --         cur_format = self.format_options.italic
+            --     elseif match == "</italic>" then
+            --         cur_format = original_format
+            --     end
+
+            --     if match then
+            --         i = endp - 1
+            --         -- i = i + startp
+
+            --         if endp == #text then
+            --             -- i = i + 1
+            --         end
+            --         tx = r_tx
+            --         ty = r_ty
+            --         glyph_id = ""
+            --     end
+            -- end
+        end
+
         if glyph_id == "<" then
-            local match = self:__is_a_command_tag(text:sub(pos))
-            if match then
-                local startp, endp = text:find(match, pos)
+            local startp, endp = text:find(".->", pos + 1)
 
-                ---@diagnostic disable-next-line: param-type-mismatch
-                local tag = text:sub(startp, endp)
+            if startp then
+                local tag = text:sub(pos, endp)
+                local match = not tag:match("<", 2)
+                    and self:__is_a_command_tag(tag)
 
-                if startp == pos then
+                if match then
                     if match == "<color>" then
                         local parse = Utils:parse_csv_line(text:sub(startp - 1, endp - 1))
                         local r = parse[2] or 1
@@ -1321,7 +1388,6 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                         elseif action == "font-size" then
                             self:set_font_size(tag_values["value"] or original_fontsize)
                         end
-
                         ---
                     elseif match == "</color>" then
                         cur_color = original_color
