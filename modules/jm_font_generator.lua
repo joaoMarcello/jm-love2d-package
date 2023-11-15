@@ -1186,7 +1186,9 @@ end
 ---@param s string
 function Font:get_tag_args(s)
     if not s or s == "" then return {} end
-    s = s:sub(2, #s - 1)
+    -- s = s:sub(2, #s - 1)
+    s = s:gsub("<", "")
+    s = s:gsub(">", "")
     if not s or s == "" then return {} end
 
     local N = #s
@@ -1195,7 +1197,7 @@ function Font:get_tag_args(s)
     local result = {}
 
     while (i <= N) do
-        local startp, endp = s:find("[=,-]", i)
+        local startp, endp = s:find("[=,>]", i)
 
         if startp then
             local left = s:sub(i, endp - 1):match("[^ ].*[^ ]")
@@ -1213,7 +1215,7 @@ function Font:get_tag_args(s)
 
             if right then
                 if right == "" then
-                    right = true
+                    right = false -- true
                 elseif tonumber(right) then
                     right = tonumber(right)
                 elseif right:match("true") then
@@ -1384,13 +1386,10 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
                     elseif match == "<color-hex>" then
                         local r, g, b, a
 
-                        if tag:find("=") then
-                            local tag_values = self:get_tag_args(tag)
-                            local hex = tag_values['color-hex']
-                            r, g, b, a = Utils:hex_to_rgba_float(hex or "ff0000")
-                        else
-                            r, g, b, a = 1, 0, 0, 1
-                        end
+                        local tag_values = self:get_tag_args(tag)
+                        local hex = tag_values['color-hex']
+                        r, g, b, a = Utils:hex_to_rgba_float(type(hex) == "string" and hex or "ff0000")
+
                         cur_color = Utils:get_rgba(r, g, b, a)
                         ---
                     elseif match == "<font>" then
@@ -1888,6 +1887,13 @@ function Font:printf(text, x, y, align, limit_right)
                     action_func = action_set_color
                     action_args = { m, separated }
                     --
+                elseif command_tag == "<color-hex>" then
+                    local tag_values = self:get_tag_args(separated[m])
+                    local hex = tag_values["color-hex"]
+
+                    action_func = action_set_color_hex
+                    action_args = { type(hex) == "string" and hex or "ff0000" }
+                    ---
                 elseif command_tag == "</color>" then
                     action_func = action_restaure_color
                     action_args = { original_color }
