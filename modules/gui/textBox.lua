@@ -228,7 +228,6 @@ function TextBox:__constructor__(args)
     self.oy = self.h * 0.5
 
     self.sentence.__bounds.right = self.x + self.w
-    self.prev_word = "__first__"
 
     self.update = TextBox.update
     self.draw = TextBox.draw
@@ -281,10 +280,12 @@ end
 
 function TextBox:keypressed(key)
     if key == "space" then
+        self:skip_screen()
         local r = self:go_to_next_screen()
 
         if not r and self:screen_is_finished() then
-            self:restart()
+            -- self:restart()
+            self.is_visible = false
         end
     end
 end
@@ -311,7 +312,6 @@ function TextBox:restart()
     self.cur_screen = 1
     self.used_tags = nil
     self.waiting = false
-    self.prev_word = "__first__"
     self:refresh()
 end
 
@@ -473,6 +473,8 @@ end
 -- local Font = _G.JM_Font
 
 function TextBox:__draw()
+    if not self.is_visible then return end
+
     lgx.setColor(1, 1, 1, 1)
     lgx.rectangle("line", self:rect())
 
