@@ -1140,8 +1140,8 @@ end
 function Camera:set_position(x, y)
     self.x = (not self.lock_x and x) or self.x
     self.y = (not self.lock_y and y) or self.y
-    self.x = round(self.x)
-    self.y = round(self.y)
+    -- self.x = round(self.x)
+    -- self.y = round(self.y)
 end
 
 function Camera:set_zoom(value, clamp_to_minscale)
@@ -1709,8 +1709,9 @@ function Camera:attach(lock_shake, subpixel)
 
     local shake_y = (not lock_shake and self.shaking_in_y and self.shake_offset_y) or 0
 
-    local tx = -self.x + (self.viewport_x / self.scale) + shake_x
-    local ty = -self.y + (self.viewport_y / self.scale) + shake_y
+    local tx = -round(self.x) + (self.viewport_x / self.scale) + shake_x
+    local ty = -round(self.y) + (self.viewport_y / self.scale) + shake_y
+
     return love_translate(tx, ty)
 
     -- love_translate(
