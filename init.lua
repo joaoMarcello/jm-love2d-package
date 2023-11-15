@@ -189,6 +189,7 @@ JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
 
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
+--===========================================================================
 
 function JM:update(dt)
     -- JM_Font.current:update(dt)
@@ -199,5 +200,14 @@ function JM:update(dt)
 end
 
 JM:get_font()
+
+local Sound = JM.Sound
+function Play_sfx(name, force)
+    return Sound:play_sfx(name, force)
+end
+
+function Play_song(name)
+    return Sound:play_song(name)
+end
 
 return JM
