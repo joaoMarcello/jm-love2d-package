@@ -983,6 +983,7 @@ end
 
 ---@param s string
 ---@return string|nil nickname
+---@return number|nil len
 function Font:__is_a_nickname(s, index)
     if s:sub(index, index) ~= ":" then return nil end
 
@@ -992,8 +993,9 @@ function Font:__is_a_nickname(s, index)
     -- for _, nickname in ipairs(self.__nicknames) do
     while i <= N do
         local nick = nicknames[i]
-        if s:sub(index, index + #nick - 1) == nick then
-            return nick
+        local len = #nick
+        if s:sub(index, index + len - 1) == nick then
+            return nick, len
         end
         i = i + 1
     end
@@ -1002,8 +1004,9 @@ function Font:__is_a_nickname(s, index)
     if glyphs_xp then
         for i = 1, #glyphs_xp do
             local id = glyphs_xp[i]
-            if s:sub(index, index + #id - 1) == id then
-                return id
+            local len = #id
+            if s:sub(index, index + len - 1) == id then
+                return id, len
             end
         end
     end
@@ -1147,7 +1150,7 @@ function Font:separate_string(s, list)
     return words
 end
 
----@alias JM.Font.Tags "<bold>"|"</bold>"|"<italic>"|"</italic>"|"<color>"|"</color>"|"<effect>"|"</effect>"|"<pause>"|"<font>"|"<sep>"
+---@alias JM.Font.Tags "<bold>"|"</bold>"|"<italic>"|"</italic>"|"<color>"|"</color>"|"<effect>"|"</effect>"|"<pause>"|"<font>"|"<sep>"|"<color-hex>"
 
 ---@param s string
 ---@return JM.Font.Tags|false
@@ -1158,8 +1161,12 @@ function Font:__is_a_command_tag(s)
         or (s:match("< */ *bold *[ %w%-]*>") and "</bold>")
         or (s:match("< *italic *[ %w%-]*>") and "<italic>")
         or (s:match("< */ *italic *[ %w%-]*>") and "</italic>")
+
+        or (s:match("< *color%-hex *=- *[%#%dabcdef]* *>") and "<color-hex>")
+
         or (s:match("< *color[%d, .]*>") and "<color>")
-        -- or (s:match("< *color-hex>"))
+
+
         or (s:match("< */ *color[ %w%-]*>") and "</color>")
 
         or (s:match("< *effect *=[%w, =%.]* *>") and "<effect>")
@@ -1188,7 +1195,7 @@ function Font:get_tag_args(s)
     local result = {}
 
     while (i <= N) do
-        local startp, endp = s:find("[=,]", i)
+        local startp, endp = s:find("[=,-]", i)
 
         if startp then
             local left = s:sub(i, endp - 1):match("[^ ].*[^ ]")
@@ -1263,8 +1270,6 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
     local i = __i__ or 1
 
-    -- local text_size = #(text)
-
     for i = 1, self.__n_batches do
         self.__batches[i]:clear()
     end
@@ -1284,79 +1289,79 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
         local glyph_id = codes[i]
         local pos = utf8.offset(text, i)
 
-        local is_a_nick = self:__is_a_nickname(text, pos)
+        local is_a_nick, len = self:__is_a_nickname(text, pos)
 
         if is_a_nick then
             glyph_id = is_a_nick
-            i = i + #glyph_id - 1
+            i = i + len - 1
         end
 
-        do
-            -- local tag = text:match("<.->", pos)
-            -- if tag then
-            --     local match = self:__is_a_command_tag(tag)
+        -- do
+        --     -- local tag = text:match("<.->", pos)
+        --     -- if tag then
+        --     --     local match = self:__is_a_command_tag(tag)
 
-            --     local startp, endp
-            --     if match then
-            --         startp, endp = text:find("<.->", pos)
-            --     end
+        --     --     local startp, endp
+        --     --     if match then
+        --     --         startp, endp = text:find("<.->", pos)
+        --     --     end
 
-            --     local r_tx, r_ty
-            --     if match then
-            --         r_tx, r_ty = self:print(text:sub(pos, startp - 1),
-            --             tx, ty, w, h, 1,
-            --             cur_color, x_origin, cur_format, cur_fontsize
-            --         )
-            --     end
+        --     --     local r_tx, r_ty
+        --     --     if match then
+        --     --         r_tx, r_ty = self:print(text:sub(pos, startp - 1),
+        --     --             tx, ty, w, h, 1,
+        --     --             cur_color, x_origin, cur_format, cur_fontsize
+        --     --         )
+        --     --     end
 
-            --     if match == "<color>" then
-            --         local parse = Utils:parse_csv_line(text:sub(startp - 1, endp - 1))
-            --         local r = parse[2] or 1
-            --         local g = parse[3] or 0
-            --         local b = parse[4] or 0
-            --         local a = parse[5] or 1
+        --     --     if match == "<color>" then
+        --     --         local parse = Utils:parse_csv_line(text:sub(startp - 1, endp - 1))
+        --     --         local r = parse[2] or 1
+        --     --         local g = parse[3] or 0
+        --     --         local b = parse[4] or 0
+        --     --         local a = parse[5] or 1
 
-            --         cur_color = Utils:get_rgba(r, g, b, a)
-            --         --
-            --     elseif match == "<font>" then
-            --         local tag_values = match and self:get_tag_args(tag)
-            --         local action = tag_values["font"]
+        --     --         cur_color = Utils:get_rgba(r, g, b, a)
+        --     --         --
+        --     --     elseif match == "<font>" then
+        --     --         local tag_values = match and self:get_tag_args(tag)
+        --     --         local action = tag_values["font"]
 
-            --         if action == "color-hex" then
-            --             local r, g, b, a =
-            --                 Utils:hex_to_rgba_float(tag_values["value"])
-            --             cur_color = Utils:get_rgba(r, g, b, a)
-            --             ---
-            --         elseif action == "font-size" then
-            --             self:set_font_size(tag_values["value"] or original_fontsize)
-            --         end
+        --     --         if action == "color-hex" then
+        --     --             local r, g, b, a =
+        --     --                 Utils:hex_to_rgba_float(tag_values["value"])
+        --     --             cur_color = Utils:get_rgba(r, g, b, a)
+        --     --             ---
+        --     --         elseif action == "font-size" then
+        --     --             self:set_font_size(tag_values["value"] or original_fontsize)
+        --     --         end
 
-            --         ---
-            --     elseif match == "</color>" then
-            --         cur_color = original_color
-            --     elseif match == "<bold>" then
-            --         cur_format = self.format_options.bold
-            --     elseif match == "</bold>" then
-            --         cur_format = original_format
-            --     elseif match == "<italic>" then
-            --         cur_format = self.format_options.italic
-            --     elseif match == "</italic>" then
-            --         cur_format = original_format
-            --     end
+        --     --         ---
+        --     --     elseif match == "</color>" then
+        --     --         cur_color = original_color
+        --     --     elseif match == "<bold>" then
+        --     --         cur_format = self.format_options.bold
+        --     --     elseif match == "</bold>" then
+        --     --         cur_format = original_format
+        --     --     elseif match == "<italic>" then
+        --     --         cur_format = self.format_options.italic
+        --     --     elseif match == "</italic>" then
+        --     --         cur_format = original_format
+        --     --     end
 
-            --     if match then
-            --         i = endp - 1
-            --         -- i = i + startp
+        --     --     if match then
+        --     --         i = endp - 1
+        --     --         -- i = i + startp
 
-            --         if endp == #text then
-            --             -- i = i + 1
-            --         end
-            --         tx = r_tx
-            --         ty = r_ty
-            --         glyph_id = ""
-            --     end
-            -- end
-        end
+        --     --         if endp == #text then
+        --     --             -- i = i + 1
+        --     --         end
+        --     --         tx = r_tx
+        --     --         ty = r_ty
+        --     --         glyph_id = ""
+        --     --     end
+        --     -- end
+        -- end
 
         if glyph_id == "<" then
             local startp, endp = text:find(".->", pos + 1)
@@ -1376,6 +1381,18 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
 
                         cur_color = Utils:get_rgba(r, g, b, a)
                         --
+                    elseif match == "<color-hex>" then
+                        local r, g, b, a
+
+                        if tag:find("=") then
+                            local tag_values = self:get_tag_args(tag)
+                            local hex = tag_values['color-hex']
+                            r, g, b, a = Utils:hex_to_rgba_float(hex or "ff0000")
+                        else
+                            r, g, b, a = 1, 0, 0, 1
+                        end
+                        cur_color = Utils:get_rgba(r, g, b, a)
+                        ---
                     elseif match == "<font>" then
                         local tag_values = match and self:get_tag_args(tag)
                         local action = tag_values["font"]
@@ -1485,7 +1502,9 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
     end
 
     love_set_color(1, 1, 1, 1)
-    for _, batch in pairs(self.batches) do
+
+    for i = 1, self.__n_batches do
+        local batch = self.__batches[i]
         if batch:getCount() > 0 then love_draw(batch) end
     end
 
