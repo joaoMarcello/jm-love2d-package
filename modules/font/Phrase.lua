@@ -190,11 +190,12 @@ function Phrase:__verify_commands(text)
             if action == "color-hex" then
                 local r, g, b, a = Utils:hex_to_rgba_float(tag_values["value"])
                 self.__font:set_color(Utils:get_rgba(r, g, b, a))
-                ---
-                -- elseif action == "font-size" then
-                -- self.__font:set_font_size(tag_values["value"] or 12)
-                ---
             end
+            ---
+        elseif result == "<color-hex>" then
+            local hex = tag_values["color-hex"]
+            local r, g, b, a = Utils:hex_to_rgba_float(type(hex) == "string" and hex or "ff00ff")
+            self.__font:set_color(Utils:get_rgba(r, g, b, a))
             ---
         elseif result:match("< */ *color *>") then
             self.__font:set_color(self.__font_config.color)
