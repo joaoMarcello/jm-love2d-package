@@ -265,6 +265,57 @@ function Utils:rgbToHsl(r, g, b)
     return h * 0.16667, s, l
 end
 
+function Utils:rgbToHsv(r, g, b)
+    if type(r) == "string" then
+        r, g, b = Utils:hex_to_rgba_float(r)
+    end
+
+    local cmax = m_max(r, g, b)
+    local cmin = m_min(r, g, b)
+    local dt = cmax - cmin
+
+    local H, S, V
+    if dt == 0 then
+        H = 0
+    elseif cmax == r then
+        H = ((g - b) / dt) % 6
+    elseif cmax == g then
+        H = ((b - r) / dt) + 2
+    elseif cmax == b then
+        H = ((r - g) / dt) + 4
+    end
+
+    S = cmax == 0 and 0 or (dt / cmax)
+
+    V = cmax
+
+    return H * 60, S, V
+end
+
+function Utils:hsvToRgb(h, s, v)
+    local C = v * s
+    local X = C * (1 - math.abs(( (h / 60) % 2) - 1))
+    local m = v - C
+
+    local r1, g1, b1
+
+    if h < 60 then
+        r1, g1, b1 = C, X, 0
+    elseif h < 120 then
+        r1, g1, b1 = X, C, 0
+    elseif h < 180 then
+        r1, g1, b1 = 0, C, X
+    elseif h < 240 then
+        r1, g1, b1 = 0, X, C
+    elseif h < 300 then
+        r1, g1, b1 = X, 0, C
+    elseif h <= 360 then
+        r1, g1, b1 = C, 0, X
+    end
+
+    return (r1 + m), (g1 + m), (b1 + m)
+end
+
 --=====================================================================
 
 ---comment
