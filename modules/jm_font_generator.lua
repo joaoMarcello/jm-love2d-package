@@ -652,7 +652,6 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
     local n_lines = math.ceil(total_width / max_value)
     n_lines = n_lines == 0 and 1 or n_lines
 
-    -- local font_imgdata = love.image.newImageData(total_width, max_height, "rgba8")
     local font_imgdata = love.image.newImageData(
         max_value,
         (max_height) * n_lines + 5, "rgba8"
@@ -660,68 +659,6 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
 
     local data_w, data_h = font_imgdata:getDimensions()
     local quad_pos = {}
-
-    -- -- turning the output img completely yellow
-    -- for i = 0, data_w - 1 do
-    --     for j = 0, data_h - 1 do
-    --         font_imgdata:setPixel(i, j, 1, 1, 0, 1)
-    --     end
-    -- end
-
-    -- for _, glyph_s in ipairs(glyph_table) do
-    --     ---@type love.GlyphData
-    --     local glyph = glyphs_obj[glyph_s]
-
-    --     if glyph then
-    --         local bbx, bby, bbw, bbh = glyph:getBoundingBox()
-
-    --         ---@type love.ImageData
-    --         local glyphData = glyphs_data[glyph]
-
-    --         local glyphDataWidth, glyphDataHeight = glyphData:getDimensions()
-
-    --         -- local py = cur_y
-    --         cur_y = data_h - 2 - glyphDataHeight + (bby < 0 and bby or 0)
-
-    --         -- turning transparent the glyph quad in the output img (width)
-    --         for i = -1, glyphDataWidth do
-    --             font_imgdata:setPixel(cur_x + i, cur_y - 1, 0, 0, 0, 0)
-    --             font_imgdata:setPixel(cur_x + i, cur_y + glyphDataHeight, 0, 0, 0, 0)
-    --         end
-
-    --         -- turning transparent the glyph quad in the output img (height)
-    --         for j = -1, glyphDataHeight do
-    --             font_imgdata:setPixel(cur_x - 1, cur_y + j, 0, 0, 0, 0)
-    --             font_imgdata:setPixel(cur_x + glyphDataWidth, cur_y + j, 0, 0, 0, 0)
-    --         end
-
-    --         font_imgdata:paste(glyphData, cur_x, cur_y, 0, 0, glyphDataWidth, glyphDataHeight)
-
-    --         local posR_y = math.abs(cur_y + (bby + bbh))
-    --         if posR_y >= 0 and posR_y <= data_h - 1 then
-    --             font_imgdata:setPixel(cur_x - 2, posR_y, 1, 0, 0, 1)
-    --         end
-
-    --         local posBlue = math.floor(cur_x + bbw - (bbx > 0 and 0 or -bbx))
-    --         if posBlue >= 0 and posBlue <= data_w - 1 then
-    --             font_imgdata:setPixel(posBlue, cur_y - 2, 1, 0, 0, 1)
-    --         end
-
-    --         quad_pos[glyph_s] = {
-    --             x = cur_x - 1,
-    --             y = cur_y - 1,
-    --             w = glyphDataWidth + 2,
-    --             h = glyphDataHeight + 2,
-    --             bottom = (posR_y >= 0 and posR_y <= data_h - 1 and posR_y)
-    --                 or nil,
-    --             right = (posBlue >= 0 and posBlue <= data_w - 1 and posBlue) or nil
-    --         }
-
-    --         cur_x = cur_x + glyphDataWidth + 4
-
-    --         -- if _ == 125 then break end
-    --     end
-    -- end
 
     -- turning the output img completely yellow
     for i = 0, data_w - 1 do
@@ -1183,13 +1120,21 @@ function Font:__is_a_command_tag(s)
         or false
 end
 
+local tag_args_result = setmetatable({}, metatable_mode_kv)
+local tag_args_default_table = {}
+
 ---@param s string
 function Font:get_tag_args(s)
-    if not s or s == "" then return {} end
+    if not s or s == "" then return tag_args_default_table end
     -- s = s:sub(2, #s - 1)
     s = s:gsub("<", "")
     s = s:gsub(">", "")
-    if not s or s == "" then return {} end
+    if not s or s == "" then return tag_args_default_table end
+
+    do
+        local r = tag_args_result[s]
+        if r then return r end
+    end
 
     local N = #s
     ---@type any
@@ -1241,6 +1186,7 @@ function Font:get_tag_args(s)
         i = i + 1
     end
 
+    tag_args_result[s] = result
     return result
 end
 

@@ -20,7 +20,6 @@ Phrase.__index = Phrase
 ---@return JM.Font.Phrase phrase
 function Phrase:new(args)
     local obj = setmetatable({}, Phrase)
-    -- self.__index = self
     Phrase.__constructor__(obj, args)
 
     return obj
@@ -28,13 +27,8 @@ end
 
 ---@param args {text: string, font: JM.Font.Font, x:any, y:any}
 function Phrase:__constructor__(args)
-    -- assert(Utils, "\n> Module Utils not initialized!")
-
     self.text = args.text
     self.__font = args.font
-
-    -- self.x = args.x or 0
-    -- self.y = args.y or 0
 
     self.__font_config = self.__font:__get_configuration()
 
