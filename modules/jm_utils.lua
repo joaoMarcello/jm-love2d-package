@@ -1,6 +1,8 @@
 local string_format, mfloor, m_min, m_max, colorFromBytes, colorToBytes = string.format, math.floor, math.min, math.max,
     love.math.colorFromBytes, love.math.colorToBytes
 
+local abs = math.abs
+
 ---@alias JM.Point {x: number, y:number}
 --- Table representing a point with x end y coordinates.
 
@@ -229,40 +231,61 @@ function Utils:color_hex_2_rgba(rgba)
     return colorFromBytes(rb, gb, bb, ab)
 end
 
-local function to(p, q, t)
-    if t < 0 then t = t + 1 end
-    if t > 1 then t = t - 1 end
-    if t < 0.16667 then return p + (q - p) * 6 * t end
-    if t < 0.5 then return q end
-    if t < 0.66667 then return p + (q - p) * (0.66667 - t) * 6 end
-    return p
-end
-
--- h, s, l, r, g, b, are all in range [0, 1]
 function Utils:hslToRgb(h, s, l)
-    if s == 0.0 then return l, l, l end
+    local C = (1 - abs(2 * l - 1)) * s
+    local X = C * (1 - abs((h / 60 % 2) - 1))
+    local m = l - C / 2
 
-    local q = l < 0.5 and l * (1 + s) or l + s - l * s
-    local p = 2 * l - q
-    return to(p, q, h + 0.33334), to(p, q, h), to(p, q, h - 0.33334)
+    local r1, g1, b1
+    if h < 60 then
+        r1, g1, b1 = C, X, 0
+    elseif h < 120 then
+        r1, g1, b1 = X, C, 0
+    elseif h < 180 then
+        r1, g1, b1 = 0, C, X
+    elseif h < 240 then
+        r1, g1, b1 = 0, X, C
+    elseif h < 300 then
+        r1, g1, b1 = X, 0, C
+    elseif h <= 360 then
+        r1, g1, b1 = C, 0, X
+    end
+
+    return r1 + m, g1 + m, b1 + m
 end
 
 function Utils:rgbToHsl(r, g, b)
-    local max, min = m_max(r, g, b), m_min(r, g, b)
-    local b = max + min
-    local h = b / 2.0
-    if max == min then return 0, 0, h end
-    local s, l = h, h
-    local d = max - min
-    s = l > 0.5 and d / (2 - b) or d / b
-    if max == r then
-        h = (g - b) / d + (g < b and 6 or 0)
-    elseif max == g then
-        h = (b - r) / d + 2
-    elseif max == b then
-        h = (r - g) / d + 4
+    if type(r) == "string" then
+        r, g, b = Utils:hex_to_rgba_float(r)
     end
-    return h * 0.16667, s, l
+
+    local cmax = m_max(r, g, b)
+    local cmin = m_min(r, g, b)
+    local dt = cmax - cmin
+
+    local H, S, L
+
+    if dt == 0 then
+        H = 0
+    else
+        if cmax == r then
+            H = ((g - b) / dt) % 6
+        elseif cmax == g then
+            H = ((b - r) / dt) + 2
+        else
+            H = ((r - g) / dt) + 4
+        end
+    end
+
+    L = (cmax + cmin) / 2
+
+    if dt == 0 then
+        S = 0
+    else
+        S = dt / (1 - abs(2 * L - 1))
+    end
+
+    return H * 60, S, L
 end
 
 function Utils:rgbToHsv(r, g, b)
@@ -294,7 +317,7 @@ end
 
 function Utils:hsvToRgb(h, s, v)
     local C = v * s
-    local X = C * (1 - math.abs(( (h / 60) % 2) - 1))
+    local X = C * (1 - abs(((h / 60) % 2) - 1))
     local m = v - C
 
     local r1, g1, b1
