@@ -108,7 +108,7 @@ function JM:get_font(font)
             dpi = 36,
             name = "open sans",
             font_size = 12,
-            character_space = 1,
+            character_space = 2,
             tab_size = 4,
             min_filter = "linear",
             max_filter = "nearest",
