@@ -1171,8 +1171,8 @@ function Camera:set_zoom(value, clamp_to_minscale)
 
     local x = offx - (self.focus_x / self.scale)
     local y = offy - (self.focus_y / self.scale)
-    self.x = round(self.x + x)
-    self.y = round(self.y + y)
+    self.x = (self.x + x)
+    self.y = (self.y + y)
 
     self:keep_on_bounds()
 
