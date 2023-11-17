@@ -81,10 +81,10 @@ function TileMap:load_map(data, filter, regions, clean_up)
     -- regions = { "desert" }
 
     self.cells_by_pos = (not clean_up and self.cells_by_pos) or {}
-    self.min_x = math.huge
-    self.min_y = self.min_x
-    self.max_x = -self.min_x
-    self.max_y = -self.min_x
+    self.min_x = (not clean_up and self.min_x) or math.huge
+    self.min_y = (not clean_up and self.min_y) or math.huge
+    self.max_x = (not clean_up and self.max_x) or -math.huge
+    self.max_y = (not clean_up and self.max_y) or -math.huge
     -- self.n_cells = 0
 
     local Entry = function(x, y, id, ...)
