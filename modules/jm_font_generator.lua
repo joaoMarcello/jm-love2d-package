@@ -177,7 +177,8 @@ local FontFormat = {
 ---@class JM.Font.Font
 ---@field __nicknames table
 local Font = {
-    buffer_time = 0.0
+    buffer_time = 0.0,
+    Phrase = Phrase,
 }
 
 ---@alias JM.FontGenerator.Args {name: string, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string, dir:string, dir_bold:string, dir_italic:string, word_space:number}
@@ -2057,8 +2058,27 @@ function Font:printx(text, x, y, right, align)
     return fr
 end
 
-function Font:flush()
-    self.buffer__ = nil
+function Font.flush()
+    -- self.buffer__ = nil
+
+    for k, v in pairs(printf_lines) do
+        printf_lines[k] = nil
+    end
+
+    for k, v in pairs(codes_result) do
+        codes_result[k] = nil
+    end
+
+    for k, v in pairs(tag_args_result) do
+        tag_args_result[k] = nil
+    end
+
+    for k, v in pairs(result_sep_text) do
+        result_sep_text[k] = nil
+    end
+
+    Iterator.flush()
+    return Phrase.flush()
 end
 
 ---@class JM.Font.Generator
@@ -2096,6 +2116,11 @@ local Generator = {
 
         args.glyphs = glyphs
         return Font.new(Font, args)
+    end,
+    --
+    --
+    flush = function()
+        return Font.flush()
     end
 }
 
