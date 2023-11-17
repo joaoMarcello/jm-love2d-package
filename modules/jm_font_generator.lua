@@ -1439,9 +1439,8 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
             end
 
             tx = tx
-                -- + char_obj:get_width()
-                + glyph.w * glyph.sx
-                + self.__character_space
+                + (glyph.w + self.__character_space) * glyph.sx
+            -- + self.__character_space
         end
 
         i = i + 1
@@ -1484,28 +1483,21 @@ do
     ---@return number width
         function(self, args)
             if not args then return 0 end
-            -- do
-            --     local r = len_result[args]
-            --         and len_result[args][self.__font_size]
-            --     if r then return r end
-            -- end
+
             local width = 0
             local N = #args
 
             for i = 1, N do
                 ---@type JM.Font.Glyph
-                local char_obj = args[i] --get_char_obj(args[_])
+                local char_obj = args[i]
 
                 width = width
-                    -- + char_obj:get_width()
-                    + char_obj.w * self.__scale
-                    + self.__character_space
+                    + (char_obj.w + self.__character_space) * self.__scale
+                -- + self.__character_space
             end
-            -- len_result[args] = len_result[args] or {}
-            -- len_result[args][self.__font_size] = width - self.__character_space
 
-            return width - self.__character_space
-            -- return len_result[args][self.__font_size]
+
+            return width - (self.__character_space * self.__scale)
         end
 
     print =
@@ -1621,9 +1613,8 @@ do
                         end
 
                         tx = tx
-                            -- + char_obj:get_width()
-                            + (glyph.w * glyph.sx)
-                            + self.__character_space
+                            + (glyph.w + self.__character_space) * glyph.sx
+                        -- + self.__character_space
                     end
                 end
 
@@ -1664,9 +1655,10 @@ do
             local word
             for i = 1, N do
                 word = line[i]
-                total = total + len(self, word) + self.__character_space
+                total = total + len(self, word)
+                    + (self.__character_space * self.__scale)
             end
-            return total
+            return total - (self.__character_space * self.__scale)
         end
 
     next_not_command_index =
@@ -1820,8 +1812,7 @@ function Font:printf(text, x, y, align, limit_right)
         local space_glyph = self.__printf_space_glyph
 
         local N = #(words)
-        local prev_word
-        local next_word
+
 
         for m = 1, N do
             local command_tag = self:__is_a_command_tag(separated[m])
@@ -1881,9 +1872,6 @@ function Font:printf(text, x, y, align, limit_right)
             local current_is_break_line = separated[m] == "\n"
 
             if not command_tag then
-                prev_word = words[m]
-                next_word = words[m + 1]
-
                 -- if not current_is_break_line or true then
                 tab_insert(line, words[m])
                 -- end
@@ -1891,18 +1879,17 @@ function Font:printf(text, x, y, align, limit_right)
                 local next_index = next_not_command_index(self, m, separated)
 
                 total_width = total_width + len(self, words[m])
-                    + self.__space_char.w * self.__scale
-                    + self.__character_space * 2
+                    + (self.__space_char.w + self.__character_space) * self.__scale
 
                 if total_width + (next_index and words[next_index]
                         and len(self, words[next_index]) or 0) > limit_right
                     or current_is_break_line
                 then
-                    tab_insert(all_lines.width, total_width - self.__word_space * self.__scale)
+                    -- tab_insert(all_lines.width, total_width
+                    --     - (self.__word_space + self.__character_space) * self.__scale
+                    -- )
 
                     total_width = 0
-                    prev_word = nil
-                    next_word = nil
 
                     tab_insert(all_lines.lines, line)
 
@@ -1927,15 +1914,18 @@ function Font:printf(text, x, y, align, limit_right)
                             space_glyph
                         )
                     elseif m ~= N then
-                        total_width = total_width - self.__word_space * self.__scale
+                        total_width = total_width - (self.__word_space + self.__character_space) * self.__scale
                     end
                 end
             end
 
             if line and m == N then
                 tab_insert(all_lines.lines, line)
-                -- tab_insert(all_lines.width, total_width - self.__word_space * self.__scale)
-                tab_insert(all_lines.width, total_width)
+
+                -- tab_insert(all_lines.width, total_width
+                --     - (self.__word_space + self.__character_space)
+                --     * self.__scale
+                -- )
 
 
                 if line_actions then
@@ -1946,6 +1936,11 @@ function Font:printf(text, x, y, align, limit_right)
         end
 
         all_lines.N_lines = #all_lines.lines
+
+        for i = 1, all_lines.N_lines do
+            local line = all_lines.lines[i]
+            all_lines.width[i] = line_width(self, line, #line)
+        end
 
         printf_lines[self] = printf_lines[self]
             or setmetatable({}, metatable_mode_k)
