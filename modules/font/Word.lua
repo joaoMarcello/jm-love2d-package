@@ -238,21 +238,21 @@ function Word:get_width()
     end
 
     local w = 0
-    local N = self.__N_characters --#self.__characters
+    local N = self.__N_characters
     local glyphs = self.__characters
 
     for i = 1, N do
         ---@type JM.Font.Glyph
-        local cur_char = glyphs[i] --self:__get_char_by_index(i)
+        local cur_char = glyphs[i]
 
-        w = w + (cur_char.w * font.__scale)
-            + font.__character_space
+        w = w + (cur_char.w + font.__character_space) * font.__scale
+        -- + font.__character_space
     end
 
     Word.WIDTHS[font] = Word.WIDTHS[font] or setmetatable({}, mt_mode_k)
     Word.WIDTHS[font][self.text] = Word.WIDTHS[font][self.text]
         or {}
-    Word.WIDTHS[font][self.text][font.__font_size] = w - font.__character_space
+    Word.WIDTHS[font][self.text][font.__font_size] = w - font.__character_space * font.__scale
 
     return Word.WIDTHS[font][self.text][font.__font_size]
 
@@ -262,12 +262,8 @@ end
 
 ---
 function Word:get_height()
-    -- do
-    --     -- ---@type JM.Font.Glyph
-    --     -- local glyph = self.__characters[1]
-    --     -- return
-    -- end
-    local h = self.__font.__font_size + self.__font.__line_space
+    local font = self.__font
+    local h = font.__font_size + font.__line_space * font.__scale
     return h
 end
 
@@ -338,7 +334,7 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
             glyph:draw(pos_x, pos_y)
         end
 
-        tx = tx + glyph.w * glyph.sx + font.__character_space
+        tx = tx + (glyph.w + font.__character_space) * glyph.sx
 
         if __glyph_count__ then
             __glyph_count__[1] = __glyph_count__[1] + 1
@@ -348,16 +344,6 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
             end
         end
     end
-
-    -- love.graphics.setColor(1, 1, 1, 1)
-    -- for _, batch in pairs(font.batches) do
-    --     local r = batch:getCount() > 0 and love.graphics.draw(batch)
-    -- end
-
-    -- if self.text ~= " " or true then
-    --     love.graphics.setColor(0, 0, 0, 1)
-    --     love.graphics.rectangle("line", x - 2, y - 2, self:get_width() + 4, self.__font.__font_size + 4)
-    -- end
 end
 
 function Word.flush()
