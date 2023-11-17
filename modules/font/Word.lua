@@ -360,4 +360,10 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
     -- end
 end
 
+function Word.flush()
+    for k, v in pairs(Word.WIDTHS) do
+        Word.WIDTHS[k] = nil
+    end
+end
+
 return Word
