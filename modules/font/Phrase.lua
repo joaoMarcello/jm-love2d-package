@@ -13,7 +13,9 @@ local Word = require((...):gsub("Phrase", "Word"))
 local Utils = _G.JM_Utils
 
 ---@class JM.Font.Phrase
-local Phrase = {}
+local Phrase = {
+    Word = Word,
+}
 Phrase.__index = Phrase
 
 ---@param args {text: string, font: JM.Font.Font, x:any, y:any}
@@ -717,6 +719,20 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     -- love.graphics.line(self.__bounds.right, 0, self.__bounds.right, 600)
 
     ------------------------------------------------------------------------
+end
+
+function Phrase.flush()
+    local pairs = pairs
+
+    for k, v in pairs(line_length) do
+        line_length[k] = nil
+    end
+
+    for k, v in pairs(results_get_lines) do
+        results_get_lines[k] = nil
+    end
+
+    Word.flush()
 end
 
 return Phrase
