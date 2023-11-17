@@ -49,7 +49,7 @@ function JM:get_font(font)
             max_filter      = "nearest",
             character_space = 0,
             word_space      = 5,
-            line_space      = 4,
+            line_space      = 3,
         }
         pix8:set_color(JM.Utils:get_rgba())
         pix8:set_font_size(pix8.__ref_height)
