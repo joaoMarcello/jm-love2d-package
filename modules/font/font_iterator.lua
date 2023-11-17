@@ -88,4 +88,10 @@ function Iterator:get_characters_list()
     return self.__list_obj
 end
 
+function Iterator.flush()
+    for k, v in pairs(iterators) do
+        iterators[k] = nil
+    end
+end
+
 return Iterator
