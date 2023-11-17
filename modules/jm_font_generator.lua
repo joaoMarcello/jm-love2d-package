@@ -711,9 +711,15 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
                 font_imgdata:setPixel(cur_x - 1, posR_y, 1, 0, 0, 1)
             end
 
-            local posBlue = math.floor(cur_x + bbw - (bbx > 0 and 0 or -bbx))
+            -- local posBlue = math.floor(cur_x + bbw - (bbx > 0 and 0 or -bbx))
+            local posBlue = cur_x + bbw
             if posBlue >= 0 and posBlue <= data_w - 1 and cur_y - 1 < data_h - 1 then
                 font_imgdata:setPixel(posBlue, cur_y - 1, 1, 0, 0, 1)
+            end
+
+            local pos_bx = cur_x + bbx - 1
+            if pos_bx > 0 and cur_y - 1 >= 0 then
+                font_imgdata:setPixel(pos_bx, cur_y - 1, 1, 0, 0, 1)
             end
 
             quad_pos[glyph_s] = {
