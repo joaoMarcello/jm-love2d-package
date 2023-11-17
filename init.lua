@@ -214,6 +214,11 @@ function JM:load_initial_state(s, use_splash)
     return SceneManager.scene:resize(love.graphics.getDimensions())
 end
 
+function JM:flush()
+    JM.FontGenerator.flush()
+    collectgarbage()
+end
+
 function JM:update(dt)
     SceneManager.scene:update(dt)
 
