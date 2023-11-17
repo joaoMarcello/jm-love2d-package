@@ -53,12 +53,12 @@ function TileMap:new(path_map, path_tileset, tile_size, filter, regions)
     return obj
 end
 
----@param path_map string|any
+---@param path_map string|function
 ---@param path_tileset string
 ---@param tile_size number
 ---@param filter function|nil
 function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regions)
-    self.path = path_map
+    -- self.path = path_map
     self.tile_size = tile_size or 32
     self.tile_set = TileSet:new(path_tileset, self.tile_size)
     self.sprite_batch = love.graphics.newSpriteBatch(self.tile_set.img, nil, "dynamic")
@@ -73,14 +73,14 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.last_index_bottom = nil
     self.last_index_right = nil
 
-    self:load_map(filter, regions)
+    self:load_map(path_map, filter, regions)
 end
 
 ---@param filter function|nil
-function TileMap:load_map(filter, regions)
+function TileMap:load_map(data, filter, regions, clean_up)
     -- regions = { "desert" }
 
-    self.cells_by_pos = {}
+    self.cells_by_pos = (not clean_up and self.cells_by_pos) or {}
     self.min_x = math.huge
     self.min_y = self.min_x
     self.max_x = -self.min_x
@@ -119,8 +119,8 @@ function TileMap:load_map(filter, regions)
         end
     end
 
-    local data = type(self.path) == "string" and love_file_load(self.path)
-        or self.path
+    local data = type(data) == "string" and love_file_load(data)
+        or data
 
     local func = setfenv(data, { Entry = Entry, Region = Region, _G = _G })
     func()
