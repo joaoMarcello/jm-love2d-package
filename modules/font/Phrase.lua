@@ -372,12 +372,6 @@ function Phrase:get_lines()
         Word:new { text = "\n", font = self.__font }
     )
 
-    -- if cur_line > 1 then
-    --     line_width[cur_line] = tx - word_char:get_width() * 2 - brk_line_glyph:get_width() * 2
-    -- else
-    --     line_width[cur_line] = tx - word_char:get_width()
-    -- end
-
     results_get_lines[self] = results_get_lines[self]
         or setmetatable({}, metatable_mode_v)
     results_get_lines[self][key] = lines
@@ -439,13 +433,15 @@ function Phrase:__line_length(line, prev)
             end
         end
 
-        total_len = total_len + word:get_width()
+        if word.text ~= "\n" then
+            total_len = total_len + word:get_width()
+        end
         -- prev_word = word
     end
-    font:pop()
 
     line_length[line] = {}
     line_length[line][original_fontsize] = total_len
+    font:pop()
 
     return total_len
 end
@@ -575,13 +571,16 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
     self.__font:push()
 
     local init_font_size = self.__font.__font_size
+    local init_scale = self.__font.__scale
 
     -- local line_length = results_get_line_width[lines]
 
     ---@type any
     local prev_word = "__first__"
 
-    for i = 1, #lines do
+    local N = #lines
+
+    for i = 1, N do
         apply_commands(self, prev_word, init_font_size, false)
 
         if align == "right" then
@@ -627,7 +626,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
             ---@type JM.Font.Word
             local current_word = lines[i][j]
 
-            local next_word = lines[i][j + 1]
+            -- local next_word = lines[i][j + 1]
 
             -- local first = apply_commands(self,
             --     (i == 1 and j == 1 and "__first__")
@@ -650,11 +649,10 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
                 self.__font:pop()
                 return result_tx, ty, result_char
             end
-            -- ::continue::
         end
 
         tx = x
-        ty = ty + (init_font_size + self.__font.__line_space)
+        ty = ty + (init_font_size + self.__font.__line_space * init_scale)
 
         if i >= threshold then
             break
