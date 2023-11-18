@@ -138,6 +138,11 @@ function TileMap:fix_position(x, y)
     return x, y
 end
 
+function TileMap:get_id_by_img_position(x, y)
+    local tile = self.tile_set:get_tile_by_pos(x, y)
+    return tile.id
+end
+
 function TileMap:insert_tile(x, y, id)
     x, y = self:fix_position(x, y)
 
