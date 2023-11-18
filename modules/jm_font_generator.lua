@@ -1024,11 +1024,11 @@ function Font:separate_string(s, list)
 
     -- local N = utf8.len(s) -- #s
     local N = #s
+    local tag_regex = "< *[%d, =._%w/%-%#]*>"
 
     while (current_init <= N) do
         -- while (current_init <= utf8.len(s)) do
         local regex = str_format("[^[ ]]*.-[%s]", sep)
-        local tag_regex = "< *[%d, =._%w/%-%#]*>"
 
         local tag = s:match(tag_regex, current_init)
         local find = not tag and s:match(regex, current_init)
@@ -1047,7 +1047,7 @@ function Font:separate_string(s, list)
             tab_insert(words, sub_s)
             current_init = endp
             ---
-        elseif nick and nick ~= "----" then
+            -- elseif nick and nick ~= "----" then
             -- local startp, endp = string.find(s, "%-%-%w-%-%-", current_init)
             -- local sub_s = startp and s:sub(startp, endp)
             -- local prev_word = s:sub(current_init, startp - 1)
