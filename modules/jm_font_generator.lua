@@ -1568,6 +1568,7 @@ do
             for i = 1, n_batches do
                 local bt = batches[i]
                 if bt:getCount() > 0 then
+                    bt:flush()
                     love_draw(bt)
                 end
             end
