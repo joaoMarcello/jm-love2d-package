@@ -29,27 +29,29 @@ local function load_tiles(self, img_data)
     local qx = math.floor(img_width / self.tile_size)
     local qy = math.floor(img_height / self.tile_size)
     local current_id = 1
+    local tile_size = self.tile_size
 
     for j = 1, qy do
         for i = 1, qx do
             local is_empty = check_empty(self, img_data,
-                (i - 1) * self.tile_size,
-                (j - 1) * self.tile_size
+                (i - 1) * tile_size,
+                (j - 1) * tile_size
             )
 
             if not is_empty then
                 local tile = Tile:new(
                     (current_id),
                     self.img,
-                    self.tile_size * (i - 1),
-                    self.tile_size * (j - 1),
-                    self.tile_size
+                    tile_size * (i - 1),
+                    tile_size * (j - 1),
+                    tile_size
                 )
 
                 table.insert(self.tiles, tile)
                 self.id_to_tile[tile.id] = tile
 
-                local index = string.format("%d:%d", self.tile_size * qx, self.tile_size * qy)
+                local index = string.format("%d:%d", tile_size * (i - 1), tile_size * (j - 1))
+
                 self.pos_to_tile[index] = tile
 
                 current_id = current_id + 1
@@ -118,8 +120,8 @@ end
 function TileSet:get_tile_by_pos(x, y)
     x = x or 0
     y = y or 0
-    x = math.floor(x / self.tile_size)
-    y = math.floor(y / self.tile_size)
+    x = math.floor(x / self.tile_size) * self.tile_size
+    y = math.floor(y / self.tile_size) * self.tile_size
     return self.pos_to_tile[string.format("%d:%d", x, y)]
 end
 
