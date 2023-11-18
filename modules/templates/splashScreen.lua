@@ -26,8 +26,6 @@ local States = {
 
 local E = 2.718281828459
 
-
-
 ---@class JM.GameState.Splash.Data
 ---@field affect JM.Template.Affectable
 local data = {
@@ -70,6 +68,15 @@ local data = {
                         State:init(States.jm)
                     end
                 end)
+
+            -- if self.state == States.jm then
+            --     State:change_gamestate(require(self.next_state), {
+            --         unload = path,
+            --         skip_transition = true,
+            --     })
+            -- else
+            --     State:init(States.jm)
+            -- end
         end
     end,
     ---
@@ -107,6 +114,7 @@ local EXTRA_VALUE = State.screen_h / 2
 
 local function draw_rects()
     local full = data.result_rect >= 1
+    local slope_w = State.screen_w * 0.3 --200
 
     lgx.setColor(data.pink)
     lgx.rectangle("fill", -EXTRA_VALUE, -EXTRA_VALUE, EXTRA_VALUE, EXTRA_VALUE + RECT_HEIGHT)
@@ -120,8 +128,7 @@ local function draw_rects()
         RECT_HEIGHT + EXTRA_VALUE
     )
     --========================================================================
-    local slope_w = State.screen_w * 0.3 --200
-    -- lgx.setColor(1, 0, 0)
+
     lgx.polygon("fill", w, -EXTRA_VALUE, w + slope_w, -EXTRA_VALUE, w, RECT_HEIGHT)
     --========================================================================
     lgx.setColor(data.blue)
@@ -341,6 +348,8 @@ local function finish()
         data.sound:stop()
         data.sound:release()
     end
+
+    mask_shader:release()
 end
 
 local function keypressed(key)
