@@ -49,6 +49,9 @@ local function load_tiles(self, img_data)
                 table.insert(self.tiles, tile)
                 self.id_to_tile[tile.id] = tile
 
+                local index = string.format("%d:%d", self.tile_size * qx, self.tile_size * qy)
+                self.pos_to_tile[index] = tile
+
                 current_id = current_id + 1
             end
         end
@@ -87,6 +90,7 @@ function TileSet:__constructor__(path, tile_size)
     self.tile_size = tile_size or 32
     self.tiles = {}
     self.id_to_tile = {}
+    self.pos_to_tile = {}
 
     load_tiles(self, img_data)
     img_data:release()
@@ -108,6 +112,15 @@ function TileSet:add_animated_tile(id, frames, speed)
     self.id_to_tile[id] = self:get_tile(frames[1])
 
     return true
+end
+
+---@return JM.Tile
+function TileSet:get_tile_by_pos(x, y)
+    x = x or 0
+    y = y or 0
+    x = math.floor(x / self.tile_size)
+    y = math.floor(y / self.tile_size)
+    return self.pos_to_tile[string.format("%d:%d", x, y)]
 end
 
 function TileSet:tile_is_animated(id)
