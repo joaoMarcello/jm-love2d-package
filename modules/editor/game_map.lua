@@ -44,7 +44,8 @@ local tool_actions = {
 
 ---@class JM.GameMap : GameObject
 local Map = setmetatable({
-    MapCount = map_count
+    MapCount = map_count,
+    MapLayer = Layer,
 }, GC)
 Map.__index = Map
 
@@ -69,6 +70,7 @@ function Map:__constructor__(args)
     self.camera:toggle_grid()
     self.camera:toggle_world_bounds()
     self.camera.max_zoom = 4
+    self.camera.min_zoom = 0.2
 
     self.pieces = {}
     self.pieces_order = {}
@@ -192,11 +194,12 @@ function Map:init(data)
         table.insert(self.layers, Layer:new())
     end
 
-    self.cur_layer_index = 1
-    ---@type JM.MapLayer
-    self.cur_layer = self.layers[1]
+    self.cur_layer_index = 0
+    self:change_layer(1)
 
-    Piece:init_module(self.cur_layer.tilemap)
+    self.show_world = false
+    ---@type JM.Physics.World
+    self.world = nil
 end
 
 function Map:get_save_data()
@@ -212,7 +215,7 @@ function Map:get_save_data()
 end
 
 ---@param layer JM.MapLayer
-function Map:auto_tile_rules(id, i, j, layer)
+function Map:apply_autotile_rules(id, i, j, layer)
     local block = self.pieces["block-1x1"].tiles[1][1]
     local slope_1x1 = self.pieces["slope-1x1"].tiles[1][1]
     local slope_1x1_inv = self.pieces["slope-1x1-inv"].tiles[1][1]
@@ -242,7 +245,7 @@ function Map:auto_tile_rules(id, i, j, layer)
 
     local output = layer.out_tilemap
 
-    local tile = layer.tilemap.tile_size
+    local tile = layer.out_tilemap.tile_size
 
     local id_by_position = function(x, y)
         return output:get_id_by_img_position(x, y)
@@ -1076,6 +1079,177 @@ function Map:auto_tile_rules(id, i, j, layer)
     end
 end
 
+function Map:auto_tile()
+    for i = 1, #self.layers do
+        ---@type JM.MapLayer
+        local layer = self.layers[i]
+
+        local tilemap = layer.tilemap
+        local out_map = layer.out_tilemap
+        local tile = out_map.tile_size
+
+        out_map:clear()
+
+        for j = tilemap.min_y, tilemap.max_y, tile do
+            for i = tilemap.min_x, tilemap.max_x, tile do
+                --
+                local id = tilemap.cells_by_pos[tilemap:get_index(i, j)]
+
+                if id then
+                    self:apply_autotile_rules(id, i, j, layer)
+                end
+                --
+            end
+        end
+
+        layer.show_auto_tilemap = true
+        out_map:reset_spritebatch()
+    end
+end
+
+function Map:build_world()
+    local Phys = JM.Physics
+    local tile = self.cur_layer.out_tilemap.tile_size
+    local world = Phys:newWorld { tile = tile }
+    local mapped = {}
+
+    for i = 1, #self.layers do
+        ---@type JM.MapLayer
+        local layer = self.layers[i]
+
+        local map = layer.tilemap
+
+        if layer.type == Layer.Types.static
+            or layer.type == Layer.Types.only_fall
+        then
+            for j = map.min_y, map.max_y, tile do
+                for i = map.min_x, map.max_x, tile do
+                    --
+                    local index = map:get_index(i, j)
+                    local id = map.cells_by_pos[index]
+
+                    if id == self.pieces["block-1x1"].tiles[1][1]
+                        and not mapped[index]
+                    then
+                        --
+                        local w = tile
+                        local h = tile
+
+                        for _i_ = i + tile, map.max_x, tile do
+                            local _ind_ = map:get_index(_i_, j)
+                            local _id_ = map.cells_by_pos[_ind_]
+
+                            if not mapped[_ind_] and _id_ == id then
+                                w = w + tile
+                            else
+                                break
+                            end
+                        end
+
+                        local min_h = math.huge
+
+                        for _i_ = i, i + w - 1, tile do
+                            --
+                            local column_h = tile
+
+                            for _j_ = j + tile, map.max_y, tile do
+                                --
+                                local _ind_ = map:get_index(_i_, _j_)
+                                local _id_ = map.cells_by_pos[_ind_]
+
+                                if not mapped[_ind_] and _id_ == id then
+                                    column_h = column_h + tile
+                                else
+                                    break
+                                end
+                            end
+
+                            if column_h < min_h and column_h ~= 0 then
+                                min_h = column_h
+                            end
+                        end
+
+                        h = min_h
+
+                        for _j_ = j, j + h - 1, tile do
+                            for _i_ = i, i + w - 1, tile do
+                                local _ind_ = map:get_index(_i_, _j_)
+                                mapped[_ind_] = true
+                            end
+                        end
+
+                        -- if map.cells_by_pos[map:get_index(i + tile, j)] == id then
+                        --     w = w + tile
+                        --     mapped[map:get_index(i + tile, j)] = true
+                        -- end
+                        -- mapped[index] = true
+
+                        local tp = layer.type == Layer.Types.static and "static" or "only_fall"
+
+                        Phys:newBody(world, i, j, w, h, tp)
+                        --
+                        --
+                    elseif id == self.pieces["slope-1x1"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile, tile, "floor", "normal")
+                        --
+                    elseif id == self.pieces["slope-1x1-inv"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile, tile, "floor", "inv")
+                        --
+                    elseif id == self.pieces["slope-2x1"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 2, tile, "floor", "normal")
+                        --
+                    elseif id == self.pieces["slope-2x1-inv"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 2, tile, "floor", "inv")
+                        --
+                    elseif id == self.pieces["slope-3x1"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 3, tile, "floor", "normal")
+                        --
+                    elseif id == self.pieces["slope-3x1-inv"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 3, tile, "floor", "inv")
+                        --
+                    elseif id == self.pieces["slope-4x1"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 4, tile, "floor", "normal")
+                        --
+                    elseif id == self.pieces["slope-4x1-inv"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 4, tile, "floor", "inv")
+                        --
+                    elseif id == self.pieces["ceil-1x1"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile, tile, "ceil", "normal")
+                        --
+                    elseif id == self.pieces["ceil-1x1-inv"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile, tile, "ceil", "inv")
+                        --
+                    elseif id == self.pieces["ceil-2x1"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 2, tile, "ceil", "normal")
+                        --
+                    elseif id == self.pieces["ceil-2x1-inv"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 2, tile, "ceil", "inv")
+                        --
+                    elseif id == self.pieces["ceil-3x1"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 3, tile, "ceil", "normal")
+                        --
+                    elseif id == self.pieces["ceil-3x1-inv"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 3, tile, "ceil", "inv")
+                        --
+                    elseif id == self.pieces["ceil-4x1"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 4, tile, "ceil", "normal")
+                        --
+                    elseif id == self.pieces["ceil-4x1-inv"].tiles[1][1] then
+                        Phys:newSlope(world, i, j, tile * 4, tile, "ceil", "inv")
+                        --
+                    end
+                end
+            end
+        end
+    end
+
+    world:optimize()
+    world:optimize()
+    world:fix_slope()
+    -- world:fix_ground_to_slope()
+    return world
+end
+
 ---@param new_state JM.GameMap.Tools
 function Map:set_state(new_state)
     if new_state == self.state then return false end
@@ -1094,6 +1268,12 @@ end
 
 function Map:keypressed(key)
     if key == 'a' then
+        for i = 1, #self.layers do
+            ---@type JM.MapLayer
+            local l = self.layers[i]
+            l.show_auto_tilemap = false
+        end
+        self.show_world = false
         return self:set_state(Tools.add_tile)
     elseif key == 'v' then
         return self:set_state(Tools.move_map)
@@ -1123,7 +1303,55 @@ function Map:keypressed(key)
             local layer = self.layers[i]
             layer:fix_map()
         end
+        return
     end
+
+    if key == 'g' then
+        for i = 1, #self.layers do
+            ---@type JM.MapLayer
+            local l = self.layers[i]
+            l.show_auto_tilemap = false
+        end
+        self:keypressed('v')
+        self.show_world = true
+        self.world = self:build_world()
+        collectgarbage()
+        return
+    end
+end
+
+function Map:new_layer(name, type, tile_size)
+    local layer = Layer:new { name = name, type = type, tile_size = tile_size }
+    table.insert(self.layers, layer)
+    self:change_layer(#self.layers)
+    return layer
+end
+
+function Map:change_layer(index)
+    local Utils = JM.Utils
+    index = Utils:clamp(index, 1, #self.layers)
+    -- if index == self.cur_layer_index then return false end
+
+    self.cur_layer_index = index
+    self.cur_layer = self.layers[self.cur_layer_index]
+    Piece:init_module(self.cur_layer.tilemap)
+    return true
+end
+
+function Map:prev_layer()
+    self.cur_layer_index = self.cur_layer_index - 1
+    if self.cur_layer_index <= 0 then
+        self.cur_layer_index = #self.layers
+    end
+    self:change_layer(self.cur_layer_index)
+end
+
+function Map:next_layer()
+    self.cur_layer_index = self.cur_layer_index + 1
+    if self.cur_layer_index > #self.layers then
+        self.cur_layer_index = 1
+    end
+    self:change_layer(self.cur_layer_index)
 end
 
 function Map:keyreleased(key)
@@ -1209,7 +1437,40 @@ function Map:my_draw()
     love.graphics.setColor(0, 0, 1, 0.2)
     love.graphics.rectangle("fill", 0, 0, 64 * 3, 64 * 3)
 
-    self.cur_layer.tilemap:draw(self.camera)
+    for i = 1, #self.layers do
+        ---@type JM.MapLayer
+        local layer = self.layers[i]
+
+        if i == self.cur_layer_index then
+            layer:set_opacity(1)
+        else
+            layer:set_opacity(0.5)
+        end
+
+        layer:draw(self.camera)
+    end
+    -- self.cur_layer:draw(self.camera)
+
+    if self.world and self.show_world then
+        local N = #self.world.bodies_static
+        for i = 1, N do
+            ---@type JM.Physics.Collide
+            local bd = self.world.bodies_static[i]
+
+            if bd.is_slope then
+                bd:draw()
+            end
+        end
+
+        for i = 1, N do
+            ---@type JM.Physics.Collide
+            local bd = self.world.bodies_static[i]
+
+            if not bd.is_slope then
+                bd:draw()
+            end
+        end
+    end
 
     local mx, my = self.gamestate:get_mouse_position(self.camera)
     love.graphics.setColor(1, 0, 0, 0.5)
@@ -1232,6 +1493,8 @@ function Map:draw()
     font:print(r and "on view" or "out", self.camera.viewport_x, self.camera.viewport_y - 20)
 
     font:print(self.name, self.camera.viewport_x + 100, self.camera.viewport_y - 20)
+
+    font:print(self.cur_layer.name, self.camera.viewport_x + 200, self.camera.viewport_y - 20)
 end
 
 return Map
