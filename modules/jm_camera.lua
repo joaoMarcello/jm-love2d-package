@@ -1354,6 +1354,8 @@ local function debbug(self)
     local border_len = self.tile_size --/ self.scale
 
     local vx, vy, vw, vh = self:get_viewport_in_world_coord()
+    vx = round(vx)
+    vy = round(vy)
     do
         love.graphics.rectangle("line",
             vx + border_len,
