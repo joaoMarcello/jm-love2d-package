@@ -9,6 +9,8 @@ local Piece = require(string.gsub(dir, "game_map", "map_piece"))
 
 local tile_size = 16
 
+local map_count = 1
+
 ---@enum JM.GameMap.Tools
 local Tools = {
     add_tile = 1,
@@ -41,18 +43,20 @@ local tool_actions = {
 }
 
 ---@class JM.GameMap : GameObject
-local Object = setmetatable({}, GC)
-Object.__index = Object
+local Map = setmetatable({
+    MapCount = map_count
+}, GC)
+Map.__index = Map
 
 ---@return JM.GameMap
-function Object:new(x, y, w, h, draw_order, update_order, reuse_tab)
-    local obj = GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
+function Map:new(args)
+    local obj = GC:new(0, 0, love.graphics:getDimensions())
     setmetatable(obj, self)
-    Object.__constructor__(obj)
+    Map.__constructor__(obj, args or {})
     return obj
 end
 
-function Object:__constructor__()
+function Map:__constructor__(args)
     self.camera = JM.Camera:new {
         x = 64 * 4,
         y = 64 * 4,
@@ -65,9 +69,6 @@ function Object:__constructor__()
     self.camera:toggle_grid()
     self.camera:toggle_world_bounds()
     self.camera.max_zoom = 4
-
-    self.layers = {}
-    table.insert(self.layers, Layer:new())
 
     self.pieces = {}
     self.pieces_order = {}
@@ -162,31 +163,56 @@ function Object:__constructor__()
     ---@type JM.MapPiece
     self.cur_piece = self.pieces_order[1]
 
+    self:init(args)
+
+    self.state = nil
+    self:set_state(Tools.move_map)
+
+    --
+    self.update = Map.update
+    self.draw = Map.draw
+end
+
+function Map:load()
+    Layer:load()
+end
+
+function Map:init(data)
+    self.name = data.name or string.format("level_%03d", map_count)
+    map_count = map_count + 1
+
+    self.layers = {}
+    Layer:init_module(self)
+
+    if data.layers then
+        for i = 1, #data.layers do
+            table.insert(self.layers, Layer:new(data.layers[i]))
+        end
+    else
+        table.insert(self.layers, Layer:new())
+    end
+
     self.cur_layer_index = 1
     ---@type JM.MapLayer
     self.cur_layer = self.layers[1]
 
     Piece:init_module(self.cur_layer.tilemap)
-
-    self.state = nil --Tools.move_map
-    -- self.cur_action = tool_actions[self.state]
-    self:set_state(Tools.move_map)
-
-    --
-    self.update = Object.update
-    self.draw = Object.draw
 end
 
-function Object:load()
-    Layer:load()
-end
+function Map:get_save_data()
+    local data = { layers = {}, name = self.name, }
 
-function Object:init()
+    for i = 1, #self.layers do
+        ---@type JM.MapLayer
+        local layer = self.layers[i]
+        table.insert(data.layers, layer:get_save_data())
+    end
 
+    return data
 end
 
 ---@param new_state JM.GameMap.Tools
-function Object:set_state(new_state)
+function Map:set_state(new_state)
     if new_state == self.state then return false end
     self.state = new_state
     self.cur_action = tool_actions[self.state]
@@ -201,7 +227,7 @@ function Object:set_state(new_state)
     return true
 end
 
-function Object:keypressed(key)
+function Map:keypressed(key)
     if key == 'a' then
         return self:set_state(Tools.add_tile)
     elseif key == 'v' then
@@ -225,24 +251,32 @@ function Object:keypressed(key)
             self:fix_piece_position()
         end
     end
+
+    if key == 'f' then
+        for i = 1, #self.layers do
+            ---@type JM.MapLayer
+            local layer = self.layers[i]
+            layer:fix_map()
+        end
+    end
 end
 
-function Object:keyreleased(key)
+function Map:keyreleased(key)
 
 end
 
-function Object:mousepressed(x, y, button, istouch, presses)
+function Map:mousepressed(x, y, button, istouch, presses)
     if button == 3 then
         self.camera:toggle_grid()
         self.camera:toggle_world_bounds()
     end
 end
 
-function Object:mousereleased(x, y, button, istouch, presses)
+function Map:mousereleased(x, y, button, istouch, presses)
 
 end
 
-function Object:fix_piece_position()
+function Map:fix_piece_position()
     local mx, my     = self.gamestate:get_mouse_position(self.camera)
     self.cell_x      = math.floor(mx / tile_size)
     self.cell_y      = math.floor(my / tile_size)
@@ -250,7 +284,7 @@ function Object:fix_piece_position()
     self.cur_piece.y = self.cell_y * tile_size
 end
 
-function Object:mousemoved(x, y, dx, dy, istouch)
+function Map:mousemoved(x, y, dx, dy, istouch)
     local mx, my = self.gamestate:get_mouse_position(self.camera)
     self.camera:set_focus(self.camera:world_to_screen(mx, my))
 
@@ -268,7 +302,7 @@ function Object:mousemoved(x, y, dx, dy, istouch)
     self:fix_piece_position()
 end
 
-function Object:wheelmoved(x, y, force)
+function Map:wheelmoved(x, y, force)
     if not self:mouse_is_on_view() and not force then return false end
     if not self.is_enable then return false end
 
@@ -283,12 +317,12 @@ function Object:wheelmoved(x, y, force)
     return self.camera:set_zoom(zoom)
 end
 
-function Object:mouse_is_on_view()
+function Map:mouse_is_on_view()
     local mx, my = self.gamestate:get_mouse_position(self.camera)
     return self.camera:point_is_on_view(mx, my)
 end
 
-function Object:update(dt)
+function Map:update(dt)
     local speed = 96 / self.camera.scale
     if love.keyboard.isDown("up") then
         self.camera:move(0, -speed * dt)
@@ -306,7 +340,7 @@ function Object:update(dt)
     self:cur_action(dt)
 end
 
-function Object:my_draw()
+function Map:my_draw()
     love.graphics.setColor(0, 0, 1, 0.2)
     love.graphics.rectangle("fill", 0, 0, 64 * 3, 64 * 3)
 
@@ -319,7 +353,7 @@ function Object:my_draw()
     self.cur_piece:draw()
 end
 
-function Object:draw()
+function Map:draw()
     love.graphics.setColor(0.6, 0.6, 0.6)
     love.graphics.rectangle("fill", self.camera:get_viewport())
 
@@ -331,6 +365,8 @@ function Object:draw()
     local font = JM:get_font()
     local r = self:mouse_is_on_view()
     font:print(r and "on view" or "out", self.camera.viewport_x, self.camera.viewport_y - 20)
+
+    font:print(self.name, self.camera.viewport_x + 100, self.camera.viewport_y - 20)
 end
 
-return Object
+return Map
