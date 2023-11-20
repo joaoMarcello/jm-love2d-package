@@ -45,6 +45,8 @@ function Layer:__constructor__(args)
         args.tile_size or 16
     )
 
+    self.out_tilemap = TileMap:new(generic, "/data/img/tileset-game.png", args.tile_size or 16)
+
     self.type = args.type or LayerTypes.static
     self.name = args.name or string.format("layer_%02d", layer_count)
     self.gamestate = GC.gamestate
@@ -93,6 +95,50 @@ function Layer:fix_map()
     tilemap.last_index_left = nil
 
     return true
+end
+
+function Layer:tile_top(x, y)
+    local tilemap = self.tilemap
+    return tilemap.cells_by_pos[tilemap:get_index(x, y - tilemap.tile_size)]
+end
+
+function Layer:tile_bottom(x, y)
+    local tilemap = self.tilemap
+    return tilemap.cells_by_pos[tilemap:get_index(x, y + tilemap.tile_size)]
+end
+
+function Layer:tile_left(x, y)
+    local tilemap = self.tilemap
+    return tilemap.cells_by_pos[tilemap:get_index(x - tilemap.tile_size, y)]
+end
+
+function Layer:tile_right(x, y)
+    local tilemap = self.tilemap
+    return tilemap.cells_by_pos[tilemap:get_index(x + tilemap.tile_size, y)]
+end
+
+function Layer:tile_top_left(x, y)
+    local tilemap = self.tilemap
+    local t = tilemap.tile_size
+    return tilemap.cells_by_pos[tilemap:get_index(x - t, y - t)]
+end
+
+function Layer:tile_top_right(x, y)
+    local tilemap = self.tilemap
+    local t = tilemap.tile_size
+    return tilemap.cells_by_pos[tilemap:get_index(x + t, y - t)]
+end
+
+function Layer:tile_bottom_left(x, y)
+    local tilemap = self.tilemap
+    local t = tilemap.tile_size
+    return tilemap.cells_by_pos[tilemap:get_index(x - t, y + t)]
+end
+
+function Layer:tile_bottom_right(x, y)
+    local tilemap = self.tilemap
+    local t = tilemap.tile_size
+    return tilemap.cells_by_pos[tilemap:get_index(x + t, y + t)]
 end
 
 function Layer:tilemap_tostring()
