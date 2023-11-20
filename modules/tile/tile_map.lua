@@ -122,7 +122,13 @@ function TileMap:load_map(data, filter, regions, clean_up)
     local data = type(data) == "string" and love_file_load(data)
         or data
 
-    local func = setfenv(data, { Entry = Entry, Region = Region, _G = _G })
+    local func = setfenv(data, {
+        Entry = Entry,
+        Region = Region,
+        tile_size = self.tile_size,
+        _G = _G
+    })
+
     func()
     -- data()
 end
