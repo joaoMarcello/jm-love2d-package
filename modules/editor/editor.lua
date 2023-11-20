@@ -1,5 +1,6 @@
 local path = ...
 local JM = _G.JM
+local Loader = JM.Ldr
 
 ---@type JM.GameMap
 local GameMap = require(string.gsub(path, "editor.editor", "editor.game_map"))
@@ -28,7 +29,28 @@ local State = JM.Scene:new {
     cam_scale = 1,
 }
 --============================================================================
+---@class JM.Editor.Data
 local data = {}
+
+function data:save()
+    ---@type any
+    local d = self.map:get_save_data()
+
+    Loader.save(d, "gamemap.dat")
+
+    d = Loader.ser.pack(d)
+    love.filesystem.write("gamemap.txt", d)
+    -- Loader:savexp(d, "gamemap.dat")
+end
+
+function data:load()
+    local dir = 'gamemap.dat'
+    ---@type any
+    local d = Loader.load(dir)
+
+    self.map:init(d)
+    -- data.map.camera:set_viewport(State.screen_w * 0.1, State.screen_h * 0.1, State.screen_w * 0.8, State.screen_h * 0.8)
+end
 
 --============================================================================
 
@@ -50,7 +72,7 @@ local function init(args)
     local world = JM.Physics:newWorld()
     JM.GameObject:init_state(State, world)
 
-    data.map = GameMap:new(0, 0, 1000, 500)
+    data.map = GameMap:new()
     -- data.map.camera:set_viewport(64 * 3, 64, 64 * 10, 64 * 9)
     data.map.camera:set_viewport(State.screen_w * 0.1, State.screen_h * 0.1, State.screen_w * 0.8, State.screen_h * 0.8)
 end
@@ -64,6 +86,15 @@ local function keypressed(key)
         State.camera:toggle_grid()
         State.camera:toggle_world_bounds()
     end
+
+    if love.keyboard.isDown("lctrl") and key == 's' then
+        return data:save()
+    end
+
+    if key == 'l' then
+        return data:load()
+    end
+
     data.map:keypressed(key)
 end
 
