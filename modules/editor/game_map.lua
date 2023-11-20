@@ -1111,9 +1111,9 @@ function Map:build_world()
     local Phys = JM.Physics
     local tile = self.cur_layer.out_tilemap.tile_size
     local world = Phys:newWorld { tile = tile }
-    local mapped = {}
 
     for i = 1, #self.layers do
+        local mapped = {}
         ---@type JM.MapLayer
         local layer = self.layers[i]
 
@@ -1437,18 +1437,39 @@ function Map:my_draw()
     love.graphics.setColor(0, 0, 1, 0.2)
     love.graphics.rectangle("fill", 0, 0, 64 * 3, 64 * 3)
 
-    for i = 1, #self.layers do
-        ---@type JM.MapLayer
-        local layer = self.layers[i]
 
-        if i == self.cur_layer_index then
-            layer:set_opacity(1)
-        else
-            layer:set_opacity(0.5)
+    if not self.show_world then
+        local N_layers = #self.layers
+
+        for i = 1, N_layers do
+            ---@type JM.MapLayer
+            local layer = self.layers[i]
+
+            if i == self.cur_layer_index then
+                layer:set_opacity(1)
+            else
+                layer:set_opacity(0.5)
+            end
+            if layer.type == Layer.Types.only_fall then
+                layer:draw(self.camera)
+            end
         end
 
-        layer:draw(self.camera)
+        for i = 1, N_layers do
+            ---@type JM.MapLayer
+            local layer = self.layers[i]
+
+            if i == self.cur_layer_index then
+                layer:set_opacity(1)
+            else
+                layer:set_opacity(0.5)
+            end
+            if layer.type == Layer.Types.static then
+                layer:draw(self.camera)
+            end
+        end
     end
+
     -- self.cur_layer:draw(self.camera)
 
     if self.world and self.show_world then
@@ -1458,7 +1479,9 @@ function Map:my_draw()
             local bd = self.world.bodies_static[i]
 
             if bd.is_slope then
-                bd:draw()
+                if self.camera:rect_is_on_view(bd:rect()) then
+                    bd:draw()
+                end
             end
         end
 
@@ -1466,8 +1489,21 @@ function Map:my_draw()
             ---@type JM.Physics.Collide
             local bd = self.world.bodies_static[i]
 
-            if not bd.is_slope then
-                bd:draw()
+            if not bd.is_slope and bd.type == bd.Types.only_fall then
+                if self.camera:rect_is_on_view(bd:rect()) then
+                    bd:draw()
+                end
+            end
+        end
+
+        for i = 1, N do
+            ---@type JM.Physics.Collide
+            local bd = self.world.bodies_static[i]
+
+            if not bd.is_slope and bd.type == bd.Types.static then
+                if self.camera:rect_is_on_view(bd:rect()) then
+                    bd:draw()
+                end
             end
         end
     end
