@@ -1125,7 +1125,13 @@ do
         end
 
         function Body:draw()
-            love.graphics.setColor(0.1, 0.4, 0.5)
+            if self.type == BodyTypes.static then
+                love.graphics.setColor(0.1, 0.4, 0.5)
+            elseif self.type == BodyTypes.only_fall then
+                love.graphics.setColor(26 / 255, 201 / 255, 135 / 255)
+            else
+                love.graphics.setColor(1, 1, 1)
+            end
             love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
             -- love.graphics.setColor(1, 1, 1)
             love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
