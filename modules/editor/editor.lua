@@ -16,8 +16,8 @@ local State = JM.Scene:new {
     y = nil,
     w = nil,
     h = nil,
-    canvas_w = 1024,
-    canvas_h = 768,
+    -- canvas_w = 1024,
+    -- canvas_h = 768,
     tile = 64,
     subpixel = 1,
     canvas_filter = _G.CANVAS_FILTER or 'linear',
@@ -45,9 +45,14 @@ local function finish()
 end
 
 local function init(args)
+    love.filesystem.setIdentity("map-editor")
+
     local world = JM.Physics:newWorld()
     JM.GameObject:init_state(State, world)
+
     data.map = GameMap:new(0, 0, 1000, 500)
+    -- data.map.camera:set_viewport(64 * 3, 64, 64 * 10, 64 * 9)
+    data.map.camera:set_viewport(State.screen_w * 0.1, State.screen_h * 0.1, State.screen_w * 0.8, State.screen_h * 0.8)
 end
 
 local function textinput(t)
@@ -59,10 +64,11 @@ local function keypressed(key)
         State.camera:toggle_grid()
         State.camera:toggle_world_bounds()
     end
+    data.map:keypressed(key)
 end
 
 local function keyreleased(key)
-
+    data.map:keyreleased(key)
 end
 
 local function mousepressed(x, y, button, istouch, presses)
