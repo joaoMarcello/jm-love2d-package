@@ -110,6 +110,11 @@ local function keypressed(key)
         return data.map:auto_tile()
     end
 
+    if key == 'j' then
+        data.map.layers[1], data.map.layers[3] = data.map.layers[3], data.map.layers[1]
+        data.map:change_layer(3)
+    end
+
     if love.keyboard.isDown("lalt") and key == 'b' then
         data.map:new_layer(nil, MapLayer.Types.only_fall)
         return
