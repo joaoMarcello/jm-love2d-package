@@ -4,6 +4,7 @@ local Loader = JM.Ldr
 
 ---@type JM.GameMap
 local GameMap = require(string.gsub(path, "editor.editor", "editor.game_map"))
+local MapLayer = GameMap.MapLayer
 
 do
     _G.SUBPIXEL = _G.SUBPIXEL or 3
@@ -36,15 +37,15 @@ function data:save()
     ---@type any
     local d = self.map:get_save_data()
 
-    Loader.save(d, "gamemap.dat")
+    Loader.save(d, "gamemap2.dat")
 
     d = Loader.ser.pack(d)
-    love.filesystem.write("gamemap.txt", d)
+    love.filesystem.write("gamemap2.txt", d)
     -- Loader:savexp(d, "gamemap.dat")
 end
 
 function data:load()
-    local dir = 'gamemap.dat'
+    local dir = 'gamemap2.dat'
     ---@type any
     local d = Loader.load(dir)
 
@@ -93,6 +94,25 @@ local function keypressed(key)
 
     if key == 'l' then
         return data:load()
+    end
+
+    if love.keyboard.isDown("lshift") then
+        if key == 'w' then
+            return data.map:prev_layer()
+        elseif key == 's' then
+            return data.map:next_layer()
+        end
+    end
+
+    if love.keyboard.isDown("lctrl") and key == 'a' then
+        data.map:keypressed('v')
+        data.map.show_world = false
+        return data.map:auto_tile()
+    end
+
+    if love.keyboard.isDown("lalt") and key == 'b' then
+        data.map:new_layer(nil, MapLayer.Types.only_fall)
+        return
     end
 
     data.map:keypressed(key)
