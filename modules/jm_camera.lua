@@ -374,6 +374,8 @@ end
 local function draw_bounds(self)
     local tile = self.tile_size
     local vx, vy, vw, vh = self:get_viewport_in_world_coord()
+    vx = round(vx)
+    vy = round(vy)
     local qx = mfloor((self.bounds_right - self.bounds_left) / tile)
     local qy = mfloor((self.bounds_bottom - self.bounds_top) / tile)
 
