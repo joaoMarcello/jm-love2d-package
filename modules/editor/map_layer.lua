@@ -8,15 +8,25 @@ local LayerTypes = {
     ghost = 3,
 }
 
+---@type JM.GameMap
+local game_map
+
+local layer_count = 1
+
 ---@class JM.MapLayer
 local Layer = {
     Types = LayerTypes,
+    LayerCount = layer_count,
 }
 Layer.__index = Layer
 
+---@param gameMap JM.GameMap
+function Layer:init_module(gameMap)
+    game_map = gameMap
+end
+
 local generic = function() end
 
-local layer_count = 1
 
 ---@return JM.MapLayer
 function Layer:new(args)
@@ -26,7 +36,15 @@ function Layer:new(args)
 end
 
 function Layer:__constructor__(args)
-    self.tilemap = TileMap:new(generic, "/data/img/tilemap-collider.png", args.tile_size or 16)
+    if args.map then
+        args.data = loadstring(args.map)
+    end
+
+    self.tilemap = TileMap:new(args.data or generic,
+        "/data/img/tilemap-collider.png",
+        args.tile_size or 16
+    )
+
     self.type = args.type or LayerTypes.static
     self.name = args.name or string.format("layer_%02d", layer_count)
     self.gamestate = GC.gamestate
@@ -40,6 +58,86 @@ end
 
 function Layer:finish()
 
+end
+
+function Layer:fix_map()
+    local tilemap = self.tilemap
+    local min_x = tilemap.min_x
+    local max_x = tilemap.max_x
+    local min_y = tilemap.min_y
+    local max_y = tilemap.max_y
+    local tile = tilemap.tile_size
+
+    if min_x == 0 and min_y == 0 then return false end
+
+    local cells_by_pos = {}
+
+    for j = min_y, max_y, tile do
+        for i = min_x, max_x, tile do
+            local index = tilemap:get_index(i, j)
+            local id = tilemap.cells_by_pos[index]
+
+            if id then
+                cells_by_pos[tilemap:get_index(i - min_x, j - min_y)] = id
+            end
+        end
+    end
+
+    tilemap.cells_by_pos = cells_by_pos
+    tilemap.min_x = 0
+    tilemap.min_y = 0
+    tilemap.max_x = max_x - min_x
+    tilemap.max_y = max_y - min_y
+
+    tilemap.__bound_left = nil
+    tilemap.last_index_left = nil
+
+    return true
+end
+
+function Layer:tilemap_tostring()
+    local map = self.tilemap
+    local block_id = game_map.pieces["block-1x1"].tiles[1][1]
+    local str_format = string.format
+    local tile = map.tile_size
+
+    local f = [[local e=function(x,y,id) return Entry(x*tile_size,y*tile_size,id or %d) end]]
+
+    f = str_format(f, block_id)
+
+    for j = map.min_y, map.max_y, tile do
+        for i = map.min_x, map.max_x, tile do
+            local index = map:get_index(i, j)
+            local id = map.cells_by_pos[index]
+
+            if id then
+                local line
+                local x = i / tile
+                local y = j / tile
+
+                if id == block_id then
+                    line = str_format("e(%d,%d)", x, y)
+                else
+                    line = str_format("e(%d,%d,%d)", x, y, id)
+                end
+                f = str_format("%s\n%s", f, line)
+            end
+        end
+    end
+
+    return f
+end
+
+---@alias JM.MapLayer.SaveData {map:string, name:string, type:JM.MapLayer.Types, tile_size:number}
+
+---@return JM.MapLayer.SaveData savedata
+function Layer:get_save_data()
+    return {
+        map = self:tilemap_tostring(),
+        name = self.name,
+        type = self.type,
+        tile_size = self.tilemap.tile_size,
+    }
 end
 
 return Layer
