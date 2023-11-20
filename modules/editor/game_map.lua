@@ -211,6 +211,871 @@ function Map:get_save_data()
     return data
 end
 
+---@param layer JM.MapLayer
+function Map:auto_tile_rules(id, i, j, layer)
+    local block = self.pieces["block-1x1"].tiles[1][1]
+    local slope_1x1 = self.pieces["slope-1x1"].tiles[1][1]
+    local slope_1x1_inv = self.pieces["slope-1x1-inv"].tiles[1][1]
+    local slope_2x1 = self.pieces["slope-2x1"].tiles[1][1]
+    local slope_2x1_inv = self.pieces["slope-2x1-inv"].tiles[1][1]
+    local slope_3x1 = self.pieces["slope-3x1"].tiles[1][1]
+    local slope_3x1_inv = self.pieces["slope-3x1-inv"].tiles[1][1]
+    local slope_4x1 = self.pieces["slope-4x1"].tiles[1][1]
+    local slope_4x1_inv = self.pieces["slope-4x1-inv"].tiles[1][1]
+    local ceil_1x1 = self.pieces["ceil-1x1"].tiles[1][1]
+    local ceil_1x1_inv = self.pieces["ceil-1x1-inv"].tiles[1][1]
+    local ceil_2x1 = self.pieces["ceil-2x1"].tiles[1][1]
+    local ceil_2x1_inv = self.pieces["ceil-2x1-inv"].tiles[1][1]
+    local ceil_3x1 = self.pieces["ceil-3x1"].tiles[1][1]
+    local ceil_3x1_inv = self.pieces["ceil-3x1-inv"].tiles[1][1]
+    local ceil_4x1 = self.pieces["ceil-4x1"].tiles[1][1]
+    local ceil_4x1_inv = self.pieces["ceil-4x1-inv"].tiles[1][1]
+
+    local left = layer:tile_left(i, j)
+    local right = layer:tile_right(i, j)
+    local bottom = layer:tile_bottom(i, j)
+    local top = layer:tile_top(i, j)
+    local top_left = layer:tile_top_left(i, j)
+    local top_right = layer:tile_top_right(i, j)
+    local bottom_left = layer:tile_bottom_left(i, j)
+    local bottom_right = layer:tile_bottom_right(i, j)
+
+    local output = layer.out_tilemap
+
+    local tile = layer.tilemap.tile_size
+
+    local id_by_position = function(x, y)
+        return output:get_id_by_img_position(x, y)
+    end
+
+    if id == block and not bottom
+        and not left
+        and not right
+        and not top
+    then
+        output:insert_tile(i, j, id_by_position(16, 16))
+    end
+
+    if id == block
+        and right
+        and not top
+        and not left
+        and bottom == block
+    then
+        output:insert_tile(i, j, id_by_position(57, 23))
+    end
+
+    if id == block and not right
+        and left
+        and not top
+        and bottom == block
+    then
+        output:insert_tile(i, j, id_by_position(105, 24))
+    end
+
+    if id == block and not top
+        and bottom == block
+        and left
+        and right
+    then
+        local prev = output:get_id(i - tile, j)
+        local id = id_by_position(72, 24)
+
+        if not prev or prev ~= id then
+            output:insert_tile(i, j, id) --3
+        else
+            output:insert_tile(i, j, id_by_position(89, 23))
+        end
+    end
+
+    if id == block and
+        not left
+        and right == block
+        and bottom == block
+        and top == block
+        and (not top_left or top_left == block)
+    then
+        local prev = output:get_id(i, j - tile)
+
+        if not prev or prev ~= 6 then
+            output:insert_tile(i, j, 6)
+        else
+            output:insert_tile(i, j, 10)
+        end
+    end
+
+    if id == block
+        and not right
+        and left == block
+        and bottom == block
+        and top == block
+        and (not top_right or top_right == block)
+    then
+        local prev = output:get_id(i, j - tile)
+
+        if not prev or prev ~= 9 then
+            output:insert_tile(i, j, 9)
+        else
+            output:insert_tile(i, j, 13)
+        end
+    end
+
+    if id == block
+        and top == block
+        and bottom == block
+        and left
+        and right
+    -- and top_left
+    -- and top_right
+    -- and bottom_left
+    -- and bottom_right
+    then
+        -- 7 - 8  - 11 - 12
+
+        local prev_up = output:get_id(i, j - tile)
+        local prev_left = output:get_id(i - tile, j)
+
+        if prev_up ~= 7 and prev_up ~= 8
+        -- and prev_up ~= 11 and prev_up ~= 12
+        then
+            if prev_left ~= 7 then
+                output:insert_tile(i, j, 7)
+            else
+                output:insert_tile(i, j, 8)
+            end
+            --
+        else
+            --
+            if prev_left ~= 11 then
+                output:insert_tile(i, j, 11)
+            else
+                output:insert_tile(i, j, 12)
+            end
+        end
+    end
+
+    if id == block
+        and not left
+        and bottom ~= block
+        and right == block
+        and top == block
+    then
+        output:insert_tile(i, j, 14)
+    end
+
+    if id == block
+        and not right
+        and bottom ~= block
+        and left == block
+        and top == block
+    then
+        output:insert_tile(i, j, 17)
+    end
+
+    if id == block
+        and not bottom
+        and left
+        and right
+        and top == block
+    then
+        local prev = output:get_id(i - tile, j)
+        if prev ~= 15 then
+            output:insert_tile(i, j, 15)
+        else
+            output:insert_tile(i, j, 16)
+        end
+    end
+
+    if id == block
+        and left
+        and right
+        and top == block
+        and bottom
+        and top_left
+        and bottom_left
+        and not top_right
+    then
+        output:insert_tile(i, j, 19)
+    end
+
+    if id == block
+        and left
+        and right
+        and bottom
+        and top == block
+        and top_right
+        and bottom_right
+        and not top_left
+    then
+        output:insert_tile(i, j, 18)
+    end
+
+    if id == slope_1x1
+        and bottom == block
+        and (left or bottom_left)
+    then
+        output:insert_tile(i, j, 20)
+        output:insert_tile(i, j + tile, 22)
+    end
+
+    if id == slope_1x1_inv
+        and bottom == block
+        and (right or bottom_right)
+    then
+        output:insert_tile(i, j, 21)
+        output:insert_tile(i, j + tile, 23)
+    end
+
+    if id == slope_2x1
+        and bottom == block
+        and (left or bottom_left)
+    then
+        output:insert_tile(i, j, 24)
+        output:insert_tile(i + tile, j, 25)
+        output:insert_tile(i, j + tile, 33)
+        output:insert_tile(i + tile, j + tile, 34)
+    end
+
+    if id == slope_2x1_inv
+        and (layer:tile_bottom(i + tile, j))
+        and (layer:tile_bottom_right(i + tile, j)
+            or layer:tile_right(i + tile, j))
+    then
+        output:insert_tile(i, j, 42)
+        output:insert_tile(i + tile, j, 43)
+        output:insert_tile(i, j + tile, 51)
+        output:insert_tile(i + tile, j + tile, 52)
+    end
+
+    if id == slope_3x1
+        and bottom == block
+        and bottom_left
+    then
+        output:insert_tile(i, j, 26)
+        output:insert_tile(i + tile, j, 27)
+        output:insert_tile(i + tile + tile, j, 28)
+        output:insert_tile(i, j + tile, 35)
+        output:insert_tile(i + tile, j + tile, 36)
+        output:insert_tile(i + tile + tile, j + tile, 37)
+    end
+
+    if id == slope_3x1_inv
+        and layer:tile_bottom(i + tile * 2, j)
+        and (layer:tile_bottom_right(i + tile * 2, j)
+            or layer:tile_right(i + tile * 2, j))
+    then
+        output:insert_tile(i, j, 44)
+        output:insert_tile(i + tile, j, 45)
+        output:insert_tile(i + tile + tile, j, 46)
+        output:insert_tile(i, j + tile, 53)
+        output:insert_tile(i + tile, j + tile, 54)
+        output:insert_tile(i + tile + tile, j + tile, 55)
+    end
+
+    if id == slope_4x1
+        and bottom == block
+        and (left or bottom_left)
+    then
+        output:insert_tile(i, j, 29)
+        output:insert_tile(i + tile, j, 30)
+        output:insert_tile(i + tile * 2, j, 31)
+        output:insert_tile(i + tile * 3, j, 32)
+        output:insert_tile(i, j + tile, 38)
+        output:insert_tile(i + tile, j + tile, 39)
+        output:insert_tile(i + tile * 2, j + tile, 40)
+        output:insert_tile(i + tile * 3, j + tile, 41)
+    end
+
+    if id == slope_4x1_inv
+        and layer:tile_bottom(i + tile * 3, j)
+        and (layer:tile_right(i + tile * 3, j)
+            or layer:tile_bottom_right(i + tile * 3, j))
+    then
+        output:insert_tile(i, j, 47)
+        output:insert_tile(i + tile, j, 48)
+        output:insert_tile(i + tile * 2, j, 49)
+        output:insert_tile(i + tile * 3, j, 50)
+        output:insert_tile(i, j + tile, 56)
+        output:insert_tile(i + tile, j + tile, 57)
+        output:insert_tile(i + tile * 2, j + tile, 58)
+        output:insert_tile(i + tile * 3, j + tile, 59)
+    end
+
+    --borders
+    if id == block
+        and left == block
+        and bottom == block
+        and right == block
+        and top == block
+        and not bottom_right
+    then
+        output:insert_tile(i, j, 60)
+    end
+
+    if id == block
+        and left == block
+        and bottom == block
+        and right == block
+        and top == block
+        and not bottom_left
+    then
+        output:insert_tile(i, j, 62)
+    end
+
+    -- bottom
+    if id == ceil_1x1
+        and top_right
+    then
+        output:insert_tile(i, j, 63)
+        output:insert_tile(i, j - tile, 7)
+
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_1x1_inv
+        and top_left
+    then
+        output:insert_tile(i, j, 64)
+        output:insert_tile(i, j - tile, 7)
+
+        if bottom_right == block then
+            output:insert_tile(i + tile, j + tile, 68)
+        end
+    end
+
+    if id == ceil_2x1
+        and layer:tile_top_right(i + tile, j)
+    then
+        output:insert_tile(i, j, 72)
+        output:insert_tile(i, j - tile, 11)
+        output:insert_tile(i + tile, j, 73)
+        output:insert_tile(i + tile, j - tile, 12)
+
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_2x1_inv
+        and top_left
+    then
+        output:insert_tile(i, j, 74)
+        output:insert_tile(i, j - tile, 11)
+        output:insert_tile(i + tile, j, 75)
+        output:insert_tile(i + tile, j - tile, 12)
+
+        if layer:tile_bottom_right(i + tile, j) == block then
+            output:insert_tile(i + tile + tile, j + tile, 68)
+        end
+    end
+
+    if id == ceil_3x1
+        and layer:tile_top_right(i + tile * 2, j)
+    then
+        output:insert_tile(i, j, 76)
+        output:insert_tile(i + tile, j, 77)
+        output:insert_tile(i + tile * 2, j, 78)
+        output:insert_tile(i, j - tile, 7)
+        output:insert_tile(i + tile, j - tile, 8)
+        output:insert_tile(i + tile * 2, j - tile, 7)
+
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_3x1_inv
+        and top_left
+    then
+        output:insert_tile(i, j, 79)
+        output:insert_tile(i + tile, j, 80)
+        output:insert_tile(i + tile * 2, j, 81)
+        output:insert_tile(i, j - tile, 7)
+        output:insert_tile(i + tile, j - tile, 8)
+        output:insert_tile(i + tile * 2, j - tile, 7)
+
+        if layer:tile_bottom_right(i + tile * 2, j) == block then
+            output:insert_tile(i + tile * 3, j + tile, 68)
+        end
+    end
+
+    if id == ceil_4x1
+        and layer:tile_top_right(i + tile * 3, j)
+    then
+        output:insert_tile(i, j, 82)
+        output:insert_tile(i + tile, j, 83)
+        output:insert_tile(i + tile * 2, j, 84)
+        output:insert_tile(i + tile * 3, j, 85)
+        output:insert_tile(i, j - tile, 7)
+        output:insert_tile(i + tile, j - tile, 8)
+        output:insert_tile(i + tile * 2, j - tile, 7)
+        output:insert_tile(i + tile * 3, j - tile, 8)
+
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_4x1_inv
+        and top_left
+    then
+        output:insert_tile(i, j, 86)
+        output:insert_tile(i + tile, j, 87)
+        output:insert_tile(i + tile * 2, j, 88)
+        output:insert_tile(i + tile * 3, j, 89)
+        output:insert_tile(i, j - tile, 7)
+        output:insert_tile(i + tile, j - tile, 8)
+        output:insert_tile(i + tile * 2, j - tile, 7)
+        output:insert_tile(i + tile * 3, j - tile, 8)
+
+        if layer:tile_bottom_right(i + tile * 3, j) == block then
+            output:insert_tile(i + tile * 4, j + tile, 68)
+        end
+    end
+
+    if id == ceil_1x1_inv
+        and not top_left
+        and layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 97)
+        output:insert_tile(i, j - tile, 91)
+
+        if bottom_right == block then
+            output:insert_tile(i + tile, j + tile, 68)
+        end
+    end
+
+    if id == ceil_1x1
+        and not top_right
+        and layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 96)
+        output:insert_tile(i, j - tile, 90)
+
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_2x1
+        and not layer:tile_right(i + tile, j - tile)
+        and layer:tile_top(i + tile, j - tile)
+    then
+        output:insert_tile(i, j, 98)
+        output:insert_tile(i + tile, j, 99)
+        output:insert_tile(i, j - tile, 92)
+        output:insert_tile(i + tile, j - tile, 93)
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_2x1_inv
+        and not top_left
+        and layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 100)
+        output:insert_tile(i + tile, j, 101)
+        output:insert_tile(i, j - tile, 94)
+        output:insert_tile(i + tile, j - tile, 95)
+        if layer:tile_bottom_right(i + tile, j) then
+            output:insert_tile(i + tile * 2, j + tile, 68)
+        end
+    end
+
+    if id == ceil_3x1
+        and not layer:tile_right(i + tile * 2, j - tile)
+        and layer:tile_top(i + tile * 2, j - tile)
+    then
+        output:insert_tile(i, j, 112)
+        output:insert_tile(i + tile, j, 113)
+        output:insert_tile(i + tile * 2, j, 114)
+        output:insert_tile(i, j - tile, 102)
+        output:insert_tile(i + tile, j - tile, 103)
+        output:insert_tile(i + tile * 2, j - tile, 104)
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_3x1_inv
+        and not top_left
+        and layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 115)
+        output:insert_tile(i + tile, j, 116)
+        output:insert_tile(i + tile * 2, j, 117)
+        output:insert_tile(i, j - tile, 105)
+        output:insert_tile(i + tile, j - tile, 106)
+        output:insert_tile(i + tile * 2, j - tile, 107)
+        if layer:tile_bottom_right(i + tile * 2, j) == block then
+            output:insert_tile(i + tile * 3, j + tile, 68)
+        end
+    end
+
+    if id == ceil_4x1
+        and not layer:tile_right(i + tile * 3, j - tile)
+        and layer:tile_top(i + tile * 3, j - tile)
+    then
+        output:insert_tile(i, j, 118)
+        output:insert_tile(i + tile, j, 119)
+        output:insert_tile(i + tile * 2, j, 120)
+        output:insert_tile(i + tile * 3, j, 121)
+        output:insert_tile(i, j - tile, 108)
+        output:insert_tile(i + tile, j - tile, 109)
+        output:insert_tile(i + tile * 2, j - tile, 110)
+        output:insert_tile(i + tile * 3, j - tile, 111)
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_4x1_inv
+        and not top_left
+        and layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 126)
+        output:insert_tile(i + tile, j, 127)
+        output:insert_tile(i + tile * 2, j, 128)
+        output:insert_tile(i + tile * 3, j, 129)
+        output:insert_tile(i, j - tile, 122)
+        output:insert_tile(i + tile, j - tile, 123)
+        output:insert_tile(i + tile * 2, j - tile, 124)
+        output:insert_tile(i + tile * 3, j - tile, 125)
+        if layer:tile_bottom_right(i + tile * 3, j) == block then
+            output:insert_tile(i + tile * 4, j + tile, 68)
+        end
+    end
+
+    if id == ceil_1x1
+        and not top_right
+        and top == block
+        and not layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 139)
+        output:insert_tile(i, j - tile, 130)
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_1x1_inv
+        and not top_left
+        and top == block
+        and not layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 140)
+        output:insert_tile(i, j - tile, 131)
+        if bottom_right == block then
+            output:insert_tile(i + tile, j + tile, 68)
+        end
+    end
+
+    if id == ceil_2x1
+        and not layer:tile_top_right(i + tile, j)
+        and layer:tile_top(i + tile, j) == block
+        and not layer:tile_top(i + tile, j - tile)
+    then
+        output:insert_tile(i, j, 141)
+        output:insert_tile(i + tile, j, 142)
+        output:insert_tile(i, j - tile, 132)
+        output:insert_tile(i + tile, j - tile, 133)
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_2x1_inv
+        and not top_left
+        and top == block
+        and not layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 143)
+        output:insert_tile(i + tile, j, 144)
+        output:insert_tile(i, j - tile, 134)
+        output:insert_tile(i + tile, j - tile, 135)
+        if layer:tile_bottom_right(i + tile, j) == block then
+            output:insert_tile(i + tile * 2, j + tile, 68)
+        end
+    end
+
+    if id == ceil_3x1
+        and not layer:tile_top_right(i + tile * 2, j)
+        and layer:tile_top(i + tile * 2, j) == block
+        and not layer:tile_top(i + tile * 2, j - tile)
+    then
+        output:insert_tile(i, j, 145)
+        output:insert_tile(i + tile, j, 146)
+        output:insert_tile(i + tile * 2, j, 147)
+        output:insert_tile(i, j - tile, 136)
+        output:insert_tile(i + tile, j - tile, 137)
+        output:insert_tile(i + tile * 2, j - tile, 138)
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_3x1_inv
+        and not top_left
+        and top == block
+        and not layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 159)
+        output:insert_tile(i + tile, j, 160)
+        output:insert_tile(i + tile * 2, j, 161)
+        output:insert_tile(i, j - tile, 148)
+        output:insert_tile(i + tile, j - tile, 149)
+        output:insert_tile(i + tile * 2, j - tile, 150)
+        if layer:tile_bottom_right(i + tile * 2, j) == block then
+            output:insert_tile(i + tile * 3, j + tile, 68)
+        end
+    end
+
+    if id == ceil_4x1
+        and not layer:tile_top_right(i + tile * 3, j)
+        and layer:tile_top(i + tile * 3, j) == block
+        and not layer:tile_top(i + tile * 3, j - tile)
+    then
+        output:insert_tile(i, j, 162)
+        output:insert_tile(i + tile, j, 163)
+        output:insert_tile(i + tile * 2, j, 164)
+        output:insert_tile(i + tile * 3, j, 165)
+        output:insert_tile(i, j - tile, 151)
+        output:insert_tile(i + tile, j - tile, 152)
+        output:insert_tile(i + tile * 2, j - tile, 153)
+        output:insert_tile(i + tile * 3, j - tile, 154)
+        if bottom_left == block then
+            output:insert_tile(i - tile, j + tile, 67)
+        end
+    end
+
+    if id == ceil_4x1_inv
+        and not top_left
+        and top == block
+        and not layer:tile_top(i, j - tile)
+    then
+        output:insert_tile(i, j, 166)
+        output:insert_tile(i + tile, j, 167)
+        output:insert_tile(i + tile * 2, j, 168)
+        output:insert_tile(i + tile * 3, j, 169)
+        output:insert_tile(i, j - tile, 155)
+        output:insert_tile(i + tile, j - tile, 156)
+        output:insert_tile(i + tile * 2, j - tile, 157)
+        output:insert_tile(i + tile * 3, j - tile, 158)
+        if layer:tile_bottom_right(i + tile * 3, j) == block then
+            output:insert_tile(i + tile * 4, j + tile, 68)
+        end
+    end
+
+    --one tile
+    if id == block
+        and not left
+        and not bottom
+        and not top
+        and right == block
+    then
+        output:insert_tile(i, j, 171)
+    end
+
+    if id == block
+        and not right
+        and not top
+        and not bottom
+        and left == block
+    then
+        output:insert_tile(i, j, 174)
+    end
+
+    if id == block
+        and not top and not bottom
+        and left == block and right == block
+    then
+        if output:get_id(i - tile, j) ~= 172 then
+            output:insert_tile(i, j, 172)
+        else
+            output:insert_tile(i, j, 173)
+        end
+    end
+
+    if id == block
+        and not left and not right
+    then
+        if not top and bottom == block then
+            output:insert_tile(i, j, 170)
+            --
+        elseif top == block and not bottom then
+            output:insert_tile(i, j, 183)
+            --
+        elseif bottom == block and top == block then
+            if output:get_id(i, j - tile) ~= 175 then
+                output:insert_tile(i, j, 175)
+            else
+                output:insert_tile(i, j, 176)
+            end
+        end
+    end
+
+    if id == block
+        and left == block and right == block
+        and bottom == block
+        and (output:get_id(i, j - tile) == 175
+            or output:get_id(i, j - tile) == 176)
+    then
+        output:insert_tile(i, j, 190)
+    end
+
+    --border slope
+    if id == slope_1x1
+        and not bottom_left
+        and bottom == block
+        and layer:tile_bottom(i, j + tile) == block
+    then
+        output:insert_tile(i, j, 177)
+        output:insert_tile(i, j + tile, 184)
+    end
+
+    if id == slope_1x1_inv
+        and not bottom_right
+        and bottom == block
+        and layer:tile_bottom(i, j + tile) == block
+    then
+        output:insert_tile(i, j, 178)
+        output:insert_tile(i, j + tile, 185)
+    end
+
+    if id == slope_2x1
+        and not bottom_left
+        and bottom == block
+        and layer:tile_bottom(i, j + tile) == block
+    then
+        output:insert_tile(i, j, 179)
+        output:insert_tile(i + tile, j, 180)
+        output:insert_tile(i, j + tile, 186)
+        output:insert_tile(i + tile, j + tile, 187)
+    end
+
+    if id == slope_2x1_inv
+        and not layer:tile_bottom_right(i + tile, j)
+        and layer:tile_bottom(i + tile, j)
+        and layer:tile_bottom(i + tile, j + tile)
+    then
+        output:insert_tile(i, j, 181)
+        output:insert_tile(i + tile, j, 182)
+        output:insert_tile(i, j + tile, 188)
+        output:insert_tile(i + tile, j + tile, 189)
+    end
+
+    if id == slope_3x1
+        and not bottom_left
+        and bottom == block
+        and layer:tile_bottom(i, j + tile) == block
+    then
+        output:insert_tile(i, j, 191)
+        output:insert_tile(i + tile, j, 192)
+        output:insert_tile(i + tile * 2, j, 193)
+        output:insert_tile(i, j + tile, 197)
+        output:insert_tile(i + tile, j + tile, 198)
+        output:insert_tile(i + tile * 2, j + tile, 199)
+    end
+
+    if id == slope_3x1_inv
+        and not layer:tile_bottom_right(i + tile * 2, j)
+        and layer:tile_bottom(i + tile * 2, j)
+        and layer:tile_bottom(i + tile * 2, j + tile)
+    then
+        output:insert_tile(i, j, 194)
+        output:insert_tile(i + tile, j, 195)
+        output:insert_tile(i + tile * 2, j, 196)
+        output:insert_tile(i, j + tile, 200)
+        output:insert_tile(i + tile, j + tile, 201)
+        output:insert_tile(i + tile * 2, j + tile, 202)
+    end
+
+    if id == slope_4x1
+        and not bottom_left
+        and bottom == block
+        and layer:tile_bottom(i, j + tile) == block
+    then
+        output:insert_tile(i, j, 203)
+        output:insert_tile(i + tile, j, 204)
+        output:insert_tile(i + tile * 2, j, 205)
+        output:insert_tile(i + tile * 3, j, 206)
+        output:insert_tile(i, j + tile, 211)
+        output:insert_tile(i + tile, j + tile, 212)
+        output:insert_tile(i + tile * 2, j + tile, 213)
+        output:insert_tile(i + tile * 3, j + tile, 214)
+    end
+
+    if id == slope_4x1_inv
+        and not layer:tile_bottom_right(i + tile * 3, j)
+        and layer:tile_bottom(i + tile * 3, j)
+        and layer:tile_bottom(i + tile * 3, j + tile)
+    then
+        output:insert_tile(i, j, 207)
+        output:insert_tile(i + tile, j, 208)
+        output:insert_tile(i + tile * 2, j, 209)
+        output:insert_tile(i + tile * 3, j, 210)
+        output:insert_tile(i, j + tile, 215)
+        output:insert_tile(i + tile, j + tile, 216)
+        output:insert_tile(i + tile * 2, j + tile, 217)
+        output:insert_tile(i + tile * 3, j + tile, 218)
+    end
+
+    -- one tile border
+    if id == block
+        and left ~= block
+        and top ~= block
+        and not bottom_left
+        and not bottom_right
+        and right == block
+        and bottom == block
+    then
+        output:insert_tile(i, j, 219)
+    end
+
+    if id == block
+        and right ~= block
+        and top ~= block
+        and not bottom_left
+        and not bottom_right
+        and left == block
+        and bottom == block
+    then
+        output:insert_tile(i, j, 222)
+    end
+
+    if id == block
+        and left ~= block
+        and not top_left
+        and not top_right
+        and right == block
+        and top == block
+    then
+        if bottom ~= block
+        then
+            output:insert_tile(i, j, 231)
+        else
+            output:insert_tile(i, j, 224)
+        end
+    end
+
+    if id == block
+        and right ~= block
+        and left == block
+        and top == block
+        and not top_left
+        and not top_right
+    then
+        if bottom ~= block then
+            output:insert_tile(i, j, 234)
+        else
+            output:insert_tile(i, j, 223)
+        end
+    end
+end
+
 ---@param new_state JM.GameMap.Tools
 function Map:set_state(new_state)
     if new_state == self.state then return false end
