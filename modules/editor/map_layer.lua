@@ -6,6 +6,8 @@ local LayerTypes = {
     static = 1,
     only_fall = 2,
     ghost = 3,
+    background = 4,
+    object = 5,
 }
 
 ---@type JM.GameMap
@@ -50,6 +52,8 @@ function Layer:__constructor__(args)
     self.type = args.type or LayerTypes.static
     self.name = args.name or string.format("layer_%02d", layer_count)
     self.gamestate = GC.gamestate
+
+    self.show_auto_tilemap = false
 
     layer_count = layer_count + 1
 end
@@ -184,6 +188,21 @@ function Layer:get_save_data()
         type = self.type,
         tile_size = self.tilemap.tile_size,
     }
+end
+
+function Layer:set_opacity(value)
+    value = value or 1
+    self.tilemap.color[4] = value
+    self.out_tilemap.color[4] = value
+end
+
+---@param camera JM.Camera.Camera
+function Layer:draw(camera)
+    if self.show_auto_tilemap then
+        self.out_tilemap:draw(camera)
+    else
+        self.tilemap:draw(camera)
+    end
 end
 
 return Layer
