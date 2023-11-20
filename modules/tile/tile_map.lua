@@ -73,6 +73,8 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
     self.last_index_bottom = nil
     self.last_index_right = nil
 
+    self.color = { 1, 1, 1, 1 }
+
     self:load_map(path_map, filter, regions)
 end
 
@@ -324,7 +326,7 @@ local function draw_with_bounds(self, left, top, right, bottom)
         and bottom == self.last_index_bottom
         and not self.tile_set:frame_changed()
     then
-        love_set_color(1, 1, 1, 1)
+        love_set_color(self.color)
         love_draw(self.sprite_batch)
         self.changed = false
         return
@@ -367,7 +369,7 @@ local function draw_with_bounds(self, left, top, right, bottom)
     end
     self.sprite_batch:flush()
 
-    love_set_color(1, 1, 1, 1)
+    love_set_color(self.color)
     love_draw(self.sprite_batch)
     -- Font:print("" .. (self.n_cells), 32 * 15, 32 * 8)
 end
@@ -417,7 +419,7 @@ function TileMap:draw(camera, factor_x, factor_y)
             draw_with_bounds(self, x, y, right, bottom)
             --
         else
-            love_set_color(1, 1, 1, 1)
+            love_set_color(self.color)
             love_draw(self.sprite_batch)
             self.changed = false
         end
@@ -430,7 +432,7 @@ function TileMap:draw_with_bounds(left, top, right, bottom)
     then
         return draw_with_bounds(self, left, top, right, bottom)
     else
-        love_set_color(1, 1, 1, 1)
+        love_set_color(self.color)
         love_draw(self.sprite_batch)
         self.changed = false
     end
