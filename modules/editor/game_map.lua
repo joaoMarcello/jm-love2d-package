@@ -1,5 +1,6 @@
 local dir = ...
 local GC = _G.JM.GameObject
+local Phys = _G.JM.Physics
 
 ---@type JM.MapLayer
 local Layer = require(string.gsub(dir, "game_map", "map_layer"))
@@ -49,15 +50,29 @@ local Map = setmetatable({
 }, GC)
 Map.__index = Map
 
+function Map:init_module(tilesize, mapCount)
+    tile_size = tilesize or tile_size
+    map_count = mapCount or map_count
+end
+
+---@overload fun(self:any, scene:JM.Scene)
+---@param args table
 ---@return JM.GameMap
 function Map:new(args)
     local obj = GC:new(0, 0, love.graphics:getDimensions())
     setmetatable(obj, self)
+
+    if args and args.__is_scene then
+        args = { scene = args }
+    end
+
     Map.__constructor__(obj, args or {})
     return obj
 end
 
 function Map:__constructor__(args)
+    self:set_gamestate(args.scene)
+
     self.camera = JM.Camera:new {
         x = 64 * 4,
         y = 64 * 4,
@@ -65,7 +80,7 @@ function Map:__constructor__(args)
         h = 64 * 4,
         tile_size = 16,
         bounds = { left = -math.huge, right = math.huge, top = -math.huge, bottom = math.huge },
-        border_color = { 1, 0, 0, 1 },
+        -- border_color = { 1, 0, 0, 1 },
     }
     self.camera:toggle_grid()
     self.camera:toggle_world_bounds()
@@ -172,7 +187,7 @@ function Map:__constructor__(args)
 
     --
     self.update = Map.update
-    self.draw = Map.draw
+    self.debbug_draw = Map.debbug_draw
 end
 
 function Map:load()
@@ -198,12 +213,28 @@ function Map:init(data)
     self:change_layer(1)
 
     self.show_world = false
+
+    self.list_world = {}
+
+    for i = 1, (data.n_worlds or 1) do
+        self.list_world[i] = Phys:newWorld { tile = tile_size }
+    end
+
     ---@type JM.Physics.World
-    self.world = nil
+    self.world = self.list_world[1]
+end
+
+---@param state JM.Scene
+function Map:set_gamestate(state)
+    self.gamestate = state
 end
 
 function Map:get_save_data()
-    local data = { layers = {}, name = self.name, }
+    local data = {
+        layers = {},
+        name = self.name,
+        n_worlds = #self.list_world,
+    }
 
     for i = 1, #self.layers do
         ---@type JM.MapLayer
@@ -1108,9 +1139,16 @@ function Map:auto_tile()
 end
 
 function Map:build_world()
-    local Phys = JM.Physics
     local tile = self.cur_layer.out_tilemap.tile_size
-    local world = Phys:newWorld { tile = tile }
+    local n_worlds = #self.list_world
+    -- local world = self.world
+    -- world:clear()
+    for i = 1, n_worlds do
+        ---@type JM.Physics.World
+        local world = self.list_world[i]
+
+        world:clear()
+    end
 
     for i = 1, #self.layers do
         local mapped = {}
@@ -1119,8 +1157,11 @@ function Map:build_world()
 
         local map = layer.tilemap
 
-        if layer.type == Layer.Types.static
-            or layer.type == Layer.Types.only_fall
+        local world = self.list_world[layer.world_number or 1]
+
+        if (layer.type == Layer.Types.static
+                or layer.type == Layer.Types.only_fall)
+            and world
         then
             for j = map.min_y, map.max_y, tile do
                 for i = map.min_x, map.max_x, tile do
@@ -1243,11 +1284,16 @@ function Map:build_world()
         end
     end
 
-    world:optimize()
-    world:optimize()
-    world:fix_slope()
+    for i = 1, n_worlds do
+        ---@type JM.Physics.World
+        local world = self.list_world[i]
+        world:optimize()
+        world:optimize()
+        world:fix_slope()
+    end
     -- world:fix_ground_to_slope()
-    return world
+
+    return self.list_world[1]
 end
 
 ---@param new_state JM.GameMap.Tools
@@ -1307,15 +1353,18 @@ function Map:keypressed(key)
     end
 
     if key == 'g' then
-        for i = 1, #self.layers do
-            ---@type JM.MapLayer
-            local l = self.layers[i]
-            l.show_auto_tilemap = false
+        self.show_world = not self.show_world
+        if self.show_world then
+            for i = 1, #self.layers do
+                ---@type JM.MapLayer
+                local l = self.layers[i]
+                l.show_auto_tilemap = false
+            end
+            self:keypressed('v')
+            self.show_world = true
+            self.world = self:build_world()
+            collectgarbage()
         end
-        self:keypressed('v')
-        self.show_world = true
-        self.world = self:build_world()
-        collectgarbage()
         return
     end
 end
@@ -1470,8 +1519,6 @@ function Map:my_draw()
         end
     end
 
-    -- self.cur_layer:draw(self.camera)
-
     if self.world and self.show_world then
         local N = #self.world.bodies_static
         for i = 1, N do
@@ -1515,7 +1562,7 @@ function Map:my_draw()
     self.cur_piece:draw()
 end
 
-function Map:draw()
+function Map:debbug_draw()
     love.graphics.setColor(0.6, 0.6, 0.6)
     love.graphics.rectangle("fill", self.camera:get_viewport())
 
@@ -1531,6 +1578,9 @@ function Map:draw()
     font:print(self.name, self.camera.viewport_x + 100, self.camera.viewport_y - 20)
 
     font:print(self.cur_layer.name, self.camera.viewport_x + 200, self.camera.viewport_y - 20)
+
+    love.graphics.setColor(1, 1, 0)
+    love.graphics.rectangle("line", self.camera:get_viewport())
 end
 
 return Map
