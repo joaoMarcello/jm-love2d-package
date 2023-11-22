@@ -1,5 +1,5 @@
 local TileMap = JM.TileMap
-local GC = JM.GameObject
+-- local GC = JM.GameObject
 
 ---@enum JM.MapLayer.Types
 local LayerTypes = {
@@ -10,10 +10,15 @@ local LayerTypes = {
     object = 5,
 }
 
+local TileMaps = {
+    "/data/img/tileset-game.png",
+}
+
 ---@type JM.GameMap
 local game_map
 
 local layer_count = 1
+local tile_size = 16
 
 ---@class JM.MapLayer
 local Layer = {
@@ -23,8 +28,10 @@ local Layer = {
 Layer.__index = Layer
 
 ---@param gameMap JM.GameMap
-function Layer:init_module(gameMap)
-    game_map = gameMap
+function Layer:init_module(gameMap, tileSize, layerCount)
+    game_map = gameMap or game_map
+    tile_size = tileSize or tile_size
+    layer_count = layerCount or layer_count
 end
 
 local generic = function() end
@@ -44,14 +51,15 @@ function Layer:__constructor__(args)
 
     self.tilemap = TileMap:new(args.data or generic,
         "/data/img/tilemap-collider.png",
-        args.tile_size or 16
+        args.tile_size or tile_size
     )
 
-    self.out_tilemap = TileMap:new(generic, "/data/img/tileset-game.png", args.tile_size or 16)
+    self.out_tilemap = TileMap:new(generic, TileMaps[1], args.tile_size or tile_size)
 
     self.type = args.type or LayerTypes.static
     self.name = args.name or string.format("layer_%02d", layer_count)
-    self.gamestate = GC.gamestate
+    self.world_number = args.world_number or 1
+    -- self.gamestate = GC.gamestate
 
     self.show_auto_tilemap = false
 
@@ -178,6 +186,31 @@ function Layer:tilemap_tostring()
     return f
 end
 
+function Layer:output_map_tostring()
+    local map = self.out_tilemap
+    local str_format = string.format
+    local tile = map.tile_size
+
+    local f = [[local e=function(x,y,id) return Entry(x*tile_size,y*tile_size,id) end]]
+
+    for j = map.min_y, map.max_y, tile do
+        for i = map.min_x, map.max_x, tile do
+            local index = map:get_index(i, j)
+            local id = map.cells_by_pos[index]
+
+            if id then
+                local x = i / tile
+                local y = j / tile
+
+                local line = str_format("e(%d,%d,%d)", x, y, id)
+                f = str_format("%s\n%s", f, line)
+            end
+        end
+    end
+
+    return f
+end
+
 ---@alias JM.MapLayer.SaveData {map:string, name:string, type:JM.MapLayer.Types, tile_size:number}
 
 ---@return JM.MapLayer.SaveData savedata
@@ -187,6 +220,7 @@ function Layer:get_save_data()
         name = self.name,
         type = self.type,
         tile_size = self.tilemap.tile_size,
+        world_number = self.world_number,
     }
 end
 
