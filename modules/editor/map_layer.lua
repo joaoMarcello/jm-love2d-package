@@ -6,7 +6,7 @@ local LayerTypes = {
     static = 1,
     only_fall = 2,
     ghost = 3,
-    background = 4,
+    free = 4,
     object = 5,
 }
 
@@ -59,7 +59,10 @@ function Layer:__constructor__(args)
     self.type = args.type or LayerTypes.static
     self.name = args.name or string.format("layer_%02d", layer_count)
     self.world_number = args.world_number or 1
-    -- self.gamestate = GC.gamestate
+
+    self.factor_x = args.factor_x or 1
+    self.factor_y = args.factor_y or 1
+    self.is_fixed = args.is_fixed or false
 
     self.show_auto_tilemap = false
 
