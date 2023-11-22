@@ -68,9 +68,9 @@ function data:load(dir)
     local d = Loader.load(dir)
 
     self.map:init(d)
-    self.map.layers[2].factor_x = 0.6
-    self.map.layers[2].factor_y = 0.8
-    -- self.map.layers[2].type = GameMap.MapLayer.Types.ghost
+    -- self.map.layers[2].factor_x = 1
+    -- self.map.layers[2].factor_y = 1
+    -- self.map.layers[2].type = GameMap.MapLayer.Types.static
 end
 
 --============================================================================
