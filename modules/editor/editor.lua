@@ -33,35 +33,44 @@ local State = JM.Scene:new {
 ---@class JM.Editor.Data
 local data = {}
 
-function data:save(dir)
+function data:save(name)
+    name = name or "gamemap2"
     local lfs = love.filesystem
-    local dir = dir or "gamemap2"
+    local dir = name .. ".dat"
 
     ---@type any
     local d = self.map:get_save_data()
 
-    Loader.save(d, dir .. ".dat")
+    Loader.save(d, dir)
 
     d = Loader.ser.pack(d)
-    love.filesystem.write(dir .. ".txt", d)
+    love.filesystem.write(name .. ".txt", d)
 
     os.execute("mkdir data\\gamemap")
 
     os.execute(string.format("copy /y %s %s",
-        lfs.getSaveDirectory():gsub("/", "\\") .. "\\" .. dir .. ".dat",
-        lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. dir .. ".dat"
+        lfs.getSaveDirectory():gsub("/", "\\") .. "\\" .. dir,
+        lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. dir
+    ))
+
+    os.execute(string.format("copy /y %s %s",
+        lfs.getSaveDirectory():gsub("/", "\\") .. "\\" .. name .. ".txt",
+        lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. name .. ".txt"
     ))
 
     -- os.rename(lfs.getSaveDirectory() .. "/" .. dir .. ".dat",
     --     lfs.getWorkingDirectory() .. "/data/gamemap/" .. dir .. ".dat")
 end
 
-function data:load()
-    local dir = 'data/gamemap/gamemap2.dat'
+function data:load(dir)
+    local dir = dir or 'data/gamemap/gamemap2.dat'
     ---@type any
     local d = Loader.load(dir)
 
     self.map:init(d)
+    -- self.map.layers[2].factor_x = 0.6
+    -- self.map.layers[2].factor_y = 0.8
+    self.map.layers[2].type = GameMap.MapLayer.Types.ghost
 end
 
 --============================================================================
@@ -89,6 +98,8 @@ local function init(args)
         State.screen_w * 0.8,
         State.screen_h * 0.775
     )
+
+    data.debug = true
 end
 
 local function textinput(t)
@@ -131,6 +142,10 @@ local function keypressed(key)
     if love.keyboard.isDown("lalt") and key == 'b' then
         data.map:new_layer(nil, MapLayer.Types.only_fall)
         return
+    end
+
+    if key == 'd' then
+        data.debug = not data.debug
     end
 
     data.map:keypressed(key)
@@ -179,12 +194,15 @@ end
 local layer_main = {
     ---@param cam JM.Camera.Camera
     draw = function(self, cam)
-        data.map:debbug_draw()
+        if data.debug then
+            data.map:debbug_draw()
+        else
+            data.map:draw()
+        end
 
-        local font = JM:get_font()
-
-        font:print(love.filesystem.getSaveDirectory(), 0, 0)
-        font:print(love.filesystem.getWorkingDirectory(), 0, 40)
+        -- local font = JM:get_font()
+        -- font:print(love.filesystem.getSaveDirectory(), 0, 0)
+        -- font:print(love.filesystem.getWorkingDirectory(), 0, 40)
     end
 }
 
