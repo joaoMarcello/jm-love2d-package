@@ -33,24 +33,35 @@ local State = JM.Scene:new {
 ---@class JM.Editor.Data
 local data = {}
 
-function data:save()
+function data:save(dir)
+    local lfs = love.filesystem
+    local dir = dir or "gamemap2"
+
     ---@type any
     local d = self.map:get_save_data()
 
-    Loader.save(d, "gamemap2.dat")
+    Loader.save(d, dir .. ".dat")
 
     d = Loader.ser.pack(d)
-    love.filesystem.write("gamemap2.txt", d)
-    -- Loader:savexp(d, "gamemap.dat")
+    love.filesystem.write(dir .. ".txt", d)
+
+    os.execute("mkdir data\\gamemap")
+
+    os.execute(string.format("copy /y %s %s",
+        lfs.getSaveDirectory():gsub("/", "\\") .. "\\" .. dir .. ".dat",
+        lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. dir .. ".dat"
+    ))
+
+    -- os.rename(lfs.getSaveDirectory() .. "/" .. dir .. ".dat",
+    --     lfs.getWorkingDirectory() .. "/data/gamemap/" .. dir .. ".dat")
 end
 
 function data:load()
-    local dir = 'gamemap2.dat'
+    local dir = 'data/gamemap/gamemap2.dat'
     ---@type any
     local d = Loader.load(dir)
 
     self.map:init(d)
-    -- data.map.camera:set_viewport(State.screen_w * 0.1, State.screen_h * 0.1, State.screen_w * 0.8, State.screen_h * 0.8)
 end
 
 --============================================================================
@@ -70,12 +81,14 @@ end
 local function init(args)
     love.filesystem.setIdentity("map-editor")
 
-    local world = JM.Physics:newWorld()
-    JM.GameObject:init_state(State, world)
+    JM.GameObject:init_state(State)
 
-    data.map = GameMap:new()
-    -- data.map.camera:set_viewport(64 * 3, 64, 64 * 10, 64 * 9)
-    data.map.camera:set_viewport(State.screen_w * 0.1, State.screen_h * 0.1, State.screen_w * 0.8, State.screen_h * 0.8)
+    data.map = GameMap:new(State)
+    data.map.camera:set_viewport(State.screen_w * 0.1,
+        State.screen_h * 0.075,
+        State.screen_w * 0.8,
+        State.screen_h * 0.775
+    )
 end
 
 local function textinput(t)
@@ -166,7 +179,12 @@ end
 local layer_main = {
     ---@param cam JM.Camera.Camera
     draw = function(self, cam)
-        data.map:draw()
+        data.map:debbug_draw()
+
+        local font = JM:get_font()
+
+        font:print(love.filesystem.getSaveDirectory(), 0, 0)
+        font:print(love.filesystem.getWorkingDirectory(), 0, 40)
     end
 }
 
