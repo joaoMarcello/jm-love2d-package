@@ -1375,23 +1375,22 @@ local World = {}
 World.__index = World
 do
     function World:new(args)
-        local obj = {}
-        setmetatable(obj, self)
-        -- self.__index = self
-
+        local obj = setmetatable({}, self)
         World.__constructor__(obj, args or {})
         return obj
     end
 
     function World:__constructor__(args)
-        self.tile = args.tile or 32
-        self.cellsize = args.cellsize or (self.tile * 2)
+        self.tile = args.tile or self.tile or 32
+        self.cellsize = args.cellsize or self.cellsize or (self.tile * 2)
 
-        self.meter = args.meter or (self.tile * 3.5)
-        self.gravity = args.gravity or (9.8 * self.meter)
-        self.max_speed_y = args.max_speed_y or (self.meter * 15.0)
-        self.max_speed_x = args.max_speed_x or self.max_speed_y
-        self.default_mass = args.default_mass or 65.0
+        self.meter = args.meter or self.meter or (self.tile * 3.5)
+        self.gravity = args.gravity or self.gravity or (9.8 * self.meter)
+        self.max_speed_y = args.max_speed_y or self.max_speed_y
+            or (self.meter * 15.0)
+        self.max_speed_x = args.max_speed_x or self.max_speed_x
+            or self.max_speed_y
+        self.default_mass = args.default_mass or self.default_mass or 65.0
 
         self.bodies = {}
         self.bodies_number = 0
@@ -1737,6 +1736,10 @@ do
                 --
             end
         end
+    end
+
+    function World:clear()
+        return World.__constructor__(self, {})
     end
 
     local dt_lim = 1 / 30
