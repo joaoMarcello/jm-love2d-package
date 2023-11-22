@@ -219,11 +219,13 @@ end
 ---@return JM.MapLayer.SaveData savedata
 function Layer:get_save_data()
     return {
-        map = self:tilemap_tostring(),
-        name = self.name,
-        type = self.type,
-        tile_size = self.tilemap.tile_size,
+        name         = self.name,
+        type         = self.type,
+        tile_size    = self.tilemap.tile_size,
         world_number = self.world_number,
+        factor_x     = self.factor_x,
+        factor_y     = self.factor_y,
+        map          = self:tilemap_tostring(),
     }
 end
 
