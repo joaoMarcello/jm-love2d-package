@@ -1419,7 +1419,21 @@ function Map:mousereleased(x, y, button, istouch, presses)
 end
 
 function Map:fix_piece_position()
-    local mx, my     = self.gamestate:get_mouse_position(self.camera)
+    local cam    = self.camera
+    local mx, my = self.gamestate:get_mouse_position(cam)
+
+    ---@type JM.MapLayer
+    local layer  = self.layers[self.cur_layer_index]
+    if layer then
+        local cx, cy = cam.x, cam.y
+        self.camera:set_position(cam.x * layer.factor_x, cam.y * layer.factor_y)
+        local mx2, my2 = self.gamestate:get_mouse_position(cam)
+        cam:set_position(cx, cy)
+
+        mx = mx + (mx2 - mx)
+        my = my + (my2 - my)
+    end
+
     self.cell_x      = math.floor(mx / tile_size)
     self.cell_y      = math.floor(my / tile_size)
     self.cur_piece.x = self.cell_x * tile_size
@@ -1510,6 +1524,7 @@ function Map:my_debug_draw()
 
                 if i == self.cur_layer_index then
                     self.cur_piece:draw()
+                    cam:draw_info()
                 end
 
                 cam:detach()
@@ -1538,12 +1553,10 @@ function Map:my_debug_draw()
 
                 cam:attach(nil, self.gamestate.subpixel)
                 layer:draw(self.camera)
-                -- local mx, my = self.gamestate:get_mouse_position(cam)
-                -- love.graphics.setColor(1, 0, 0, 0.5)
-                -- love.graphics.rectangle("fill", mx, my, 16, 16)
 
                 if i == self.cur_layer_index then
                     self.cur_piece:draw()
+                    cam:draw_info()
                 end
                 cam:detach()
             end
@@ -1591,6 +1604,7 @@ function Map:my_debug_draw()
             end
         end
 
+        cam:draw_info()
         cam:detach()
     end
     --=======================================================================
@@ -1601,7 +1615,7 @@ function Map:my_debug_draw()
     love.graphics.rectangle("fill", mx, my, 16, 16)
     -- self.cur_piece:draw()
 
-    cam:draw_info()
+    -- cam:draw_info()
     cam:detach()
 end
 
@@ -1626,6 +1640,7 @@ end
 
 function Map:layer_draw()
     local cam = self.camera
+
     for i = 1, #self.layers do
         local cx, cy = cam.x, cam.y
         local sc = cam.scale
