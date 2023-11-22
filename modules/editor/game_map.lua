@@ -1465,7 +1465,7 @@ function Map:mouse_is_on_view()
 end
 
 function Map:update(dt)
-    local speed = 96 / self.camera.scale
+    local speed = 128 / self.camera.scale
     if love.keyboard.isDown("up") then
         self.camera:move(0, -speed * dt)
     elseif love.keyboard.isDown("down") then
@@ -1482,15 +1482,16 @@ function Map:update(dt)
     self:cur_action(dt)
 end
 
-function Map:my_draw()
-    love.graphics.setColor(0, 0, 1, 0.2)
-    love.graphics.rectangle("fill", 0, 0, 64 * 3, 64 * 3)
-
+function Map:my_debug_draw()
+    local cam = self.camera
 
     if not self.show_world then
         local N_layers = #self.layers
 
         for i = 1, N_layers do
+            local cx, cy = cam.x, cam.y
+            local sc = cam.scale
+
             ---@type JM.MapLayer
             local layer = self.layers[i]
 
@@ -1500,11 +1501,29 @@ function Map:my_draw()
                 layer:set_opacity(0.5)
             end
             if layer.type == Layer.Types.only_fall then
+                cam:set_position(cam.x * layer.factor_x,
+                    cam.y * layer.factor_y)
+
+                cam:attach(nil, self.gamestate.subpixel)
+
                 layer:draw(self.camera)
+
+                if i == self.cur_layer_index then
+                    self.cur_piece:draw()
+                end
+
+                cam:detach()
             end
+
+            cam.x = cx
+            cam.y = cy
+            cam.scale = sc
         end
 
         for i = 1, N_layers do
+            local cx, cy = cam.x, cam.y
+            local sc = cam.scale
+
             ---@type JM.MapLayer
             local layer = self.layers[i]
 
@@ -1513,13 +1532,31 @@ function Map:my_draw()
             else
                 layer:set_opacity(0.5)
             end
-            if layer.type == Layer.Types.static then
+            if layer.type ~= Layer.Types.only_fall then
+                cam:set_position(cam.x * layer.factor_x,
+                    cam.y * layer.factor_y)
+
+                cam:attach(nil, self.gamestate.subpixel)
                 layer:draw(self.camera)
+                -- local mx, my = self.gamestate:get_mouse_position(cam)
+                -- love.graphics.setColor(1, 0, 0, 0.5)
+                -- love.graphics.rectangle("fill", mx, my, 16, 16)
+
+                if i == self.cur_layer_index then
+                    self.cur_piece:draw()
+                end
+                cam:detach()
             end
+
+            cam.x = cx
+            cam.y = cy
+            cam.scale = sc
         end
     end
 
     if self.world and self.show_world then
+        cam:attach(nil, self.gamestate.subpixel)
+
         local N = #self.world.bodies_static
         for i = 1, N do
             ---@type JM.Physics.Collide
@@ -1553,23 +1590,27 @@ function Map:my_draw()
                 end
             end
         end
-    end
 
-    local mx, my = self.gamestate:get_mouse_position(self.camera)
+        cam:detach()
+    end
+    --=======================================================================
+    cam:attach(nil, self.gamestate.subpixel)
+
+    local mx, my = self.gamestate:get_mouse_position(cam)
     love.graphics.setColor(1, 0, 0, 0.5)
     love.graphics.rectangle("fill", mx, my, 16, 16)
+    -- self.cur_piece:draw()
 
-    self.cur_piece:draw()
+    cam:draw_info()
+    cam:detach()
 end
 
 function Map:debbug_draw()
     love.graphics.setColor(0.6, 0.6, 0.6)
     love.graphics.rectangle("fill", self.camera:get_viewport())
 
-    self.camera:attach(nil, self.gamestate.subpixel)
-    GC.draw(self, self.my_draw)
-    self.camera:draw_info()
-    self.camera:detach()
+
+    GC.draw(self, self.my_debug_draw)
 
     local font = JM:get_font()
     local r = self:mouse_is_on_view()
@@ -1581,6 +1622,44 @@ function Map:debbug_draw()
 
     love.graphics.setColor(1, 1, 0)
     love.graphics.rectangle("line", self.camera:get_viewport())
+end
+
+function Map:layer_draw()
+    local cam = self.camera
+    for i = 1, #self.layers do
+        local cx, cy = cam.x, cam.y
+        local sc = cam.scale
+
+        ---@type JM.MapLayer
+        local layer = self.layers[i]
+
+        cam:set_position(cam.x * layer.factor_x, cam.y * layer.factor_y)
+
+        cam:attach(nil, self.gamestate.subpixel)
+        layer:draw(cam)
+        cam:detach()
+
+        cam.x = cx
+        cam.y = cy
+        cam.scale = sc
+    end
+
+    love.graphics.setColor(1, 1, 0)
+    love.graphics.rectangle("line", self.camera:get_viewport())
+end
+
+function Map:draw()
+    love.graphics.setColor(0.6, 0.6, 0.7)
+    love.graphics.rectangle("fill", self.camera:get_viewport())
+
+    local cx, cy = self.camera.x, self.camera.y
+    local sc = self.camera.scale
+
+    GC.draw(self, self.layer_draw)
+
+    self.camera.x = cx
+    self.camera.y = cy
+    self.camera.scale = sc
 end
 
 return Map
