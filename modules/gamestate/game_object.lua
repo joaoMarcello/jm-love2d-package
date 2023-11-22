@@ -6,8 +6,8 @@ local Affectable = _G.JM_Affectable
 local GC = setmetatable({}, Affectable)
 GC.__index = GC
 
----@param gamestate JM.Scene
----@param world JM.Physics.World
+---@param gamestate JM.Scene|nil
+---@param world JM.Physics.World|nil
 function GC:init_state(gamestate, world)
     GC.gamestate = gamestate
     GC.world = world
