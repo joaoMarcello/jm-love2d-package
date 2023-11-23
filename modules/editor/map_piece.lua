@@ -80,7 +80,7 @@ function Piece:insert()
 end
 
 function Piece:remove()
-
+    tilemap:remove_tile(self.x, self.y)
 end
 
 function Piece:update(dt)
