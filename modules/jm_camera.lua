@@ -975,6 +975,12 @@ function Camera:set_viewport(x, y, w, h)
     self.viewport_y = y or self.viewport_y
     self.viewport_w = w or self.viewport_w
     self.viewport_h = h or self.viewport_h
+
+    -- self.viewport_x = round(self.viewport_x)
+    -- self.viewport_y = round(self.viewport_y)
+    -- self.viewport_w = round(self.viewport_w)
+    -- self.viewport_h = round(self.viewport_h)
+
     self:set_type(self.type)
     self:set_bounds()
 end
