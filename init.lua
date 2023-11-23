@@ -188,6 +188,9 @@ JM.GUI = require(string.gsub(path, "init", "modules.jm_gui"))
 ---@type JM.ParticleSystem
 JM.ParticleSystem = require(string.gsub(path, "init", "modules.jm_ps"))
 
+---@type JM.GameMap
+JM.GameMap = require(string.gsub(path, "init", "modules.editor.game_map"))
+
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 --===========================================================================
