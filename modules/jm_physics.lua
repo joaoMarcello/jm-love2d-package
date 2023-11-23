@@ -131,7 +131,7 @@ end
 ---@param obj JM.Physics.Body
 ---@param item JM.Physics.Body|JM.Physics.Slope
 local function coll_y_filter(obj, item)
-    if item.type == BodyTypes.only_fall then
+    if item.type == BodyTypes.only_fall and not item.is_slope then
         return (obj.y + obj.h) <= item.y
     else
         if item.is_slope then
@@ -149,6 +149,7 @@ local function coll_y_filter(obj, item)
                 and obj.y - off <= py - obj.h)
             -- or (not item.is_floor and obj.speed_y <= 0)
         end
+        ---
         return item.type ~= BodyTypes.dynamic
     end
 end
@@ -1125,6 +1126,7 @@ do
         end
 
         function Body:draw()
+            if self.__remove then return end
             if self.type == BodyTypes.static then
                 love.graphics.setColor(0.1, 0.4, 0.5)
             elseif self.type == BodyTypes.only_fall then
@@ -1151,8 +1153,8 @@ setmetatable(Slope, Body)
 ---@alias JM.Physics.SlopeType "floor"|"ceil"
 
 ---@return JM.Physics.Body|JM.Physics.Slope
-function Slope:new(x, y, w, h, world, direction, slope_type)
-    local obj = Body:new(x, y, w, h, BodyTypes.static, world, "")
+function Slope:new(x, y, w, h, world, direction, slope_type, bd_type)
+    local obj = Body:new(x, y, w, h, bd_type or BodyTypes.static, world, "")
     self.__index = self
     setmetatable(obj, self)
     Slope.__constructor__(obj, direction, slope_type)
@@ -1331,7 +1333,14 @@ function Slope:draw()
     love.graphics.setLineWidth(1)
 
     -- love.graphics.setColor(0.3, 1, 0.3, 0.5)
-    love.graphics.setColor(0.1, 0.4, 0.5)
+    if self.type == BodyTypes.static then
+        love.graphics.setColor(0.1, 0.4, 0.5)
+    elseif self.type == BodyTypes.only_fall then
+        love.graphics.setColor(26 / 255, 201 / 255, 135 / 255)
+    else
+        love.graphics.setColor(1, 1, 1)
+    end
+    -- love.graphics.setColor(0.1, 0.4, 0.5)
 
     if self.is_floor then
         love.graphics.polygon("fill", x1, y1, x2, y2,
@@ -1362,10 +1371,20 @@ function Slope:draw()
     font:print("n:" .. tostring(self.next and true or false), self.x, py2)
     -- font:print(tostring(math.sin(self.angle)), self.x, self.y - 22)
 
-    if self.on_ground then
-        font:print("<color>ground", self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+    if self.is_floor then
+        if self.on_ground then
+            font:set_color(JM.Utils:get_rgba(1, 0, 0, 1))
+            font:print("ground", self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+        else
+            -- font:print(tostring(self.on_ground), self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+        end
     else
-        font:print(tostring(self.on_ground), self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+        if self.on_ceil then
+            font:set_color(JM.Utils:get_rgba(1, 0, 0, 1))
+            font:print("ceil", self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+        else
+            -- font:print(tostring(self.on_ceil), self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+        end
     end
 
     font:pop()
@@ -1626,6 +1645,16 @@ do
                                     bd.on_ground = item.x < bd.x or bd.on_ground
                                 else
                                     bd.on_ground = item:right() > bd:right() or bd.on_ground
+                                end
+                            end
+                        end
+
+                        if item ~= bd and not item.__remove and item.is_enabled and not item.is_slope and collision_rect(bd.x, bd.y - 1, bd.w, bd.h, item:rect()) then
+                            if not bd.is_floor and item:bottom() <= bd.y then
+                                if bd.is_norm then
+                                    bd.on_ceil = item:right() > bd:right() or bd.on_ceil
+                                else
+                                    bd.on_ceil = item.x < bd.x or bd.on_ceil
                                 end
                             end
                         end
@@ -1972,9 +2001,13 @@ local function merge_slopes(slope, world)
 end
 
 ---@param world JM.Physics.World
+---@param bd_type "dynamic"|"kinematic"|"static"|"ghost"|"only_fall"|nil
 ---@return JM.Physics.Body|JM.Physics.Slope
-function Phys:newSlope(world, x, y, w, h, slope_type, direction)
-    local slope = Slope:new(x, y, w, h, world, direction, slope_type)
+function Phys:newSlope(world, x, y, w, h, slope_type, direction, bd_type)
+    ---@diagnostic disable-next-line: cast-local-type
+    bd_type = BodyTypes[bd_type] or BodyTypes.static
+
+    local slope = Slope:new(x, y, w, h, world, direction, slope_type, bd_type)
 
     local result = merge_slopes(slope, world)
     local merged = result ~= slope
