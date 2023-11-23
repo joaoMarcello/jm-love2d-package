@@ -1894,11 +1894,11 @@ function Font:printf(text, x, y, align, limit_right)
         printf_lines[self][text][limit_right] = all_lines
     end
 
-    local ty = y
+    local ty = 0                --y
     local N = all_lines.N_lines --#(all_lines.lines)
     -- x = 0
     lgx.push()
-    lgx.translate(tx, 0)
+    lgx.translate(tx, y)
 
     self:set_font_size(cur_fontsize[1])
     local init_scale = self.__scale
