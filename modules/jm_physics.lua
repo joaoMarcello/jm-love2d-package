@@ -1136,6 +1136,9 @@ do
             -- love.graphics.setColor(1, 1, 1)
             love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
             love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+
+            -- local font = JM:get_font()
+            -- font:print(tostring(self.y), self.x, self.y - 12)
         end
     end
 end
@@ -1641,7 +1644,8 @@ do
 
             if bd and not bd.is_slope then
                 local col = bd:check2(nil, nil, function(_, item)
-                    return item ~= bd and not item.is_slope and item.x == bd.x and item.w == bd.w
+                    return item ~= bd and not item.is_slope and item.x == bd.x and item.w == bd.w and
+                        bd.type == item.type
                 end, bd.x, bd.y + 1, bd.w, bd.h)
 
                 if col.n > 0 then
@@ -1668,7 +1672,8 @@ do
 
 
                 col = bd:check2(nil, nil, function(_, item)
-                    return item ~= bd and not item.is_slope and item.y == bd.y and item.h == bd.h
+                    return item ~= bd and not item.is_slope and item.y == bd.y and item.h == bd.h and
+                        bd.type == item.type
                 end, bd.x - 1, bd.y, bd.w, bd.h)
 
                 if col.n > 0 then
