@@ -22,18 +22,21 @@ local State = JM.Scene:new {
     tile = 64,
     subpixel = 1,
     canvas_filter = _G.CANVAS_FILTER or 'linear',
-    bound_top = 0,
-    bound_left = 0,
-    bound_right = 1366,
-    bound_bottom = 1366,
+    bound_top = -math.huge,
+    bound_left = -math.huge,
+    bound_right = math.huge,
+    bound_bottom = math.huge,
     cam_scale = 1,
 }
+
+State.camera.min_zoom = 0.15
+State.camera.max_zoom = 3
 --============================================================================
 ---@class JM.Editor.Data
 local data = {}
 
 function data:save(name)
-    name = name or "gamemap2"
+    name = name or data.map.name or "gamemap2"
     local dir = name .. ".dat"
 
     ---@type any
@@ -50,13 +53,12 @@ function data:save(name)
 end
 
 function data:load(dir)
-    local dir = dir or 'data/gamemap/gamemap2.dat'
+    local dir = dir or 'data/gamemap/level_1_1.dat'
     ---@type any
     local d = Loader.load(dir)
 
     -- d.layers[2].tilemap_number = 2
     -- d.layers[3].type = MapLayer.Types.static
-
     self.map:init(d)
     -- self.map.layers[2].factor_x = 1.6
     -- self.map.layers[2].factor_y = 0.8
@@ -143,6 +145,9 @@ local function keypressed(key)
 
     if key == 'd' then
         data.debug = not data.debug
+        State.camera:set_position(0, 0)
+        State.camera.scale = 1
+        State.camera:set_focus(State.screen_w / 2, State.screen_h / 2)
     end
 
     data.map:keypressed(key)
@@ -161,10 +166,37 @@ local function mousereleased(x, y, button, istouch, presses)
 end
 
 local function mousemoved(x, y, dx, dy, istouch)
+    if not data.debug then
+        local mx, my = State:get_mouse_position(State.camera)
+        State.camera:set_focus(State.camera:world_to_screen(mx, my))
+
+        if ((dx and math.abs(dx) > 1) or (dy and math.abs(dy) > 1))
+            and love.mouse.isDown(1)
+        then
+            local qx = State:monitor_length_to_world(dx, State.camera)
+            local qy = State:monitor_length_to_world(dy, State.camera)
+
+            State.camera:move(-qx, -qy)
+        end
+        return
+    end
+
     data.map:mousemoved(x, y, dx, dy, istouch)
 end
 
 local function wheelmoved(x, y)
+    if not data.debug then
+        local zoom
+        local speed = 0.1
+        if y > 0 then
+            zoom = State.camera.scale + speed
+        else
+            zoom = State.camera.scale - speed
+        end
+
+        return State.camera:set_zoom(zoom)
+    end
+
     data.map:wheelmoved(x, y)
 end
 
@@ -185,7 +217,23 @@ local function gamepadreleased(joystick, button)
 end
 
 local function update(dt)
-    data.map:update_debug(dt)
+    if not data.debug then
+        local speed = 150 * dt
+        local cam = State.camera
+        if love.keyboard.isDown("left") then
+            cam:move(-speed)
+        elseif love.keyboard.isDown("right") then
+            cam:move(speed)
+        end
+
+        if love.keyboard.isDown("up") then
+            cam:move(0, -speed)
+        elseif love.keyboard.isDown("down") then
+            cam:move(0, speed)
+        end
+    else
+        data.map:update_debug(dt)
+    end
 end
 
 local layer_main = {
@@ -194,7 +242,9 @@ local layer_main = {
         if data.debug then
             data.map:debbug_draw()
         else
-            data.map:draw()
+            love.graphics.setColor(0.6, 0.6, 0.7)
+            love.graphics.rectangle("fill", cam:get_viewport_in_world_coord())
+            data.map:draw(cam)
         end
 
         local font = JM:get_font()
