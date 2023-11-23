@@ -1,5 +1,5 @@
 local TileMap = JM.TileMap
--- local GC = JM.GameObject
+local GC = JM.GameObject
 
 ---@enum JM.MapLayer.Types
 local LayerTypes = {
@@ -12,6 +12,12 @@ local LayerTypes = {
 
 local TileMaps = {
     "/data/img/tileset-game.png",
+    "/data/img/tileset-game2.png",
+}
+
+local ColliderTilemaps = {
+    "/data/img/tilemap-collider.png",
+    "/data/img/tilemap-collider2.png",
 }
 
 ---@type JM.GameMap
@@ -24,10 +30,12 @@ local tile_size = 16
 local Layer = {
     Types = LayerTypes,
     LayerCount = layer_count,
+    TileMapsDir = TileMaps,
+    ColliderTileDir = ColliderTilemaps,
 }
 Layer.__index = Layer
 
----@param gameMap JM.GameMap
+---@param gameMap JM.GameMap|nil
 function Layer:init_module(gameMap, tileSize, layerCount)
     game_map = gameMap or game_map
     tile_size = tileSize or tile_size
@@ -45,18 +53,21 @@ function Layer:new(args)
 end
 
 function Layer:__constructor__(args)
+    self.type = args.type or LayerTypes.static
+
     if args.map then
         args.data = loadstring(args.map)
     end
 
     self.tilemap = TileMap:new(args.data or generic,
-        "/data/img/tilemap-collider.png",
+        self.type == LayerTypes.only_fall and ColliderTilemaps[2]
+        or ColliderTilemaps[1],
         args.tile_size or tile_size
     )
 
-    self.out_tilemap = TileMap:new(generic, TileMaps[1], args.tile_size or tile_size)
+    self.tilemap_number = args.tilemap_number or 1
+    self.out_tilemap = TileMap:new(generic, TileMaps[self.tilemap_number], args.tile_size or tile_size)
 
-    self.type = args.type or LayerTypes.static
     self.name = args.name or string.format("layer_%02d", layer_count)
     self.world_number = args.world_number or 1
 
@@ -219,13 +230,14 @@ end
 ---@return JM.MapLayer.SaveData savedata
 function Layer:get_save_data()
     return {
-        name         = self.name,
-        type         = self.type,
-        tile_size    = self.tilemap.tile_size,
-        world_number = self.world_number,
-        factor_x     = self.factor_x,
-        factor_y     = self.factor_y,
-        map          = self:tilemap_tostring(),
+        name           = self.name,
+        type           = self.type,
+        -- tile_size    = self.tilemap.tile_size,
+        world_number   = self.world_number,
+        factor_x       = self.factor_x,
+        factor_y       = self.factor_y,
+        tilemap_number = self.tilemap_number,
+        map            = self:tilemap_tostring(),
     }
 end
 
@@ -236,12 +248,34 @@ function Layer:set_opacity(value)
 end
 
 ---@param camera JM.Camera.Camera
-function Layer:draw(camera)
+function Layer:draw_no_factor(camera)
     if self.show_auto_tilemap then
         self.out_tilemap:draw(camera)
     else
         self.tilemap:draw(camera)
     end
+end
+
+---@param cam JM.Camera.Camera
+function Layer:draw(cam)
+    local cx, cy = cam.x, cam.y
+    local sc = cam.scale
+
+    cam:set_position(cx * self.factor_x, cy * self.factor_y)
+
+    cam:attach(nil, GC.gamestate.subpixel)
+
+    if self.show_auto_tilemap then
+        self.out_tilemap:draw(cam)
+    else
+        self.tilemap:draw(cam)
+    end
+
+    cam:detach()
+
+    cam.x = cx
+    cam.y = cy
+    cam.scale = sc
 end
 
 return Layer
