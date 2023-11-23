@@ -1621,11 +1621,11 @@ do
                             and item.is_enabled and not item.is_slope
                             and collision_rect(bd.x, bd.y, bd.w, bd.h + 1, item:rect())
                         then
-                            if bd.is_floor then
+                            if bd.is_floor and item.y >= bd.y + bd.h then
                                 if bd.is_norm then
-                                    bd.on_ground = item.x < bd.x
+                                    bd.on_ground = item.x < bd.x or bd.on_ground
                                 else
-                                    bd.on_ground = item:right() > bd:right()
+                                    bd.on_ground = item:right() > bd:right() or bd.on_ground
                                 end
                             end
                         end
@@ -1808,91 +1808,91 @@ function Phys:newBody(world, x, y, w, h, type_)
 
     local b = Body:new(x, y, w, h, bd_type, world)
 
-    if b.type == BodyTypes.static then
-        local col = b:check2(nil, nil, function(obj, item)
-            return item.is_slope
-        end, x + 1, y + 1, w - 2, h - 2)
+    -- if b.type == BodyTypes.static then
+    --     local col = b:check2(nil, nil, function(obj, item)
+    --         return item.is_slope
+    --     end, x + 1, y + 1, w - 2, h - 2)
 
-        -- if col.n > 0 then
-        --     ---@type JM.Physics.Slope
-        --     local slope = col.items[1]
+    --     -- if col.n > 0 then
+    --     --     ---@type JM.Physics.Slope
+    --     --     local slope = col.items[1]
 
-        --     local tile = world.tile
-        --     for j = b.y, b.y + b.h - 1, tile do
-        --         for i = b.x, b.x + b.w - 1, tile do
-        --             if not collision_rect(i + 1, j + 1, tile - 2, tile - 2, slope:rect()) then
-        --                 -- Phys:newBody(world, i, j, tile, tile, "static")
-        --             end
-        --         end
-        --     end
+    --     --     local tile = world.tile
+    --     --     for j = b.y, b.y + b.h - 1, tile do
+    --     --         for i = b.x, b.x + b.w - 1, tile do
+    --     --             if not collision_rect(i + 1, j + 1, tile - 2, tile - 2, slope:rect()) then
+    --     --                 -- Phys:newBody(world, i, j, tile, tile, "static")
+    --     --             end
+    --     --         end
+    --     --     end
 
-        --     -- b:refresh(nil, nil, 0)
-        -- end
+    --     --     -- b:refresh(nil, nil, 0)
+    --     -- end
 
-        local col
+    --     local col
 
-        ---@diagnostic disable-next-line: cast-local-type
-        col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
-            return item.type == BodyTypes.static and item ~= b
-                and not item.is_slope
-                and item.h == b.h
-                and item.y == b.y
-        end, b.x, b.y, b.w + 1, b.h)
+    --     ---@diagnostic disable-next-line: cast-local-type
+    --     col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
+    --         return item.type == BodyTypes.static and item ~= b
+    --             and not item.is_slope
+    --             and item.h == b.h
+    --             and item.y == b.y
+    --     end, b.x, b.y, b.w + 1, b.h)
 
-        if col and col.n > 0 then
-            ---@type JM.Physics.Body
-            local bd = col.items[1]
+    --     if col and col.n > 0 then
+    --         ---@type JM.Physics.Body
+    --         local bd = col.items[1]
 
-            bd:refresh(bd.x - b.w, bd.y, bd.w + b.w, bd.h)
-            b:refresh(nil, nil, nil, 0)
-        end
+    --         bd:refresh(bd.x - b.w, bd.y, bd.w + b.w, bd.h)
+    --         b:refresh(nil, nil, nil, 0)
+    --     end
 
-        ---@diagnostic disable-next-line: cast-local-type
-        col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
-            return item.type == BodyTypes.static and item ~= b
-                and not item.is_slope
-                and item.h == b.h
-                and item.y == b.y
-        end, b.x - 1, b.y, b.w, b.h)
+    --     ---@diagnostic disable-next-line: cast-local-type
+    --     col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
+    --         return item.type == BodyTypes.static and item ~= b
+    --             and not item.is_slope
+    --             and item.h == b.h
+    --             and item.y == b.y
+    --     end, b.x - 1, b.y, b.w, b.h)
 
-        if col and col.n > 0 then
-            ---@type JM.Physics.Body
-            local bd = col.items[1]
+    --     if col and col.n > 0 then
+    --         ---@type JM.Physics.Body
+    --         local bd = col.items[1]
 
-            bd:refresh(bd.x, bd.y, bd.w + b.w, bd.h)
-            b:refresh(nil, nil, nil, 0)
-        end
+    --         bd:refresh(bd.x, bd.y, bd.w + b.w, bd.h)
+    --         b:refresh(nil, nil, nil, 0)
+    --     end
 
-        ---@diagnostic disable-next-line: cast-local-type
-        col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
-            return not item.is_slope and item ~= b
-                and item.w == b.w
-                and item.x == b.x
-        end, b.x, b.y - 1, b.w, b.h)
+    --     ---@diagnostic disable-next-line: cast-local-type
+    --     col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
+    --         return not item.is_slope and item ~= b
+    --             and item.w == b.w
+    --             and item.x == b.x
+    --     end, b.x, b.y - 1, b.w, b.h)
 
-        if col and col.n > 0 then
-            ---@type JM.Physics.Body
-            local bd = col.items[1]
+    --     if col and col.n > 0 then
+    --         ---@type JM.Physics.Body
+    --         local bd = col.items[1]
 
-            bd:refresh(nil, nil, nil, bd.h + b.h)
-            b:refresh(nil, nil, nil, 0)
-        end
+    --         bd:refresh(nil, nil, nil, bd.h + b.h)
+    --         b:refresh(nil, nil, nil, 0)
+    --     end
 
-        ---@diagnostic disable-next-line: cast-local-type
-        col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
-            return not item.is_slope and item ~= b
-                and item.w == b.w
-                and item.x == b.x
-        end, b.x, b.y + 1, b.w, b.h)
+    --     ---@diagnostic disable-next-line: cast-local-type
+    --     col = b.h > 0 and b.w > 0 and b:check2(nil, nil, function(_, item)
+    --         return not item.is_slope and item ~= b
+    --             and item.w == b.w
+    --             and item.x == b.x
+    --     end, b.x, b.y + 1, b.w, b.h)
 
-        if col and col.n > 0 then
-            ---@type JM.Physics.Body
-            local bd = col.items[1]
+    --     if col and col.n > 0 then
+    --         ---@type JM.Physics.Body
+    --         local bd = col.items[1]
 
-            bd:refresh(nil, bd.y - b.h, nil, bd.h + b.h)
-            b:refresh(nil, nil, nil, 0)
-        end
-    end
+    --         bd:refresh(nil, bd.y - b.h, nil, bd.h + b.h)
+    --         b:refresh(nil, nil, nil, 0)
+    --     end
+    -- end
 
 
     if b.h > 0 and b.w > 0 then
