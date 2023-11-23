@@ -1290,9 +1290,10 @@ function Map:build_world()
         local world = self.list_world[i]
         world:optimize()
         world:optimize()
+        world:optimize()
         world:fix_slope()
+        -- world:fix_ground_to_slope()
     end
-    -- world:fix_ground_to_slope()
 
     return self.list_world[1]
 end

@@ -54,13 +54,14 @@ function data:load(dir)
     ---@type any
     local d = Loader.load(dir)
 
-    -- d.layers[3].tilemap_number = 2
+    -- d.layers[2].tilemap_number = 2
+    -- d.layers[3].type = MapLayer.Types.static
 
     self.map:init(d)
     -- self.map.layers[2].factor_x = 1.6
     -- self.map.layers[2].factor_y = 0.8
 
-    -- self.map.layers[1], self.map.layers[3] = self.map.layers[3], self.map.layers[1]
+    -- self.map.layers[1], self.map.layers[2] = self.map.layers[2], self.map.layers[1]
     -- self.map.layers[2].type = GameMap.MapLayer.Types.static
 end
 
@@ -200,8 +201,11 @@ local layer_main = {
 
         if data.thread_save:isRunning() then
             local camera = data.map.camera
-            font:printf("Saving...", camera.viewport_x, camera.viewport_y + camera.viewport_h - 22, "right",
-                camera.viewport_w - 10)
+
+            font:printf("Saving...", camera.viewport_x, camera.viewport_y + camera.viewport_h - 30, "right", camera
+                .viewport_w)
+
+            -- font:print("Saving...", camera.viewport_x, State.screen_h - 30)
         end
         -- font:print(love.filesystem.getSaveDirectory(), 0, 0)
         -- font:print(love.filesystem.getWorkingDirectory(), 0, 40)
