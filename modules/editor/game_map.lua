@@ -1170,6 +1170,8 @@ function Map:build_world()
                     local index = map:get_index(i, j)
                     local id = map.cells_by_pos[index]
 
+                    local bd_type = layer.type == Layer.Types.only_fall and "only_fall" or "static"
+
                     if id == self.pieces["block-1x1"].tiles[1][1]
                         and not mapped[index]
                     then
@@ -1232,52 +1234,52 @@ function Map:build_world()
                         --
                         --
                     elseif id == self.pieces["slope-1x1"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile, tile, "floor", "normal")
+                        Phys:newSlope(world, i, j, tile, tile, "floor", "normal", bd_type)
                         --
                     elseif id == self.pieces["slope-1x1-inv"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile, tile, "floor", "inv")
+                        Phys:newSlope(world, i, j, tile, tile, "floor", "inv", bd_type)
                         --
                     elseif id == self.pieces["slope-2x1"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 2, tile, "floor", "normal")
+                        Phys:newSlope(world, i, j, tile * 2, tile, "floor", "normal", bd_type)
                         --
                     elseif id == self.pieces["slope-2x1-inv"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 2, tile, "floor", "inv")
+                        Phys:newSlope(world, i, j, tile * 2, tile, "floor", "inv", bd_type)
                         --
                     elseif id == self.pieces["slope-3x1"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 3, tile, "floor", "normal")
+                        Phys:newSlope(world, i, j, tile * 3, tile, "floor", "normal", bd_type)
                         --
                     elseif id == self.pieces["slope-3x1-inv"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 3, tile, "floor", "inv")
+                        Phys:newSlope(world, i, j, tile * 3, tile, "floor", "inv", bd_type)
                         --
                     elseif id == self.pieces["slope-4x1"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 4, tile, "floor", "normal")
+                        Phys:newSlope(world, i, j, tile * 4, tile, "floor", "normal", bd_type)
                         --
                     elseif id == self.pieces["slope-4x1-inv"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 4, tile, "floor", "inv")
+                        Phys:newSlope(world, i, j, tile * 4, tile, "floor", "inv", bd_type)
                         --
                     elseif id == self.pieces["ceil-1x1"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile, tile, "ceil", "normal")
+                        Phys:newSlope(world, i, j, tile, tile, "ceil", "normal", bd_type)
                         --
                     elseif id == self.pieces["ceil-1x1-inv"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile, tile, "ceil", "inv")
+                        Phys:newSlope(world, i, j, tile, tile, "ceil", "inv", bd_type)
                         --
                     elseif id == self.pieces["ceil-2x1"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 2, tile, "ceil", "normal")
+                        Phys:newSlope(world, i, j, tile * 2, tile, "ceil", "normal", bd_type)
                         --
                     elseif id == self.pieces["ceil-2x1-inv"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 2, tile, "ceil", "inv")
+                        Phys:newSlope(world, i, j, tile * 2, tile, "ceil", "inv", bd_type)
                         --
                     elseif id == self.pieces["ceil-3x1"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 3, tile, "ceil", "normal")
+                        Phys:newSlope(world, i, j, tile * 3, tile, "ceil", "normal", bd_type)
                         --
                     elseif id == self.pieces["ceil-3x1-inv"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 3, tile, "ceil", "inv")
+                        Phys:newSlope(world, i, j, tile * 3, tile, "ceil", "inv", bd_type)
                         --
                     elseif id == self.pieces["ceil-4x1"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 4, tile, "ceil", "normal")
+                        Phys:newSlope(world, i, j, tile * 4, tile, "ceil", "normal", bd_type)
                         --
                     elseif id == self.pieces["ceil-4x1-inv"].tiles[1][1] then
-                        Phys:newSlope(world, i, j, tile * 4, tile, "ceil", "inv")
+                        Phys:newSlope(world, i, j, tile * 4, tile, "ceil", "inv", bd_type)
                         --
                     end
                 end
@@ -1290,7 +1292,7 @@ function Map:build_world()
         local world = self.list_world[i]
         world:optimize()
         world:optimize()
-        world:optimize()
+        -- world:optimize()
         world:fix_slope()
         -- world:fix_ground_to_slope()
     end
@@ -1645,8 +1647,8 @@ function Map:debbug_draw()
     love.graphics.rectangle("line", self.camera:get_viewport())
 end
 
-function Map:layer_draw()
-    local cam = self.camera
+function Map:layer_draw(camera)
+    local cam = camera or self.camera
 
     for i = 1, #self.layers do
         ---@type JM.MapLayer
@@ -1655,15 +1657,17 @@ function Map:layer_draw()
         layer:draw(cam)
     end
 
-    love.graphics.setColor(1, 1, 0)
-    love.graphics.rectangle("line", self.camera:get_viewport())
+    -- love.graphics.setColor(1, 1, 0)
+    -- love.graphics.rectangle("line", cam:get_viewport())
 end
 
-function Map:draw()
-    love.graphics.setColor(0.6, 0.6, 0.7)
-    love.graphics.rectangle("fill", self.camera:get_viewport())
+function Map:draw(camera)
+    camera = camera or self.camera
+    -- love.graphics.setColor(0.6, 0.6, 0.7)
+    -- love.graphics.rectangle("fill", camera:get_viewport())
 
-    GC.draw(self, self.layer_draw)
+    -- GC.draw(self, self.layer_draw, camera)
+    self:layer_draw(camera)
 end
 
 return Map
