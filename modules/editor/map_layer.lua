@@ -263,7 +263,7 @@ function Layer:draw(cam)
 
     cam:set_position(cx * self.factor_x, cy * self.factor_y)
 
-    cam:attach(nil, GC.gamestate.subpixel)
+    -- cam:attach(nil, GC.gamestate.subpixel)
 
     if self.show_auto_tilemap then
         self.out_tilemap:draw(cam)
@@ -271,7 +271,7 @@ function Layer:draw(cam)
         self.tilemap:draw(cam)
     end
 
-    cam:detach()
+    -- cam:detach()
 
     cam.x = cx
     cam.y = cy
