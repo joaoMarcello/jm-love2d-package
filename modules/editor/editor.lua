@@ -2,8 +2,7 @@ local path = ...
 local JM = _G.JM
 local Loader = JM.Ldr
 
----@type JM.GameMap
-local GameMap = require(string.gsub(path, "editor.editor", "editor.game_map"))
+local GameMap = JM.GameMap
 local MapLayer = GameMap.MapLayer
 
 do
@@ -18,8 +17,8 @@ local State = JM.Scene:new {
     y = nil,
     w = nil,
     h = nil,
-    -- canvas_w = 1024,
-    -- canvas_h = 768,
+    canvas_w = 1366,
+    canvas_h = 768,
     tile = 64,
     subpixel = 1,
     canvas_filter = _G.CANVAS_FILTER or 'linear',
@@ -35,28 +34,16 @@ local data = {}
 
 function data:save(name)
     name = name or "gamemap2"
-    local lfs = love.filesystem
     local dir = name .. ".dat"
 
     ---@type any
     local d = self.map:get_save_data()
 
-    Loader.save(d, dir)
-
     d = Loader.ser.pack(d)
-    love.filesystem.write(name .. ".txt", d)
 
-    os.execute("mkdir data\\gamemap")
-
-    os.execute(string.format("copy /y %s %s",
-        lfs.getSaveDirectory():gsub("/", "\\") .. "\\" .. dir,
-        lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. dir
-    ))
-
-    os.execute(string.format("copy /y %s %s",
-        lfs.getSaveDirectory():gsub("/", "\\") .. "\\" .. name .. ".txt",
-        lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. name .. ".txt"
-    ))
+    if not data.thread_save:isRunning() then
+        data.thread_save:start(d, name, dir)
+    end
 
     -- os.rename(lfs.getSaveDirectory() .. "/" .. dir .. ".dat",
     --     lfs.getWorkingDirectory() .. "/data/gamemap/" .. dir .. ".dat")
@@ -67,9 +54,13 @@ function data:load(dir)
     ---@type any
     local d = Loader.load(dir)
 
+    -- d.layers[3].tilemap_number = 2
+
     self.map:init(d)
-    -- self.map.layers[2].factor_x = 1
-    -- self.map.layers[2].factor_y = 1
+    -- self.map.layers[2].factor_x = 1.6
+    -- self.map.layers[2].factor_y = 0.8
+
+    -- self.map.layers[1], self.map.layers[3] = self.map.layers[3], self.map.layers[1]
     -- self.map.layers[2].type = GameMap.MapLayer.Types.static
 end
 
@@ -98,6 +89,11 @@ local function init(args)
         State.screen_w * 0.8,
         State.screen_h * 0.775
     )
+
+    data.thread_save = data.thread_save
+        or love.thread.newThread('/jm-love2d-package/modules/editor/thread_save.lua')
+
+
 
     data.debug = true
 end
@@ -188,7 +184,7 @@ local function gamepadreleased(joystick, button)
 end
 
 local function update(dt)
-    data.map:update(dt)
+    data.map:update_debug(dt)
 end
 
 local layer_main = {
@@ -200,7 +196,13 @@ local layer_main = {
             data.map:draw()
         end
 
-        -- local font = JM:get_font()
+        local font = JM:get_font()
+
+        if data.thread_save:isRunning() then
+            local camera = data.map.camera
+            font:printf("Saving...", camera.viewport_x, camera.viewport_y + camera.viewport_h - 22, "right",
+                camera.viewport_w - 10)
+        end
         -- font:print(love.filesystem.getSaveDirectory(), 0, 0)
         -- font:print(love.filesystem.getWorkingDirectory(), 0, 40)
     end
