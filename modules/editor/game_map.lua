@@ -31,7 +31,7 @@ local tool_actions = {
                 self.cur_piece:insert()
                 ---
             elseif love.mouse.isDown(2) then
-                self.cur_layer.tilemap:remove_tile(self.cur_piece.x, self.cur_piece.y)
+                self.cur_piece:remove()
             end
         end
     end,
@@ -47,12 +47,14 @@ local tool_actions = {
 local Map = setmetatable({
     MapCount = map_count,
     MapLayer = Layer,
+    Piece = Piece,
 }, GC)
 Map.__index = Map
 
 function Map:init_module(tilesize, mapCount)
     tile_size = tilesize or tile_size
     map_count = mapCount or map_count
+    Layer:init_module(nil, tile_size)
 end
 
 ---@overload fun(self:any, scene:JM.Scene)
@@ -73,14 +75,13 @@ end
 function Map:__constructor__(args)
     self:set_gamestate(args.scene)
 
-    self.camera = JM.Camera:new {
+    self.camera = args.camera or JM.Camera:new {
         x = 64 * 4,
         y = 64 * 4,
         w = 64 * 8,
         h = 64 * 4,
         tile_size = 16,
         bounds = { left = -math.huge, right = math.huge, top = -math.huge, bottom = math.huge },
-        -- border_color = { 1, 0, 0, 1 },
     }
     self.camera:toggle_grid()
     self.camera:toggle_world_bounds()
@@ -186,7 +187,7 @@ function Map:__constructor__(args)
     self:set_state(Tools.move_map)
 
     --
-    self.update = Map.update
+    self.update_debug = Map.update_debug
     self.debbug_draw = Map.debbug_draw
 end
 
@@ -1478,7 +1479,7 @@ function Map:mouse_is_on_view()
     return self.camera:point_is_on_view(mx, my)
 end
 
-function Map:update(dt)
+function Map:update_debug(dt)
     local speed = 128 / self.camera.scale
     if love.keyboard.isDown("up") then
         self.camera:move(0, -speed * dt)
@@ -1514,13 +1515,14 @@ function Map:my_debug_draw()
             else
                 layer:set_opacity(0.5)
             end
+
             if layer.type == Layer.Types.only_fall then
                 cam:set_position(cam.x * layer.factor_x,
                     cam.y * layer.factor_y)
 
                 cam:attach(nil, self.gamestate.subpixel)
 
-                layer:draw(self.camera)
+                layer:draw_no_factor(self.camera)
 
                 if i == self.cur_layer_index then
                     self.cur_piece:draw()
@@ -1547,12 +1549,13 @@ function Map:my_debug_draw()
             else
                 layer:set_opacity(0.5)
             end
+
             if layer.type ~= Layer.Types.only_fall then
                 cam:set_position(cam.x * layer.factor_x,
                     cam.y * layer.factor_y)
 
                 cam:attach(nil, self.gamestate.subpixel)
-                layer:draw(self.camera)
+                layer:draw_no_factor(self.camera)
 
                 if i == self.cur_layer_index then
                     self.cur_piece:draw()
@@ -1571,16 +1574,6 @@ function Map:my_debug_draw()
         cam:attach(nil, self.gamestate.subpixel)
 
         local N = #self.world.bodies_static
-        for i = 1, N do
-            ---@type JM.Physics.Collide
-            local bd = self.world.bodies_static[i]
-
-            if bd.is_slope then
-                if self.camera:rect_is_on_view(bd:rect()) then
-                    bd:draw()
-                end
-            end
-        end
 
         for i = 1, N do
             ---@type JM.Physics.Collide
@@ -1592,6 +1585,19 @@ function Map:my_debug_draw()
                 end
             end
         end
+
+        for i = 1, N do
+            ---@type JM.Physics.Collide
+            local bd = self.world.bodies_static[i]
+
+            if bd.is_slope then
+                if self.camera:rect_is_on_view(bd:rect()) then
+                    bd:draw()
+                end
+            end
+        end
+
+
 
         for i = 1, N do
             ---@type JM.Physics.Collide
@@ -1642,21 +1648,10 @@ function Map:layer_draw()
     local cam = self.camera
 
     for i = 1, #self.layers do
-        local cx, cy = cam.x, cam.y
-        local sc = cam.scale
-
         ---@type JM.MapLayer
         local layer = self.layers[i]
-
-        cam:set_position(cam.x * layer.factor_x, cam.y * layer.factor_y)
-
-        cam:attach(nil, self.gamestate.subpixel)
+        layer:set_opacity(1)
         layer:draw(cam)
-        cam:detach()
-
-        cam.x = cx
-        cam.y = cy
-        cam.scale = sc
     end
 
     love.graphics.setColor(1, 1, 0)
@@ -1667,14 +1662,7 @@ function Map:draw()
     love.graphics.setColor(0.6, 0.6, 0.7)
     love.graphics.rectangle("fill", self.camera:get_viewport())
 
-    local cx, cy = self.camera.x, self.camera.y
-    local sc = self.camera.scale
-
     GC.draw(self, self.layer_draw)
-
-    self.camera.x = cx
-    self.camera.y = cy
-    self.camera.scale = sc
 end
 
 return Map
