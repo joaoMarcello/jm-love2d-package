@@ -1110,9 +1110,9 @@ function Map:apply_autotile_rules(id, i, j, layer)
 end
 
 function Map:auto_tile()
-    for i = 1, #self.layers do
+    for k = 1, #self.layers do
         ---@type JM.MapLayer
-        local layer = self.layers[i]
+        local layer = self.layers[k]
 
         local tilemap = layer.tilemap
         local out_map = layer.out_tilemap
@@ -1149,10 +1149,10 @@ function Map:build_world()
         world:clear()
     end
 
-    for i = 1, #self.layers do
+    for k = 1, #self.layers do
         local mapped = {}
         ---@type JM.MapLayer
-        local layer = self.layers[i]
+        local layer = self.layers[k]
 
         local map = layer.tilemap
 
@@ -1371,7 +1371,7 @@ function Map:keypressed(key)
     end
 end
 
-function Map:new_layer(name, type, tile_size)
+function Map:new_layer(name, type)
     local layer = Layer:new { name = name, type = type, tile_size = tile_size }
     table.insert(self.layers, layer)
     self:change_layer(#self.layers)
@@ -1409,20 +1409,19 @@ function Map:keyreleased(key)
 
 end
 
-function Map:mousepressed(x, y, button, istouch, presses)
-    -- if button == 3 then
-    --     self.camera:toggle_grid()
-    --     self.camera:toggle_world_bounds()
-    -- end
-end
+-- function Map:mousepressed(x, y, button, istouch, presses)
+--     -- if button == 3 then
+--     --     self.camera:toggle_grid()
+--     --     self.camera:toggle_world_bounds()
+--     -- end
+-- end
 
-function Map:mousereleased(x, y, button, istouch, presses)
+-- function Map:mousereleased(x, y, button, istouch, presses)
 
-end
+-- end
 
----@param cam JM.Camera.Camera
 function Map:fix_piece_position(cam)
-    local cam    = cam or self.camera
+    local cam    = self.camera
     local mx, my = self.gamestate:get_mouse_position(cam)
 
     ---@type JM.MapLayer

@@ -177,7 +177,7 @@ local function mousepressed(x, y, button, istouch, presses)
 end
 
 local function mousereleased(x, y, button, istouch, presses)
-    data.map:mousereleased(x, y, button, istouch, presses)
+
 end
 
 local function mousemoved(x, y, dx, dy, istouch)
