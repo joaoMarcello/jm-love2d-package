@@ -35,6 +35,13 @@ local function get_index(self, x, y)
     -- return string_format("%d:%d", x, y)
 end
 
+---@param self JM.TileMap
+local function index_to_x_y(self, index)
+    local x = index % MAX_COLUMN
+    local y = math_floor(index / MAX_COLUMN)
+    return x * self.tile_size, y * self.tile_size
+end
+
 --==========================================================================
 -- Entry x - y - id
 
@@ -137,6 +144,13 @@ end
 
 function TileMap:get_index(x, y)
     return get_index(self, x, y)
+end
+
+---@param index number
+---@return number x
+---@return number y
+function TileMap:index_to_x_y(index)
+    return index_to_x_y(self, index)
 end
 
 function TileMap:fix_position(x, y)
