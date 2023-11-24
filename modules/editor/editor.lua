@@ -123,8 +123,34 @@ local function keypressed(key)
         State.camera:toggle_world_bounds()
     end
 
-    if love.keyboard.isDown("lctrl") and key == 's' then
-        return data:save()
+    if love.keyboard.isDown('lshift') then
+        local dx, dy = 0, 0
+        local tile_size = data.map.tile_size
+        if key == 'k' then
+            dy = tile_size
+        elseif key == 'i' then
+            dy = -tile_size
+        end
+        if key == 'j' then
+            dx = -tile_size
+        elseif key == 'l' then
+            dx = tile_size
+        end
+
+        if dx ~= 0 or dy ~= 0 then
+            for k = 1, #data.map.layers do
+                ---@type JM.MapLayer
+                local layer = data.map.layers[k]
+                layer:move(dx, dy)
+            end
+            return
+        end
+    end
+
+    if love.keyboard.isDown("lctrl") then
+        if key == 's' then
+            return data:save()
+        end
     end
 
     if key == 'l' then
@@ -136,6 +162,8 @@ local function keypressed(key)
             return data.map:prev_layer()
         elseif key == 's' then
             return data.map:next_layer()
+        elseif key == 'f' then
+            data.map:remove_negative()
         end
     end
 
