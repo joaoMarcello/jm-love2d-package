@@ -88,6 +88,19 @@ local function init(args)
     JM.GameObject:init_state(State)
 
     data.map = GameMap:new(State)
+
+    data.cam_map = JM.Camera:new {
+        x = 64 * 4,
+        y = 64 * 4,
+        w = 64 * 8,
+        h = 64 * 4,
+        tile_size = 16,
+        bounds = { left = -math.huge, right = math.huge, top = -math.huge, bottom = math.huge },
+        min_zoom = 0.15,
+        max_zoom = 3,
+    }
+    data.map:set_camera(data.cam_map)
+
     data.map.camera:set_viewport(State.screen_w * 0.1,
         State.screen_h * 0.075,
         State.screen_w * 0.8,
@@ -96,8 +109,6 @@ local function init(args)
 
     data.thread_save = data.thread_save
         or love.thread.newThread('/jm-love2d-package/modules/editor/thread_save.lua')
-
-
 
     data.debug = true
 end
@@ -159,7 +170,10 @@ local function keyreleased(key)
 end
 
 local function mousepressed(x, y, button, istouch, presses)
-    data.map:mousepressed(x, y, button, istouch, presses)
+    if button == 3 then
+        data.cam_map:toggle_grid()
+        data.cam_map:toggle_world_bounds()
+    end
 end
 
 local function mousereleased(x, y, button, istouch, presses)
@@ -167,38 +181,34 @@ local function mousereleased(x, y, button, istouch, presses)
 end
 
 local function mousemoved(x, y, dx, dy, istouch)
-    if not data.debug then
-        local mx, my = State:get_mouse_position(State.camera)
-        State.camera:set_focus(State.camera:world_to_screen(mx, my))
+    local camera = not data.debug and State.camera or data.cam_map
 
-        if ((dx and math.abs(dx) > 1) or (dy and math.abs(dy) > 1))
-            and love.mouse.isDown(1)
-        then
-            local qx = State:monitor_length_to_world(dx, State.camera)
-            local qy = State:monitor_length_to_world(dy, State.camera)
+    local mx, my = State:get_mouse_position(camera)
+    camera:set_focus(camera:world_to_screen(mx, my))
 
-            State.camera:move(-qx, -qy)
-        end
-        return
+    if ((dx and math.abs(dx) > 1) or (dy and math.abs(dy) > 1))
+        and love.mouse.isDown(1)
+        and camera:point_is_on_view(mx, my)
+        and (data.debug and data.map.state == data.map.Tools.move_map or not data.debug)
+    then
+        local qx = State:monitor_length_to_world(dx, camera)
+        local qy = State:monitor_length_to_world(dy, camera)
+
+        camera:move(-qx, -qy)
     end
-
-    data.map:mousemoved(x, y, dx, dy, istouch)
 end
 
 local function wheelmoved(x, y)
-    if not data.debug then
-        local zoom
-        local speed = 0.1
-        if y > 0 then
-            zoom = State.camera.scale + speed
-        else
-            zoom = State.camera.scale - speed
-        end
-
-        return State.camera:set_zoom(zoom)
+    local camera = not data.debug and State.camera or data.cam_map
+    local zoom
+    local speed = 0.1
+    if y > 0 then
+        zoom = camera.scale + speed
+    else
+        zoom = camera.scale - speed
     end
 
-    data.map:wheelmoved(x, y)
+    return camera:set_zoom(zoom)
 end
 
 local function touchpressed(id, x, y, dx, dy, pressure)

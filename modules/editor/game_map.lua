@@ -8,6 +8,98 @@ local Layer = require(string.gsub(dir, "game_map", "map_layer"))
 ---@type JM.MapPiece
 local Piece = require(string.gsub(dir, "game_map", "map_piece"))
 
+--===========================================================================
+
+local pieces = {}
+local pieces_order = {}
+do
+    pieces["block-1x1"] = Piece:new {
+        tiles = { { 1 } },
+    }
+    table.insert(pieces_order, pieces["block-1x1"])
+
+    pieces["slope-1x1"] = Piece:new {
+        tiles = { { 2 } },
+    }
+    table.insert(pieces_order, pieces["slope-1x1"])
+
+    pieces["slope-1x1-inv"] = Piece:new {
+        tiles = { { 5 } },
+    }
+    table.insert(pieces_order, pieces["slope-1x1-inv"])
+
+    pieces["slope-2x1"] = Piece:new {
+        tiles = { { 3, 4 } },
+    }
+    table.insert(pieces_order, pieces["slope-2x1"])
+
+    pieces["slope-2x1-inv"] = Piece:new {
+        tiles = { { 6, 7 } },
+    }
+    table.insert(pieces_order, pieces["slope-2x1-inv"])
+
+    pieces["slope-3x1"] = Piece:new {
+        tiles = { { 9, 10, 11 } },
+    }
+    table.insert(pieces_order, pieces["slope-3x1"])
+
+    pieces["slope-3x1-inv"] = Piece:new {
+        tiles = { { 12, 13, 14 } },
+    }
+    table.insert(pieces_order, pieces["slope-3x1-inv"])
+
+    pieces["slope-4x1"] = Piece:new {
+        tiles = { { 15, 16, 17, 18 } },
+    }
+    table.insert(pieces_order, pieces["slope-4x1"])
+
+    pieces["slope-4x1-inv"] = Piece:new {
+        tiles = { { 19, 20, 21, 22 } },
+    }
+    table.insert(pieces_order, pieces["slope-4x1-inv"])
+
+    pieces["ceil-1x1-inv"] = Piece:new {
+        tiles = { { 23 } },
+    }
+    table.insert(pieces_order, pieces["ceil-1x1-inv"])
+
+    pieces["ceil-1x1"] = Piece:new {
+        tiles = { { 26 } },
+    }
+    table.insert(pieces_order, pieces["ceil-1x1"])
+
+    pieces["ceil-2x1-inv"] = Piece:new {
+        tiles = { { 24, 25 } },
+    }
+    table.insert(pieces_order, pieces["ceil-2x1-inv"])
+
+    pieces["ceil-2x1"] = Piece:new {
+        tiles = { { 27, 28 } },
+    }
+    table.insert(pieces_order, pieces["ceil-2x1"])
+
+    pieces["ceil-3x1-inv"] = Piece:new {
+        tiles = { { 29, 30, 31 } },
+    }
+    table.insert(pieces_order, pieces["ceil-3x1-inv"])
+
+    pieces["ceil-3x1"] = Piece:new {
+        tiles = { { 32, 33, 34 } },
+    }
+    table.insert(pieces_order, pieces["ceil-3x1"])
+
+    pieces["ceil-4x1-inv"] = Piece:new {
+        tiles = { { 35, 36, 37, 38 } },
+    }
+    table.insert(pieces_order, pieces["ceil-4x1-inv"])
+
+    pieces["ceil-4x1"] = Piece:new {
+        tiles = { { 39, 40, 41, 42 } },
+    }
+    table.insert(pieces_order, pieces["ceil-4x1"])
+end
+--========================================================================
+
 local tile_size = 16
 
 local map_count = 1
@@ -48,6 +140,9 @@ local Map = setmetatable({
     MapCount = map_count,
     MapLayer = Layer,
     Piece = Piece,
+    Tools = Tools,
+    pieces = pieces,
+    pieces_order = pieces_order,
 }, GC)
 Map.__index = Map
 
@@ -75,108 +170,6 @@ end
 function Map:__constructor__(args)
     self:set_gamestate(args.scene)
 
-    self.camera = args.camera or JM.Camera:new {
-        x = 64 * 4,
-        y = 64 * 4,
-        w = 64 * 8,
-        h = 64 * 4,
-        tile_size = 16,
-        bounds = { left = -math.huge, right = math.huge, top = -math.huge, bottom = math.huge },
-    }
-    self.camera:toggle_grid()
-    self.camera:toggle_world_bounds()
-    self.camera.max_zoom = 4
-    self.camera.min_zoom = 0.2
-
-    self.pieces = {}
-    self.pieces_order = {}
-    do
-        self.pieces["block-1x1"] = Piece:new {
-            tiles = { { 1 } },
-        }
-        table.insert(self.pieces_order, self.pieces["block-1x1"])
-
-        self.pieces["slope-1x1"] = Piece:new {
-            tiles = { { 2 } },
-        }
-        table.insert(self.pieces_order, self.pieces["slope-1x1"])
-
-        self.pieces["slope-1x1-inv"] = Piece:new {
-            tiles = { { 5 } },
-        }
-        table.insert(self.pieces_order, self.pieces["slope-1x1-inv"])
-
-        self.pieces["slope-2x1"] = Piece:new {
-            tiles = { { 3, 4 } },
-        }
-        table.insert(self.pieces_order, self.pieces["slope-2x1"])
-
-        self.pieces["slope-2x1-inv"] = Piece:new {
-            tiles = { { 6, 7 } },
-        }
-        table.insert(self.pieces_order, self.pieces["slope-2x1-inv"])
-
-        self.pieces["slope-3x1"] = Piece:new {
-            tiles = { { 9, 10, 11 } },
-        }
-        table.insert(self.pieces_order, self.pieces["slope-3x1"])
-
-        self.pieces["slope-3x1-inv"] = Piece:new {
-            tiles = { { 12, 13, 14 } },
-        }
-        table.insert(self.pieces_order, self.pieces["slope-3x1-inv"])
-
-        self.pieces["slope-4x1"] = Piece:new {
-            tiles = { { 15, 16, 17, 18 } },
-        }
-        table.insert(self.pieces_order, self.pieces["slope-4x1"])
-
-        self.pieces["slope-4x1-inv"] = Piece:new {
-            tiles = { { 19, 20, 21, 22 } },
-        }
-        table.insert(self.pieces_order, self.pieces["slope-4x1-inv"])
-
-        self.pieces["ceil-1x1-inv"] = Piece:new {
-            tiles = { { 23 } },
-        }
-        table.insert(self.pieces_order, self.pieces["ceil-1x1-inv"])
-
-        self.pieces["ceil-1x1"] = Piece:new {
-            tiles = { { 26 } },
-        }
-        table.insert(self.pieces_order, self.pieces["ceil-1x1"])
-
-        self.pieces["ceil-2x1-inv"] = Piece:new {
-            tiles = { { 24, 25 } },
-        }
-        table.insert(self.pieces_order, self.pieces["ceil-2x1-inv"])
-
-        self.pieces["ceil-2x1"] = Piece:new {
-            tiles = { { 27, 28 } },
-        }
-        table.insert(self.pieces_order, self.pieces["ceil-2x1"])
-
-        self.pieces["ceil-3x1-inv"] = Piece:new {
-            tiles = { { 29, 30, 31 } },
-        }
-        table.insert(self.pieces_order, self.pieces["ceil-3x1-inv"])
-
-        self.pieces["ceil-3x1"] = Piece:new {
-            tiles = { { 32, 33, 34 } },
-        }
-        table.insert(self.pieces_order, self.pieces["ceil-3x1"])
-
-        self.pieces["ceil-4x1-inv"] = Piece:new {
-            tiles = { { 35, 36, 37, 38 } },
-        }
-        table.insert(self.pieces_order, self.pieces["ceil-4x1-inv"])
-
-        self.pieces["ceil-4x1"] = Piece:new {
-            tiles = { { 39, 40, 41, 42 } },
-        }
-        table.insert(self.pieces_order, self.pieces["ceil-4x1"])
-    end
-
     self.cur_piece_index = 1
     ---@type JM.MapPiece
     self.cur_piece = self.pieces_order[1]
@@ -193,6 +186,11 @@ end
 
 function Map:load()
     Layer:load()
+end
+
+---@param camera JM.Camera.Camera
+function Map:set_camera(camera)
+    self.camera = camera
 end
 
 function Map:init(data)
@@ -1336,14 +1334,14 @@ function Map:keypressed(key)
                 self.cur_piece_index = #self.pieces_order
             end
             self.cur_piece = self.pieces_order[self.cur_piece_index]
-            self:fix_piece_position()
+            self:fix_piece_position(self.camera)
         elseif key == 's' then
             self.cur_piece_index = self.cur_piece_index + 1
             if self.cur_piece_index > #self.pieces_order then
                 self.cur_piece_index = 1
             end
             self.cur_piece = self.pieces_order[self.cur_piece_index]
-            self:fix_piece_position()
+            self:fix_piece_position(self.camera)
         end
     end
 
@@ -1412,25 +1410,26 @@ function Map:keyreleased(key)
 end
 
 function Map:mousepressed(x, y, button, istouch, presses)
-    if button == 3 then
-        self.camera:toggle_grid()
-        self.camera:toggle_world_bounds()
-    end
+    -- if button == 3 then
+    --     self.camera:toggle_grid()
+    --     self.camera:toggle_world_bounds()
+    -- end
 end
 
 function Map:mousereleased(x, y, button, istouch, presses)
 
 end
 
-function Map:fix_piece_position()
-    local cam    = self.camera
+---@param cam JM.Camera.Camera
+function Map:fix_piece_position(cam)
+    local cam    = cam or self.camera
     local mx, my = self.gamestate:get_mouse_position(cam)
 
     ---@type JM.MapLayer
     local layer  = self.layers[self.cur_layer_index]
     if layer then
         local cx, cy = cam.x, cam.y
-        self.camera:set_position(cam.x * layer.factor_x, cam.y * layer.factor_y)
+        cam:set_position(cam.x * layer.factor_x, cam.y * layer.factor_y)
         local mx2, my2 = self.gamestate:get_mouse_position(cam)
         cam:set_position(cx, cy)
 
@@ -1444,38 +1443,38 @@ function Map:fix_piece_position()
     self.cur_piece.y = self.cell_y * tile_size
 end
 
-function Map:mousemoved(x, y, dx, dy, istouch)
-    local mx, my = self.gamestate:get_mouse_position(self.camera)
-    self.camera:set_focus(self.camera:world_to_screen(mx, my))
+-- function Map:mousemoved(x, y, dx, dy, istouch)
+--     -- local mx, my = self.gamestate:get_mouse_position(self.camera)
+--     -- self.camera:set_focus(self.camera:world_to_screen(mx, my))
 
-    if ((dx and math.abs(dx) > 1) or (dy and math.abs(dy) > 1))
-        and love.mouse.isDown(1)
-        and self:mouse_is_on_view()
-        and self.state == Tools.move_map
-    then
-        local qx = self.gamestate:monitor_length_to_world(dx, self.camera)
-        local qy = self.gamestate:monitor_length_to_world(dy, self.camera)
+--     -- if ((dx and math.abs(dx) > 1) or (dy and math.abs(dy) > 1))
+--     --     and love.mouse.isDown(1)
+--     --     and self:mouse_is_on_view()
+--     --     and self.state == Tools.move_map
+--     -- then
+--     --     local qx = self.gamestate:monitor_length_to_world(dx, self.camera)
+--     --     local qy = self.gamestate:monitor_length_to_world(dy, self.camera)
 
-        self.camera:move(-qx, -qy)
-    end
+--     --     self.camera:move(-qx, -qy)
+--     -- end
 
-    self:fix_piece_position()
-end
+--     -- self:fix_piece_position()
+-- end
 
-function Map:wheelmoved(x, y, force)
-    if not self:mouse_is_on_view() and not force then return false end
-    if not self.is_enable then return false end
+-- function Map:wheelmoved(x, y, force)
+--     -- if not self:mouse_is_on_view() and not force then return false end
+--     -- if not self.is_enable then return false end
 
-    local zoom
-    local speed = 0.1
-    if y > 0 then
-        zoom = self.camera.scale + speed
-    else
-        zoom = self.camera.scale - speed
-    end
+--     -- local zoom
+--     -- local speed = 0.1
+--     -- if y > 0 then
+--     --     zoom = self.camera.scale + speed
+--     -- else
+--     --     zoom = self.camera.scale - speed
+--     -- end
 
-    return self.camera:set_zoom(zoom)
-end
+--     -- return self.camera:set_zoom(zoom)
+-- end
 
 function Map:mouse_is_on_view()
     local mx, my = self.gamestate:get_mouse_position(self.camera)
@@ -1484,6 +1483,7 @@ end
 
 function Map:update_debug(dt)
     local cam = self.camera
+
     local speed = 128 / cam.scale
     if love.keyboard.isDown("up") then
         cam:move(0, -speed * dt)
@@ -1496,7 +1496,7 @@ function Map:update_debug(dt)
     elseif love.keyboard.isDown("right") then
         cam:move(speed * dt, 0)
     end
-    self:fix_piece_position()
+    self:fix_piece_position(cam)
 
     self:cur_action(dt)
 end
@@ -1629,45 +1629,49 @@ function Map:my_debug_draw()
     cam:detach()
 end
 
-function Map:debbug_draw()
+---@param cam JM.Camera.Camera|nil
+function Map:debbug_draw(cam)
+    local camera = cam or self.camera
+
     love.graphics.setColor(0.6, 0.6, 0.6)
-    love.graphics.rectangle("fill", self.camera:get_viewport())
+    love.graphics.rectangle("fill", camera:get_viewport())
 
     self:my_debug_draw()
 
     local font = JM:get_font()
     local r = self:mouse_is_on_view()
-    font:print(r and "on view" or "out", self.camera.viewport_x, self.camera.viewport_y - 20)
+    font:print(r and "on view" or "out", camera.viewport_x, camera.viewport_y - 20)
 
-    font:print(self.name, self.camera.viewport_x + 100, self.camera.viewport_y - 20)
+    font:print(self.name, camera.viewport_x + 100, camera.viewport_y - 20)
 
-    font:print(self.cur_layer.name, self.camera.viewport_x + 200, self.camera.viewport_y - 20)
+    font:print(self.cur_layer.name, camera.viewport_x + 200, camera.viewport_y - 20)
 
     love.graphics.setColor(1, 1, 0)
-    love.graphics.rectangle("line", self.camera:get_viewport())
+    love.graphics.rectangle("line", camera:get_viewport())
 end
 
-function Map:layer_draw(camera)
-    local cam = camera or self.camera
+-- function Map:layer_draw(camera)
+--     local cam = camera --or self.camera
 
+--     for i = 1, #self.layers do
+--         ---@type JM.MapLayer
+--         local layer = self.layers[i]
+--         layer:set_opacity(1)
+--         layer:draw(cam)
+--     end
+
+--     -- love.graphics.setColor(1, 1, 0)
+--     -- love.graphics.rectangle("line", cam:get_viewport())
+-- end
+
+---@param cam JM.Camera.Camera
+function Map:draw(cam)
     for i = 1, #self.layers do
         ---@type JM.MapLayer
         local layer = self.layers[i]
         layer:set_opacity(1)
         layer:draw(cam)
     end
-
-    -- love.graphics.setColor(1, 1, 0)
-    -- love.graphics.rectangle("line", cam:get_viewport())
-end
-
-function Map:draw(camera)
-    camera = camera or self.camera
-    -- love.graphics.setColor(0.6, 0.6, 0.7)
-    -- love.graphics.rectangle("fill", camera:get_viewport())
-
-    -- GC.draw(self, self.layer_draw, camera)
-    self:layer_draw(camera)
 end
 
 return Map
