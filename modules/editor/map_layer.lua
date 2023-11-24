@@ -88,39 +88,39 @@ function Layer:finish()
 
 end
 
-function Layer:fix_map()
+function Layer:move(dx, dy)
+    dx = dx or 0
+    dy = dy or 0
+    dx = math.floor(dx / tile_size) * tile_size
+    dy = math.floor(dy / tile_size) * tile_size
+    if dx == 0 and dy == 0 then return false end
+
     local tilemap = self.tilemap
-    local min_x = tilemap.min_x
-    local max_x = tilemap.max_x
-    local min_y = tilemap.min_y
-    local max_y = tilemap.max_y
-    local tile = tilemap.tile_size
-
-    if min_x == 0 and min_y == 0 then return false end
-
     local cells_by_pos = {}
 
-    for j = min_y, max_y, tile do
-        for i = min_x, max_x, tile do
-            local index = tilemap:get_index(i, j)
-            local id = tilemap.cells_by_pos[index]
-
-            if id then
-                cells_by_pos[tilemap:get_index(i - min_x, j - min_y)] = id
-            end
-        end
+    for k, v in pairs(tilemap.cells_by_pos) do
+        local x, y = tilemap:index_to_x_y(k)
+        local id = v
+        cells_by_pos[tilemap:get_index(x + dx, y + dy)] = id
     end
 
     tilemap.cells_by_pos = cells_by_pos
-    tilemap.min_x = 0
-    tilemap.min_y = 0
-    tilemap.max_x = max_x - min_x
-    tilemap.max_y = max_y - min_y
+    tilemap.min_x = tilemap.min_x + dx
+    tilemap.max_x = tilemap.max_x + dx
+    tilemap.min_y = tilemap.min_y + dy
+    tilemap.max_y = tilemap.max_y + dy
 
     tilemap.__bound_left = nil
     tilemap.last_index_left = nil
-
     return true
+end
+
+function Layer:get_min_max_x()
+    return self.tilemap.min_x, self.tilemap.max_x
+end
+
+function Layer:get_min_max_y()
+    return self.tilemap.min_y, self.tilemap.max_y
 end
 
 function Layer:tile_top(x, y)
