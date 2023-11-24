@@ -143,6 +143,7 @@ local Map = setmetatable({
     Tools = Tools,
     pieces = pieces,
     pieces_order = pieces_order,
+    tile_size = tile_size,
 }, GC)
 Map.__index = Map
 
@@ -1137,6 +1138,33 @@ function Map:auto_tile()
     end
 end
 
+function Map:remove_negative()
+    local min_x, min_y = math.huge, math.huge
+    local N = #self.layers
+
+    for k = 1, N do
+        ---@type JM.MapLayer
+        local layer = self.layers[k]
+
+        local minx, _ = layer:get_min_max_x()
+        local miny, _ = layer:get_min_max_y()
+
+        min_x = minx < min_x and minx or min_x
+        min_y = miny < min_y and miny or min_y
+    end
+
+    local dx = -min_x
+    local dy = -min_y
+
+    if dx ~= 0 or dy ~= 0 then
+        for k = 1, N do
+            ---@type JM.MapLayer
+            local layer = self.layers[k]
+            layer:move(dx, dy)
+        end
+    end
+end
+
 function Map:build_world()
     local tile = self.cur_layer.out_tilemap.tile_size
     local n_worlds = #self.list_world
@@ -1345,14 +1373,14 @@ function Map:keypressed(key)
         end
     end
 
-    if key == 'f' then
-        for i = 1, #self.layers do
-            ---@type JM.MapLayer
-            local layer = self.layers[i]
-            layer:fix_map()
-        end
-        return
-    end
+    -- if key == 'f' then
+    --     for i = 1, #self.layers do
+    --         ---@type JM.MapLayer
+    --         local layer = self.layers[i]
+    --         layer:fix_map()
+    --     end
+    --     return
+    -- end
 
     if key == 'g' then
         self.show_world = not self.show_world
