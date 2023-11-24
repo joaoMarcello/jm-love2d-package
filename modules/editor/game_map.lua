@@ -1483,17 +1483,18 @@ function Map:mouse_is_on_view()
 end
 
 function Map:update_debug(dt)
-    local speed = 128 / self.camera.scale
+    local cam = self.camera
+    local speed = 128 / cam.scale
     if love.keyboard.isDown("up") then
-        self.camera:move(0, -speed * dt)
+        cam:move(0, -speed * dt)
     elseif love.keyboard.isDown("down") then
-        self.camera:move(0, speed * dt)
+        cam:move(0, speed * dt)
     end
 
     if love.keyboard.isDown("left") then
-        self.camera:move(-speed * dt, 0)
+        cam:move(-speed * dt, 0)
     elseif love.keyboard.isDown("right") then
-        self.camera:move(speed * dt, 0)
+        cam:move(speed * dt, 0)
     end
     self:fix_piece_position()
 
@@ -1632,8 +1633,7 @@ function Map:debbug_draw()
     love.graphics.setColor(0.6, 0.6, 0.6)
     love.graphics.rectangle("fill", self.camera:get_viewport())
 
-
-    GC.draw(self, self.my_debug_draw)
+    self:my_debug_draw()
 
     local font = JM:get_font()
     local r = self:mouse_is_on_view()

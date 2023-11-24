@@ -1629,7 +1629,7 @@ do
             local bd = self.bodies_static[i]
 
             if bd and bd.is_slope then
-                local items = self:get_items_in_cell_obj(bd.x - 1, bd.y - 2, bd.w + 2, bd.h + 4)
+                local items = self:get_items_in_cell_obj(bd.x - 2, bd.y - 2, bd.w + 4, bd.h + 4)
 
                 if items then
                     for item, _ in pairs(items) do
@@ -1649,7 +1649,7 @@ do
                             end
                         end
 
-                        if item ~= bd and not item.__remove and item.is_enabled and not item.is_slope and collision_rect(bd.x, bd.y - 1, bd.w, bd.h, item:rect()) then
+                        if item ~= bd and not item.__remove and item.is_enabled and not item.is_slope and collision_rect(bd.x - 1, bd.y - 1, bd.w + 2, bd.h, item:rect()) then
                             if not bd.is_floor and item:bottom() <= bd.y then
                                 if bd.is_norm then
                                     bd.on_ceil = item:right() > bd:right() or bd.on_ceil

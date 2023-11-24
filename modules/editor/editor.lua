@@ -53,12 +53,13 @@ function data:save(name)
 end
 
 function data:load(dir)
-    local dir = dir or 'data/gamemap/level_1_1.dat'
+    local dir = dir or 'data/gamemap/level 1-1.dat'
     ---@type any
     local d = Loader.load(dir)
 
     -- d.layers[2].tilemap_number = 2
     -- d.layers[3].type = MapLayer.Types.static
+    -- d.name = "level 1-1"
     self.map:init(d)
     -- self.map.layers[2].factor_x = 1.6
     -- self.map.layers[2].factor_y = 0.8

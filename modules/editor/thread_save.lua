@@ -7,14 +7,14 @@ Loader.save(data, dir)
 
 lfs.write(name .. ".txt", data)
 
-os.execute("mkdir data\\gamemap")
+os.execute("mkdir \"data\\gamemap\"")
 
-os.execute(string.format("copy /y %s %s",
+os.execute(string.format("copy /y \"%s\" \"%s\"",
     lfs.getSaveDirectory():gsub("/", "\\") .. "\\" .. dir,
     lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. dir
 ))
 
-os.execute(string.format("copy /y %s %s",
+os.execute(string.format("copy /y \"%s\" \"%s\"",
     lfs.getSaveDirectory():gsub("/", "\\") .. "\\" .. name .. ".txt",
     lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. name .. ".txt"
 ))
