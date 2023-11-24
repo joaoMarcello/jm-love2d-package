@@ -694,7 +694,7 @@ function Camera:new(args)
         args.desired_canvas_w, args.desired_canvas_h,
         args.tile_size, args.color, args.scale, args.type,
         args.show_grid, args.grid_tile_size, args.show_world_bounds,
-        args.border_color, args.scene
+        args.border_color, args.scene, args.min_zoom, args.max_zoom
     )
 
     return obj
@@ -706,7 +706,7 @@ function Camera:__constructor__(
     x, y, w, h, bounds,
     device_width, device_height, desired_canvas_w, desired_canvas_h,
     tile_size, color, scale, type_,
-    allow_grid, grid_tile_size, show_world_bounds, border_color, scene
+    allow_grid, grid_tile_size, show_world_bounds, border_color, scene, min_zoom, max_zoom
 )
     local device_width = love.graphics.getWidth()
     local device_height = love.graphics.getHeight()
@@ -821,8 +821,8 @@ function Camera:__constructor__(
     -- self:shake_in_x(nil, self.tile_size * 2 / 4, nil, 7.587)
     -- self:shake_in_y(nil, self.tile_size * 2.34 / 4, nil, 10.7564)
 
-    self.min_zoom = 0.5
-    self.max_zoom = 1.5
+    self.min_zoom = min_zoom or 0.5
+    self.max_zoom = max_zoom or 1.5
 
     self.catch_target_x = nil
     self.catch_target_y = nil
