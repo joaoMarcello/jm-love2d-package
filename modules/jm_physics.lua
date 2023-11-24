@@ -1699,7 +1699,6 @@ do
                 -- end
 
 
-
                 col = bd:check2(nil, nil, function(_, item)
                     return item ~= bd and not item.is_slope and item.y == bd.y and item.h == bd.h and
                         bd.type == item.type
@@ -1713,6 +1712,7 @@ do
                     local c = col.items[1]
                     c:refresh(nil, nil, c.w + bd.w, nil)
                 end
+
 
                 -- col = bd:check2(nil, nil, function(_, item)
                 --     return item ~= bd and not item.is_slope and item.y == bd.y and item.h == bd.h
@@ -1729,7 +1729,7 @@ do
 
                 local items = self:get_items_in_cell_obj(bd.x + 1, bd.y + 1, bd.w - 2, bd.h - 2)
 
-                if items then
+                if items and bd.type == BodyTypes.static then
                     for item, _ in pairs(items) do
                         ---@type JM.Physics.Collide
                         local item = item
