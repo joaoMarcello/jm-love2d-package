@@ -1161,6 +1161,7 @@ function Map:remove_negative()
             ---@type JM.MapLayer
             local layer = self.layers[k]
             layer:move(dx, dy)
+            layer.show_auto_tilemap = false
         end
     end
 end

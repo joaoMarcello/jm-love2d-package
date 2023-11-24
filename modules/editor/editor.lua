@@ -138,10 +138,12 @@ local function keypressed(key)
         end
 
         if dx ~= 0 or dy ~= 0 then
+            data.map:set_state(data.map.Tools.move_map)
             for k = 1, #data.map.layers do
                 ---@type JM.MapLayer
                 local layer = data.map.layers[k]
                 layer:move(dx, dy)
+                layer.show_auto_tilemap = false
             end
             return
         end
