@@ -1404,7 +1404,7 @@ do
 
     function World:__constructor__(args)
         self.tile = args.tile or self.tile or 32
-        self.cellsize = args.cellsize or self.cellsize or (self.tile * 2)
+        self.cellsize = args.cellsize or self.cellsize or (self.tile * 4)
 
         self.meter = args.meter or self.meter or (self.tile * 3.5)
         self.gravity = args.gravity or self.gravity or (9.8 * self.meter)
