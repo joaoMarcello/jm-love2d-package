@@ -101,10 +101,14 @@ function JM:get_font(font)
         return c17
         ---
     else
+        local lfs = love.filesystem
+        local zip = "/jm-love2d-package/data/font/open_sans.zip"
+        lfs.mount(lfs.newFileData(zip), "content")
+
         local f = JM.FontGenerator:new_by_ttf {
-            dir = "/jm-love2d-package/data/font/OpenSans-Regular.ttf",
-            dir_bold = "/jm-love2d-package/data/font/OpenSans-SemiBold.ttf",
-            -- path_italic = "/data/font/Komika Text Italic.ttf",
+            dir = "content/OpenSans-Regular.ttf",
+            dir_bold = "content/OpenSans-SemiBold.ttf",
+            ---
             dpi = 36,
             name = "open sans",
             font_size = 12,
@@ -118,6 +122,8 @@ function JM:get_font(font)
             threshold = { { "00", "7f" }, { "80", "ff" }, { "100", "17f" }, { "180", "24f" }, { "2b0", "2ff" }, { "300", "36f" }, { "370", "3ff" }, { "400", "4ff" }, { "1d00", "1d7f" }, { "1d80", "1dbf" }, { "1e00", "1eff" }, { "2000", "206f" }, { "2070", "209f" }, { "2100", "214f" }, { "2150", "218f" }, { "2200", "22ff" }, { "2300", "23ff" } },
         }
         fonts[font] = f
+        lfs.unmount(zip)
+        -- print(r and "Success unmout" or "Fail unmount")
         return f
 
         -- local glyphs =
