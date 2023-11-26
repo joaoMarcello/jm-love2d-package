@@ -136,7 +136,7 @@ local function coll_y_filter(obj, item)
     else
         if item.is_slope then
             if not item.is_floor then
-                return true
+                return obj.y >= item.y and obj:right() >= item.x and obj.x <= item:right()
             end
 
             if not obj.allow_climb_slope then return false end
@@ -159,7 +159,7 @@ end
 local function collision_x_filter(obj, item)
     if item.is_slope then
         if not item.is_floor then
-            return true
+            return obj.y >= item.y and obj:right() >= item.x and obj.x <= item:right()
         end
 
         if not obj.allow_climb_slope then return false end
@@ -365,6 +365,7 @@ do
 
         -- self.shape = BodyShapes.rectangle
 
+        self.is_slope_adj = nil
         -- TODO
         -- self.hit_boxes = nil
         -- self.hurt_boxes = nil
@@ -815,11 +816,11 @@ do
     function Body:resolve_collisions_x(col)
         if col.n > 0 then
             if col.has_slope then
-                if col.n > 1 then
-                    table_sort(col.items, is_slope)
-                end
+                -- if col.n > 1 then
+                --     table_sort(col.items, is_slope)
+                -- end
 
-                local n = #(col.items)
+                local n = col.n --#(col.items)
                 local final_x, final_y
                 local slope = col.has_slope
 
@@ -830,14 +831,12 @@ do
                     if bd.is_slope then
                         local temp = bd.is_floor and (-self.h - 0.05) or (0.05)
                         slope = bd
-                        final_x = col.goal_x
+                        final_x = final_x or col.goal_x
                         final_y = bd:get_y(col.goal_x, self.y, self.w, self.h) + temp
-
-                        -- if slope.is_floor and not self.ground then
-                        --     self.ground = slope
-                        -- end
-                    else --if is_kinematic(bd) or true then
-                        if not body_is_adjc_slope(bd, slope) then
+                        ---
+                    else
+                        ---
+                        if not bd.is_slope_adj then
                             self.speed_x = 0.0
 
                             if col.diff_x < 0 then
@@ -848,12 +847,17 @@ do
 
                             local temp = slope and slope.is_floor and (-self.h - 0.05) or (0.05)
                             final_y = slope and (slope:get_y(final_x, self.y, self.w, self.h) + temp) or final_y
+
+                            -- if slope and not slope.is_floor then
+                            --     if slope.x == bd.x then
+                            --         final_y = nil
+                            --     end
+                            -- end
                         end
                     end
                 end -- END for
 
                 self:refresh(final_x, final_y)
-                -- goto end_function
                 return
             end
 
@@ -1139,7 +1143,15 @@ do
             love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
             love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
-            -- local font = JM:get_font()
+            local font = JM:get_font()
+            font:push()
+            font:set_font_size(6)
+            if self.type == BodyTypes.static then
+                if self.is_slope_adj then
+                    font:print("adj", self.x, self.y)
+                end
+            end
+            return font:pop()
             -- font:print(tostring(self.y), self.x, self.y - 12)
         end
     end
@@ -1287,35 +1299,45 @@ function Slope:get_y(x, y, w, h)
     y = -y
     local py = -(self._A * x + self._B)
 
-    if not self.next then
-        if self.is_norm and self.is_floor then
-            py = py < self.y and self.y or py
-        end
+    local is_floor = self.is_floor
+    local is_norm = self.is_norm
+    local next = self.next
+    local prev = self.prev
 
-        if not self.is_norm and self.is_floor then
-            local bt = self.y + self.h
-            py = py > bt and bt or py
+    if not next then
+        if is_floor then
+            if is_norm then
+                py = py < self.y and self.y or py
+            else
+                -- local bt = self.y + self.h
+                -- py = py > bt and bt or py
+            end
         end
     end
 
-    if not self.prev then
-        if not self.is_norm and self.is_floor then
-            py = py < self.y and self.y or py
-        else
-            if self.is_floor then
-                local bt = self.y + self.h
-                py = py > bt and bt or py
+    if not prev then
+        if is_floor then
+            if not is_norm then
+                py = py < self.y and self.y or py
+            else
+                -- local bt = self.y + self.h
+                -- py = py > bt and bt or py
             end
         end
     else
-        if self.is_floor and not self.is_norm and not self.next then
+        if is_floor and not is_norm and not next then
             local bt = self.y + self.h
             py = py > bt and bt or py
         end
     end
 
-    -- py = (py < self.y and not self.next and self.y) or py
-    py = not self.is_floor and (py > self:bottom() and self:bottom()) or py
+    py = not is_floor and (py > self:bottom() and self:bottom()) or py
+
+    if is_floor then
+        if self.on_ground and py > self:bottom() then py = self:bottom() end
+    else
+        if self.on_ceil and py < self.y then py = self.y end
+    end
 
     return py
 end
@@ -1632,7 +1654,8 @@ do
                 local items = self:get_items_in_cell_obj(bd.x - 2, bd.y - 2, bd.w + 4, bd.h + 4)
 
                 if items then
-                    for item, _ in pairs(items) do
+                    -- for item, _ in pairs(items) do
+                    for item, _ in next, items do
                         ---@type JM.Physics.Collide
                         local item = item
 
@@ -1687,6 +1710,40 @@ do
                             and item.x >= bd.x
                         then
                             item.__remove = true
+                        end
+                    end
+                end
+
+                items = self:get_items_in_cell_obj(bd.x - 1, bd.y - 1, bd.w + 2, bd.h + 2)
+                if items then
+                    for item, _ in next, items do
+                        ---@type JM.Physics.Collide
+                        local item = item
+
+                        if bd.is_floor and item ~= bd and not item.is_slope and not item.__remove and item.type == BodyTypes.static
+                        then
+                            if bd.is_norm then
+                                if item.y == bd.y and item.x == bd:right() then
+                                    item.is_slope_adj = true
+                                end
+                            else
+                                if item.y == bd.y and item:right() == bd.x then
+                                    item.is_slope_adj = true
+                                end
+                            end
+                        end
+
+                        if not bd.is_floor and item ~= bd and not item.is_slope and not item.__remove and item.type == BodyTypes.static
+                        then
+                            if bd.is_norm then
+                                if item:bottom() == bd:bottom() and item:right() == bd.x then
+                                    item.is_slope_adj = true
+                                end
+                            else
+                                if item:bottom() == bd:bottom() and item.x == bd:right() then
+                                    item.is_slope_adj = true
+                                end
+                            end
                         end
                     end
                 end
