@@ -1324,8 +1324,8 @@ function Slope:draw()
     local x1, y1 = self:point_left()
     local x2, y2 = self:point_right()
 
-    -- love.graphics.setColor(1, 0, 0, 1)
-    -- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+    love.graphics.setColor(1, 0, 0, 1)
+    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
     love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
     love.graphics.setLineWidth(2)
@@ -1660,6 +1660,36 @@ do
                         end
                     end
                 end
+
+                local col = bd:check(nil, bd.y + 2, function(bd, item)
+                    return item ~= bd and not item.__remove
+                        and item.is_enabled and not item.is_slope
+                        and item.type == BodyTypes.only_fall
+                        -- and item.x == bd.x
+                        -- and item.w == bd.w
+                        -- and round(item.y) == round(bd.y + bd.h)
+                        and bd.is_floor
+                end)
+
+                if col.n > 0 and bd.type == BodyTypes.only_fall then
+                    for i = 1, #col.items do
+                        ---@type JM.Physics.Body
+                        local item = col.items[i]
+
+                        local off = bd:bottom() - item.y
+                        item:refresh(nil, bd.y + bd.h, nil, item.h - off)
+
+                        if item.x < bd.x and bd.is_norm then
+                            item:refresh(nil, nil, item.w - (item:right() - bd.x))
+                        end
+
+                        if item.y == bd.y + bd.h
+                            and item.x >= bd.x
+                        then
+                            item.__remove = true
+                        end
+                    end
+                end
             end
         end
     end
@@ -1767,6 +1797,9 @@ do
                     end
                 end
 
+                if not bd.is_slope and bd.type == BodyTypes.only_fall then
+                    bd:refresh(nil, nil, nil, self.tile)
+                end
                 --
             end
         end
@@ -2061,7 +2094,7 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction, bd_type)
     col = slope:check2(nil, nil,
         ---@param item JM.Physics.Body | JM.Physics.Slope
         function(obj, item)
-            return item.type == BodyTypes.static and item ~= slope and not item.is_slope
+            return (item.type == BodyTypes.static) and item ~= slope and not item.is_slope
         end, slope.x + 1, slope.y + 1, slope.w - 2, slope.h - 2
     )
 
