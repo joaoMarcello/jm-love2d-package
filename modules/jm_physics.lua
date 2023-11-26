@@ -136,7 +136,10 @@ local function coll_y_filter(obj, item)
     else
         if item.is_slope then
             if not item.is_floor then
-                return obj.y >= item.y and obj:right() >= item.x and obj.x <= item:right()
+                local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
+                if obj.y < py then return false end
+
+                return obj.y >= item.y and obj:right() >= item.x and obj.x <= item:right() and obj.speed_y <= 0
             end
 
             if not obj.allow_climb_slope then return false end
@@ -159,6 +162,9 @@ end
 local function collision_x_filter(obj, item)
     if item.is_slope then
         if not item.is_floor then
+            local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
+            if obj.y < py then return false end
+
             return obj.y >= item.y and obj:right() >= item.x and obj.x <= item:right()
         end
 
@@ -956,8 +962,19 @@ do
                     obj:refresh(nil, goaly)
                     -- goto skip_collision_y
                 else
-                    local ex = obj.speed_y > 0 and 1 or 0
-                    ex = obj.speed_y < 0 and -1 or ex
+                    local ex = 0
+
+                    if self.allowed_gravity then
+                        ex = obj.speed_y > 0 and 1 or 0
+                        ex = obj.speed_y < 0 and -1 or ex
+                    end
+
+                    if self.ground and self.ground.is_slope
+                        and self.speed_y >= 0
+                        and self.allowed_gravity
+                    then
+                        ex = ex + self.world.tile * 0.25
+                    end
 
                     ---@type JM.Physics.Collisions
                     local col = obj:check(nil, goaly + ex, coll_y_filter, empty_table(), empty_table_for_coll())
