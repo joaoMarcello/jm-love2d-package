@@ -69,7 +69,8 @@ function data:load(dir)
 end
 
 --============================================================================
-
+local play_state = require "lib.gamestate.gamemap_test"
+--============================================================================
 function State:__get_data__()
     return data
 end
@@ -121,6 +122,10 @@ local function keypressed(key)
     if key == 'o' then
         State.camera:toggle_grid()
         State.camera:toggle_world_bounds()
+    end
+
+    if key == 'f5' then
+        return State:change_gamestate(play_state, { skip_transition = true })
     end
 
     if love.keyboard.isDown('lshift') then
