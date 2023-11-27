@@ -3,14 +3,14 @@ local abs, mfloor, mceil, sqrt, min, max = math.abs, math.floor, math.ceil, math
 local table_insert, table_remove, table_sort = table.insert, table.remove, table.sort
 
 local pairs, setmetatable = pairs, setmetatable
-
+local next = next
 
 local metatable_mode_v = { __mode = 'v' }
 local metatable_mode_k = { __mode = 'k' }
 
 local reuse_tab = setmetatable({}, metatable_mode_k)
 local function empty_table()
-    for index, _ in pairs(reuse_tab) do
+    for index, _ in next, reuse_tab do
         reuse_tab[index] = nil
     end
     return reuse_tab
@@ -35,7 +35,7 @@ local function push_body(b)
 end
 
 local function pop_body()
-    for bd, _ in pairs(BodyRecycler) do
+    for bd, _ in next, BodyRecycler do
         BodyRecycler[bd] = nil
         return bd
     end
@@ -137,18 +137,25 @@ local function coll_y_filter(obj, item)
         if item.is_slope then
             if not item.is_floor then
                 local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
-                if obj.y < py then return false end
+                if obj.y + 2 < py then return false end
 
                 return obj.y >= item.y
-                    and obj:right() >= item.x and obj.x <= item:right()
+                    and obj:right() >= item.x - 2 and obj.x <= item:right() - 2
                     and obj.speed_y <= 0
                 -- return obj.speed_y <= 0
             end
 
+
             if not obj.allow_climb_slope then return false end
 
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
-            -- obj:bottom() < item:bottom() - 2
+
+            if item.type == BodyTypes.only_fall then
+                if obj.y + obj.h - 2 > py then
+                    -- return false
+                end
+            end
+
             local off = item.world.tile / 4
 
             return (item.is_floor and obj.speed_y >= 0
@@ -168,9 +175,9 @@ local function collision_x_filter(obj, item)
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
             if obj.y + 2 < py then return false end
 
-            return obj.y >= item.y
-                and obj:right() >= item.x and obj.x <= item:right()
-            -- return true
+            -- return obj.y >= item.y
+            --     and obj:right() >= item.x and obj.x <= item:right()
+            return true
         end
 
         if not obj.allow_climb_slope then return false end
@@ -294,7 +301,7 @@ do
             -- end
             local t = body_reuse_table.events
             if t then
-                for key, v in pairs(t) do
+                for key, v in next, t do
                     t[key] = nil
                 end
             end
@@ -606,7 +613,8 @@ do
         ---@type JM.Physics.Collide, JM.Physics.Collide
         local most_up, most_bottom
 
-        for item, _ in pairs(items) do
+        -- for item, _ in pairs(items) do
+        for item, _ in next, items do
             ---@type JM.Physics.Body|JM.Physics.Slope
             local item = item
 
@@ -652,9 +660,8 @@ do
                     or most_left
 
                 most_up = most_up or item
-                -- most_up = ((item.y < most_up.y or item.is_slope) and item) or most_up
 
-                if (most_up.is_slope and item.is_slope)
+                if true or (most_up.is_slope and item.is_slope)
                     or (not most_up.is_slope and not item.is_slope_adj)
                 then
                     most_up = (item.y < most_up.y and item) or most_up
@@ -662,7 +669,7 @@ do
 
                 most_bottom = most_bottom or item
 
-                if (most_bottom.is_slope and item.is_slope)
+                if true or (most_bottom.is_slope and item.is_slope)
                     or (not most_bottom.is_slope and not item.is_slope_adj)
                 then
                     most_bottom = ((item.y + item.h)
@@ -970,7 +977,7 @@ do
                 --
             else
                 -- if self.ground and self.ground.is_slope then
-                --     if self.speed_y == 0 and self.acc_y == 0 then
+                --     if self.speed_y == 0 or self.acc_y == 0 then
                 --         if self.speed_x < 0 and self.ground.is_norm then
                 --             self.ground = nil
                 --         end
@@ -1028,11 +1035,14 @@ do
                     if self.allowed_gravity then
                         ex = obj.speed_y > 0 and 1 or 0
                         ex = obj.speed_y < 0 and -1 or ex
+                    elseif self.acc_y ~= 0 or self.speed_y ~= 0 then
+                        ex = (self.acc_y > 0 or self.speed_y > 0) and 1 or 0
+                        ex = (self.acc_y < 0 or self.speed_y < 0) and -1 or ex
                     end
 
                     if self.ground and self.ground.is_slope
                         and self.speed_y >= 0
-                        and (self.allowed_gravity or (not self.allowed_gravity and self.speed_y > 0))
+                        and (self.allowed_gravity or (not self.allowed_gravity and self.speed_y > 0 or self.acc_y > 0))
                     then
                         ex = ex + self.world.tile * 0.25
                     end
@@ -1215,6 +1225,7 @@ do
 
         function Body:draw()
             if self.__remove then return end
+
             if self.type == BodyTypes.static then
                 love.graphics.setColor(0.1, 0.4, 0.5)
             elseif self.type == BodyTypes.only_fall then
@@ -1393,6 +1404,7 @@ function Slope:get_y(x, y, w, h)
     local is_norm = self.is_norm
     local next = self.next
     local prev = self.prev
+    local bottom = self.y + self.h
 
     if not next then
         if is_floor then
@@ -1401,6 +1413,12 @@ function Slope:get_y(x, y, w, h)
                 -- else
                 -- local bt = self.y + self.h
                 -- py = py > bt and bt or py
+            end
+        else
+            if is_norm then
+
+            else
+                py = py > bottom and bottom or py
             end
         end
     end
@@ -1413,18 +1431,21 @@ function Slope:get_y(x, y, w, h)
                 -- local bt = self.y + self.h
                 -- py = py > bt and bt or py
             end
+        else
+            if is_norm then
+                py = py > bottom and bottom or py
+            end
         end
     else
         if is_floor and not is_norm and not next then
-            local bt = self.y + self.h
-            py = py > bt and bt or py
+            py = py > bottom and bottom or py
         end
     end
 
     -- py = not is_floor and (py > self:bottom() and self:bottom()) or py
 
     if is_floor then
-        if self.on_ground and py > self:bottom() then py = self:bottom() end
+        if self.on_ground and py > bottom then py = bottom end
     else
         if self.on_ceil and py < self.y then py = self.y end
     end
@@ -1436,7 +1457,7 @@ function Slope:draw()
     local x1, y1 = self:point_left()
     local x2, y2 = self:point_right()
 
-    love.graphics.setColor(1, 0, 0, 1)
+    love.graphics.setColor(1, 0, 0, 0.4)
     love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
     love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
@@ -1486,7 +1507,7 @@ function Slope:draw()
     if self.is_floor then
         if self.on_ground then
             font:set_color(JM.Utils:get_rgba(1, 0, 0, 1))
-            font:print("ground", self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
+            font:printf("ground", self.x, self.y + self.h * 0.5 - 6, "center", self.w)
         else
             -- font:print(tostring(self.on_ground), self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
         end
@@ -1497,6 +1518,11 @@ function Slope:draw()
         else
             -- font:print(tostring(self.on_ceil), self.x + self.w * 0.5, self.y + self.h * 0.5 - 6)
         end
+    end
+
+    font:set_color(JM.Utils:get_rgba(1, 1, 0, 1))
+    if self.is_norm then
+        font:printf("norm", self.x, self.y, self.w, "center")
     end
 
     font:pop()
@@ -1596,7 +1622,7 @@ do
     ---@return table|nil
     function World:get_items_in_cell_obj(x, y, w, h, empty_tab)
         local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
-        local items --= empty_tab
+        local items
 
         for cy = ct, (ct + ch - 1) do
             local row = self.grid[cy]
@@ -1609,7 +1635,8 @@ do
                     if cell and cell.count > 0 then
                         items = items or empty_tab or {}
 
-                        for item, _ in pairs(cell.items) do
+                        -- for item, _ in pairs(cell.items) do
+                        for item, _ in next, cell.items do
                             items[item] = true
                         end
                     end
@@ -1751,13 +1778,17 @@ do
 
                         if item ~= bd and not item.__remove
                             and item.is_enabled and not item.is_slope
-                            and collision_rect(bd.x, bd.y, bd.w, bd.h + 1, item:rect())
+                            and collision_rect(bd.x - 1, bd.y, bd.w + 2, bd.h + 1, item:rect())
                         then
                             if bd.is_floor and item.y >= bd.y + bd.h then
                                 if bd.is_norm then
-                                    bd.on_ground = item.x < bd.x or bd.on_ground
+                                    if item.x < bd.x then
+                                        bd.on_ground = true
+                                    end
                                 else
-                                    bd.on_ground = item:right() > bd:right() or bd.on_ground
+                                    if item:right() > bd:right() then
+                                        bd.on_ground = true
+                                    end
                                 end
                             end
                         end
@@ -1778,9 +1809,6 @@ do
                     return item ~= bd and not item.__remove
                         and item.is_enabled and not item.is_slope
                         and item.type == BodyTypes.only_fall
-                        -- and item.x == bd.x
-                        -- and item.w == bd.w
-                        -- and round(item.y) == round(bd.y + bd.h)
                         and bd.is_floor
                 end)
 
@@ -1791,14 +1819,22 @@ do
 
                         local off = bd:bottom() - item.y
                         item:refresh(nil, bd.y + bd.h, nil, item.h - off)
+                        -- item:refresh()
 
                         if item.x < bd.x and bd.is_norm then
                             item:refresh(nil, nil, item.w - (item:right() - bd.x))
+                        elseif item.x < bd:right() and not bd.is_norm then
+                            item:refresh(bd:right(), nil, item.w - (bd:right() - item.x))
                         end
 
                         if item.y == bd.y + bd.h
                             and item.x >= bd.x
+                            and bd.is_norm
                         then
+                            item.__remove = true
+                        end
+
+                        if item.w <= 0 then
                             item.__remove = true
                         end
                     end
@@ -1907,7 +1943,8 @@ do
                 local items = self:get_items_in_cell_obj(bd.x + 1, bd.y + 1, bd.w - 2, bd.h - 2)
 
                 if items and bd.type == BodyTypes.static then
-                    for item, _ in pairs(items) do
+                    -- for item, _ in pairs(items) do
+                    for item, _ in next, items do
                         ---@type JM.Physics.Collide
                         local item = item
 
@@ -2119,6 +2156,8 @@ local function merge_slopes(slope, world)
 
     local col = slope:check2(nil, nil, function(obj, item)
         return item.is_slope and item ~= slope and (item.h / item.w) == prop
+            and ((slope.is_floor and item.is_floor)
+                or (not slope.is_floor and not item.is_floor))
     end, slope.x - 1, slope.y - 1, slope.w, slope.h + 2)
 
     if col.n > 0 then
@@ -2144,6 +2183,8 @@ local function merge_slopes(slope, world)
 
     col = slope:check2(nil, nil, function(obj, item)
         return item.is_slope and item ~= slope and (item.h / item.w) == prop
+            and ((slope.is_floor and item.is_floor)
+                or (not slope.is_floor and not item.is_floor))
     end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
 
     if col.n > 0 then
@@ -2200,6 +2241,8 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction, bd_type)
 
     local col = slope:check2(nil, nil, function(obj, item)
         return item.is_slope and item ~= slope
+            and ((obj.is_floor and item.is_floor)
+                or (not obj.is_floor and not item.is_floor))
     end, slope.x - 1, slope.y - 1, slope.w, slope.h + 2)
 
     if col.n > 0 then
@@ -2219,6 +2262,8 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction, bd_type)
     else
         col = slope:check2(nil, nil, function(obj, item)
             return item.is_slope and item ~= slope
+                and ((obj.is_floor and item.is_floor)
+                    or (not obj.is_floor and not item.is_floor))
         end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
 
         if col.n > 0 then
