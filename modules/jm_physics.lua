@@ -139,7 +139,10 @@ local function coll_y_filter(obj, item)
                 local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
                 if obj.y < py then return false end
 
-                return obj.y >= item.y and obj:right() >= item.x and obj.x <= item:right() and obj.speed_y <= 0
+                return obj.y >= item.y
+                    and obj:right() >= item.x and obj.x <= item:right()
+                    and obj.speed_y <= 0
+                -- return obj.speed_y <= 0
             end
 
             if not obj.allow_climb_slope then return false end
@@ -163,9 +166,11 @@ local function collision_x_filter(obj, item)
     if item.is_slope then
         if not item.is_floor then
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
-            if obj.y < py then return false end
+            if obj.y + 2 < py then return false end
 
-            return obj.y >= item.y and obj:right() >= item.x and obj.x <= item:right()
+            return obj.y >= item.y
+                and obj:right() >= item.x and obj.x <= item:right()
+            -- return true
         end
 
         if not obj.allow_climb_slope then return false end
@@ -596,7 +601,9 @@ do
 
         local col_items               --= {}
         local n_collisions, has_slope = 0, nil
+        ---@type JM.Physics.Collide, JM.Physics.Collide
         local most_left, most_right
+        ---@type JM.Physics.Collide, JM.Physics.Collide
         local most_up, most_bottom
 
         for item, _ in pairs(items) do
@@ -646,12 +653,22 @@ do
 
                 most_up = most_up or item
                 -- most_up = ((item.y < most_up.y or item.is_slope) and item) or most_up
-                most_up = (item.y < most_up.y and item) or most_up
+
+                if (most_up.is_slope and item.is_slope)
+                    or (not most_up.is_slope and not item.is_slope_adj)
+                then
+                    most_up = (item.y < most_up.y and item) or most_up
+                end
 
                 most_bottom = most_bottom or item
-                most_bottom = ((item.y + item.h)
-                        > (most_bottom.y + most_bottom.h) and item)
-                    or most_bottom
+
+                if (most_bottom.is_slope and item.is_slope)
+                    or (not most_bottom.is_slope and not item.is_slope_adj)
+                then
+                    most_bottom = ((item.y + item.h)
+                            > (most_bottom.y + most_bottom.h) and item)
+                        or most_bottom
+                end
             end
         end
 
@@ -747,6 +764,36 @@ do
     ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_y(col)
         if col.n > 0 then -- collision!
+            -- if col.has_slope then
+            --     local final_x, final_y
+
+            --     for i = 1, col.n do
+            --         ---@type JM.Physics.Collide
+            --         local bd = col.items[i]
+
+            --         if bd.is_slope then
+            --             if bd.is_floor then
+            --                 final_y = bd:get_y(self:rect()) - self.h - 0.1
+            --             else
+            --                 final_y = bd:get_y(self:rect()) + 0.1
+            --             end
+            --             self.ground = bd
+            --             break
+            --         else
+            --             -- if not bd.is_slope_adj then
+            --             --     if col.diff_y < 0 then
+            --             --         final_y = bd:bottom() + 0.01
+            --             --     else
+            --             --         final_y = bd.y - self.h - 0.01
+            --             --     end
+            --             -- end
+            --         end
+            --     end
+            --     self.speed_y = 0.0
+            --     self:refresh(final_x, final_y)
+            --     return
+            -- end
+
             self:refresh(nil, col.end_y)
 
             if self.bouncing_y and (not col.most_up.is_slope) then
@@ -789,34 +836,38 @@ do
                     self.speed_y = self.world.meter
                     self.speed_x = 0.0
                     self:refresh(nil, self.ceil:get_y(self:rect()) + 1)
+                elseif self.ceil.is_slope then
+                    if not self.ceil.is_floor then
+                        self:refresh(nil, self.ceil:get_y(self:rect()) + 0.1)
+                    end
                 end
             end
         end
     end
 
-    ---@param bd JM.Physics.Body|any
-    ---@param slope JM.Physics.Slope|any
-    local function body_is_adjc_slope(bd, slope)
-        if not slope then return false end
+    -- ---@param bd JM.Physics.Body|any
+    -- ---@param slope JM.Physics.Slope|any
+    -- local function body_is_adjc_slope(bd, slope)
+    --     if not slope then return false end
 
-        local slope_r = slope.x + slope.w
-        local bd_bottom = bd.y + bd.h
-        local bd_right = bd.x + bd.w
+    --     local slope_r = slope.x + slope.w
+    --     local bd_bottom = bd.y + bd.h
+    --     local bd_right = bd.x + bd.w
 
-        if slope.is_floor then
-            local cond = bd.y == slope.y
-            local norm = slope.is_norm
+    --     if slope.is_floor then
+    --         local cond = bd.y == slope.y
+    --         local norm = slope.is_norm
 
-            return cond and ((bd.x == slope_r and norm)
-                or (bd_right == slope.x and not norm))
-        else
-            local cond = bd_bottom == (slope.y + slope.h)
-            local norm = slope.is_norm
+    --         return cond and ((bd.x == slope_r and norm)
+    --             or (bd_right == slope.x and not norm))
+    --     else
+    --         local cond = bd_bottom == (slope.y + slope.h)
+    --         local norm = slope.is_norm
 
-            return cond and ((bd.x == slope_r and not norm)
-                or (bd_right == slope.x and norm))
-        end
-    end
+    --         return cond and ((bd.x == slope_r and not norm)
+    --             or (bd_right == slope.x and norm))
+    --     end
+    -- end
 
     ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_x(col)
@@ -826,9 +877,9 @@ do
                 --     table_sort(col.items, is_slope)
                 -- end
 
-                local n = col.n --#(col.items)
+                local n = col.n   --#(col.items)
                 local final_x, final_y
-                local slope = col.has_slope
+                local slope = nil --col.has_slope
 
                 for i = 1, n do
                     ---@type JM.Physics.Body|JM.Physics.Slope
@@ -917,11 +968,21 @@ do
             if obj.allowed_gravity then
                 obj:apply_force(nil, obj:weight())
                 --
-            elseif obj.dacc_y then
-                if obj.speed_y > 0 and obj.acc_y < 0 then
-                    obj.acc_y = -abs(obj.dacc_y)
-                elseif obj.speed_y < 0 and obj.acc_y > 0 then
-                    obj.acc_y = abs(obj.dacc_y)
+            else
+                -- if self.ground and self.ground.is_slope then
+                --     if self.speed_y == 0 and self.acc_y == 0 then
+                --         if self.speed_x < 0 and self.ground.is_norm then
+                --             self.ground = nil
+                --         end
+                --     end
+                -- end
+
+                if obj.dacc_y then
+                    if obj.speed_y > 0 and obj.acc_y < 0 then
+                        obj.acc_y = -abs(obj.dacc_y)
+                    elseif obj.speed_y < 0 and obj.acc_y > 0 then
+                        obj.acc_y = abs(obj.dacc_y)
+                    end
                 end
             end
 
@@ -971,9 +1032,15 @@ do
 
                     if self.ground and self.ground.is_slope
                         and self.speed_y >= 0
-                        and self.allowed_gravity
+                        and (self.allowed_gravity or (not self.allowed_gravity and self.speed_y > 0))
                     then
                         ex = ex + self.world.tile * 0.25
+                    end
+
+                    if self.ceil and self.ceil.is_slope
+                        and self.speed_y <= 0
+                    then
+                        ex = ex - self.world.tile * 0.25
                     end
 
                     ---@type JM.Physics.Collisions
@@ -1286,7 +1353,7 @@ end
 
 function Slope:check_collision(x, y, w, h)
     do
-        local oy = self.world.tile * 0.5
+        local oy = 0 --self.world.tile * 0.5
         local rec_col = collision_rect(
             self.x, self.y, self.w, self.h,
             x - 1, y, w + 2, h + oy
@@ -1294,10 +1361,16 @@ function Slope:check_collision(x, y, w, h)
         if not rec_col then return false end
     end
 
-    if self.next and self.is_norm and y + h <= self.y then
-        return false
-    elseif self.prev and not self.is_norm and y + h <= self.y then
-        return false
+    if self.is_floor then
+        if self.next and self.is_norm and y + h <= self.y then
+            return false
+        elseif self.prev and not self.is_norm and y + h <= self.y then
+            return false
+        end
+    else
+        if self.next and not self.is_norm and y >= self.y + self.h then
+            return false
+        end
     end
 
     local is_down = self:check_up_down(x, y, w, h)
@@ -1325,7 +1398,7 @@ function Slope:get_y(x, y, w, h)
         if is_floor then
             if is_norm then
                 py = py < self.y and self.y or py
-            else
+                -- else
                 -- local bt = self.y + self.h
                 -- py = py > bt and bt or py
             end
@@ -1336,7 +1409,7 @@ function Slope:get_y(x, y, w, h)
         if is_floor then
             if not is_norm then
                 py = py < self.y and self.y or py
-            else
+                -- else
                 -- local bt = self.y + self.h
                 -- py = py > bt and bt or py
             end
@@ -1348,7 +1421,7 @@ function Slope:get_y(x, y, w, h)
         end
     end
 
-    py = not is_floor and (py > self:bottom() and self:bottom()) or py
+    -- py = not is_floor and (py > self:bottom() and self:bottom()) or py
 
     if is_floor then
         if self.on_ground and py > self:bottom() then py = self:bottom() end
