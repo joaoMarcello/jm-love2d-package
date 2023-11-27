@@ -1692,6 +1692,23 @@ end
 --     -- love.graphics.rectangle("line", cam:get_viewport())
 -- end
 
+function Map.load_map(dir)
+    local map = Map:new(GC.gamestate)
+    local d = JM.Ldr.load(dir)
+    map:init(d)
+    map:build_world()
+    map:auto_tile()
+    return map
+end
+
+function Map:update(dt)
+    for i = 1, #self.list_world do
+        ---@type JM.Physics.World
+        local world = self.list_world[i]
+        world:update(dt)
+    end
+end
+
 ---@param cam JM.Camera.Camera
 function Map:draw(cam)
     for i = 1, #self.layers do
