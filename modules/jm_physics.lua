@@ -175,9 +175,9 @@ local function collision_x_filter(obj, item)
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
             if obj.y + 2 < py then return false end
 
-            -- return obj.y >= item.y
-            --     and obj:right() >= item.x and obj.x <= item:right()
-            return true
+            return obj.y >= item.y
+                and obj:right() >= item.x and obj.x <= item:right()
+            -- return true
         end
 
         if not obj.allow_climb_slope then return false end
@@ -884,39 +884,38 @@ do
                 --     table_sort(col.items, is_slope)
                 -- end
 
-                local n = col.n   --#(col.items)
+                local n = col.n --#(col.items)
                 local final_x, final_y
-                local slope = nil --col.has_slope
+                local slope = col.has_slope
 
                 for i = 1, n do
                     ---@type JM.Physics.Body|JM.Physics.Slope
                     local bd = col.items[i]
 
                     if bd.is_slope then
-                        local temp = bd.is_floor and (-self.h - 0.05) or (0.05)
+                        local temp = bd.is_floor and (-self.h - 0.1) or (0.1)
                         slope = bd
                         final_x = final_x or col.goal_x
                         final_y = bd:get_y(col.goal_x, self.y, self.w, self.h) + temp
                         ---
                     else
                         ---
-                        if not bd.is_slope_adj then
+                        if not bd.is_slope_adj
+                        -- and collision_rect(bd.x, bd.y, bd.w, bd.h, self:rect())
+                        then
+                            -- if slope.is_floor and bd.y < slope:bottom()
+                            -- then
                             self.speed_x = 0.0
 
                             if col.diff_x < 0 then
-                                final_x = bd:right() + 0.05 --- self.w
+                                final_x = bd:right() + 0.5
                             else
-                                final_x = bd:left() - 0.05 - self.w
+                                final_x = bd:left() - 0.5 - self.w
                             end
-
-                            local temp = slope and slope.is_floor and (-self.h - 0.05) or (0.05)
-                            final_y = slope and (slope:get_y(final_x, self.y, self.w, self.h) + temp) or final_y
-
-                            -- if slope and not slope.is_floor then
-                            --     if slope.x == bd.x then
-                            --         final_y = nil
-                            --     end
                             -- end
+
+                            -- local temp = slope and slope.is_floor and (-self.h - 0.05) or (0.05)
+                            -- final_y = slope and (slope:get_y(final_x, self.y, self.w, self.h) + temp) or final_y
                         end
                     end
                 end -- END for
@@ -1036,8 +1035,8 @@ do
                         ex = obj.speed_y > 0 and 1 or 0
                         ex = obj.speed_y < 0 and -1 or ex
                     elseif self.acc_y ~= 0 or self.speed_y ~= 0 then
-                        ex = (self.acc_y > 0 or self.speed_y > 0) and 1 or 0
-                        ex = (self.acc_y < 0 or self.speed_y < 0) and -1 or ex
+                        ex = (self.speed_y > 0) and 1 or 0
+                        ex = (self.speed_y < 0) and -1 or ex
                     end
 
                     if self.ground and self.ground.is_slope
@@ -1367,7 +1366,7 @@ function Slope:check_collision(x, y, w, h)
         local oy = 0 --self.world.tile * 0.5
         local rec_col = collision_rect(
             self.x, self.y, self.w, self.h,
-            x - 1, y, w + 2, h + oy
+            x - 1 * 0, y, w + 2 * 0, h + oy
         )
         if not rec_col then return false end
     end
@@ -1445,9 +1444,9 @@ function Slope:get_y(x, y, w, h)
     -- py = not is_floor and (py > self:bottom() and self:bottom()) or py
 
     if is_floor then
-        if self.on_ground and py > bottom then py = bottom end
+        if self.on_ground and py > bottom then py = bottom - 1 end
     else
-        if self.on_ceil and py < self.y then py = self.y end
+        if self.on_ceil and py < self.y then py = self.y + 1 end
     end
 
     return py
@@ -1857,6 +1856,10 @@ do
                                     item.is_slope_adj = true
                                 end
                             end
+
+                            -- if item.y == bd:bottom() then
+                            --     item.is_slope_adj = true
+                            -- end
                         end
 
                         if not bd.is_floor and item ~= bd and not item.is_slope and not item.__remove and item.type == BodyTypes.static
@@ -1870,6 +1873,10 @@ do
                                     item.is_slope_adj = true
                                 end
                             end
+
+                            -- if item:bottom() == bd.y then
+                            --     item.is_slope_adj = true
+                            -- end
                         end
                     end
                 end
@@ -2017,20 +2024,25 @@ do
         end
     end
 
-    function World:draw(draw_static, draw_dynamic)
+    ---@param cam JM.Camera.Camera|nil
+    function World:draw(draw_static, draw_dynamic, cam)
         if draw_dynamic then
             for i = 1, self.bodies_number do
                 ---@type JM.Physics.Body|JM.Physics.Slope
                 local obj = self.bodies[i]
 
-                local r = obj.draw and obj:draw()
+                local cond = not cam
+                    or (cam and cam:rect_is_on_view(obj:rect()))
+                local r = obj.draw and cond and obj:draw()
             end
         end
 
         if draw_static then
             for i = 1, #self.bodies_static do
                 local obj = self.bodies_static[i]
-                local r = obj.draw and obj:draw()
+                local cond = not cam
+                    or (cam and cam:rect_is_on_view(obj:rect()))
+                local r = obj.draw and cond and obj:draw()
             end
         end
     end
