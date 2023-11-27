@@ -203,7 +203,7 @@ JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 local SceneManager = JM.SceneManager
 local Sound = JM.Sound
 
-local fullscreen
+local fullscreen = love.window.getFullscreen()
 
 --- Loads the first game scene.
 ---@param s string the directory for the first game scene.
