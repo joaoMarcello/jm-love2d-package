@@ -852,11 +852,11 @@ do
                         final_x = final_x or col.goal_x
                         final_y = bd:get_y(col.goal_x, self.y, self.w, self.h) + temp
 
-                        if bd.is_floor then
-                            self.ground = bd
-                        else
-                            self.ceil = bd
-                        end
+                        -- if bd.is_floor then
+                        --     self.ground = bd
+                        -- else
+                        --     self.ceil = bd
+                        -- end
 
                         ---
                     else
