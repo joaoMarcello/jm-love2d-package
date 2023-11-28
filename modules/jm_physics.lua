@@ -142,25 +142,23 @@ local function coll_y_filter(obj, item)
                 return obj.y >= item.y
                     and obj:right() >= item.x - 2 and obj.x <= item:right() - 2
                     and obj.speed_y <= 0
-                -- return obj.speed_y <= 0
+            else
+                if not obj.allow_climb_slope then return false end
+
+                local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
+
+                -- if item.type == BodyTypes.only_fall then
+                --     if obj.y + obj.h - 2 > py then
+                --         -- return false
+                --     end
+                -- end
+
+                local off = item.world.tile / 4
+
+                return (obj.speed_y >= 0
+                    and obj.y - off <= py - obj.h)
+                -- or (not item.is_floor and obj.speed_y <= 0)
             end
-
-
-            if not obj.allow_climb_slope then return false end
-
-            local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
-
-            if item.type == BodyTypes.only_fall then
-                if obj.y + obj.h - 2 > py then
-                    -- return false
-                end
-            end
-
-            local off = item.world.tile / 4
-
-            return (item.is_floor and obj.speed_y >= 0
-                and obj.y - off <= py - obj.h)
-            -- or (not item.is_floor and obj.speed_y <= 0)
         end
         ---
         return item.type ~= BodyTypes.dynamic
@@ -175,14 +173,17 @@ local function collision_x_filter(obj, item)
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
             if obj.y + 2 < py then return false end
 
-            return obj:right() >= item.x and obj.x <= item:right()
-            -- return true
+            -- return obj:right() >= item.x and obj.x <= item:right()
+            return true
         else
             if not obj.allow_climb_slope then return false end
 
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
 
-            return obj.y - 2 <= py - obj.h
+            -- local cond = item.is_norm and obj.speed_x > 0
+            -- cond = not cond and (not item.is_norm and obj.speed_x < 0) or cond
+
+            return obj.y - 2 <= py - obj.h --and cond
         end
     end
     return item.type ~= BodyTypes.dynamic and item.type ~= BodyTypes.only_fall
@@ -371,7 +372,7 @@ do
         self.allowed_gravity = true
         self.allowed_speed_y_restriction = true
         self.allow_climb_slope = true
-        self.stick_to_slope = nil
+        self.stick_to_slope = false
 
         self.is_slope_adj = nil
 
@@ -972,19 +973,19 @@ do
                 obj:apply_force(nil, obj:weight())
                 --
             else
-                do
-                    if self.ground
-                        and not self.ground:check_collision(self:rect())
-                    then
-                        self.ground = nil
-                    end
+                -- do
+                --     if self.ground
+                --         and not self.ground:check_collision(self:rect())
+                --     then
+                --         self.ground = nil
+                --     end
 
-                    if self.ceil
-                        and not self.ceil:check_collision(self:rect())
-                    then
-                        self.ceil = nil
-                    end
-                end
+                --     if self.ceil
+                --         and not self.ceil:check_collision(self:rect())
+                --     then
+                --         self.ceil = nil
+                --     end
+                -- end
 
                 if obj.dacc_y then
                     if obj.speed_y > 0 and obj.acc_y < 0 then
@@ -1047,6 +1048,7 @@ do
 
                     if self.ceil and self.ceil.is_slope
                         and self.speed_y <= 0
+                        and self.stick_to_slope
                     then
                         ex = ex - self.world.tile * 0.25
                     end
@@ -1322,7 +1324,7 @@ function Slope:check_collision(x, y, w, h)
         -- local oy = 0 --self.world.tile * 0.5
         local rec_col = collision_rect(
             self.x, self.y, self.w, self.h,
-            x - 1, y, w + 2, h --+ oy
+            x - 1 * 0, y, w + 2 * 0, h --+ oy
         )
         if not rec_col then return false end
     end
@@ -2109,9 +2111,9 @@ function Phys:newBody(world, x, y, w, h, type_)
     -- end
 
 
-    if b.h > 0 and b.w > 0 then
-        world:add(b)
-    end
+    -- if b.h > 0 and b.w > 0 then
+    world:add(b)
+    -- end
 
     return b
 end
