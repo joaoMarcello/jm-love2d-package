@@ -60,6 +60,7 @@ function data:load(dir)
     -- d.layers[2].tilemap_number = 2
     -- d.layers[3].type = MapLayer.Types.static
     -- d.name = "level 1-1"
+    -- d.layers[1].tilemap_number = 2
     self.map:init(d)
     -- self.map.layers[2].factor_x = 1.6
     -- self.map.layers[2].factor_y = 0.8
