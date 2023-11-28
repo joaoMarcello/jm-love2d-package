@@ -19,6 +19,11 @@ os.execute(string.format("copy /y \"%s\" \"%s\"",
     lfs.getWorkingDirectory():gsub("/", "\\") .. "\\data\\gamemap\\" .. name .. ".txt"
 ))
 
+-- os.rename(lfs.getSaveDirectory() .. "/" .. dir,
+--     lfs.getWorkingDirectory() .. "/data/gamemap/" .. dir
+-- )
+
+
 lfs = nil
 ---@diagnostic disable-next-line: cast-local-type
 Loader = nil
