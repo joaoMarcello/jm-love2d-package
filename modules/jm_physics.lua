@@ -175,18 +175,15 @@ local function collision_x_filter(obj, item)
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
             if obj.y + 2 < py then return false end
 
-            return obj.y >= item.y
-                and obj:right() >= item.x and obj.x <= item:right()
+            return obj:right() >= item.x and obj.x <= item:right()
             -- return true
+        else
+            if not obj.allow_climb_slope then return false end
+
+            local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
+
+            return obj.y - 2 <= py - obj.h
         end
-
-        if not obj.allow_climb_slope then return false end
-
-        local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
-
-        return (item.is_floor --and obj.speed_y >= 0
-            and obj.y - 2 <= py - obj.h)
-        -- or (not item.is_floor and obj.speed_y <= 0)
     end
     return item.type ~= BodyTypes.dynamic and item.type ~= BodyTypes.only_fall
 end
@@ -296,12 +293,9 @@ do
         ---@type JM.Physics.Body
         local body_reuse_table = pop_body()
         if body_reuse_table then
-            -- for key, _ in pairs(body_reuse_table) do
-            --     body_reuse_table[key] = nil
-            -- end
             local t = body_reuse_table.events
             if t then
-                for key, v in next, t do
+                for key, _ in next, t do
                     t[key] = nil
                 end
             end
@@ -310,9 +304,6 @@ do
             if t then
                 t.items = nil
                 t.n = 0
-                -- for key, v in pairs(t) do
-                --     t[key] = nil
-                -- end
             end
         end
 
@@ -380,18 +371,11 @@ do
         self.allowed_gravity = true
         self.allowed_speed_y_restriction = true
         self.allow_climb_slope = true
-
-        -- self.shape = BodyShapes.rectangle
+        self.stick_to_slope = nil
 
         self.is_slope_adj = nil
-        -- TODO
-        -- self.hit_boxes = nil
-        -- self.hurt_boxes = nil
 
         self.events = self.events or {}
-
-        -- self:extra_collisor_filter(default_filter)
-
         self.colls = self.colls or {}
     end
 
@@ -771,36 +755,6 @@ do
     ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_y(col)
         if col.n > 0 then -- collision!
-            -- if col.has_slope then
-            --     local final_x, final_y
-
-            --     for i = 1, col.n do
-            --         ---@type JM.Physics.Collide
-            --         local bd = col.items[i]
-
-            --         if bd.is_slope then
-            --             if bd.is_floor then
-            --                 final_y = bd:get_y(self:rect()) - self.h - 0.1
-            --             else
-            --                 final_y = bd:get_y(self:rect()) + 0.1
-            --             end
-            --             self.ground = bd
-            --             break
-            --         else
-            --             -- if not bd.is_slope_adj then
-            --             --     if col.diff_y < 0 then
-            --             --         final_y = bd:bottom() + 0.01
-            --             --     else
-            --             --         final_y = bd.y - self.h - 0.01
-            --             --     end
-            --             -- end
-            --         end
-            --     end
-            --     self.speed_y = 0.0
-            --     self:refresh(final_x, final_y)
-            --     return
-            -- end
-
             self:refresh(nil, col.end_y)
 
             if self.bouncing_y and (not col.most_up.is_slope) then
@@ -884,11 +838,10 @@ do
                 --     table_sort(col.items, is_slope)
                 -- end
 
-                local n = col.n --#(col.items)
                 local final_x, final_y
                 local slope = col.has_slope
 
-                for i = 1, n do
+                for i = 1, col.n do
                     ---@type JM.Physics.Body|JM.Physics.Slope
                     local bd = col.items[i]
 
@@ -897,14 +850,17 @@ do
                         slope = bd
                         final_x = final_x or col.goal_x
                         final_y = bd:get_y(col.goal_x, self.y, self.w, self.h) + temp
+
+                        if bd.is_floor then
+                            self.ground = bd
+                        else
+                            self.ceil = bd
+                        end
+
                         ---
                     else
                         ---
-                        if not bd.is_slope_adj
-                        -- and collision_rect(bd.x, bd.y, bd.w, bd.h, self:rect())
-                        then
-                            -- if slope.is_floor and bd.y < slope:bottom()
-                            -- then
+                        if not bd.is_slope_adj then
                             self.speed_x = 0.0
 
                             if col.diff_x < 0 then
@@ -912,10 +868,6 @@ do
                             else
                                 final_x = bd:left() - 0.5 - self.w
                             end
-                            -- end
-
-                            -- local temp = slope and slope.is_floor and (-self.h - 0.05) or (0.05)
-                            -- final_y = slope and (slope:get_y(final_x, self.y, self.w, self.h) + temp) or final_y
                         end
                     end
                 end -- END for
@@ -959,6 +911,51 @@ do
         -- ::end_function::
     end
 
+    do
+        function Body:top_left()
+            return self.y, self.x
+        end
+
+        function Body:top_right()
+            return self.y, self.x + self.w
+        end
+
+        function Body:bottom_left()
+            return self.y + self.h, self.x
+        end
+
+        function Body:bottom_right()
+            return self.y + self.h, self.x + self.w
+        end
+
+        function Body:draw()
+            if self.__remove then return end
+
+            if self.type == BodyTypes.static then
+                love.graphics.setColor(0.1, 0.4, 0.5)
+            elseif self.type == BodyTypes.only_fall then
+                love.graphics.setColor(26 / 255, 201 / 255, 135 / 255)
+            else
+                love.graphics.setColor(1, 1, 1)
+            end
+            love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
+            -- love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
+            love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+
+            local font = JM:get_font()
+            font:push()
+            font:set_font_size(6)
+            if self.type == BodyTypes.static then
+                if self.is_slope_adj then
+                    font:print("adj", self.x, self.y)
+                end
+            end
+            return font:pop()
+            -- font:print(tostring(self.y), self.x, self.y - 12)
+        end
+    end
+
     function Body:update(dt)
         local obj = self
 
@@ -975,13 +972,19 @@ do
                 obj:apply_force(nil, obj:weight())
                 --
             else
-                -- if self.ground and self.ground.is_slope then
-                --     if self.speed_y == 0 or self.acc_y == 0 then
-                --         if self.speed_x < 0 and self.ground.is_norm then
-                --             self.ground = nil
-                --         end
-                --     end
-                -- end
+                do
+                    if self.ground
+                        and not self.ground:check_collision(self:rect())
+                    then
+                        self.ground = nil
+                    end
+
+                    if self.ceil
+                        and not self.ceil:check_collision(self:rect())
+                    then
+                        self.ceil = nil
+                    end
+                end
 
                 if obj.dacc_y then
                     if obj.speed_y > 0 and obj.acc_y < 0 then
@@ -1031,17 +1034,13 @@ do
                 else
                     local ex = 0
 
-                    if self.allowed_gravity then
-                        ex = obj.speed_y > 0 and 1 or 0
-                        ex = obj.speed_y < 0 and -1 or ex
-                    elseif self.acc_y ~= 0 or self.speed_y ~= 0 then
-                        ex = (self.speed_y > 0) and 1 or 0
-                        ex = (self.speed_y < 0) and -1 or ex
-                    end
+                    ex = obj.speed_y > 0 and 1 or 0
+                    ex = obj.speed_y < 0 and -1 or ex
+
 
                     if self.ground and self.ground.is_slope
                         and self.speed_y >= 0
-                        and (self.allowed_gravity or (not self.allowed_gravity and self.speed_y > 0 or self.acc_y > 0))
+                        and self.stick_to_slope
                     then
                         ex = ex + self.world.tile * 0.25
                     end
@@ -1108,13 +1107,15 @@ do
                 end
 
                 local mult = 1
-                if obj.ground and obj.ground.is_slope
-                    and self.y + self.h ~= obj.ground.y
-                then
-                    if obj.ground.is_norm and obj.speed_x > 0
-                        or (not obj.ground.is_norm and obj.speed_x < 0)
+                do
+                    if obj.ground and obj.ground.is_slope
+                        and self.y + self.h ~= obj.ground.y
                     then
-                        mult = 1 - abs(math.sin(self.ground.angle))
+                        if obj.ground.is_norm and obj.speed_x > 0
+                            or (not obj.ground.is_norm and obj.speed_x < 0)
+                        then
+                            mult = 1 - abs(math.sin(self.ground.angle))
+                        end
                     end
                 end
 
@@ -1203,51 +1204,6 @@ do
             end
         end --end if body is dynamic
         ---
-    end
-
-    do
-        function Body:top_left()
-            return self.y, self.x
-        end
-
-        function Body:top_right()
-            return self.y, self.x + self.w
-        end
-
-        function Body:bottom_left()
-            return self.y + self.h, self.x
-        end
-
-        function Body:bottom_right()
-            return self.y + self.h, self.x + self.w
-        end
-
-        function Body:draw()
-            if self.__remove then return end
-
-            if self.type == BodyTypes.static then
-                love.graphics.setColor(0.1, 0.4, 0.5)
-            elseif self.type == BodyTypes.only_fall then
-                love.graphics.setColor(26 / 255, 201 / 255, 135 / 255)
-            else
-                love.graphics.setColor(1, 1, 1)
-            end
-            love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
-            -- love.graphics.setColor(1, 1, 1)
-            love.graphics.setColor(39 / 255, 31 / 255, 27 / 255)
-            love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
-
-            local font = JM:get_font()
-            font:push()
-            font:set_font_size(6)
-            if self.type == BodyTypes.static then
-                if self.is_slope_adj then
-                    font:print("adj", self.x, self.y)
-                end
-            end
-            return font:pop()
-            -- font:print(tostring(self.y), self.x, self.y - 12)
-        end
     end
 end
 --=============================================================================
@@ -1363,10 +1319,10 @@ end
 
 function Slope:check_collision(x, y, w, h)
     do
-        local oy = 0 --self.world.tile * 0.5
+        -- local oy = 0 --self.world.tile * 0.5
         local rec_col = collision_rect(
             self.x, self.y, self.w, self.h,
-            x - 1 * 0, y, w + 2 * 0, h + oy
+            x - 1, y, w + 2, h --+ oy
         )
         if not rec_col then return false end
     end
@@ -1444,9 +1400,9 @@ function Slope:get_y(x, y, w, h)
     -- py = not is_floor and (py > self:bottom() and self:bottom()) or py
 
     if is_floor then
-        if self.on_ground and py > bottom then py = bottom - 1 end
+        if self.on_ground and py > bottom then py = bottom - 0.1 end
     else
-        if self.on_ceil and py < self.y then py = self.y + 1 end
+        if self.on_ceil and py < self.y then py = self.y + 0.1 end
     end
 
     return py
@@ -2253,8 +2209,8 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction, bd_type)
 
     local col = slope:check2(nil, nil, function(obj, item)
         return item.is_slope and item ~= slope
-            and ((obj.is_floor and item.is_floor)
-                or (not obj.is_floor and not item.is_floor))
+            and ((slope.is_floor and item.is_floor)
+                or (not slope.is_floor and not item.is_floor))
     end, slope.x - 1, slope.y - 1, slope.w, slope.h + 2)
 
     if col.n > 0 then
@@ -2274,8 +2230,8 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction, bd_type)
     else
         col = slope:check2(nil, nil, function(obj, item)
             return item.is_slope and item ~= slope
-                and ((obj.is_floor and item.is_floor)
-                    or (not obj.is_floor and not item.is_floor))
+                and ((slope.is_floor and item.is_floor)
+                    or (not slope.is_floor and not item.is_floor))
         end, slope.x, slope.y - 1, slope.w + 1, slope.h + 2)
 
         if col.n > 0 then
