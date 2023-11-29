@@ -374,6 +374,10 @@ do
         self.allow_climb_slope = true
         self.stick_to_slope = false
 
+        ---@type JM.Physics.Collide
+        self.on_water = nil
+        self.density = nil
+
         self.is_slope_adj = nil
 
         self.events = self.events or {}
@@ -480,19 +484,10 @@ do
     ---@param desired_height number
     ---@param direction -1|1|nil
     function Body:jump(desired_height, direction)
-        -- if self.speed_y ~= 0 then return end
-
-        -- do
-        --     local r = self:check(nil, self.y + 1, colliders_filter)
-        --     if r.n <= 0 then
-        --         return
-        --     end
-        -- end
-
         direction = direction or -1
-        -- self.y = self.y - 0.05
         self:refresh(nil, self.y + direction)
-        self.speed_y = sqrt(2.0 * self:weight() * desired_height) * direction
+
+        self.speed_y = sqrt(2.0 * (self:weight() - self:buoyant()) * desired_height) * direction
     end
 
     function Body:dash(desired_distance, direction)
@@ -840,7 +835,7 @@ do
                 -- end
 
                 local final_x, final_y
-                local slope = col.has_slope
+                -- local slope = col.has_slope
 
                 for i = 1, col.n do
                     ---@type JM.Physics.Body|JM.Physics.Slope
@@ -848,7 +843,7 @@ do
 
                     if bd.is_slope then
                         local temp = bd.is_floor and (-self.h - 0.1) or (0.1)
-                        slope = bd
+                        -- slope = bd
                         final_x = final_x or col.goal_x
                         final_y = bd:get_y(col.goal_x, self.y, self.w, self.h) + temp
 
@@ -912,6 +907,21 @@ do
         -- ::end_function::
     end
 
+    function Body:buoyant()
+        -- calculando empuxo
+        local water = self.on_water
+        if not water then return 0 end
+
+        local V = self:bottom() - water.y
+        V = V > self.h and self.h or V
+        V = V < 0 and 0 or V
+        V = V * self.w
+
+        local d = water.density or 0.002
+
+        return V * self.world.gravity * d
+    end
+
     do
         function Body:top_left()
             return self.y, self.x
@@ -970,7 +980,7 @@ do
 
             -- applying the gravity
             if obj.allowed_gravity then
-                obj:apply_force(nil, obj:weight())
+                obj:apply_force(nil, obj:weight() - self:buoyant())
                 --
             else
                 -- do
@@ -1016,6 +1026,12 @@ do
                     and obj.speed_y > obj.world.max_speed_y
                 then
                     obj.speed_y = obj.world.max_speed_y
+                end
+
+                if obj.speed_y < 0 and self.on_water then
+                    if obj.speed_y < -self.world.meter * 4 then
+                        obj.speed_y = -self.world.meter * 4
+                    end
                 end
 
                 -- executing the "speed_y_change_direction" event
@@ -1200,6 +1216,14 @@ do
             obj.force_x = 0.0
             obj.force_y = 0.0
 
+            if self.on_water then
+                if not collision_rect(self.x, self.y, self.w, self.h, self.on_water:rect()) then
+                    -- if self:bottom() <= self.on_water.y then
+                    --     self.speed_y = self.speed_y * 0.15
+                    -- end
+                    self.on_water = nil
+                end
+            end
             if self.holder then
                 self.holder.x = obj.x
                 self.holder.y = obj.y
@@ -1504,7 +1528,7 @@ do
         self.meter = args.meter or self.meter or (self.tile * 3.5)
         self.gravity = args.gravity or self.gravity or (9.8 * self.meter)
         self.max_speed_y = args.max_speed_y or self.max_speed_y
-            or (self.meter * 15.0)
+            or (self.meter * 15) --15
         self.max_speed_x = args.max_speed_x or self.max_speed_x
             or self.max_speed_y
         self.default_mass = args.default_mass or self.default_mass or 65.0
@@ -1788,10 +1812,12 @@ do
                             and item.x >= bd.x
                             and bd.is_norm
                         then
+                            self:remove_by_obj(item, self.bodies_static)
                             item.__remove = true
                         end
 
                         if item.w <= 0 then
+                            self:remove_by_obj(item, self.bodies_static)
                             item.__remove = true
                         end
                     end
@@ -1950,6 +1976,45 @@ do
                     bd:refresh(nil, nil, nil, self.tile)
                 end
                 --
+            end
+        end
+    end
+
+    function World:remove_unused()
+        local N = #self.bodies_static
+
+        for i = N, 1, -1 do
+            ---@type JM.Physics.Collide
+            local bd = self.bodies_static[i]
+
+            local items = self:get_items_in_cell_obj(bd.x - 1, bd.y - 1, bd.w + 2, bd.h + 2)
+
+            if items then
+                local top, left, right, bottom
+
+                for item, _ in next, items do
+                    ---@type JM.Physics.Collide
+                    local item = item
+
+                    if item ~= bd and (item.type == BodyTypes.static
+                            or item.is_slope)
+                    then
+                        if item:bottom() == bd.y
+                            and item:right() > bd.x and item.x < bd:right()
+                        then
+                            top = true
+                        elseif item.y == bd:bottom()
+                            and item:right() > bd.x and item.x < bd:right()
+                        then
+                            bottom = true
+                        end
+
+                        if item:right() == bd.x
+                        then
+
+                        end
+                    end
+                end
             end
         end
     end
