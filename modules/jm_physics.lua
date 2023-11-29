@@ -977,14 +977,14 @@ do
             local cc = self.ground and 0.5 or 0.0
             local mult = 1
             mult = (self.ground and self.ground.is_slope
-                    and (1 - (math.sin(self.ground.angle))))
+                    and (1 + (math.sin(self.ground.angle))))
                 or mult
             return self:weight() * mult * cc * self:direction_x()
         else
             local cs = self.ground and 1.5 or 0.0
             local mult = 1
             mult = (self.ground and self.ground.is_slope
-                    and (1 - (math.sin(self.ground.angle))))
+                    and (1 + (math.sin(self.ground.angle))))
                 or mult
             return self:weight() * mult * cs * self:direction_x()
         end
@@ -1293,21 +1293,15 @@ do
                         obj:refresh(goalx)
                     end
 
-                    -- -- simulating the enviroment resistence (friction)
-                    -- if obj.speed_x ~= 0.0
-                    --     and (obj.ground or obj.allowed_air_dacc)
-                    -- then
-                    --     local dacc = abs(obj.dacc_x)
-                    --     dacc = self.on_water and (dacc * 1.5) or dacc
-                    --     -- dacc = obj.ground and dacc * 0.3 or dacc
-                    --     obj:apply_force(dacc * -obj:direction_x())
-                    -- end
-
-                    -- if self.acc_x == 0 and abs(self.speed_x) <= self.world.meter then
-                    --     self.speed_x = 0.0
-                    -- end
-
-                    -- obj:apply_force(-self:resistance_x())
+                    -- simulating the enviroment resistence (friction)
+                    if obj.dacc_x and obj.speed_x ~= 0.0
+                        and (obj.ground or obj.allowed_air_dacc)
+                    then
+                        local dacc = abs(obj.dacc_x)
+                        dacc = self.on_water and (dacc * 1.5) or dacc
+                        -- dacc = obj.ground and dacc * 0.3 or dacc
+                        obj:apply_force(dacc * -obj:direction_x())
+                    end
                 end
                 -- ::skip_collision_x::
             end -- end moving in x axis
