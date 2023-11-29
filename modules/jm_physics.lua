@@ -291,6 +291,8 @@ local Body = {
     empty_table = empty_table,
     empty_table_for_coll = empty_table_for_coll,
     kinematic_moves_dynamic_y = kinematic_moves_dynamic_y,
+    default_coef_resis_y = 0.08,
+    default_coef_resis_x = 0.5,
 }
 Body.__index = Body
 Body.BodyRecycler = BodyRecycler
@@ -359,7 +361,7 @@ do
         self.force_y = 0.0
 
         -- used if body is static or kinematic
-        self.resistance_x = 1
+        -- self.resistance_x = 1
 
         ---@type JM.Physics.Body|JM.Physics.Slope
         self.ground = nil -- used if body is not static
@@ -386,6 +388,7 @@ do
         self.on_water = nil
         self.density = nil
         self.coef_resis = nil
+        self.coef_resis_x = nil
 
         self.is_slope_adj = nil
 
@@ -940,6 +943,18 @@ do
         return 0.5 * c * d * math.pow(speed_y, 2) * self:direction_y()
     end
 
+    function Body:resistance_x()
+        local speed_x = self.speed_x
+        if speed_x == 0 then return 0.0 end
+
+        local d = 0.025
+        d = self.on_water and 0.8 or d
+        local c = self.coef_resis_x or 1
+        c = self.on_water and self.type == BodyTypes.dynamic and (c / 10) or c
+
+        return 0.5 * c * d * math.pow(speed_x, 2) * self:direction_x()
+    end
+
     function Body:buoyant()
         -- calculando empuxo
         local water = self.on_water
@@ -953,6 +968,26 @@ do
         local d = water.density or self.world.default_density
 
         return V * self.world.gravity * d
+    end
+
+    function Body:friction_x()
+        if self.speed_x == 0.0 then return 0.0 end
+
+        if abs(self.speed_x) > self.world.meter * 0.5 then
+            local cc = self.ground and 0.5 or 0.0
+            local mult = 1
+            mult = (self.ground and self.ground.is_slope
+                    and (1 - (math.sin(self.ground.angle))))
+                or mult
+            return self:weight() * mult * cc * self:direction_x()
+        else
+            local cs = self.ground and 1.5 or 0.0
+            local mult = 1
+            mult = (self.ground and self.ground.is_slope
+                    and (1 - (math.sin(self.ground.angle))))
+                or mult
+            return self:weight() * mult * cs * self:direction_x()
+        end
     end
 
     do
@@ -1157,15 +1192,25 @@ do
             end
             --=================================================================
 
+            obj:apply_force(-self:resistance_x() - self:friction_x())
+
+            -- if abs(self.speed_x) > self.world.meter * 0.2 then
+            --     -- local cc = self.ground and 0.15 or 0.05
+            --     -- obj:apply_force(-self:weight() * cc * self:direction_x())
+            -- else
+            --     local cs = self.ground and 0.05 or 0
+            --     obj:apply_force(-self:weight() * 0.05 * self:direction_x())
+            -- end
+
             -- moving in x axis
             if (obj.acc_x ~= 0.0) or (obj.speed_x ~= 0.0) then
                 local last_sx = obj.speed_x
 
-                if obj.speed_x > 0 and obj.acc_x < 0 then
-                    obj.acc_x = -abs(obj.dacc_x)
-                elseif obj.speed_x < 0 and obj.acc_x > 0 then
-                    obj.acc_x = abs(obj.dacc_x)
-                end
+                -- if obj.speed_x > 0 and obj.acc_x < 0 then
+                --     obj.acc_x = -abs(obj.dacc_x)
+                -- elseif obj.speed_x < 0 and obj.acc_x > 0 then
+                --     obj.acc_x = abs(obj.dacc_x)
+                -- end
 
                 local mult = 1
                 do
@@ -1248,15 +1293,21 @@ do
                         obj:refresh(goalx)
                     end
 
-                    -- simulating the enviroment resistence (friction)
-                    if obj.speed_x ~= 0.0
-                        and (obj.ground or obj.allowed_air_dacc)
-                    then
-                        local dacc = abs(obj.dacc_x)
-                        dacc = self.on_water and (dacc * 1.5) or dacc
-                        -- dacc = obj.ground and dacc * 0.3 or dacc
-                        obj:apply_force(dacc * -obj:direction_x())
-                    end
+                    -- -- simulating the enviroment resistence (friction)
+                    -- if obj.speed_x ~= 0.0
+                    --     and (obj.ground or obj.allowed_air_dacc)
+                    -- then
+                    --     local dacc = abs(obj.dacc_x)
+                    --     dacc = self.on_water and (dacc * 1.5) or dacc
+                    --     -- dacc = obj.ground and dacc * 0.3 or dacc
+                    --     obj:apply_force(dacc * -obj:direction_x())
+                    -- end
+
+                    -- if self.acc_x == 0 and abs(self.speed_x) <= self.world.meter then
+                    --     self.speed_x = 0.0
+                    -- end
+
+                    -- obj:apply_force(-self:resistance_x())
                 end
                 -- ::skip_collision_x::
             end -- end moving in x axis
@@ -1266,9 +1317,6 @@ do
 
             if self.on_water then
                 if not collision_rect(self.x, self.y, self.w, self.h, self.on_water:rect()) then
-                    -- if self:bottom() <= self.on_water.y then
-                    --     self.speed_y = self.speed_y * 0.15
-                    -- end
                     self.on_water = nil
                 end
             end
