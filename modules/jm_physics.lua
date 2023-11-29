@@ -487,7 +487,9 @@ do
         direction = direction or -1
         self:refresh(nil, self.y + direction)
 
-        self.speed_y = sqrt(2.0 * (self:weight() - self:buoyant()) * desired_height) * direction
+        local F = self:weight() - self:buoyant()
+        F = F < 0 and 0 or F
+        self.speed_y = sqrt(2.0 * F * desired_height) * direction
     end
 
     function Body:dash(desired_distance, direction)
@@ -917,7 +919,7 @@ do
         V = V < 0 and 0 or V
         V = V * self.w
 
-        local d = water.density or 0.002
+        local d = water.density or self.world.default_density
 
         return V * self.world.gravity * d
     end
@@ -1028,9 +1030,17 @@ do
                     obj.speed_y = obj.world.max_speed_y
                 end
 
-                if obj.speed_y < 0 and self.on_water then
-                    if obj.speed_y < -self.world.meter * 4 then
-                        obj.speed_y = -self.world.meter * 4
+                if self.on_water then
+                    if obj.speed_y < 0 then
+                        local lim = -self.world.meter * 3
+                        if obj.speed_y < lim then
+                            obj.speed_y = lim
+                        end
+                    elseif self.speed_y > 0 then
+                        local lim = self.world.meter * 2
+                        if self.speed_y > lim then
+                            self.speed_y = lim
+                        end
                     end
                 end
 
@@ -1137,6 +1147,10 @@ do
                     end
                 end
 
+                if self.on_water then
+                    obj.acc_x = obj.acc_x * 0.5
+                end
+
                 goalx = obj.x + ((obj.speed_x * dt)
                     + (obj.acc_x * dt * dt) * 0.5) * mult
 
@@ -1206,6 +1220,7 @@ do
                         and (obj.ground or obj.allowed_air_dacc)
                     then
                         local dacc = abs(obj.dacc_x)
+                        dacc = self.on_water and (dacc * 1.5) or dacc
                         -- dacc = obj.ground and dacc * 0.3 or dacc
                         obj:apply_force(dacc * -obj:direction_x())
                     end
@@ -1532,6 +1547,9 @@ do
         self.max_speed_x = args.max_speed_x or self.max_speed_x
             or self.max_speed_y
         self.default_mass = args.default_mass or self.default_mass or 65.0
+
+        self.default_density = args.default_density or self.default_density or
+            (5 / math.pow(self.meter, 2))
 
         self.bodies = {}
         self.bodies_number = 0
