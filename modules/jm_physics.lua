@@ -124,8 +124,9 @@ local function is_slope(obj)
     return obj.is_slope
 end
 
+---@param item JM.Physics.Body
 local function dynamic_filter(obj, item)
-    return is_dynamic(item)
+    return item.type == BodyTypes.dynamic
 end
 
 ---@param obj JM.Physics.Body
@@ -195,73 +196,79 @@ end
 
 ---@param kbody JM.Physics.Body
 local function kinematic_moves_dynamic_x(kbody, goalx)
-    local col = kbody:check2(goalx, nil,
-        dynamic_filter,
-        nil, kbody.y - 1, nil, kbody.h + 2
-    )
+    -- local col = kbody:check2(goalx, nil,
+    --     dynamic_filter,
+    --     nil, kbody.y - 1, nil, kbody.h + 2
+    -- )
 
-    if col.n > 0 then
-        for i = 1, col.n do
-            local bd
+    -- if col.n > 0 then
+    --     for i = 1, col.n do
+    --         local bd
 
-            ---@type JM.Physics.Body
-            bd = col.items[i]
+    --         ---@type JM.Physics.Body
+    --         bd = col.items[i]
 
-            bd:refresh(bd.x + col.diff_x)
+    --         bd:refresh(bd.x + col.diff_x)
 
-            local col_bd
+    --         local col_bd
 
-            col_bd = bd:check(nil, nil, collision_x_filter)
+    --         col_bd = bd:check(nil, nil, collision_x_filter)
 
-            if col_bd.n > 0 then
-                if col.diff_x < 0 then
-                    bd:refresh(col_bd.right + 0.1)
-                else
-                    bd:refresh(col_bd.left - bd.w - 0.1)
-                end
+    --         if col_bd.n > 0 then
+    --             if col.diff_x < 0 then
+    --                 bd:refresh(col_bd.right + 0.1)
+    --             else
+    --                 bd:refresh(col_bd.left - bd.w - 0.1)
+    --             end
 
-                local col_f = bd:check(nil, nil, collision_x_filter)
+    --             local col_f = bd:check(nil, nil, collision_x_filter)
 
-                -- bd.is_stucked = nn > 0
-                -- bd.is_stucked = true
-            end
+    --             -- bd.is_stucked = nn > 0
+    --             -- bd.is_stucked = true
+    --         end
 
-            bd, col_bd = nil, nil
-        end
-    end
+    --         bd, col_bd = nil, nil
+    --     end
+    -- end
 end
 
 ---@param kbody JM.Physics.Body
-local function kinematic_moves_dynamic_y(kbody, goaly)
-    local col = kbody:check2(nil, goaly - 1,
-        dynamic_filter,
-        nil, kbody.y - 1, nil, kbody.h + 2
-    )
+local function kinematic_moves_dynamic_y(kbody, goaly, off)
+    local off = 0 --kbody.world.tile / 4
+    local diff = (kbody.y - goaly)
 
-    if col.n > 0 then
-        for i = 1, col.n do
-            local bd
+    if diff > 0 then
+        diff = abs(diff)
+        local col = kbody:check(nil, goaly - off - diff, dynamic_filter, empty_table(), empty_table_for_coll())
 
-            ---@type JM.Physics.Body
-            bd = col.items[i]
+        if col.n > 0 then
+            for i = 1, col.n do
+                ---@type JM.Physics.Collide
+                local item = col.items[i]
 
-            bd:refresh(nil, bd.y + col.diff_y)
-            bd.speed_y = 0.0
-
-            local col_bd
-            col_bd = bd:check(nil, nil, function(obj, item)
-                return item ~= kbody and coll_y_filter(obj, item)
-            end)
-
-            if col_bd.n > 0 then
-                if col.diff_y > 0 then
-                    bd:refresh(nil, col_bd.top - bd.h - 0.1)
+                if item.speed_y >= 0 then
+                    item:refresh(nil, kbody.y - item.h - 0.1)
                 end
             end
-
-            col_bd = nil
-            bd = nil
         end
+        return col
+    elseif diff < 0 or kbody.speed_y > 0 then
+        diff = abs(diff)
+        local col = kbody:check(nil, goaly + off + diff, dynamic_filter, empty_table(), empty_table_for_coll())
+
+        if col.n > 0 then
+            local bottom = kbody:bottom()
+
+            for i = 1, col.n do
+                ---@type JM.Physics.Collide
+                local item = col.items[i]
+
+                if item.y >= bottom then
+                    item:refresh(nil, goaly + kbody.h + 0.1)
+                end
+            end
+        end
+        return col
     end
 end
 
@@ -283,6 +290,7 @@ local Body = {
     filter_default = default_filter,
     empty_table = empty_table,
     empty_table_for_coll = empty_table_for_coll,
+    kinematic_moves_dynamic_y = kinematic_moves_dynamic_y,
 }
 Body.__index = Body
 Body.BodyRecycler = BodyRecycler
@@ -763,6 +771,11 @@ do
                     self.speed_y = 0.0
                 end
             else
+                -- if (col.diff_y >= 0 and col.most_up.type ~= BodyTypes.kinematic)
+                --     or col.diff_y < 0
+                -- then
+                --     self.speed_y = 0.0
+                -- end
                 self.speed_y = 0.0
             end
 
@@ -911,10 +924,20 @@ do
     end
 
     function Body:resistance()
-        if self.speed_y <= 0.0 then return 0.0 end
-        local d = 1.0
-        d = self.on_water and 1.5 or d
-        return 0.5 * (self.coef_resis or 0.0) * d * math.pow(self.speed_y, 2)
+        local speed_y = self.speed_y
+        if speed_y == 0.0 then return 0.0 end
+
+        if self.type == BodyTypes.dynamic and speed_y < 0 then
+            return 0.0
+        end
+
+        local d = 0.025 -- air density
+        d = self.on_water and 0.8 or d
+
+        local c = self.coef_resis or 0.08
+        c = self.on_water and self.type == BodyTypes.dynamic and (c / 10) or c
+
+        return 0.5 * c * d * math.pow(speed_y, 2) * self:direction_y()
     end
 
     function Body:buoyant()
@@ -1045,7 +1068,7 @@ do
                             obj.speed_y = lim
                         end
                     elseif self.speed_y > 0 then
-                        local lim = self.world.meter * 2
+                        local lim = self.world.meter * 1.5
                         if self.speed_y > lim then
                             self.speed_y = lim
                         end
@@ -1094,6 +1117,9 @@ do
                         obj:resolve_collisions_y(col)
                     else
                         if obj.ground then
+                            -- if self.ground.type == BodyTypes.kinematic then
+                            --     self.speed_y = 0.0
+                            -- end
                             dispatch_event(obj, BodyEvents.leaving_ground)
                         end
 
@@ -1127,7 +1153,6 @@ do
                         dispatch_event(self, BodyEvents.start_falling)
                     end
                 end
-
                 -- ::skip_collision_y::
             end
             --=================================================================
