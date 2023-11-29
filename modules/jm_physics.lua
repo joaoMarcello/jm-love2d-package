@@ -377,6 +377,7 @@ do
         ---@type JM.Physics.Collide
         self.on_water = nil
         self.density = nil
+        self.coef_resis = nil
 
         self.is_slope_adj = nil
 
@@ -909,6 +910,13 @@ do
         -- ::end_function::
     end
 
+    function Body:resistance()
+        if self.speed_y <= 0.0 then return 0.0 end
+        local d = 1.0
+        d = self.on_water and 1.5 or d
+        return 0.5 * (self.coef_resis or 0.0) * d * math.pow(self.speed_y, 2)
+    end
+
     function Body:buoyant()
         -- calculando empuxo
         local water = self.on_water
@@ -982,7 +990,7 @@ do
 
             -- applying the gravity
             if obj.allowed_gravity then
-                obj:apply_force(nil, obj:weight() - self:buoyant())
+                obj:apply_force(nil, obj:weight() - self:buoyant() - self:resistance())
                 --
             else
                 -- do
