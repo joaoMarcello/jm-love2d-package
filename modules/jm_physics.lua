@@ -936,13 +936,17 @@ do
         if self.type == BodyTypes.dynamic and speed_y < 0 then
             return 0.0
         end
+        local meter = self.world.meter
 
-        local d = 0.01 -- air density
-        d = self.on_water and 0.1 or d
+        local d = (1.2754) -- air density
+        d = self.on_water and (997 / meter) or d
 
         local c = self.coef_resis_y or 1.3 --0.08
-        c = c * (self.area_x or self.w)
+        -- c = c * (self.area_x or ((self.w / meter) * ((self.w * 0.25) / meter)))
         c = self.on_water and self.type == BodyTypes.dynamic and (c / 10) or c
+        local area = self.area_x or ((self.w / meter) * ((self.w * 0.75) / meter))
+
+        c = c * area
 
         return 0.5 * c * d * math.pow(speed_y, 2) * self:direction_y()
     end
@@ -950,13 +954,18 @@ do
     function Body:resistance_x()
         local speed_x = self.speed_x
         if speed_x == 0 then return 0.0 end
+        local meter = self.world.meter
 
-        local d = 0.01 -- air density
-        d = self.on_water and 0.1 or d
+        local d     = (1.2754) -- air density
+        d           = self.on_water and (997 / meter) or d
 
-        local c = self.coef_resis_x or (1.2)
-        c = not self.ground and (c * 2) or c
-        c = c * (self.area_y or (self.h * (self.h * 0.15)))
+        local c     = self.coef_resis_x or (1.2)
+        c           = self.on_water and (c / 10) or c
+        c           = not self.ground and (c * 2) or c
+        -- c           = c * (self.area_y or (self.h * (self.h * 0.15)))
+        local area  = self.area_y or (((self.h) / meter) * 1.5)
+
+        c           = c * area
 
         return 0.5 * c * d * math.pow(speed_x, 2) * self:direction_x()
     end
@@ -965,13 +974,14 @@ do
         -- calculando empuxo
         local water = self.on_water
         if not water then return 0 end
+        local meter = self.world.meter
 
         local V = self:bottom() - water.y
         V = V > self.h and self.h or V
         V = V < 0 and 0 or V
-        V = V * self.w
+        V = (V / meter) * (self.w / meter) * ((self.w * 0.75) / meter)
 
-        local d = 0.1 -- water.density or self.world.default_density
+        local d = 997 -- water.density or self.world.default_density
 
         return V * self.world.gravity * d
     end
@@ -994,12 +1004,14 @@ do
             -- mult = -dir + abs(sm) * dir
         end
 
+        mult = 1 - abs(sm)
+
         if abs(self.speed_x) > self.world.meter * 0.25 then
             local cc = self.ground and 0.5 or 0.0
 
             return self:weight() * mult * cc * (self:direction_x())
         else
-            local cs = self.ground and 1.5 or 0.0 --1.5
+            local cs = self.ground and 1.5 or 0.0
 
             return self:weight() * mult * cs * (self:direction_x())
         end
@@ -1215,7 +1227,18 @@ do
             end
             --=================================================================
 
-            obj:apply_force(-self:resistance_x() - self:friction_x())
+            do
+                local ang = self.ground and self.ground.angle or 0
+                local sin = math.sin(ang)
+
+                local fn = self:weight() * -sin
+
+                if self.ground and self.ground.is_slope and self:bottom() == self.ground.y - 0.1 then
+                    fn = 0
+                end
+
+                obj:apply_force(-self:resistance_x() - self:friction_x() - fn)
+            end
 
             -- if abs(self.speed_x) > self.world.meter * 0.2 then
             --     -- local cc = self.ground and 0.15 or 0.05
