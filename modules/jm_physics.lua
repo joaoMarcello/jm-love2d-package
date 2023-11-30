@@ -992,6 +992,9 @@ do
         local mult = 1
         local angle = self.ground and self.ground.angle or 0.0
         local sm = math.sin(angle)
+        if abs(sm) <= 0.45 then
+            sm = 0
+        end
         -- local dir = sm ~= 0 and -(abs(sm) / sm) or nil
 
         mult = 1 - abs(sm)
@@ -1220,6 +1223,9 @@ do
             do
                 local ang = self.ground and self.ground.angle or 0
                 local sin = math.sin(ang)
+                if abs(sin) <= 0.45 then
+                    sin = 0
+                end
 
                 local fn = self:weight() * -sin
 
