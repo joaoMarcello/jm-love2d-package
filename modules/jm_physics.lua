@@ -387,8 +387,10 @@ do
         ---@type JM.Physics.Collide
         self.on_water = nil
         self.density = nil
-        self.coef_resis = nil
+        self.coef_resis_y = nil
         self.coef_resis_x = nil
+        self.area_x = nil
+        self.area_y = nil
 
         self.is_slope_adj = nil
 
@@ -499,7 +501,7 @@ do
         direction = direction or -1
         self:refresh(nil, self.y + direction)
 
-        local F = self:weight() - self:buoyant()
+        local F = self:weight() / self.mass -- self:buoyant()
         F = F < 0 and 0 or F
         self.speed_y = sqrt(2.0 * F * desired_height) * direction
     end
@@ -512,7 +514,8 @@ do
     end
 
     function Body:weight()
-        return self.world.gravity * (self.mass / self.world.default_mass)
+        -- return self.world.gravity * (self.mass / self.world.default_mass)
+        return self.world.gravity * self.mass
     end
 
     function Body:refresh(x, y, w, h)
@@ -751,15 +754,15 @@ do
         return self.y
     end
 
-    ---@param acc_x number|nil
-    ---@param acc_y number|nil
+    ---@param fx number|nil
+    ---@param fy number|nil
     ---@param body JM.Physics.Body|nil
-    function Body:apply_force(acc_x, acc_y, body)
-        self.force_x = self.force_x + ((acc_x or 0.0) * self.mass)
-        self.force_y = self.force_y + ((acc_y or 0.0) * self.mass)
+    function Body:apply_force(fx, fy, body)
+        self.force_x = self.force_x + ((fx or 0.0))
+        self.force_y = self.force_y + ((fy or 0.0))
 
-        self.acc_x = acc_x and (self.force_x / self.mass) or self.acc_x
-        self.acc_y = acc_y and (self.force_y / self.mass) or self.acc_y
+        self.acc_x = fx and (self.force_x / self.mass) or self.acc_x
+        self.acc_y = fy and (self.force_y / self.mass) or self.acc_y
     end
 
     ---@param col JM.Physics.Collisions
@@ -926,7 +929,7 @@ do
         -- ::end_function::
     end
 
-    function Body:resistance()
+    function Body:resistance_y()
         local speed_y = self.speed_y
         if speed_y == 0.0 then return 0.0 end
 
@@ -934,10 +937,11 @@ do
             return 0.0
         end
 
-        local d = 0.025 -- air density
-        d = self.on_water and 0.8 or d
+        local d = 0.01 -- air density
+        d = self.on_water and 0.1 or d
 
-        local c = self.coef_resis or 0.08
+        local c = self.coef_resis_y or 1.3 --0.08
+        c = c * (self.area_x or self.w)
         c = self.on_water and self.type == BodyTypes.dynamic and (c / 10) or c
 
         return 0.5 * c * d * math.pow(speed_y, 2) * self:direction_y()
@@ -947,10 +951,12 @@ do
         local speed_x = self.speed_x
         if speed_x == 0 then return 0.0 end
 
-        local d = 0.025
-        d = self.on_water and 0.8 or d
-        local c = self.coef_resis_x or 1
-        c = self.on_water and self.type == BodyTypes.dynamic and (c / 10) or c
+        local d = 0.01 -- air density
+        d = self.on_water and 0.1 or d
+
+        local c = self.coef_resis_x or (1.2)
+        c = not self.ground and (c * 2) or c
+        c = c * (self.area_y or (self.h * (self.h * 0.15)))
 
         return 0.5 * c * d * math.pow(speed_x, 2) * self:direction_x()
     end
@@ -965,28 +971,45 @@ do
         V = V < 0 and 0 or V
         V = V * self.w
 
-        local d = water.density or self.world.default_density
+        local d = 0.1 -- water.density or self.world.default_density
 
         return V * self.world.gravity * d
     end
 
     function Body:friction_x()
-        if self.speed_x == 0.0 then return 0.0 end
+        -- if self.speed_x == 0.0 then return 0.0 end
 
-        if abs(self.speed_x) > self.world.meter * 0.5 then
+        local mult = 1
+        local angle = self.ground and self.ground.angle or 0.0
+        local sm = math.sin(angle)
+        local dir = sm ~= 0 and -(abs(sm) / sm) or nil
+
+        if self.speed_x < 0 then
+            -- dir = dir < 0 and 0 or dir
+        elseif self.speed_x > 0 then
+            -- dir = dir > 0 and (dir * 0.1) or dir
+        end
+
+        if dir then
+            -- mult = -dir + abs(sm) * dir
+        end
+
+        if abs(self.speed_x) > self.world.meter * 0.25 then
             local cc = self.ground and 0.5 or 0.0
-            local mult = 1
-            mult = (self.ground and self.ground.is_slope
-                    and (1 + (math.sin(self.ground.angle))))
-                or mult
-            return self:weight() * mult * cc * self:direction_x()
+
+            return self:weight() * mult * cc * (self:direction_x())
         else
-            local cs = self.ground and 1.5 or 0.0
-            local mult = 1
-            mult = (self.ground and self.ground.is_slope
-                    and (1 + (math.sin(self.ground.angle))))
-                or mult
-            return self:weight() * mult * cs * self:direction_x()
+            local cs = self.ground and 1.5 or 0.0 --1.5
+
+            return self:weight() * mult * cs * (self:direction_x())
+        end
+    end
+
+    function Body:static_friction()
+        if abs(self.speed_x) > self.world.meter * 0.25 or not self.ground then
+            return 0.0
+        else
+            return self:friction_x()
         end
     end
 
@@ -1048,7 +1071,7 @@ do
 
             -- applying the gravity
             if obj.allowed_gravity then
-                obj:apply_force(nil, obj:weight() - self:buoyant() - self:resistance())
+                obj:apply_force(nil, obj:weight() - self:buoyant() - self:resistance_y())
                 --
             else
                 -- do
@@ -1595,6 +1618,10 @@ function Slope:draw()
     if self.is_norm then
         font:printf("norm", self.x, self.y, self.w, "center")
     end
+
+    local dg = math.sin(self.angle)
+    local sign = math.abs(dg) / dg
+    font:print(string.format("%.2f : %.1f", dg, sign), self.x + self.w - 24, self.y - 12)
 
     font:pop()
 end
