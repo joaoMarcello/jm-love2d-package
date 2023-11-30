@@ -992,17 +992,7 @@ do
         local mult = 1
         local angle = self.ground and self.ground.angle or 0.0
         local sm = math.sin(angle)
-        local dir = sm ~= 0 and -(abs(sm) / sm) or nil
-
-        if self.speed_x < 0 then
-            -- dir = dir < 0 and 0 or dir
-        elseif self.speed_x > 0 then
-            -- dir = dir > 0 and (dir * 0.1) or dir
-        end
-
-        if dir then
-            -- mult = -dir + abs(sm) * dir
-        end
+        -- local dir = sm ~= 0 and -(abs(sm) / sm) or nil
 
         mult = 1 - abs(sm)
 
@@ -1236,6 +1226,12 @@ do
                 if self.ground and self.ground.is_slope and self:bottom() == self.ground.y - 0.1 then
                     fn = 0
                 end
+
+                -- if self:direction_x() > 0 and fn > 0 then
+                --     fn = 0
+                -- elseif self:direction_x() < 0 and fn < 0 then
+                --     fn = 0
+                -- end
 
                 obj:apply_force(-self:resistance_x() - self:friction_x() - fn)
             end
