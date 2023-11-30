@@ -995,7 +995,6 @@ do
         if abs(sm) <= 0.45 then
             sm = 0
         end
-        -- local dir = sm ~= 0 and -(abs(sm) / sm) or nil
 
         mult = 1 - abs(sm)
 
