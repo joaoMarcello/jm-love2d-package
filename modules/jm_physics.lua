@@ -1,4 +1,4 @@
-local abs, mfloor, mceil, sqrt, min, max = math.abs, math.floor, math.ceil, math.sqrt, math.min, math.max
+local abs, mfloor, mceil, sqrt, min, max, pow = math.abs, math.floor, math.ceil, math.sqrt, math.min, math.max, math.pow
 
 local table_insert, table_remove, table_sort = table.insert, table.remove, table.sort
 
@@ -330,7 +330,7 @@ do
     function Body:__constructor__(x, y, w, h, type_, world, id)
         self.type = type_
         ---@type string
-        self.id = id or ""
+        self.id = id --or ""
         self.world = world
 
         self.x = x
@@ -392,11 +392,19 @@ do
         self.area_y = nil
         self.area_x = nil
         self.coef_static = nil
+        self.coef_cinetic = nil
 
         self.is_slope_adj = nil
+        self.__is_ice = nil
 
         self.events = self.events or {}
         self.colls = self.colls or {}
+    end
+
+    function Body:turn_into_ice()
+        self.coef_static = 0.4
+        self.coef_cinetic = 0.08
+        self.__is_ice = true
     end
 
     ---@param holder table|nil
@@ -1001,14 +1009,15 @@ do
 
         local c        = self.coef_resis_x or 1.2
 
-        local area     = self.area_x or ((self.w * 1.4 / meter) * (1.7))
+        -- local area     = self.area_x or ((self.w * 1.4 / meter) * (1.7))
+        local area     = self.area_x or ((0.6 * 0.6) * (self.h / (meter / 3.5)))
 
-        if on_water then
+        if on_water and self.type == BodyTypes.dynamic then
             c = 0.04
             area = area * 0.1
         end
 
-        c = not self.ground and (c * 2) or c
+        c = self.allowed_air_dacc and not self.ground and (c * 2) or c
 
         c = c * area
 
@@ -1017,25 +1026,27 @@ do
 
     function Body:friction_x()
         -- if self.speed_x == 0.0 then return 0.0 end
+        local ground = self.ground
+        if not ground then return 0.0 end
 
         local mult = 1
-        local angle = self.ground and self.ground.angle or 0.0
+        local angle = ground.angle or 0.0
         local sm = math.sin(angle)
 
-        if abs(sm) <= 0.45 then
-            sm = 0
-        end
+        -- if abs(sm) <= 0.45 then
+        --     -- sm = 0
+        -- end
 
         mult = 1 - abs(sm)
 
         if abs(self.speed_x) > self.world.meter * 0.5 then --0.25
             -- cinetic
-            local cc = self.ground and (0.5) or 0.0        --0.5
+            local cc = ground.coef_cinetic or 0.5          --0.5
 
             return self:weight() * mult * cc * (self:direction_x())
         else
             -- static
-            local cs = self.ground and (0.75) or 0.0 --1.5  ice=1.1
+            local cs = ground.coef_static or 0.6 --1.5  ice=1.1 /0.6
 
             return self:weight() * mult * cs * (self:direction_x())
         end
@@ -1047,6 +1058,10 @@ do
         else
             return self:friction_x()
         end
+    end
+
+    function Body:get_ground_angle()
+        return (self.ground and self.ground.angle or 0)
     end
 
     do
@@ -1254,32 +1269,48 @@ do
             do
                 local ang = self.ground and self.ground.angle or 0
                 local sin = math.sin(ang)
-                if abs(sin) <= 0.45 then
-                    sin = 0
-                end
+                local on_ice = self.ground and self.ground.__is_ice
 
-                local fn = self:weight() * -sin
-
-                if self.ground and self.ground.is_slope and self:bottom() == self.ground.y - 0.1 then
-                    fn = 0
-                end
-
-                -- if self:direction_x() > 0 and fn > 0 then
-                --     fn = 0
-                -- elseif self:direction_x() < 0 and fn < 0 then
-                --     fn = 0
+                -- if abs(sin) <= 0.45 then
+                --     -- sin = 0
                 -- end
+
+                if self.type == BodyTypes.dynamic then
+                    if abs(sin) <= 0.45 then
+                        if self.speed_x == 0.0 then
+                            self.coef_static = not on_ice and 0 or 1
+                        else
+                            self.coef_static = not on_ice and 0.25 or 1
+                        end
+                    else
+                        self.coef_static = 1
+                    end
+                end
+
+                local fn = self:weight() * -sin * (self.coef_static or 1)
+
+                do
+                    local ground = self.ground
+                    local is_norm = ground and ground.is_norm
+
+                    if ground and ground.is_slope
+                        and mfloor(self:bottom()) == ground.y
+                    then
+                        if is_norm then
+                            if not ground.next then
+                                fn = 0
+                            end
+                        else
+                            if not ground.prev then
+                                fn = 0
+                            end
+                        end
+                    end
+                end
 
                 obj:apply_force(-self:resistance_x() - self:friction_x() - fn)
             end
 
-            -- if abs(self.speed_x) > self.world.meter * 0.2 then
-            --     -- local cc = self.ground and 0.15 or 0.05
-            --     -- obj:apply_force(-self:weight() * cc * self:direction_x())
-            -- else
-            --     local cs = self.ground and 0.05 or 0
-            --     obj:apply_force(-self:weight() * 0.05 * self:direction_x())
-            -- end
 
             -- moving in x axis
             if (obj.acc_x ~= 0.0) or (obj.speed_x ~= 0.0) then
@@ -1314,6 +1345,7 @@ do
 
                 -- obj.acc_x = obj.ground and obj.acc_x * 0.5 or obj.acc_x
                 obj.speed_x = obj.speed_x + obj.acc_x * dt
+
 
                 -- if reach max speed
                 if obj.max_speed_x
