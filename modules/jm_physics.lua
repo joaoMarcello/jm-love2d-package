@@ -937,14 +937,32 @@ do
             return 0.0
         end
         local meter = self.world.meter
+        local on_water = self.on_water
 
         local d = (1.2754) -- air density
-        d = self.on_water and (997 / meter) or d
+        d = on_water and (997) or d
 
-        local c = self.coef_resis_y or 1.3 --0.08
-        -- c = c * (self.area_x or ((self.w / meter) * ((self.w * 0.25) / meter)))
-        c = self.on_water and self.type == BodyTypes.dynamic and (c / 10) or c
-        local area = self.area_x or ((self.w / meter) * ((self.w * 0.75) / meter))
+        local c = self.coef_resis_y or 1.3
+
+        -- c = self.on_water and self.type == BodyTypes.dynamic and (c / 10) or c
+
+        local area = self.area_x
+            or ((self.w / meter) * ((0.6 * 0.6)))
+
+        if on_water then
+            if self.type == BodyTypes.dynamic then
+                c = 0.04
+                area = (area * 0.2)
+            else
+                c = c / 40
+                -- area = (area * 0.8)
+            end
+        end
+
+
+        -- local area = self.area_x
+        --     or ((self.w / meter) * ((self.w * 0.75) / meter))
+
 
         c = c * area
 
@@ -954,18 +972,27 @@ do
     function Body:resistance_x()
         local speed_x = self.speed_x
         if speed_x == 0 then return 0.0 end
-        local meter = self.world.meter
 
-        local d     = (1.2754) -- air density
-        d           = self.on_water and (997 / meter) or d
+        local meter    = self.world.meter
+        local on_water = self.on_water
 
-        local c     = self.coef_resis_x or (1.2)
-        c           = self.on_water and (c / 10) or c
-        c           = not self.ground and (c * 2) or c
-        -- c           = c * (self.area_y or (self.h * (self.h * 0.15)))
-        local area  = self.area_y or (((self.h) / meter) * 1.5)
+        local d        = (1.2754) -- air density
+        d              = on_water and (997) or d
 
-        c           = c * area
+        local c        = self.coef_resis_x or 1.2
+
+        -- c              = on_water and (c / 10) or c
+
+        -- local area     = self.area_y or (((self.h) / meter) * 1.5)
+        local area     = self.area_y or ((self.w * 1.4 / meter) * (1.7))
+
+        if on_water then
+            c = 0.04
+            area = area * 0.1
+        end
+
+        c = not self.ground and (c * 2) or c
+        c = c * area
 
         return 0.5 * c * d * math.pow(speed_x, 2) * self:direction_x()
     end
@@ -979,7 +1006,8 @@ do
         local V = self:bottom() - water.y
         V = V > self.h and self.h or V
         V = V < 0 and 0 or V
-        V = (V / meter) * (self.w / meter) * ((self.w * 0.75) / meter)
+        -- V = (V / meter) * (self.w / meter) * ((self.w * 0.75) / meter)
+        V = (V / meter) * (self.w / meter) * (0.6 * 0.6)
 
         local d = 997 -- water.density or self.world.default_density
 
