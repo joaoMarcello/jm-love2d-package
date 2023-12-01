@@ -389,8 +389,9 @@ do
         self.density = nil
         self.coef_resis_y = nil
         self.coef_resis_x = nil
-        self.area_x = nil
         self.area_y = nil
+        self.area_x = nil
+        self.coef_static = nil
 
         self.is_slope_adj = nil
 
@@ -501,9 +502,10 @@ do
         direction = direction or -1
         self:refresh(nil, self.y + direction)
 
-        local F = self:weight() / self.mass -- self:buoyant()
-        F = F < 0 and 0 or F
-        self.speed_y = sqrt(2.0 * F * desired_height) * direction
+        --local acc = self:weight() / self.mass -- self:buoyant()
+        local acc = abs(self.world.gravity) - (self:buoyant() / self.mass)
+        acc = acc < 0 and 0 or acc
+        self.speed_y = sqrt(2.0 * acc * desired_height) * direction
     end
 
     function Body:dash(desired_distance, direction)
@@ -946,7 +948,7 @@ do
 
         -- c = self.on_water and self.type == BodyTypes.dynamic and (c / 10) or c
 
-        local area = self.area_x
+        local area = self.area_y
             or ((self.w / meter) * ((0.6 * 0.6)))
 
         if on_water then
@@ -969,34 +971,6 @@ do
         return 0.5 * c * d * math.pow(speed_y, 2) * self:direction_y()
     end
 
-    function Body:resistance_x()
-        local speed_x = self.speed_x
-        if speed_x == 0 then return 0.0 end
-
-        local meter    = self.world.meter
-        local on_water = self.on_water
-
-        local d        = (1.2754) -- air density
-        d              = on_water and (997) or d
-
-        local c        = self.coef_resis_x or 1.2
-
-        -- c              = on_water and (c / 10) or c
-
-        -- local area     = self.area_y or (((self.h) / meter) * 1.5)
-        local area     = self.area_y or ((self.w * 1.4 / meter) * (1.7))
-
-        if on_water then
-            c = 0.04
-            area = area * 0.1
-        end
-
-        c = not self.ground and (c * 2) or c
-        c = c * area
-
-        return 0.5 * c * d * math.pow(speed_x, 2) * self:direction_x()
-    end
-
     function Body:buoyant()
         -- calculando empuxo
         local water = self.on_water
@@ -1014,31 +988,61 @@ do
         return V * self.world.gravity * d
     end
 
+    function Body:resistance_x()
+        local speed_x = self.speed_x
+        if speed_x == 0 then return 0.0 end
+
+        local meter    = self.world.meter
+        local on_water = self.on_water
+
+        local d        = 1.2754 -- air density
+        d              = on_water and 997 or d
+        -- d              = self.ground and (d * 10) or d
+
+        local c        = self.coef_resis_x or 1.2
+
+        local area     = self.area_x or ((self.w * 1.4 / meter) * (1.7))
+
+        if on_water then
+            c = 0.04
+            area = area * 0.1
+        end
+
+        c = not self.ground and (c * 2) or c
+
+        c = c * area
+
+        return 0.5 * c * d * math.pow(speed_x, 2) * self:direction_x()
+    end
+
     function Body:friction_x()
         -- if self.speed_x == 0.0 then return 0.0 end
 
         local mult = 1
         local angle = self.ground and self.ground.angle or 0.0
         local sm = math.sin(angle)
+
         if abs(sm) <= 0.45 then
             sm = 0
         end
 
         mult = 1 - abs(sm)
 
-        if abs(self.speed_x) > self.world.meter * 0.25 then
-            local cc = self.ground and 0.5 or 0.0
+        if abs(self.speed_x) > self.world.meter * 0.5 then --0.25
+            -- cinetic
+            local cc = self.ground and (0.5) or 0.0        --0.5
 
             return self:weight() * mult * cc * (self:direction_x())
         else
-            local cs = self.ground and 1.5 or 0.0
+            -- static
+            local cs = self.ground and (0.75) or 0.0 --1.5  ice=1.1
 
             return self:weight() * mult * cs * (self:direction_x())
         end
     end
 
     function Body:static_friction()
-        if abs(self.speed_x) > self.world.meter * 0.25 or not self.ground then
+        if abs(self.speed_x) > self.world.meter * 0.5 or not self.ground then
             return 0.0
         else
             return self:friction_x()
@@ -1699,7 +1703,7 @@ do
         self.max_speed_y = args.max_speed_y or self.max_speed_y
             or (self.meter * 15) --15
         self.max_speed_x = args.max_speed_x or self.max_speed_x
-            or self.max_speed_y
+            or (self.meter * 15) --self.max_speed_y
         self.default_mass = args.default_mass or self.default_mass or 65.0
 
         self.default_density = args.default_density or self.default_density or
