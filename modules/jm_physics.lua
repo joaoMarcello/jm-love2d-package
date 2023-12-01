@@ -246,8 +246,8 @@ local function kinematic_moves_dynamic_y(kbody, goaly, off)
                 ---@type JM.Physics.Collide
                 local item = col.items[i]
 
-                if item.speed_y >= 0 then
-                    item:refresh(nil, kbody.y - item.h - 0.1)
+                if item.speed_y >= 0 or true then
+                    item:refresh(nil, kbody.y - item.h - 1)
                 end
             end
         end
@@ -264,7 +264,7 @@ local function kinematic_moves_dynamic_y(kbody, goaly, off)
                 local item = col.items[i]
 
                 if item.y >= bottom then
-                    item:refresh(nil, goaly + kbody.h + 0.1)
+                    item:refresh(nil, goaly + kbody.h + 1)
                 end
             end
         end
