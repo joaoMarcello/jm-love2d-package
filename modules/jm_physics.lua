@@ -1222,9 +1222,6 @@ do
                         obj:resolve_collisions_y(col)
                     else
                         if obj.ground then
-                            -- if self.ground.type == BodyTypes.kinematic then
-                            --     self.speed_y = 0.0
-                            -- end
                             dispatch_event(obj, BodyEvents.leaving_ground)
                         end
 
@@ -1257,6 +1254,8 @@ do
                     if last_sy <= 0.0 and obj.speed_y > 0.0 then
                         dispatch_event(self, BodyEvents.start_falling)
                     end
+
+                    -- self.delta_h = self.delta_h + (goaly - self.y)
                 end
                 -- ::skip_collision_y::
             end
