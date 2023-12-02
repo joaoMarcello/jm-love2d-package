@@ -234,7 +234,7 @@ end
 
 ---@param kbody JM.Physics.Body
 local function kinematic_moves_dynamic_y(kbody, goaly, off)
-    local off = 0 --kbody.world.tile / 4
+    local off = off or 0 --kbody.world.tile / 4
     local diff = (kbody.y - goaly)
 
     if diff > 0 then
@@ -252,7 +252,7 @@ local function kinematic_moves_dynamic_y(kbody, goaly, off)
             end
         end
         return col
-    elseif diff < 0 or kbody.speed_y > 0 then
+    elseif diff < 0 then
         diff = abs(diff)
         local col = kbody:check(nil, goaly + off + diff, dynamic_filter, empty_table(), empty_table_for_coll())
 
@@ -1335,7 +1335,7 @@ do
                 --     end
                 -- end
 
-                local mult = 1
+                -- local mult = 1
                 -- do
                 --     if obj.ground and obj.ground.is_slope then
                 --         if obj.ground.is_norm and obj.speed_x > 0 or (not obj.ground.is_norm and obj.speed_x < 0) then
@@ -1355,7 +1355,7 @@ do
                 -- obj.acc_x = obj.ground and obj.acc_x * 0.5 or obj.acc_x
                 obj.speed_x = obj.speed_x + obj.acc_x * dt
 
-                obj.speed_x = obj.speed_x * mult
+                obj.speed_x = obj.speed_x
 
                 -- if reach max speed
                 if obj.max_speed_x
@@ -1363,6 +1363,15 @@ do
                 then
                     obj.speed_x = obj.max_speed_x
                         * obj:direction_x()
+                end
+
+                do
+                    local max_speed_x = self.world.max_speed_x
+                    if max_speed_x
+                        and abs(self.speed_x) > max_speed_x
+                    then
+                        self.speed_x = max_speed_x * self:direction_x()
+                    end
                 end
 
                 -- dacc
@@ -1745,7 +1754,7 @@ do
         self.max_speed_y = args.max_speed_y or self.max_speed_y
             or (self.meter * 15) --15
         self.max_speed_x = args.max_speed_x or self.max_speed_x
-            or (self.meter * 15) --self.max_speed_y
+            or (self.meter * 7)  --self.max_speed_y
         self.default_mass = args.default_mass or self.default_mass or 65.0
 
         self.default_density = args.default_density or self.default_density or
