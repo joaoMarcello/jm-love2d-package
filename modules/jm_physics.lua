@@ -247,7 +247,7 @@ local function kinematic_moves_dynamic_y(kbody, goaly, off)
                 local item = col.items[i]
 
                 if item.speed_y >= 0 or true then
-                    item:refresh(nil, kbody.y - item.h - 1)
+                    item:refresh(nil, kbody.y - item.h - 0.1)
                 end
             end
         end
@@ -264,7 +264,7 @@ local function kinematic_moves_dynamic_y(kbody, goaly, off)
                 local item = col.items[i]
 
                 if item.y >= bottom then
-                    item:refresh(nil, goaly + kbody.h + 1)
+                    item:refresh(nil, goaly + kbody.h + 0.1)
                 end
             end
         end
@@ -510,8 +510,8 @@ do
         direction = direction or -1
         self:refresh(nil, self.y + direction)
 
-        --local acc = self:weight() / self.mass -- self:buoyant()
         local acc = abs(self.world.gravity) - (self:buoyant() / self.mass)
+        -- local acc = abs(self.acc_y)
         acc = acc < 0 and 0 or acc
         self.speed_y = sqrt(2.0 * acc * desired_height) * direction
     end
@@ -766,13 +766,14 @@ do
 
     ---@param fx number|nil
     ---@param fy number|nil
-    ---@param body JM.Physics.Body|nil
-    function Body:apply_force(fx, fy, body)
+    function Body:apply_force(fx, fy)
         self.force_x = self.force_x + ((fx or 0.0))
         self.force_y = self.force_y + ((fy or 0.0))
 
-        self.acc_x = fx and (self.force_x / self.mass) or self.acc_x
-        self.acc_y = fy and (self.force_y / self.mass) or self.acc_y
+        self.acc_x = fx and fx ~= 0 and (self.force_x / self.mass)
+            or self.acc_x
+        self.acc_y = fy and fy ~= 0 and (self.force_y / self.mass)
+            or self.acc_y
     end
 
     ---@param col JM.Physics.Collisions
@@ -943,7 +944,7 @@ do
         local speed_y = self.speed_y
         if speed_y == 0.0 then return 0.0 end
 
-        if self.type == BodyTypes.dynamic and speed_y < 0 then
+        if self.type == BodyTypes.dynamic and speed_y <= 0 then
             return 0.0
         end
         local meter = self.world.meter
@@ -1025,30 +1026,25 @@ do
     end
 
     function Body:friction_x()
-        -- if self.speed_x == 0.0 then return 0.0 end
+        if self.speed_x == 0.0 then return 0.0 end
+
         local ground = self.ground
         if not ground then return 0.0 end
 
-        local mult = 1
-        local angle = ground.angle or 0.0
-        local sm = math.sin(angle)
-
-        -- if abs(sm) <= 0.45 then
-        --     -- sm = 0
-        -- end
-
-        mult = 1 - abs(sm)
+        local FN = abs(self.acc_y * self.mass)
 
         if abs(self.speed_x) > self.world.meter * 0.5 then --0.25
             -- cinetic
             local cc = ground.coef_cinetic or 0.5          --0.5
+            -- cc = self.on_water and cc * 1.1 or cc
 
-            return self:weight() * mult * cc * (self:direction_x())
+            return FN * cc * (self:direction_x())
         else
             -- static
-            local cs = ground.coef_static or 0.6 --1.5  ice=1.1 /0.6
+            local cs = ground.coef_static or 0.6 --0.6
+            -- cs = self.on_water and cs * 10 or cs
 
-            return self:weight() * mult * cs * (self:direction_x())
+            return FN * cs * (self:direction_x())
         end
     end
 
@@ -1275,19 +1271,24 @@ do
                 --     -- sin = 0
                 -- end
 
+                local K = 1
                 if self.type == BodyTypes.dynamic then
                     if abs(sin) <= 0.45 then
                         if self.speed_x == 0.0 then
-                            self.coef_static = not on_ice and 0 or 1
+                            K = not on_ice and 0 or 1
                         else
-                            self.coef_static = not on_ice and 0.25 or 1
+                            K = not on_ice and 0.25 or 1
                         end
                     else
-                        self.coef_static = 1
+                        K = 1
                     end
                 end
 
-                local fn = self:weight() * -sin * (self.coef_static or 1)
+                -- if self.on_water then
+                --     K = 0
+                -- end
+
+                local weight_x = (self.acc_y * self.mass) * -sin * K
 
                 do
                     local ground = self.ground
@@ -1298,17 +1299,17 @@ do
                     then
                         if is_norm then
                             if not ground.next then
-                                fn = 0
+                                weight_x = 0
                             end
                         else
                             if not ground.prev then
-                                fn = 0
+                                weight_x = 0
                             end
                         end
                     end
                 end
 
-                obj:apply_force(-self:resistance_x() - self:friction_x() - fn)
+                obj:apply_force(-self:resistance_x() - self:friction_x() - weight_x)
             end
 
 
@@ -1322,30 +1323,40 @@ do
                 --     obj.acc_x = abs(obj.dacc_x)
                 -- end
 
+                -- local mult = 1
+                -- do
+                --     if obj.ground and obj.ground.is_slope
+                --         and self.y + self.h ~= obj.ground.y
+                --     then
+                --         if obj.ground.is_norm and obj.speed_x > 0
+                --             or (not obj.ground.is_norm and obj.speed_x < 0)
+                --         then
+                --             mult = 1 - abs(math.sin(self.ground.angle))
+                --         end
+                --     end
+                -- end
+
                 local mult = 1
-                do
-                    if obj.ground and obj.ground.is_slope
-                        and self.y + self.h ~= obj.ground.y
-                    then
-                        if obj.ground.is_norm and obj.speed_x > 0
-                            or (not obj.ground.is_norm and obj.speed_x < 0)
-                        then
-                            mult = 1 - abs(math.sin(self.ground.angle))
-                        end
-                    end
-                end
+                -- do
+                --     if obj.ground and obj.ground.is_slope then
+                --         if obj.ground.is_norm and obj.speed_x > 0 or (not obj.ground.is_norm and obj.speed_x < 0) then
+                --             mult = abs(math.cos(self.ground and self.ground.angle or 0))
+                --         end
+                --     end
+                -- end
 
                 if self.on_water then
                     obj.acc_x = obj.acc_x * 0.5
                 end
 
                 goalx = obj.x + ((obj.speed_x * dt)
-                    + (obj.acc_x * dt * dt) * 0.5) * mult
+                    + (obj.acc_x * dt * dt) * 0.5) --* mult
 
 
                 -- obj.acc_x = obj.ground and obj.acc_x * 0.5 or obj.acc_x
                 obj.speed_x = obj.speed_x + obj.acc_x * dt
 
+                obj.speed_x = obj.speed_x * mult
 
                 -- if reach max speed
                 if obj.max_speed_x
@@ -1707,7 +1718,7 @@ function Slope:draw()
         font:printf("norm", self.x, self.y, self.w, "center")
     end
 
-    local dg = math.sin(self.angle)
+    local dg = math.cos(self.angle)
     local sign = math.abs(dg) / dg
     font:print(string.format("%.2f : %.1f", dg, sign), self.x + self.w - 24, self.y - 12)
 
