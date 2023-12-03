@@ -257,7 +257,6 @@ end
 
 ---@param kbody JM.Physics.Body
 local function kinematic_moves_dynamic_y(kbody, goaly, off)
-    local off = off or 0 --kbody.world.tile / 4
     local diff = (goaly - kbody.y)
 
     local list = kbody.world:get_items_in_cell_obj(kbody.x - 1, kbody.y - 2, kbody.w + 2, kbody.h + 4,
@@ -283,7 +282,7 @@ local function kinematic_moves_dynamic_y(kbody, goaly, off)
                     -- item.speed_y = 100
                 else
                     if diff > 0 then
-                        item:refresh(nil, goaly + kbody.h + 1)
+                        item:refresh(nil, goaly + kbody.h + 0.1)
                     end
                 end
             end
