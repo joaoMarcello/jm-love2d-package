@@ -169,7 +169,9 @@ local function update_chasing(self, dt)
         end
     end
 
-    if self.time == math.pi and self.target[axis] == cam[axis] then
+    if (self.time == math.pi and self.target[axis] == cam[axis])
+    -- or targ[axis] == cam[axis]
+    then
         return self:set_state(States.on_target)
     end
 end
@@ -189,8 +191,7 @@ local function update_on_target(self, dt)
         if self.delay ~= 0 then
             if self:target_changed_direction() then
                 self:set_state(States.chasing)
-                -- self.speed = 2
-                -- self.time = 0
+                self.speed = 0.9
                 return
             end
         end
@@ -266,8 +267,8 @@ function Controller:__constructor__(camera, axis, delay, type)
 
     self.axis = axis or "x"
 
-    self.focus_1 = 0.4
-    self.focus_2 = 0.6
+    self.focus_1 = 0.45
+    self.focus_2 = 1 - self.focus_1
 
     self.delay = delay or 0.0
     self.speed = 10
@@ -276,7 +277,7 @@ function Controller:__constructor__(camera, axis, delay, type)
     if self.axis == "y" then
         self.focus_1 = 0.25
         self.focus_2 = 0.5
-        self.delay = 0.5
+        -- self.delay = 0.9
     else
         self.type = Types.dynamic
     end
