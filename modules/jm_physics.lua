@@ -77,8 +77,10 @@ local BodyEvents = {
     leaving_y_axis_body = 11,
     leaving_wall_left = 12,
     leaving_wall_right = 13,
-    leaving_x_axis_body = 14
+    leaving_x_axis_body = 14,
+    on_stucked = 15,
 }
+---@alias JM.Physics.EventNames "ground_touch"|"ceil_touch"|"wall_left_touch"|"wall_right_touch"|"axis_x_collision"|"axis_y_collision"|"start_falling"|"speed_y_change_direction"|"speed_x_change_direction"|"leaving_ground"|"leaving_ceil"|"leaving_y_axis_body"|"leaving_wall_left"|"leaving_wall_right"|"leaving_x_axis_body"|"on_stucked"
 
 ---@alias JM.Physics.Collide JM.Physics.Body|JM.Physics.Slope|any
 
@@ -235,7 +237,7 @@ local function kinematic_moves_dynamic_x(self, goalx)
                     local col = item:check(nil, nil, collision_filter, empty_table(), empty_table_for_coll())
 
                     if col.n > 0 then
-                        item.is_stucked = true
+                        item:set_stucked(true)
                     end
                 end
 
@@ -278,6 +280,7 @@ local function kinematic_moves_dynamic_y(kbody, goaly, off)
 
                 if dist1 < dist2 then
                     item:refresh(nil, goaly - item.h - 0.1)
+                    -- item.speed_y = 100
                 else
                     if diff > 0 then
                         item:refresh(nil, goaly + kbody.h + 1)
@@ -424,6 +427,15 @@ do
         self.__is_ice = true
     end
 
+    function Body:set_stucked(value)
+        if value and not self.is_stucked then
+            self.is_stucked = true
+            dispatch_event(self, BodyEvents.on_stucked)
+        elseif not value and self.is_stucked then
+            self.is_stucked = false
+        end
+    end
+
     ---@param holder table|nil
     function Body:set_holder(holder)
         self.holder = holder
@@ -436,7 +448,7 @@ do
 
     ---@alias JM.Physics.Event {type:JM.Physics.BodyEventOptions, action:function, args:any}
 
-    ---@alias JM.Physics.EventNames "ground_touch"|"ceil_touch"|"wall_left_touch"|"wall_right_touch"|"axis_x_collision"|"axis_y_collision"|"start_falling"|"speed_y_change_direction"|"speed_x_change_direction"|"leaving_ground"|"leaving_ceil"|"leaving_y_axis_body"|"leaving_wall_left"|"leaving_wall_right"|"leaving_x_axis_body"
+
 
     ---@param name JM.Physics.EventNames
     ---@param action function
