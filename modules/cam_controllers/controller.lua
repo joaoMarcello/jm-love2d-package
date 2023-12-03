@@ -146,13 +146,13 @@ local function update_chasing(self, dt)
         end
         ---
     elseif self.type == Types.normal then
-        if targ[axis] > self.init_pos and self.init_dir < 0 then
-            self:set_state(States.on_target)
-        end
+        -- if targ[axis] > self.init_pos and self.init_dir < 0 then
+        --     self:set_state(States.on_target)
+        -- end
 
-        if targ[axis] < self.init_pos and self.init_dir > 0 then
-            self:set_state(States.on_target)
-        end
+        -- if targ[axis] < self.init_pos and self.init_dir > 0 then
+        --     self:set_state(States.on_target)
+        -- end
     end
 
 
@@ -193,7 +193,7 @@ local function update_on_target(self, dt)
         if self.delay ~= 0 then
             if self:target_changed_direction() then
                 self:set_state(States.chasing)
-                self.speed = 0.9
+                self.speed = 1.5
                 return
             end
         end
@@ -283,7 +283,7 @@ function Controller:__constructor__(camera, axis, delay, type)
         -- self.delay = 0.9
     else
         -- self.type = Types.dynamic
-        self.delay = 1
+        -- self.delay = 1
     end
     self.delay = math.abs(self.delay)
 
@@ -335,6 +335,8 @@ function Controller:set_state(new_state)
     local last = self.state
     self.state = new_state
     local cam = self.camera
+
+    if not self.target then return end
 
     if new_state == States.chasing then
         self.init_pos = cam[self.axis]
