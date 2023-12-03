@@ -141,20 +141,20 @@ local function update_chasing(self, dt)
             end
 
             self.state = nil
-            self:set_state(States.chasing)
+            cam:keep_on_bounds()
+            return self:set_state(States.chasing)
         end
         ---
     elseif self.type == Types.normal then
-        -- if targ[axis] > self.init_pos and self.init_dir < 0 then
-        --     self:set_state(States.on_target)
-        -- end
+        if targ[axis] > self.init_pos and self.init_dir < 0 then
+            self:set_state(States.on_target)
+        end
 
-        -- if targ[axis] < self.init_pos and self.init_dir > 0 then
-        --     self:set_state(States.on_target)
-        -- end
+        if targ[axis] < self.init_pos and self.init_dir > 0 then
+            self:set_state(States.on_target)
+        end
     end
 
-    cam:keep_on_bounds()
 
     do
         local is_x = axis == "x"
@@ -162,12 +162,14 @@ local function update_chasing(self, dt)
         local lim_2 = is_x and "bounds_right" or "bounds_bottom"
         local viewport = is_x and "viewport_w" or "viewport_h"
 
-        if cam[axis] <= cam[lim_1]
-            or cam[axis] >= cam[lim_2] - cam[viewport] / cam.scale
+        if cam[axis] < cam[lim_1]
+            or cam[axis] > cam[lim_2] - cam[viewport] / cam.scale
         then
-            -- self.time = math.pi
+            self.time = math.pi
         end
     end
+
+    cam:keep_on_bounds()
 
     if (self.time == math.pi and self.target[axis] == cam[axis])
     -- or targ[axis] == cam[axis]
@@ -197,6 +199,7 @@ local function update_on_target(self, dt)
         end
     end
     self.camera[self.axis] = targ[self.axis]
+    self.camera:keep_on_bounds()
 end
 
 ---@param self JM.Camera.Controller
@@ -279,7 +282,8 @@ function Controller:__constructor__(camera, axis, delay, type)
         self.focus_2 = 0.5
         -- self.delay = 0.9
     else
-        self.type = Types.dynamic
+        -- self.type = Types.dynamic
+        self.delay = 1
     end
     self.delay = math.abs(self.delay)
 
@@ -334,7 +338,11 @@ function Controller:set_state(new_state)
 
     if new_state == States.chasing then
         self.init_pos = cam[self.axis]
-        self.init_dir = self.target[self.axis] > self.init_pos and 1 or -1
+        self.init_dir =
+            self.target[self.axis] > self.init_pos and 1
+            or (self.target[self.axis] < self.init_pos and -1)
+            or 0
+
         self.init_dist = self.init_pos - self.target["r" .. self.axis]
         self.time = -self.delay
         self.speed = 1.5
@@ -371,7 +379,7 @@ function Controller:update(dt)
 end
 
 function Controller:draw()
-    if self.target and self.axis == 'y' then
+    if self.target and self.axis == 'x' then
         love.graphics.setColor(0, 1, 0)
         love.graphics.circle("fill", self.target.rx, self.target.ry, 3)
 
