@@ -674,7 +674,9 @@ local CAMERA_TYPES = {
 }
 
 ---@class JM.Camera.Camera
-local Camera = {}
+local Camera = {
+    Controller = Controller,
+}
 Camera.__index = Camera
 
 Camera.MoveTypes = {
@@ -1124,25 +1126,29 @@ function Camera:target_on_focus_x()
 end
 
 function Camera:set_focus_x(value)
-    value = round(value)
-    if self.focus_x ~= value then
-        if self.target then
-            self.target.x = nil
-            self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
-        end
-        self.focus_x = value
-    end
+    -- value = value or self.focus_x
+    -- value = round(value)
+    -- if self.focus_x ~= value then
+    --     if self.target then
+    --         self.target.x = nil
+    --         self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
+    --     end
+    --     self.focus_x = value
+    -- end
+    return self:set_focus(value, nil)
 end
 
 function Camera:set_focus_y(value)
-    value = round(value)
-    if self.focus_y ~= value then
-        if self.target then
-            self.target.y = nil
-            self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
-        end
-        self.focus_y = value
-    end
+    -- value = value or self.focus_y
+    -- value = round(value)
+    -- if self.focus_y ~= value then
+    --     if self.target then
+    --         self.target.y = nil
+    --         self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
+    --     end
+    --     self.focus_y = value
+    -- end
+    return self:set_focus(nil, value)
 end
 
 ---@param x any value in screen coordinates
@@ -1746,6 +1752,7 @@ end
 
 function Camera:detach()
     self.controller_x:draw()
+    self.controller_y:draw()
     love_pop()
     return love_set_scissor()
 end
