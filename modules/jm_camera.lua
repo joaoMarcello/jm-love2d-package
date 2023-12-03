@@ -18,6 +18,9 @@ local sin, cos, atan2, sqrt, abs = math.sin, math.cos, math.atan2, math.sqrt, ma
 local mfloor, mceil = math.floor, math.ceil
 local m_min, m_max = math.min, math.max
 
+---@type JM.Camera.Controller
+local Controller = require((...):gsub("jm_camera", "cam_controllers.controller"))
+
 -- local function round(value)
 --     local absolute = abs(value)
 --     local decimal = absolute - mfloor(absolute)
@@ -836,6 +839,9 @@ function Camera:__constructor__(
     self.zoom_rad = 0
 
     self.is_visible = true
+
+    self.controller_x = Controller:new(self, "x")
+    self.controller_y = Controller:new(self, "y")
 end
 
 -- function Camera:set_device_screen(w, h)
@@ -1029,6 +1035,9 @@ function Camera:world_to_screen(x, y)
 end
 
 function Camera:follow(x, y, name)
+    self.controller_x:set_target(x, y)
+    self.controller_y:set_target(x, y)
+
     if not self.target then self.target = {} end
 
     x = x - self.focus_x / self.scale
@@ -1656,10 +1665,10 @@ function Camera:update(dt)
         self:custom_update(dt)
     end
 
-    if self.target then
-        local r = self.movement_x and self.movement_x(self, dt)
-        r = self.movement_y and self.movement_y(self, dt)
-    end
+    -- if self.target then
+    --     local r = self.movement_x and self.movement_x(self, dt)
+    --     r = self.movement_y and self.movement_y(self, dt)
+    -- end
 
     -- if self.is_shaking then
     shake_update(self, dt)
@@ -1695,6 +1704,9 @@ function Camera:update(dt)
 
     -- --===================================
     self:keep_on_bounds()
+
+    self.controller_x:update(dt)
+    self.controller_y:update(dt)
 
     self.dx = self.x - last_x
     self.dy = self.y - last_y
@@ -1733,6 +1745,7 @@ function Camera:attach(lock_shake, subpixel)
 end
 
 function Camera:detach()
+    self.controller_x:draw()
     love_pop()
     return love_set_scissor()
 end
