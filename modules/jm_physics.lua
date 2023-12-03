@@ -194,81 +194,97 @@ local default_filter = function(body, item)
     return true
 end
 
----@param kbody JM.Physics.Body
-local function kinematic_moves_dynamic_x(kbody, goalx)
-    -- local col = kbody:check2(goalx, nil,
-    --     dynamic_filter,
-    --     nil, kbody.y - 1, nil, kbody.h + 2
-    -- )
+---@param item JM.Physics.Collide
+local collision_filter = function(obj, item)
+    local tp = item.type
+    return tp == BodyTypes.static or tp == BodyTypes.kinematic
+end
 
-    -- if col.n > 0 then
-    --     for i = 1, col.n do
-    --         local bd
+---@param self JM.Physics.Body
+local function kinematic_moves_dynamic_x(self, goalx)
+    local list = self.world:get_items_in_cell_obj(self.x - 2, self.y - 1, self.w + 4, self.h + 2,
+        self.empty_table())
 
-    --         ---@type JM.Physics.Body
-    --         bd = col.items[i]
+    local diff = (goalx - self.x)
 
-    --         bd:refresh(bd.x + col.diff_x)
+    if list then
+        for item, _ in next, list do
+            ---@type JM.Physics.Collide
+            item = item
 
-    --         local col_bd
+            if item ~= self and not item.__remove
+                and (item.type == BodyTypes.dynamic
+                    or item.type == BodyTypes.kinematic)
+                and not item.is_stucked
+                and item.is_enabled
+            then
+                if collision_rect(goalx, self.y, self.w, self.h, item.x, item.y, item.w, item.h) then
+                    local dist1 = abs(item:right() - self.x)
+                    local dist2 = abs(item.x - self:right())
 
-    --         col_bd = bd:check(nil, nil, collision_x_filter)
+                    if dist2 < dist1 then
+                        if diff > 0 or item.speed_x < 0 then
+                            item:refresh(goalx + self.w + 0.1)
+                        end
+                    else
+                        if diff < 0 or item.speed_x > 0 then
+                            item:refresh(goalx - item.w - 0.1)
+                        end
+                    end
 
-    --         if col_bd.n > 0 then
-    --             if col.diff_x < 0 then
-    --                 bd:refresh(col_bd.right + 0.1)
-    --             else
-    --                 bd:refresh(col_bd.left - bd.w - 0.1)
-    --             end
+                    local col = item:check(nil, nil, collision_filter, empty_table(), empty_table_for_coll())
 
-    --             local col_f = bd:check(nil, nil, collision_x_filter)
+                    if col.n > 0 then
+                        item.is_stucked = true
+                    end
+                end
 
-    --             -- bd.is_stucked = nn > 0
-    --             -- bd.is_stucked = true
-    --         end
+                if collision_rect(goalx, self.y - 1, self.w, self.h, item.x, item.y, item.w, item.h) then
+                    local col = item:check(item.x + diff, nil, collision_x_filter, empty_table(), empty_table_for_coll())
 
-    --         bd, col_bd = nil, nil
-    --     end
-    -- end
+                    if col.n > 0 then
+                        item:resolve_collisions_x(col)
+                    else
+                        item:refresh(item.x + diff)
+                    end
+                end
+            end
+        end
+    end
 end
 
 ---@param kbody JM.Physics.Body
 local function kinematic_moves_dynamic_y(kbody, goaly, off)
     local off = off or 0 --kbody.world.tile / 4
-    local diff = (kbody.y - goaly)
+    local diff = (goaly - kbody.y)
 
-    if diff > 0 then
-        diff = abs(diff)
-        local col = kbody:check(nil, goaly - off - diff, dynamic_filter, empty_table(), empty_table_for_coll())
+    local list = kbody.world:get_items_in_cell_obj(kbody.x - 1, kbody.y - 2, kbody.w + 2, kbody.h + 4,
+        kbody.empty_table())
 
-        if col.n > 0 then
-            for i = 1, col.n do
-                ---@type JM.Physics.Collide
-                local item = col.items[i]
+    if list then
+        for item, _ in next, list do
+            ---@type JM.Physics.Collide
+            item = item
 
-                if item.speed_y >= 0 or true then
-                    item:refresh(nil, kbody.y - item.h - 0.1)
+            if item ~= kbody and not item.__remove
+                and (item.type == BodyTypes.dynamic
+                    or item.type == BodyTypes.kinematic)
+                and not item.is_stucked
+                and item.is_enabled
+                and collision_rect(kbody.x, kbody.y - 1, kbody.w, kbody.h + 2, item.x, item.y - 1, item.w, item.h + 2)
+            then
+                local dist1 = abs(kbody.y - (item.y + item.h))
+                local dist2 = abs((kbody.y + kbody.h) - item.y)
+
+                if dist1 < dist2 then
+                    item:refresh(nil, goaly - item.h - 0.1)
+                else
+                    if diff > 0 then
+                        item:refresh(nil, goaly + kbody.h + 1)
+                    end
                 end
             end
         end
-        return col
-    elseif diff < 0 then
-        diff = abs(diff)
-        local col = kbody:check(nil, goaly + off + diff, dynamic_filter, empty_table(), empty_table_for_coll())
-
-        if col.n > 0 then
-            local bottom = kbody:bottom()
-
-            for i = 1, col.n do
-                ---@type JM.Physics.Collide
-                local item = col.items[i]
-
-                if item.y >= bottom then
-                    item:refresh(nil, goaly + kbody.h + 0.1)
-                end
-            end
-        end
-        return col
     end
 end
 
@@ -291,6 +307,7 @@ local Body = {
     empty_table = empty_table,
     empty_table_for_coll = empty_table_for_coll,
     kinematic_moves_dynamic_y = kinematic_moves_dynamic_y,
+    kinematic_moves_dynamic_x = kinematic_moves_dynamic_x,
     default_coef_resis_y = 0.08,
     default_coef_resis_x = 0.5,
 }
@@ -1236,7 +1253,10 @@ do
                         obj.ground = nil
                         obj.ceil = nil
 
-                        if is_kinematic(obj) then
+                        if is_kinematic(obj)
+                        -- and obj.speed_y ~= 0.0
+                        -- and obj.acc_y ~= 0
+                        then
                             kinematic_moves_dynamic_y(obj, goaly)
                         end
 
@@ -1858,7 +1878,12 @@ do
     ---@param obj JM.Physics.Body
     function World:add(obj)
         if obj.type ~= BodyTypes.static then
-            table_insert(self.bodies, obj)
+            if obj.type == BodyTypes.kinematic then
+                table_insert(self.bodies, 1, obj)
+            else
+                table_insert(self.bodies, obj)
+            end
+
             self.bodies_number = self.bodies_number + 1
 
             if obj.type == BodyTypes.only_fall then
