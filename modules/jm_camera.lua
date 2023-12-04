@@ -441,8 +441,8 @@ local function show_focus(self)
         2
     )
     --=============================================================
-
-    if self.target then
+    local target = self.controller_x.target
+    if target then
         self.debug_trgt_rad = self.debug_trgt_rad + (math.pi * 2) / 0.3 * love.timer.getDelta()
 
         if self:target_on_focus() then
@@ -455,8 +455,8 @@ local function show_focus(self)
 
         -- local px, py = self:world_to_screen(self.target.x or self.target.last_x, self.target.y or self.target.last_y)
 
-        local px = self.target.x or self.target.last_x
-        local py = self.target.y or self.target.last_y
+        local px = target.x or target.last_x
+        local py = target.y or target.last_y
 
         px = px + foc_x
         py = py + foc_y
@@ -728,8 +728,8 @@ function Camera:__constructor__(
 
     self.angle = 0
 
-    ---@type JM.Camera.Target
-    self.target = nil
+    -- ---@type JM.Camera.Target
+    -- self.target = nil
 
     self.focus_x = 0
     self.focus_y = 0
@@ -816,26 +816,10 @@ function Camera:__constructor__(
     self.catch_target_x = nil
     self.catch_target_y = nil
 
-    -- self.canvas = love.graphics.newCanvas(
-    --     self.viewport_w / self.desired_scale * (1 / self.min_zoom),
-    --     self.viewport_h / self.desired_scale * (1 / self.min_zoom)
-    -- )
-    -- self.canvas:setFilter("linear", "nearest")
-
     self.zoom_rad = 0
 
     self.is_visible = true
 end
-
--- function Camera:set_device_screen(w, h)
---     w = w or self.device_width
---     h = h or self.device_height
-
---     if w ~= self.device_width or h ~= self.device_height then
---         self.device_width = w
---         self.device_height = h
---     end
--- end
 
 function Camera:get_color()
     return self.color_r, self.color_g, self.color_b, self.color_a
@@ -1112,16 +1096,16 @@ function Camera:jump_to(x, y)
     )
 end
 
---- TODO
-function Camera:look_at(x, y)
-    if self.target then
-        self.target.x = x
-        self.target.y = y
-        self.target.last_x = x
-        self.target.last_y = y
-    end
-    self:follow(x, y)
-end
+-- --- TODO
+-- function Camera:look_at(x, y)
+--     if self.target then
+--         self.target.x = x
+--         self.target.y = y
+--         self.target.last_x = x
+--         self.target.last_y = y
+--     end
+--     self:follow(x, y)
+-- end
 
 function Camera:move(dx, dy)
     self:set_position(
