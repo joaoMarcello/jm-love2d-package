@@ -283,29 +283,29 @@ function Controller:__constructor__(camera, axis, delay, type)
 
     self.axis = axis or "x"
 
-    self.focus_1 = 0.45
+    self.focus_1 = 0.5
     self.focus_2 = 1 - self.focus_1
 
     self.delay = delay or 0.0
     self.speed = 10
     self.type = type or Types.normal
 
-    if self.axis == "y" then
-        self.focus_1 = 0.25
-        self.focus_2 = 0.5
-        -- self.delay = 0.9
-    else
-        -- self.type = Types.dynamic
-        self.delay = 0.5
-    end
+    -- if self.axis == "y" then
+    --     self.focus_1 = 0.25
+    --     self.focus_2 = 0.5
+    --     -- self.delay = 0.9
+    -- else
+    --     -- self.type = Types.dynamic
+    --     -- self.delay = 0.5
+    -- end
     self.delay = math.abs(self.delay)
 
-    if self.type == Types.dynamic then
-        camera["set_focus_" .. self.axis](camera,
-            (self.axis == "x" and camera.viewport_w
-                or camera.viewport_h) * self.focus_1
-        )
-    end
+    -- if self.type == Types.dynamic then
+    --     camera["set_focus_" .. self.axis](camera,
+    --         (self.axis == "x" and camera.viewport_w
+    --             or camera.viewport_h) * self.focus_1
+    --     )
+    -- end
 
     self.targ_dir = nil
 
@@ -442,8 +442,8 @@ end
 
 function Controller:draw()
     if self.target and self.axis == 'x' then
-        love.graphics.setColor(0, 1, 0)
-        love.graphics.circle("fill", self.target.rx, self.target.ry, 3)
+        -- love.graphics.setColor(0, 1, 0)
+        -- love.graphics.circle("fill", self.target.rx, self.target.ry, 3)
 
         local cam = self.camera
         local print = love.graphics.print
