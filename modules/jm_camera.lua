@@ -777,24 +777,28 @@ function Camera:set_type(s)
     if s == "super mario world" or s == TYPES.SuperMarioWorld then
         cx.focus_1 = 0.45
         cx.focus_2 = 1 - cx.focus_1
+        cx.type = Controller.Type.dynamic
 
-        cx.type = cx.Type.dynamic
+        cy.type = Controller.Type.chase_when_not_moving
+        cy.focus_1 = 0.6
+        cy.focus_2 = 0.6
+        cy.delay = 0.25
 
-        return self:set_focus_x(self.viewport_w * cx.focus_1)
+        return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_2)
     elseif s == "metroid" or s == TYPES.Metroid then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
-        cx.type = cx.Type.normal
+        cx.type = Controller.Type.normal
 
         cy.focus_1 = 0.5
         cy.focus_2 = 0.5
-        cy.type = cx.Type.normal
+        cy.type = Controller.Type.normal
 
         return self:set_focus(self.viewport_w * cx.focus_1)
     elseif s == "metroidvania" or s == TYPES.Metroidvania then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
-        cx.type = cx.Type.normal
+        cx.type = Controller.Type.normal
 
         cy.focus_1 = 0.5
         cy.focus_2 = 0.8
@@ -804,11 +808,11 @@ function Camera:set_type(s)
     elseif s == "modern metroidvania" or s == TYPES.ModernMetroidVania then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
-        cx.type = cx.Type.normal
+        cx.type = Controller.Type.normal
 
         cy.focus_1 = 0.5
         cy.focus_2 = 0.5
-        cy.type = cx.Type.normal
+        cy.type = Controller.Type.normal
         cy.delay = 0.5
         ---
     end
