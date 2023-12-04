@@ -1039,78 +1039,6 @@ end
 function Camera:follow(x, y, name)
     self.controller_x:set_target(x, y)
     self.controller_y:set_target(x, y)
-
-    if not self.target then self.target = {} end
-
-    x = x - self.focus_x / self.scale
-    y = y - self.focus_y / self.scale
-
-    x = round(x)
-    y = round(y)
-
-    self.target.last_name = self.target.name or name
-    self.target.name = name or ""
-
-    if self.target.name ~= self.target.last_name then
-        self.target.x = nil
-        self.target.y = nil
-        self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
-        self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
-    end
-
-    self.target.last_x = self.target.x or x
-    self.target.last_y = self.target.y or y
-
-    self.target.x = x
-    self.target.y = y
-
-    self.target.range_x = x - self.target.last_x
-    self.target.range_y = y - self.target.last_y
-
-    self.target.last_direction_x = self.target.direction_x ~= 0
-        and self.target.direction_x
-        or self.target.last_direction_x or 1
-    self.target.last_direction_y = self.target.direction_y ~= 0
-        and self.target.direction_y
-        or self.target.last_direction_y or 1
-
-    self.target.direction_x = (self.target.range_x > 0 and 1)
-        or (self.target.range_x < 0 and -1)
-        or 0
-    self.target.direction_y = (self.target.range_y > 0 and 1)
-        or (self.target.range_y < 0 and -1)
-        or 0
-
-    local target_distance_x = self.target.x - self.x
-    local target_distance_y = self.target.y - self.y
-
-    self.target.distance = sqrt(
-        target_distance_x ^ 2 + target_distance_y ^ 2
-    )
-
-    -- if (self:target_on_focus())
-    --     and abs(target.distance) > self.tile_size * 2
-    -- then
-    --     -- target.range_x = 0
-    --     -- target.range_y = 0
-    --     -- target_distance_y = 0
-    --     -- target_distance_x = 0
-    --     -- target.last_y = nil
-    --     -- target.last_x = nil
-    --     -- target.distance = 0
-    -- end
-
-    self.target.angle_x = atan2(
-        target_distance_y,
-        target_distance_x
-    )
-
-    self.target.angle_y = atan2(
-        target_distance_y,
-        target_distance_x
-    )
-
-    return self.target
 end
 
 function Camera:target_on_focus()
@@ -1563,53 +1491,67 @@ function Camera:scissor_transform(x, y, w, h, subpixel)
 end
 
 function Camera:get_state()
-    local left, top, right, bottom, px, py, text
+    if not self.controller_x.target then
+        return "no target"
+    else
+        local target = self.controller_x.target
 
-    left, top = self:screen_to_world(self.bounds_left, self.bounds_top)
-    right, bottom = self:screen_to_world(
-        self.bounds_right - (self.viewport_w) / self.scale,
-        self.bounds_bottom - (self.viewport_h) / self.scale
-    )
-    px, py = self:screen_to_world(self.x, self.y)
+        if self.x == target.x and self.y == target.y then
+            return "on target"
+        end
 
-    text = self:target_on_focus() and "on target" or "chasing"
+        local s = "chasing"
 
-    if not self:target_on_focus() then
-        text = self.lock_x and "x locked" or text
-        text = self.lock_y and "y locked" or text
-        text = (self.lock_x and self.lock_y) and "xy locked" or text
+        if self.x <= self.bounds_left
+            or self.x <= self.bounds_right - self.viewport_w / self.scale
+            or self.y <= self.bounds_top
+            or self.y <= self.bounds_bottom - self.viewport_h / self.scale
+        then
+            s = s .. " - blocked by"
+        end
+
+        if target.x ~= self.x then
+            if self.x <= self.bounds_left
+                and self.x >= self.bounds_right - self.viewport_w / self.scale
+            then
+                s = s .. " x axis"
+            elseif self.x <= self.bounds_left then
+                s = s .. " left"
+            elseif self.x <= self.bounds_right - self.viewport_w / self.scale then
+                s = s .. " right"
+            end
+        end
+
+        if target.y ~= self.y then
+            if self.y <= self.bounds_top
+                and self.y >= self.bounds_bottom - self.viewport_h / self.scale
+            then
+                if s:match("left") or s:match("right") or s:match("axis") then
+                    s = s .. " and y axis"
+                else
+                    s = s .. " y axis"
+                end
+            elseif self.y <= self.bounds_top then
+                if s:match("left") or s:match("right") or s:match("axis") then
+                    s = s .. " and top"
+                else
+                    s = s .. " top"
+                end
+            elseif self.y <= self.bounds_bottom - self.viewport_h / self.scale then
+                if s:match("left") or s:match("right") or s:match("axis") then
+                    s = s .. " and bottom"
+                else
+                    s = s .. " bottom"
+                end
+            end
+        end
+
+        if s:match("x axis") and s:match("y axis") then
+            return "out of bounds"
+        end
+
+        return s
     end
-
-    if px <= left or px >= right or py <= top or py >= bottom then
-        text = text .. " - blocked by "
-    end
-
-    if px <= left then text = text .. "left" end
-
-    if px >= right then
-        text = text .. (text:find("left") and "-" or "")
-        text = text .. "right"
-    end
-
-    if py <= top then
-        text = text .. ((text:find("left") or text:find("right")) and "-" or "")
-        text = text .. "top"
-    end
-
-    if py >= bottom then
-        text = text .. ((text:find("left") or text:find("right") or text:find("top")) and "-" or "")
-        text = text .. "bottom"
-    end
-
-    if py <= top and py >= bottom and px <= left and px >= right then
-        text = "out of bounds"
-    end
-
-    text = not self.target and "no target" or text
-
-    left, top, right, bottom, px, py = nil, nil, nil, nil, nil, nil
-
-    return text
 end
 
 function Camera:hit_border()
