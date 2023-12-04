@@ -330,9 +330,13 @@ function Controller:reset()
 end
 
 ---@param new_state JM.Camera.Controller.States
-function Controller:set_state(new_state)
-    if new_state == self.state then return false end
-    local last = self.state
+function Controller:set_state(new_state, force)
+    if (new_state == self.state and not force)
+        or not new_state
+    then
+        return false
+    end
+
     self.state = new_state
     local cam = self.camera
 
