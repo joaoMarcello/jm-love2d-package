@@ -653,6 +653,7 @@ local TYPES = {
     Zelda_GBC = 5,
     Metroidvania = 6,
     ModernMetroidVania = 7,
+    FollowBoss = 8,
 }
 
 ---@class JM.Camera.Camera
@@ -763,11 +764,11 @@ function Camera:__constructor__(
 
     self.is_visible = true
 
-    self.type = type_ or TYPES.SuperMarioWorld
+    self.type = type_ or TYPES.FollowBoss
     self:set_type(self.type)
 end
 
----@param s JM.Camera.Controller.Types|"super mario world"|"metroid"|
+---@param s JM.Camera.Controller.Types|"super mario world"|"metroid"|"metroidvania"|"modern metroidvania"|"follow boss"
 function Camera:set_type(s)
     if type(s) == "string" then s = string.lower(s) end
 
@@ -776,7 +777,9 @@ function Camera:set_type(s)
 
     if s == "super mario world" or s == TYPES.SuperMarioWorld then
         cx.focus_1 = 0.45
-        cx.focus_2 = 1 - cx.focus_1
+        cx.focus_2 = 1.0 - cx.focus_1
+        -- cx.focus_2 = 0.45
+        -- cx.focus_1 = 1.0 - cx.focus_2
         cx.type = Controller.Type.dynamic
 
         cy.type = Controller.Type.chase_when_not_moving
@@ -815,6 +818,14 @@ function Camera:set_type(s)
         cy.type = Controller.Type.normal
         cy.delay = 0.5
         ---
+    elseif s == "follow boss" or s == TYPES.FollowBoss then
+        cx.focus_2 = 0.45
+        cx.focus_1 = 1.0 - cx.focus_2
+        cx.type = Controller.Type.dynamic
+
+        cy.focus_2 = 0.45
+        cy.focus_1 = 0.55
+        cy.type = Controller.Type.dynamic
     end
     -- if s == "super mario world" or s == CAMERA_TYPES.SuperMarioWorld then
     --     self.type = CAMERA_TYPES.SuperMarioWorld
