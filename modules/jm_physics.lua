@@ -1017,8 +1017,7 @@ do
         local V = self:bottom() - water.y
         V = V > self.h and self.h or V
         V = V < 0 and 0 or V
-        -- V = (V / meter) * (self.w / meter) * ((self.w * 0.75) / meter)
-        V = (V / meter) * (self.w / meter) * (0.6 * 0.6)
+        V = (V / meter) * (self.w * 0.8 / meter) * (0.6 * 0.6)
 
         local d = 997 -- water.density or self.world.default_density
 
