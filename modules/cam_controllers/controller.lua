@@ -177,18 +177,18 @@ local function update_chasing(self, dt)
             local viewport = "viewport_" .. (axis == "x" and "w" or "h")
             local direction = "direction_" .. axis
 
-            if self.focus_1 <= self.focus_2 or true then
+            if self.focus_1 <= self.focus_2 then
                 if targ[direction] < 0 then
                     cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
                 elseif targ[direction] > 0 then
                     cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
                 end
             else
-                -- if targ[direction] < 0 and targ[axis] > cam[axis] then
-                --     cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
-                -- elseif targ[direction] >= 0 and targ[axis] < cam[axis] then
-                --     cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
-                -- end
+                if targ[direction] < 0 and targ[axis] > cam[axis] then
+                    cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
+                elseif targ[direction] >= 0 and targ[axis] < cam[axis] then
+                    cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
+                end
             end
 
             self.state = nil
