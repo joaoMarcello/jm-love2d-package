@@ -719,6 +719,9 @@ function Camera:__constructor__(
     ---@type JM.Scene
     self.scene = scene
 
+    self.controller_x = Controller:new(self, "x")
+    self.controller_y = Controller:new(self, "y")
+
     -- self.device_width = device_width or love.graphics.getWidth()
     -- self.device_height = device_height or love.graphics.getHeight()
 
@@ -841,9 +844,6 @@ function Camera:__constructor__(
     self.zoom_rad = 0
 
     self.is_visible = true
-
-    self.controller_x = Controller:new(self, "x")
-    self.controller_y = Controller:new(self, "y")
 end
 
 -- function Camera:set_device_screen(w, h)
@@ -1154,10 +1154,27 @@ end
 ---@param x any value in screen coordinates
 ---@param y any value in screen coordinates
 function Camera:set_focus(x, y)
-    x = x and round(x) or self.focus_x
-    y = y and round(y) or self.focus_y
+    local lfx, lfy = self.focus_x, self.focus_y
+
+    x = x and round(x) or lfx
+    y = y and round(y) or lfy
+
     self.focus_x = x
     self.focus_y = y
+
+    if self.focus_x ~= lfx then
+        local controller = self.controller_x
+        if controller.target then
+            controller:set_state(Controller.State.chasing, true)
+        end
+    end
+
+    if self.focus_y ~= lfy then
+        local controller = self.controller_y
+        if controller.target then
+            controller:set_state(Controller.State.chasing, true)
+        end
+    end
 end
 
 function Camera:set_position(x, y)
