@@ -102,6 +102,11 @@ local function update_chasing(self, dt)
         cam.x = cam.x + diff
         self.init_pos = self.init_pos + diff
         ---
+    elseif axis == "x" and targ.rx < vx then
+        local diff = targ.rx - vx
+        cam.x = cam.x + diff
+        self.init_pos = self.init_pos + diff
+        ---
     elseif axis == "y" and targ.ry > vy + vh then
         local diff = (targ.ry) - (vy + vh)
         cam.y = cam.y + diff
@@ -172,10 +177,18 @@ local function update_chasing(self, dt)
             local viewport = "viewport_" .. (axis == "x" and "w" or "h")
             local direction = "direction_" .. axis
 
-            if targ[direction] < 0 then
-                cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
+            if self.focus_1 < self.focus_2 then
+                if targ[direction] < 0 then
+                    cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
+                else
+                    cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
+                end
             else
-                cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
+                if targ[direction] < 0 and targ[axis] > self.init_pos then
+                    cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
+                elseif targ[direction] > 0 and targ[axis] < self.init_pos then
+                    cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
+                end
             end
 
             self.state = nil
@@ -360,15 +373,35 @@ function Controller:set_target(x, y)
     end
 end
 
+---@param new_type JM.Camera.Controller.Types|string|"normal"|"dynamic"|"chase_when_not_moving"
+function Controller:set_type(new_type)
+    if new_type == self.type or not new_type then return false end
+
+    if type(new_type) == "string" then
+        return self:set_type(Types[new_type:lower()])
+    end
+
+    self.type = new_type
+
+    local axis = self.axis
+    local set_focus = "set_focus_" .. axis
+    local cam = self.camera
+    local viewport = axis == "x" and "viewport_w" or "viewport_h"
+
+    cam[set_focus](cam, self.focus_1 * cam[viewport])
+
+    return true
+end
+
 function Controller:get_target_relative_position()
     local axis = self.axis
     local target_pos = self.target[axis]
     -- target_pos = target_pos + self.target["range_" .. axis]
     local cam_pos = self.camera[axis]
 
-    if target_pos >= cam_pos then
+    if target_pos > cam_pos then
         return 1
-    elseif target_pos <= cam_pos then
+    elseif target_pos < cam_pos then
         return -1
     else
         return 0
@@ -470,7 +503,7 @@ function Controller:update(dt)
 end
 
 function Controller:draw()
-    if self.target and self.axis == 'y' then
+    if self.target and self.axis == 'x' then
         -- love.graphics.setColor(0, 1, 0)
         -- love.graphics.circle("fill", self.target.rx, self.target.ry, 3)
 
