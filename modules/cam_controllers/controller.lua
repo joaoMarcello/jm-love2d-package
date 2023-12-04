@@ -92,6 +92,12 @@ local function update_chasing(self, dt)
 
     local vx, vy, vw, vh = cam:get_viewport_in_world_coord()
 
+    -- local last_pos       = cam[axis]
+
+    -- if axis == "x" then self.speed = 8 end
+
+    self.targ_dir        = self:get_target_relative_position()
+
     if self.time < 0 then
         self.time = self.time + dt
         if self.time > 0 then
@@ -103,6 +109,7 @@ local function update_chasing(self, dt)
         end
     end
 
+    -- Dont allow target run off the screen
     if axis == "x" and targ.rx > vx + vw then
         local diff = 0
         diff = (targ.rx) - (vx + vw)
@@ -116,16 +123,10 @@ local function update_chasing(self, dt)
 
     self.time = self.time + (math.pi) / self.speed * dt
 
-    if self.time < 0 then
-        cam[axis] = self.init_pos
-        return
-    end
-
     self.time = Utils:clamp(self.time, 0, math.pi)
 
     local mult = (1 - (1 + math.cos(self.time)) / 2)
     local diff = targ[axis] - self.init_pos
-
 
     cam[axis] = self.init_pos + diff * mult
 
@@ -145,7 +146,17 @@ local function update_chasing(self, dt)
             return self:set_state(States.chasing)
         end
         ---
-    elseif self.type == Types.normal then
+    elseif self.type == Types.normal and axis == "x" then
+        local dir = self:get_target_relative_position()
+
+        if (dir <= 0 and self.targ_dir >= 0)
+            or (dir >= 0 and self.targ_dir <= 0)
+        -- or dir == 0 or self.targ_dir == 0
+        then
+            self:set_state(States.on_target)
+        end
+
+
         -- if targ[axis] > self.init_pos and self.init_dir < 0 then
         --     self:set_state(States.on_target)
         -- end
@@ -172,7 +183,7 @@ local function update_chasing(self, dt)
     cam:keep_on_bounds()
 
     if (self.time == math.pi and self.target[axis] == cam[axis])
-    -- or targ[axis] == cam[axis]
+        or targ[axis] == cam[axis]
     then
         return self:set_state(States.on_target)
     end
@@ -182,8 +193,7 @@ end
 local function update_on_target(self, dt)
     local targ = self.target
     local type = self.type
-
-    if not targ then return end
+    local axis = self.axis
 
     if type == Types.dynamic then
         if self:target_changed_direction() then
@@ -191,14 +201,17 @@ local function update_on_target(self, dt)
         end
     elseif type == Types.normal then
         if self.delay ~= 0 then
-            if self:target_changed_direction() then
+            if self:target_changed_direction()
+                and not self:camera_hit_bounds()
+            then
                 self:set_state(States.chasing)
                 self.speed = 1.5
                 return
             end
         end
     end
-    self.camera[self.axis] = targ[self.axis]
+
+    self.camera[axis] = targ[axis]
     self.camera:keep_on_bounds()
 end
 
@@ -283,7 +296,7 @@ function Controller:__constructor__(camera, axis, delay, type)
         -- self.delay = 0.9
     else
         -- self.type = Types.dynamic
-        -- self.delay = 1
+        self.delay = 0.5
     end
     self.delay = math.abs(self.delay)
 
@@ -294,6 +307,7 @@ function Controller:__constructor__(camera, axis, delay, type)
         )
     end
 
+    self.targ_dir = nil
 
     self:set_state(States.no_target)
 end
@@ -302,9 +316,50 @@ function Controller:set_target(x, y)
     if not self.target then
         self.target = Target:new(x, y, self.camera)
         self:set_state(States.chasing)
+
+        local axis = self.axis
+
+        if self.target[axis] > self.camera[axis] then
+            self.targ_dir = 1
+        elseif self.target[axis] < self.camera[axis] then
+            self.targ_dir = -1
+        else
+            self.targ_dir = 0
+        end
     else
         self.target:refresh(x, y)
     end
+end
+
+function Controller:get_target_relative_position()
+    local axis = self.axis
+    local target_pos = self.target[axis]
+    -- target_pos = target_pos + self.target["range_" .. axis]
+    local cam_pos = self.camera[axis]
+
+    if target_pos >= cam_pos then
+        return 1
+    elseif target_pos <= cam_pos then
+        return -1
+    else
+        return 0
+    end
+end
+
+function Controller:camera_hit_bounds()
+    local axis = self.axis
+    local cam = self.camera
+    local is_x = axis == "x"
+    local lim_1 = is_x and "bounds_left" or "bounds_top"
+    local lim_2 = is_x and "bounds_right" or "bounds_bottom"
+    local viewport = is_x and "viewport_w" or "viewport_h"
+
+    if cam[axis] <= cam[lim_1]
+        or cam[axis] >= cam[lim_2] - cam[viewport] / cam.scale
+    then
+        return true
+    end
+    return false
 end
 
 function Controller:target_changed_direction()
@@ -353,7 +408,8 @@ function Controller:set_state(new_state, force)
         self.time = -self.delay
         self.speed = 1.5
     elseif new_state == States.on_target then
-        self.init_pos = cam[self.axis]
+        -- self.init_pos = cam[self.axis]
+        self.target:refresh(self.target.rx, self.target.ry)
     elseif new_state == States.no_target then
         -- self.target = nil
     elseif new_state == States.deadzone then
@@ -404,7 +460,10 @@ function Controller:draw()
         print("init_distx= " .. self.init_dist, cam.x + 10, cam.y + 124 + 16)
         print("cam_x= " .. cam.x, cam.x + 10, cam.y + 140 + 16)
         print("trgt_dx= " .. self.target.direction_x, cam.x + 10, cam.y + 156 + 16)
-        print("trgt_last_dx= " .. self.target.last_direction_x, cam.x + 10, cam.y + 172 + 16)
+        print(
+            "trgt_dir= " ..
+            (self.targ_dir and ((self.targ_dir == 1 and "right") or (self.targ_dir == -1 and "left") or (self.targ_dir == 0 and "on_focus")) or ""),
+            cam.x + 10, cam.y + 172 + 16)
     end
 
     local cam = self.camera
