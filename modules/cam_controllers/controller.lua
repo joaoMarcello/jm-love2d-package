@@ -27,8 +27,8 @@ do
         x = x - cam.focus_x / cam.scale
         y = y - cam.focus_y / cam.scale
 
-        -- x = JM.Utils:round(x)
-        -- y = JM.Utils:round(y)
+        x = JM.Utils:round(x)
+        y = JM.Utils:round(y)
 
         self.last_x = self.x or x
         self.last_y = self.y or y
@@ -177,18 +177,18 @@ local function update_chasing(self, dt)
             local viewport = "viewport_" .. (axis == "x" and "w" or "h")
             local direction = "direction_" .. axis
 
-            if self.focus_1 < self.focus_2 then
+            if self.focus_1 <= self.focus_2 or true then
                 if targ[direction] < 0 then
                     cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
-                else
+                elseif targ[direction] > 0 then
                     cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
                 end
             else
-                if targ[direction] < 0 and targ[axis] > self.init_pos then
-                    cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
-                elseif targ[direction] > 0 and targ[axis] < self.init_pos then
-                    cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
-                end
+                -- if targ[direction] < 0 and targ[axis] > cam[axis] then
+                --     cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_2)
+                -- elseif targ[direction] >= 0 and targ[axis] < cam[axis] then
+                --     cam["set_focus_" .. axis](cam, cam[viewport] * self.focus_1)
+                -- end
             end
 
             self.state = nil
@@ -205,15 +205,6 @@ local function update_chasing(self, dt)
         then
             self:set_state(States.on_target)
         end
-
-
-        -- if targ[axis] > self.init_pos and self.init_dir < 0 then
-        --     self:set_state(States.on_target)
-        -- end
-
-        -- if targ[axis] < self.init_pos and self.init_dir > 0 then
-        --     self:set_state(States.on_target)
-        -- end
     end
 
 
@@ -233,7 +224,7 @@ local function update_chasing(self, dt)
     cam:keep_on_bounds()
 
     if (self.time == math.pi and self.target[axis] == cam[axis])
-    -- or targ[axis] == cam[axis]
+        or targ[axis] == cam[axis]
     then
         return self:set_state(States.on_target)
     end
@@ -399,9 +390,9 @@ function Controller:get_target_relative_position()
     -- target_pos = target_pos + self.target["range_" .. axis]
     local cam_pos = self.camera[axis]
 
-    if target_pos > cam_pos then
+    if target_pos >= cam_pos then
         return 1
-    elseif target_pos < cam_pos then
+    elseif target_pos <= cam_pos then
         return -1
     else
         return 0
@@ -438,6 +429,13 @@ function Controller:target_changed_direction()
         end
     end
     return false
+end
+
+function Controller:is_on_target()
+    if not self.target then return false end
+    local axis = self.axis
+    local cam = self.camera
+    return cam[axis] == self.target[axis]
 end
 
 function Controller:reset()
@@ -503,6 +501,9 @@ function Controller:update(dt)
 end
 
 function Controller:draw()
+    do
+        return
+    end
     if self.target and self.axis == 'x' then
         -- love.graphics.setColor(0, 1, 0)
         -- love.graphics.circle("fill", self.target.rx, self.target.ry, 3)
@@ -531,6 +532,9 @@ function Controller:draw()
 
     local cam = self.camera
     local lgx = love.graphics
+    do
+        return
+    end
     if self.axis == "x" then
         lgx.setColor(0, 1, 1, 0.6)
         local px = cam.x + (cam.viewport_w / cam.scale) * self.focus_1
