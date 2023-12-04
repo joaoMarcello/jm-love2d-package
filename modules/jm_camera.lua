@@ -764,7 +764,7 @@ function Camera:__constructor__(
 
     self.is_visible = true
 
-    self.type = type_ or TYPES.FollowBoss
+    self.type = type_ or TYPES.SuperMarioWorld
     self:set_type(self.type)
 end
 
@@ -775,17 +775,15 @@ function Camera:set_type(s)
     local cx = self.controller_x
     local cy = self.controller_y
 
-    if s == "super mario world" or s == TYPES.SuperMarioWorld then
+    if s == "super mario world" or s == TYPES.SuperMarioWorld or true then
         cx.focus_1 = 0.45
         cx.focus_2 = 1.0 - cx.focus_1
-        -- cx.focus_2 = 0.45
-        -- cx.focus_1 = 1.0 - cx.focus_2
         cx.type = Controller.Type.dynamic
 
-        cy.type = Controller.Type.chase_when_not_moving
-        cy.focus_1 = 0.6
-        cy.focus_2 = 0.6
-        cy.delay = 0.25
+        -- cy.type = Controller.Type.chase_when_not_moving
+        -- cy.focus_1 = 0.6
+        -- cy.focus_2 = 0.6
+        -- cy.delay = 0.25
 
         return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_2)
     elseif s == "metroid" or s == TYPES.Metroid then
@@ -824,7 +822,7 @@ function Camera:set_type(s)
         cx.type = Controller.Type.dynamic
 
         cy.focus_2 = 0.45
-        cy.focus_1 = 0.55
+        cy.focus_1 = 1 - cy.focus_2
         cy.type = Controller.Type.dynamic
     end
     -- if s == "super mario world" or s == CAMERA_TYPES.SuperMarioWorld then
