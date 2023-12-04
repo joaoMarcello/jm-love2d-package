@@ -231,7 +231,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
             --
             --
             scale = conf.cam_scale or 1,
-            type = "metroid",
+            type = conf.cam_type,
             --
             --
             show_grid = conf.cam_show_grid or false,
