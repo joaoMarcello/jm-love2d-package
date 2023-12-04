@@ -487,7 +487,7 @@ local function show_focus(self)
         love_set_color(1, 1, 1, 0.6)
     end
 
-    if self.use_deadzone or true then
+    if true then
         -- Left-Top Corner
         love_rect("fill",
             vx + foc_x - self.deadzone_w / 2,
@@ -644,29 +644,24 @@ local function shake_update(self, dt)
 end
 
 ---@enum JM.Camera.Type
-local CAMERA_TYPES = {
+local TYPES = {
     Free = 0,
     SuperMarioWorld = 1,
     Metroid = 2,
     SuperMarioBros = 3,
     Zelda_ALTTP = 4,
     Zelda_GBC = 5,
-    Metroidvania = 6
+    Metroidvania = 6,
+    ModernMetroidVania = 7,
 }
 
 ---@class JM.Camera.Camera
 local Camera = {
     Controller = Controller,
+    Types = TYPES,
 }
 Camera.__index = Camera
 
--- Camera.MoveTypes = {
---     chase_y_when_not_moving = chase_y_when_not_moving,
---     dynamic_y_offset = dynamic_y_offset,
---     dynamic_x_offset = dynamic_x_offset,
---     chase_target_x = chase_target_x,
---     chase_target_y = chase_target_y,
--- }
 
 ---@param self JM.Camera.Camera
 ---@return JM.Camera.Camera
@@ -686,8 +681,6 @@ function Camera:new(args)
     return obj
 end
 
----@alias JM.Camera.Target  {x:number, y:number, angle_x:number, angle_y:number, distance:number, range_x:number, range_y:number, last_x:number, last_y:number, direction_x:number, direction_y:number, last_direction_x:number, last_direction_y:number, last_name:any, name:any}
-
 function Camera:__constructor__(
     x, y, w, h, bounds,
     device_width, device_height, desired_canvas_w, desired_canvas_h,
@@ -700,14 +693,7 @@ function Camera:__constructor__(
     ---@type JM.Scene
     self.scene = scene
 
-    self.controller_x = Controller:new(self, "x")
-    self.controller_y = Controller:new(self, "y")
 
-    -- self.device_width = device_width or love.graphics.getWidth()
-    -- self.device_height = device_height or love.graphics.getHeight()
-
-    -- self.desired_canvas_w = desired_canvas_w or device_width  --self.device_width
-    -- self.desired_canvas_h = desired_canvas_h or device_height --self.device_height
 
     self.scale = scale or 1.0
 
@@ -728,8 +714,8 @@ function Camera:__constructor__(
 
     self.angle = 0
 
-    -- ---@type JM.Camera.Target
-    -- self.target = nil
+    self.controller_x = Controller:new(self, "x")
+    self.controller_y = Controller:new(self, "y")
 
     self.focus_x = 0
     self.focus_y = 0
@@ -745,22 +731,6 @@ function Camera:__constructor__(
     self.bounds_bottom = bounds and bounds.bottom or self.viewport_h / self.scale
     self:set_bounds()
 
-    self.acc_x = self.tile_size * 13
-    self.acc_y = self.acc_x
-
-    ---@type number|boolean
-    self.follow_speed_x = (self.tile_size * 8)
-    self.follow_speed_y = (self.tile_size * 8)
-
-    ---@type number|boolean
-    self.max_speed_x = false --sqrt(2 * self.acc_x * self.tile_size * 5)
-    self.max_speed_y = false --sqrt(2 * self.acc_y * self.tile_size * 5)
-
-
-    -- when delay equals 1, there's no delay
-    self.delay_x = 1
-    self.delay_y = 1
-
     self.lock_x = false
     self.lock_y = false
 
@@ -770,40 +740,16 @@ function Camera:__constructor__(
     self.color_b = color and color[3] or 0.9
     self.color_a = color and color[4] or 1
 
-    -- Configuration variables
-    self.desired_top_focus = nil
-    self.desired_bottom_focus = nil
-    self.desired_left_focus = nil
-    self.desired_right_focus = nil
 
-    self.constant_speed_x = nil
-    self.constant_speed_y = nil
 
-    self.invert_dynamic_focus_x = nil
-    self.invert_dynamic_focus_y = nil
-
-    self.use_deadzone = true
-
-    self.default_initial_speed_x = self.tile_size * 0 -- (in pixels per second)
-    self.default_initial_speed_y = self.default_initial_speed_x
-
-    self.infinity_chase_x = false
-    self.infinity_chase_y = false
-    -- End configuration variables
-
-    self.type = type_ or CAMERA_TYPES.SuperMarioWorld
-    self:set_type(self.type)
-
-    self.debug = false
+    self.debug = nil
     self.debug_msg_rad = 0
     self.debug_trgt_rad = 0
-    self.debug_color = {}
-
 
     self.show_world_boundary = show_world_bounds or self.debug
     self.show_focus = false or self.debug
     self.border_color = border_color --or { 1, 0, 0, 1 }
-    self.is_showing_grid = self.debug or false
+    self.is_showing_grid = self.debug or nil
     self.grid_desired_tile = self.tile_size * 1
     self.grid_num_tile = 4
 
@@ -813,75 +759,59 @@ function Camera:__constructor__(
     self.min_zoom = min_zoom or 0.5
     self.max_zoom = max_zoom or 1.5
 
-    self.catch_target_x = nil
-    self.catch_target_y = nil
-
     self.zoom_rad = 0
 
     self.is_visible = true
+
+    self.type = type_ or TYPES.SuperMarioWorld
+    self:set_type(self.type)
 end
 
-function Camera:get_color()
-    return self.color_r, self.color_g, self.color_b, self.color_a
-end
-
-function Camera:set_color(r, g, b, a)
-    if not r then
-        self.color = false
-        return
-    end
-    self.color = true
-    self.color_r = r or self.color_r
-    self.color_g = g or self.color_g
-    self.color_b = b or self.color_b
-    self.color_a = a or self.color_a
-end
-
-function Camera:set_background_color(r, g, b, a)
-    self.color = true
-    self.color_r = r or 0.5
-    self.color_g = g or 0
-    self.color_b = b or 0
-    self.color_a = a or 1
-end
-
----@param self JM.Camera.Camera
-local function dynamic_zoom_update(self, dt)
-    if not self.on_dynimac_zoom then return end
-
-    local r = self:get_state():match("blocked") and self.zoom_final < 1
-    if self.scale == self.zoom_final or r then
-        self.on_dynimac_zoom = false
-        return
-    end
-
-    self.scale = self.scale + (self.zoom_speed * dt) + self.zoom_acc * dt * dt / 2.0
-    self.zoom_speed = self.zoom_speed + self.zoom_acc * dt
-
-    if self.zoom_acc < 0 or self.zoom_speed < 0 then
-        self.scale = clamp(self.scale, self.zoom_final, self.max_zoom)
-    else
-        self.scale = clamp(self.scale, self.min_zoom, self.zoom_final)
-    end
-    self:set_bounds()
-end
-
-function Camera:set_scale_dynamic(scale, duration, speed)
-    assert(scale and scale ~= 0, ">> Error: Scale cannot be nil or zero!")
-    duration = duration or 1.0
-
-    self.zoom_final = clamp(scale, self.min_zoom, self.max_zoom)
-
-    local direction = (self.scale > self.zoom_final and -1 or 1)
-    self.zoom_speed = speed and (speed * direction) or 0
-    self.zoom_acc = not speed and math.abs(self.scale - self.zoom_final) / duration or 0
-    self.zoom_acc = self.zoom_acc * direction
-    self.on_dynimac_zoom = true
-end
-
+---@param s JM.Camera.Controller.Types|"super mario world"|"metroid"|
 function Camera:set_type(s)
     if type(s) == "string" then s = string.lower(s) end
 
+    local cx = self.controller_x
+    local cy = self.controller_y
+
+    if s == "super mario world" or s == TYPES.SuperMarioWorld then
+        cx.focus_1 = 0.45
+        cx.focus_2 = 1 - cx.focus_1
+
+        cx.type = cx.Type.dynamic
+
+        return self:set_focus_x(self.viewport_w * cx.focus_1)
+    elseif s == "metroid" or s == TYPES.Metroid then
+        cx.focus_1 = 0.5
+        cx.focus_2 = 0.5
+        cx.type = cx.Type.normal
+
+        cy.focus_1 = 0.5
+        cy.focus_2 = 0.5
+        cy.type = cx.Type.normal
+
+        return self:set_focus(self.viewport_w * cx.focus_1)
+    elseif s == "metroidvania" or s == TYPES.Metroidvania then
+        cx.focus_1 = 0.5
+        cx.focus_2 = 0.5
+        cx.type = cx.Type.normal
+
+        cy.focus_1 = 0.5
+        cy.focus_2 = 0.8
+        cy.type = Controller.Type.dynamic
+
+        return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_1)
+    elseif s == "modern metroidvania" or s == TYPES.ModernMetroidVania then
+        cx.focus_1 = 0.5
+        cx.focus_2 = 0.5
+        cx.type = cx.Type.normal
+
+        cy.focus_1 = 0.5
+        cy.focus_2 = 0.5
+        cy.type = cx.Type.normal
+        cy.delay = 0.5
+        ---
+    end
     -- if s == "super mario world" or s == CAMERA_TYPES.SuperMarioWorld then
     --     self.type = CAMERA_TYPES.SuperMarioWorld
 
@@ -941,6 +871,64 @@ function Camera:set_type(s)
     --     -- self.acc_x = 32 * 5
     --     self:set_focus_y(self.desired_top_focus)
     -- end
+end
+
+function Camera:get_color()
+    return self.color_r, self.color_g, self.color_b, self.color_a
+end
+
+function Camera:set_color(r, g, b, a)
+    if not r then
+        self.color = false
+        return
+    end
+    self.color = true
+    self.color_r = r or self.color_r
+    self.color_g = g or self.color_g
+    self.color_b = b or self.color_b
+    self.color_a = a or self.color_a
+end
+
+function Camera:set_background_color(r, g, b, a)
+    self.color = true
+    self.color_r = r or 0.5
+    self.color_g = g or 0
+    self.color_b = b or 0
+    self.color_a = a or 1
+end
+
+---@param self JM.Camera.Camera
+local function dynamic_zoom_update(self, dt)
+    if not self.on_dynimac_zoom then return end
+
+    local r = self:get_state():match("blocked") and self.zoom_final < 1
+    if self.scale == self.zoom_final or r then
+        self.on_dynimac_zoom = false
+        return
+    end
+
+    self.scale = self.scale + (self.zoom_speed * dt) + self.zoom_acc * dt * dt / 2.0
+    self.zoom_speed = self.zoom_speed + self.zoom_acc * dt
+
+    if self.zoom_acc < 0 or self.zoom_speed < 0 then
+        self.scale = clamp(self.scale, self.zoom_final, self.max_zoom)
+    else
+        self.scale = clamp(self.scale, self.min_zoom, self.zoom_final)
+    end
+    self:set_bounds()
+end
+
+function Camera:set_scale_dynamic(scale, duration, speed)
+    assert(scale and scale ~= 0, ">> Error: Scale cannot be nil or zero!")
+    duration = duration or 1.0
+
+    self.zoom_final = clamp(scale, self.min_zoom, self.max_zoom)
+
+    local direction = (self.scale > self.zoom_final and -1 or 1)
+    self.zoom_speed = speed and (speed * direction) or 0
+    self.zoom_acc = not speed and math.abs(self.scale - self.zoom_final) / duration or 0
+    self.zoom_acc = self.zoom_acc * direction
+    self.on_dynimac_zoom = true
 end
 
 function Camera:set_viewport(x, y, w, h)
@@ -1034,14 +1022,14 @@ function Camera:set_focus(x, y)
 
     if self.focus_x ~= lfx then
         local controller = self.controller_x
-        if controller.target then
+        if controller and controller.target then
             controller:set_state(Controller.State.chasing, true)
         end
     end
 
     if self.focus_y ~= lfy then
         local controller = self.controller_y
-        if controller.target then
+        if controller and controller.target then
             controller:set_state(Controller.State.chasing, true)
         end
     end
