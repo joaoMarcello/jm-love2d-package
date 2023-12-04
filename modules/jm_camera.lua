@@ -14,23 +14,12 @@ local love_clear = lgx.clear
 -- local love_draw = lgx.draw
 local love_rect = lgx.rectangle
 local love_line = lgx.line
-local sin, cos, atan2, sqrt, abs = math.sin, math.cos, math.atan2, math.sqrt, math.abs
+local sin, cos, sqrt, abs = math.sin, math.cos, math.sqrt, math.abs
 local mfloor, mceil = math.floor, math.ceil
 local m_min, m_max = math.min, math.max
 
 ---@type JM.Camera.Controller
 local Controller = require((...):gsub("jm_camera", "cam_controllers.controller"))
-
--- local function round(value)
---     local absolute = abs(value)
---     local decimal = absolute - mfloor(absolute)
-
---     if decimal >= 0.5 then
---         return value > 0 and mceil(value) or mfloor(value)
---     else
---         return value > 0 and mfloor(value) or mceil(value)
---     end
--- end
 
 -- the round function from lua programming book
 local function round(x)
@@ -1048,12 +1037,6 @@ function Camera:target_on_focus()
     return target.x == self.x and target.y == self.y
 end
 
--- function Camera:target_on_focus_x()
---     if not self.target then return false end
---     if not self.target.x then return false end
---     return self.x == round(self.target.x)
--- end
-
 function Camera:set_focus_x(value)
     return self:set_focus(value, nil)
 end
@@ -1212,24 +1195,6 @@ end
 function Camera:point_is_on_screen(x, y)
     return self:rect_is_on_view(x, y)
 end
-
--- function Camera:rect_is_on_screen(left, right, top, bottom)
---     local left, top = self:screen_to_world(left, top)
---     local right, bottom = self:screen_to_world(right, bottom)
-
---     local cLeft, ctop = self:screen_to_world(self.x, self.y)
---     local cright, cbottom = self:screen_to_world(
---         self.x + (self.viewport_w / self.scale),
---         self.y + self.viewport_h / self.scale
---     )
-
---     return (right >= cLeft and left <= cright)
---         and (bottom >= ctop and top <= cbottom)
--- end
-
--- function Camera:point_is_on_screen(x, y)
---     return self:rect_is_on_screen(x, x, y, y)
--- end
 
 function Camera:is_locked_in_x()
     return self.lock_x
