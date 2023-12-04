@@ -92,11 +92,61 @@ local function update_chasing(self, dt)
 
     local vx, vy, vw, vh = cam:get_viewport_in_world_coord()
 
-    -- local last_pos       = cam[axis]
-
     -- if axis == "x" then self.speed = 8 end
 
     self.targ_dir        = self:get_target_relative_position()
+
+    -- Dont allow target run off the screen
+    if axis == "x" and targ.rx > vx + vw then
+        local diff = targ.rx - (vx + vw)
+        cam.x = cam.x + diff
+        self.init_pos = self.init_pos + diff
+        ---
+    elseif axis == "y" and targ.ry > vy + vh then
+        local diff = (targ.ry) - (vy + vh)
+        cam.y = cam.y + diff
+        self.init_pos = self.init_pos + diff
+        ---
+    elseif axis == "y" and targ.ry < vy then
+        local diff = targ.ry - vy
+        cam.y = cam.y + diff
+        self.init_pos = self.init_pos + diff
+        ---
+    end
+
+    if self.type == Types.chase_when_not_moving then
+        local range = "range_" .. axis
+
+        if targ[range] ~= 0 then
+            self.time = -self.delay
+
+            if axis == "y" then
+                local lim = vy + vh * 0.25
+                if targ.ry < lim then
+                    cam.y = cam.y + (targ.ry - lim)
+                end
+
+                lim = vy + vh * 0.75
+                if targ.ry > lim then
+                    cam.y = cam.y + (targ.ry - lim)
+                end
+            end
+
+            local set_focus = "set_focus_" .. axis
+            local viewport = "viewport_" .. (axis == "x" and "w" or "h")
+            cam[set_focus](cam, self.focus_2 * cam[viewport])
+
+            -- if targ[range] < 0 then
+            --     cam[set_focus](cam, self.focus_1 * cam[viewport])
+            -- else
+            --     cam[set_focus](cam, self.focus_2 * cam[viewport])
+            -- end
+
+            targ:refresh(targ.rx, targ.ry)
+            self.init_pos = self.camera[axis]
+            return
+        end
+    end
 
     if self.time < 0 then
         self.time = self.time + dt
@@ -109,20 +159,7 @@ local function update_chasing(self, dt)
         end
     end
 
-    -- Dont allow target run off the screen
-    if axis == "x" and targ.rx > vx + vw then
-        local diff = 0
-        diff = (targ.rx) - (vx + vw)
-        self.init_pos = self.init_pos + diff
-        ---
-    elseif axis == "y" and targ.ry > vy + vh then
-        local diff = 0
-        diff = (targ.ry) - (vy + vh)
-        self.init_pos = self.init_pos + diff
-    end
-
     self.time = self.time + (math.pi) / self.speed * dt
-
     self.time = Utils:clamp(self.time, 0, math.pi)
 
     local mult = (1 - (1 + math.cos(self.time)) / 2)
@@ -183,7 +220,7 @@ local function update_chasing(self, dt)
     cam:keep_on_bounds()
 
     if (self.time == math.pi and self.target[axis] == cam[axis])
-        or targ[axis] == cam[axis]
+    -- or targ[axis] == cam[axis]
     then
         return self:set_state(States.on_target)
     end
@@ -208,6 +245,13 @@ local function update_on_target(self, dt)
                 self.speed = 1.5
                 return
             end
+        end
+    elseif type == Types.chase_when_not_moving then
+        local range = "range_" .. axis
+        if targ[range] < 0 then
+            self:set_state(States.chasing)
+            self.speed = 0.9
+            return
         end
     end
 
@@ -287,25 +331,10 @@ function Controller:__constructor__(camera, axis, delay, type)
     self.focus_2 = 1 - self.focus_1
 
     self.delay = delay or 0.0
-    self.speed = 10
-    self.type = type or Types.normal
-
-    -- if self.axis == "y" then
-    --     self.focus_1 = 0.25
-    --     self.focus_2 = 0.5
-    --     -- self.delay = 0.9
-    -- else
-    --     -- self.type = Types.dynamic
-    --     -- self.delay = 0.5
-    -- end
     self.delay = math.abs(self.delay)
 
-    -- if self.type == Types.dynamic then
-    --     camera["set_focus_" .. self.axis](camera,
-    --         (self.axis == "x" and camera.viewport_w
-    --             or camera.viewport_h) * self.focus_1
-    --     )
-    -- end
+    self.speed = 10
+    self.type = type or Types.normal
 
     self.targ_dir = nil
 
@@ -441,7 +470,7 @@ function Controller:update(dt)
 end
 
 function Controller:draw()
-    if self.target and self.axis == 'x' then
+    if self.target and self.axis == 'y' then
         -- love.graphics.setColor(0, 1, 0)
         -- love.graphics.circle("fill", self.target.rx, self.target.ry, 3)
 
@@ -464,6 +493,7 @@ function Controller:draw()
             "trgt_dir= " ..
             (self.targ_dir and ((self.targ_dir == 1 and "right") or (self.targ_dir == -1 and "left") or (self.targ_dir == 0 and "on_focus")) or ""),
             cam.x + 10, cam.y + 172 + 16)
+        print("range=" .. self.target.range_y, cam.x + 10, cam.y + 188 + 16)
     end
 
     local cam = self.camera
