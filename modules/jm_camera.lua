@@ -1042,40 +1042,23 @@ function Camera:follow(x, y, name)
 end
 
 function Camera:target_on_focus()
-    if not self.target then return false end
-    if not self.target.y or not self.target.x then return false end
-    return self.x == round(self.target.x) and self.y == round(self.target.y)
+    local target = self.controller_x.target
+    if not target then return false end
+
+    return target.x == self.x and target.y == self.y
 end
 
-function Camera:target_on_focus_x()
-    if not self.target then return false end
-    if not self.target.x then return false end
-    return self.x == round(self.target.x)
-end
+-- function Camera:target_on_focus_x()
+--     if not self.target then return false end
+--     if not self.target.x then return false end
+--     return self.x == round(self.target.x)
+-- end
 
 function Camera:set_focus_x(value)
-    -- value = value or self.focus_x
-    -- value = round(value)
-    -- if self.focus_x ~= value then
-    --     if self.target then
-    --         self.target.x = nil
-    --         self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
-    --     end
-    --     self.focus_x = value
-    -- end
     return self:set_focus(value, nil)
 end
 
 function Camera:set_focus_y(value)
-    -- value = value or self.focus_y
-    -- value = round(value)
-    -- if self.focus_y ~= value then
-    --     if self.target then
-    --         self.target.y = nil
-    --         self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
-    --     end
-    --     self.focus_y = value
-    -- end
     return self:set_focus(nil, value)
 end
 
