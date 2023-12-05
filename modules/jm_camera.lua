@@ -776,16 +776,16 @@ function Camera:set_type(s)
     local cy = self.controller_y
 
     if s == "super mario world" or s == TYPES.SuperMarioWorld or true then
-        cx.focus_1 = 0.45
+        cx.focus_1 = 0.4
         cx.focus_2 = 1.0 - cx.focus_1
         cx.type = Controller.Type.dynamic
-        -- cx:set_move_behavior(1)
+        cx:set_move_behavior(Controller.MoveTypes.smooth)
 
         cy.type = Controller.Type.chase_when_not_moving
         cy.focus_1 = 0.6
         cy.focus_2 = 0.6
         cy.delay = 0.25
-        cy:set_move_behavior(3)
+        cy:set_move_behavior(Controller.MoveTypes.fast_smooth)
 
         return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_2)
     elseif s == "metroid" or s == TYPES.Metroid then
