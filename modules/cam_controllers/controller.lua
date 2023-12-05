@@ -29,12 +29,12 @@ local Behavior = {
     end,
     ---
     [MoveTypes.balanced] = function(x)
-        x = x - 2.718281828459
-        local r = 1.0 / (1.0 + (2.718281828459 ^ (-x)))
+        x = x - 4.0
+        local r = (1 + (1.0 / (1.0 + (2.718281828459 ^ (-x))))) * 0.5
         do
             -- return 1.0
         end
-        if x < 2.71 then
+        if x < 3.0 then
             return r
         else
             return 1.0
@@ -47,7 +47,7 @@ local Domain = {
     [MoveTypes.smooth] = math.pi,
     [MoveTypes.linear] = 1.0,
     [MoveTypes.fast_smooth] = 2.718281828459 * 2.0,
-    [MoveTypes.balanced] = 2.718281828459 * 2.0,
+    [MoveTypes.balanced] = 4 + 2.718281828459 * 2.0,
 }
 --==========================================================================
 
@@ -57,19 +57,19 @@ Target.__index = Target
 
 do
     ---@return JM.Camera.Controller.Target
-    function Target:new(x, y, camera)
+    function Target:new(x, y, camera, id)
         local o = setmetatable({}, Target)
-        Target.__constructor__(o, x, y, camera)
+        Target.__constructor__(o, x, y, camera, id)
         return o
     end
 
     ---@param camera  JM.Camera.Camera
-    function Target:__constructor__(x, y, camera)
+    function Target:__constructor__(x, y, camera, id)
         self.camera = camera
-        self:refresh(x, y)
+        self:refresh(x, y, id)
     end
 
-    function Target:refresh(x, y)
+    function Target:refresh(x, y, id)
         self.rx = x
         self.ry = y
 
@@ -86,6 +86,9 @@ do
 
         self.x = x
         self.y = y
+
+        self.last_id = self.id or self.last_id
+        self.id = id
 
         self.range_x = x - self.last_x
         self.range_y = y - self.last_y
@@ -145,8 +148,6 @@ local function update_chasing(self, dt)
 
     -- if axis == "x" then self.speed = 8 end
 
-    self.targ_dir        = self:get_target_relative_position()
-
     -- Dont allow target run off the screen
     if axis == "x" and targ.rx > vx + vw then
         local diff = targ.rx - (vx + vw)
@@ -171,7 +172,7 @@ local function update_chasing(self, dt)
     end
 
     if self.type == Types.chase_when_not_moving then
-        local range = "range_" .. axis
+        local range = axis == "x" and "range_x" or "range_y"
 
         if targ[range] ~= 0 then
             self.time = -self.delay
@@ -189,20 +190,15 @@ local function update_chasing(self, dt)
             end
 
             local set_focus = "set_focus_" .. axis
-            local viewport = "viewport_" .. (axis == "x" and "w" or "h")
-            cam[set_focus](cam, self.focus_2 * cam[viewport])
+            local viewport = (axis == "x" and "viewport_w" or "viewport_h")
+            cam[set_focus](cam, self.focus_1 * cam[viewport])
 
-            -- if targ[range] < 0 then
-            --     cam[set_focus](cam, self.focus_1 * cam[viewport])
-            -- else
-            --     cam[set_focus](cam, self.focus_2 * cam[viewport])
-            -- end
-
+            self.init_pos = cam[axis]
             targ:refresh(targ.rx, targ.ry)
-            self.init_pos = self.camera[axis]
             return
         end
     end
+
 
     if self.time < 0 then
         self.time = self.time + dt
@@ -217,6 +213,7 @@ local function update_chasing(self, dt)
 
 
     self.time = self.time + (self.factor_domain / self.speed) * dt
+
     if self.get_factor ~= MoveTypes.balanced
         and self.get_factor ~= MoveTypes.fast_smooth
     then
@@ -224,6 +221,9 @@ local function update_chasing(self, dt)
     end
 
     local diff = targ[axis] - self.init_pos
+
+    local last = targ[axis] > cam[axis] and 1 or 0
+    last = targ[axis] < cam[axis] and -1 or last
 
     cam[axis] = self.init_pos + diff * self.get_factor(self.time)
 
@@ -250,15 +250,17 @@ local function update_chasing(self, dt)
             return self:set_state(States.chasing, true)
         end
         ---
-    elseif self.type == Types.normal and axis == "x" then
-        local dir = self:get_target_relative_position()
+    elseif self.type == Types.normal then
+        -- local dir = targ[axis] > cam[axis] and 1 or 0
+        -- dir = targ[axis] < cam[axis] and -1 or 0
+        -- local range = targ["range_" .. axis]
 
-        if (dir <= 0 and self.targ_dir >= 0)
-            or (dir >= 0 and self.targ_dir <= 0)
-        -- or dir == 0 or self.targ_dir == 0
-        then
-            self:set_state(States.on_target)
-        end
+        -- if (dir < 0 and last > 0)
+        --     or (dir > 0 and last < 0)
+        -- then
+        --     cam[axis] = targ[axis]
+        --     self:set_state(States.on_target)
+        -- end
     end
 
 
@@ -399,29 +401,19 @@ function Controller:__constructor__(camera, axis, delay, type)
     self.speed = 10
     self.type = type or Types.normal
 
-    self.targ_dir = nil
+    -- self.targ_dir = nil
 
     self:set_move_behavior()
 
     self:set_state(States.no_target)
 end
 
-function Controller:set_target(x, y)
+function Controller:set_target(x, y, id)
     if not self.target then
-        self.target = Target:new(x, y, self.camera)
+        self.target = Target:new(x, y, self.camera, id)
         self:set_state(States.chasing)
-
-        local axis = self.axis
-
-        if self.target[axis] > self.camera[axis] then
-            self.targ_dir = 1
-        elseif self.target[axis] < self.camera[axis] then
-            self.targ_dir = -1
-        else
-            self.targ_dir = 0
-        end
     else
-        self.target:refresh(x, y)
+        self.target:refresh(x, y, id)
     end
 end
 
@@ -455,12 +447,11 @@ end
 function Controller:get_target_relative_position()
     local axis = self.axis
     local target_pos = self.target[axis]
-    -- target_pos = target_pos + self.target["range_" .. axis]
     local cam_pos = self.camera[axis]
 
-    if target_pos >= cam_pos then
+    if target_pos > cam_pos then
         return 1
-    elseif target_pos <= cam_pos then
+    elseif target_pos < cam_pos then
         return -1
     else
         return 0
@@ -527,11 +518,6 @@ function Controller:set_state(new_state, force)
 
     if new_state == States.chasing then
         self.init_pos = cam[self.axis]
-        self.init_dir =
-            self.target[self.axis] > self.init_pos and 1
-            or (self.target[self.axis] < self.init_pos and -1)
-            or 0
-
         self.init_dist = self.init_pos - self.target["r" .. self.axis]
         self.time = -self.delay
         self.speed = 1.5
@@ -604,10 +590,10 @@ function Controller:draw()
         print("init_distx= " .. self.init_dist, cam.x + 10, cam.y + 124 + 16)
         print("cam_x= " .. cam.x, cam.x + 10, cam.y + 140 + 16)
         print("trgt_dx= " .. self.target.direction_x, cam.x + 10, cam.y + 156 + 16)
-        print(
-            "trgt_dir= " ..
-            (self.targ_dir and ((self.targ_dir == 1 and "right") or (self.targ_dir == -1 and "left") or (self.targ_dir == 0 and "on_focus")) or ""),
-            cam.x + 10, cam.y + 172 + 16)
+        -- print(
+        --     "trgt_dir= " ..
+        --     (self.targ_dir and ((self.targ_dir == 1 and "right") or (self.targ_dir == -1 and "left") or (self.targ_dir == 0 and "on_focus")) or ""),
+        --     cam.x + 10, cam.y + 172 + 16)
         print("range=" .. self.target.range_y, cam.x + 10, cam.y + 188 + 16)
     end
 
