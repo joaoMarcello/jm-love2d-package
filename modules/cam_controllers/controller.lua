@@ -310,6 +310,7 @@ local function update_on_target(self, dt)
             self:set_state(States.chasing)
             self.speed = 2.0 * (math.abs(targ["diff_" .. axis]) / self.camera.tile_size)
             if self.speed < 0.9 then self.speed = 0.9 end
+            if self.speed > 2 then self.speed = 2 end
             return
         end
     end
