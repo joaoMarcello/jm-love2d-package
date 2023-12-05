@@ -1,5 +1,56 @@
 local Utils = JM.Utils
 
+---@enum JM.Camera.Controller.MoveTypes
+local MoveTypes = {
+    smooth = 1,
+    linear = 2,
+    fast_smooth = 3,
+    balanced = 4,
+}
+
+local Behavior = {
+    [MoveTypes.smooth] = function(x)
+        return (1.0 - (1.0 + math.cos(x)) * 0.5)
+    end,
+    ---
+    [MoveTypes.linear] = function(x)
+        return x
+    end,
+    ---
+    [MoveTypes.fast_smooth] = function(x)
+        x = x - 2.718281828459
+        local E_2x = 2.718281828459 ^ (2.0 * x)
+        local r = (1.0 + (E_2x - 1.0) / (E_2x + 1.0)) * 0.5
+        if x < 2.718281828459 then
+            return r
+        else
+            return 1.0
+        end
+    end,
+    ---
+    [MoveTypes.balanced] = function(x)
+        x = x - 2.718281828459
+        local r = 1.0 / (1.0 + (2.718281828459 ^ (-x)))
+        do
+            -- return 1.0
+        end
+        if x < 2.71 then
+            return r
+        else
+            return 1.0
+        end
+    end,
+    ---
+}
+
+local Domain = {
+    [MoveTypes.smooth] = math.pi,
+    [MoveTypes.linear] = 1.0,
+    [MoveTypes.fast_smooth] = 2.718281828459 * 2.0,
+    [MoveTypes.balanced] = 2.718281828459 * 2.0,
+}
+--==========================================================================
+
 ---@class JM.Camera.Controller.Target
 local Target = {}
 Target.__index = Target
@@ -27,8 +78,8 @@ do
         x = x - cam.focus_x / cam.scale
         y = y - cam.focus_y / cam.scale
 
-        x = JM.Utils:round(x)
-        y = JM.Utils:round(y)
+        x = Utils:round(x)
+        y = Utils:round(y)
 
         self.last_x = self.x or x
         self.last_y = self.y or y
@@ -52,12 +103,12 @@ do
         self.direction_y = (self.range_y > 0 and 1)
             or (self.range_y < 0 and -1) or 0
 
-        local target_distance_x = self.x - cam.x
-        local target_distance_y = self.y - cam.y
+        -- local target_distance_x = self.x - cam.x
+        -- local target_distance_y = self.y - cam.y
 
-        self.distance = math.sqrt(target_distance_x ^ 2 + target_distance_y ^ 2)
+        -- self.distance = math.sqrt(target_distance_x ^ 2 + target_distance_y ^ 2)
 
-        self.angle = math.atan2(target_distance_y, target_distance_x)
+        -- self.angle = math.atan2(target_distance_y, target_distance_x)
     end
 end
 --===========================================================================
@@ -164,13 +215,17 @@ local function update_chasing(self, dt)
         end
     end
 
-    self.time = self.time + (math.pi) / self.speed * dt
-    self.time = Utils:clamp(self.time, 0, math.pi)
 
-    local mult = (1 - (1 + math.cos(self.time)) / 2)
+    self.time = self.time + (self.factor_domain / self.speed) * dt
+    if self.get_factor ~= MoveTypes.balanced
+        and self.get_factor ~= MoveTypes.fast_smooth
+    then
+        self.time = Utils:clamp(self.time, 0, self.factor_domain)
+    end
+
     local diff = targ[axis] - self.init_pos
 
-    cam[axis] = self.init_pos + diff * mult
+    cam[axis] = self.init_pos + diff * self.get_factor(self.time)
 
     if self.type == Types.dynamic then
         if self:target_changed_direction() then
@@ -191,9 +246,8 @@ local function update_chasing(self, dt)
                 end
             end
 
-            self.state = nil
             cam:keep_on_bounds()
-            return self:set_state(States.chasing)
+            return self:set_state(States.chasing, true)
         end
         ---
     elseif self.type == Types.normal and axis == "x" then
@@ -217,13 +271,13 @@ local function update_chasing(self, dt)
         if cam[axis] < cam[lim_1]
             or cam[axis] > cam[lim_2] - cam[viewport] / cam.scale
         then
-            self.time = math.pi
+            self.time = self.factor_domain --math.pi
         end
     end
 
     cam:keep_on_bounds()
 
-    if (self.time == math.pi and self.target[axis] == cam[axis])
+    if (self.time >= self.factor_domain and self.target[axis] == cam[axis])
         or targ[axis] == cam[axis]
     then
         return self:set_state(States.on_target)
@@ -305,11 +359,14 @@ local function update_on_deadzone(self, dt)
         end
     end
 end
+--===========================================================================
+
 
 ---@class JM.Camera.Controller
 local Controller = {
     Type = Types,
     State = States,
+    MoveTypes = MoveTypes,
 }
 Controller.__index = Controller
 --===========================================================================
@@ -342,6 +399,8 @@ function Controller:__constructor__(camera, axis, delay, type)
 
     self.targ_dir = nil
 
+    self:set_move_behavior(MoveTypes.balanced)
+
     self:set_state(States.no_target)
 end
 
@@ -362,6 +421,13 @@ function Controller:set_target(x, y)
     else
         self.target:refresh(x, y)
     end
+end
+
+---@param b JM.Camera.Controller.MoveTypes|nil
+function Controller:set_move_behavior(b)
+    b = b or MoveTypes.smooth
+    self.get_factor = Behavior[b]
+    self.factor_domain = Domain[b]
 end
 
 ---@param new_type JM.Camera.Controller.Types|string|"normal"|"dynamic"|"chase_when_not_moving"
@@ -501,6 +567,14 @@ function Controller:update(dt)
 end
 
 function Controller:draw()
+    local print = love.graphics.print
+    local cam = self.camera
+    if self.axis == 'x' then
+        self.tt = self.tt or -2.71
+        self.tt = self.tt + ((2.71 * 2) / 5.0) * love.timer.getDelta()
+        print(Behavior[4](self.time), cam.x + 10, cam.y + 20)
+        print("time: " .. self.time, cam.x + 10, cam.y + 36)
+    end
     do
         return
     end
@@ -508,8 +582,6 @@ function Controller:draw()
         -- love.graphics.setColor(0, 1, 0)
         -- love.graphics.circle("fill", self.target.rx, self.target.ry, 3)
 
-        local cam = self.camera
-        local print = love.graphics.print
         love.graphics.setColor(0, 0, 0)
 
         print(string.format("%.2f", self.time), cam.x + 10, cam.y + 10)
