@@ -321,6 +321,7 @@ local TYPES = {
     Metroidvania = 6,
     ModernMetroidVania = 7,
     FollowBoss = 8,
+    MegaMan = 9,
 }
 
 ---@class JM.Camera.Camera
@@ -431,11 +432,11 @@ function Camera:__constructor__(
 
     self.custom_update = nil
 
-    self.type = type_ or TYPES.SuperMarioBros
+    self.type = type_ or TYPES.Zelda_GBC
     self:set_type(self.type)
 end
 
----@param s JM.Camera.Controller.Types|"super mario world"|"metroid"|"metroidvania"|"modern metroidvania"|"follow boss"
+---@param s JM.Camera.Controller.Types|"super mario world"|"metroid"|"metroidvania"|"modern metroidvania"|"follow boss"|"super mario bros"|"zelda gbc"|"megaman"
 function Camera:set_type(s)
     if type(s) == "string" then s = string.lower(s) end
 
@@ -511,6 +512,74 @@ function Camera:set_type(s)
         end
 
         return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_1)
+    elseif s == "zelda gbc" or s == TYPES.Zelda_GBC then
+        cx.focus_1 = 0.5
+        cx.focus_2 = 0.5
+        cx.type = Controller.Type.normal
+
+        cy.focus_1 = 0.5
+        cy.focus_2 = 0.5
+        cy.type = Controller.Type.normal
+
+        self.bounds_left = round(self.x)
+        self.bounds_top = round(self.y)
+        self.bounds_right = self.bounds_left + self.viewport_w / self.scale
+        self.bounds_bottom = self.bounds_top + self.viewport_h / self.scale
+
+        self.__state = "capture"
+        self:set_focus_x(0)
+
+        self.custom_update = function(self, dt)
+            local cx = self.controller_x
+            local cy = self.controller_y
+            if not cx.target then return end
+            local target = cx.target
+
+            if self.__state == "waiting" then
+                if target.rx > self.bounds_right
+                    and target.range_x > 0
+                then
+                    self.__state = "allow_right"
+                    self.bounds_right = self.bounds_right + self.viewport_w
+                    self:set_focus_x(0)
+                elseif target.rx + target.range_x < self.bounds_left
+                    and target.range_x < 0
+                then
+                    self.__state = "allow_left"
+                    self.bounds_left = round(self.bounds_left - self.viewport_w)
+                    self:set_focus_x(self.viewport_w)
+                    cx:reset()
+                    -- cx:set_target(self.bounds_left, target.ry)
+                    return
+                end
+            end
+
+            if self.__state:match("allow") then
+                if self.__state:match("right") then
+                    cx:set_target(self.bounds_right - self.viewport_w, target.ry)
+                elseif self.__state:match("left") then
+                    cx:set_target(self.bounds_right - self.viewport_w, target.ry)
+                end
+                cx:set_state(1)
+                cy:set_state(1)
+                if cx:is_on_target() then
+                    self.__state = "capture"
+                    return
+                end
+            end
+
+            if self.__state == "capture"
+            then
+                cx:set_state(4)
+                cy:set_state(4)
+
+                self.bounds_left = round(self.x)
+                self.bounds_top = round(self.y)
+                self.bounds_right = self.bounds_left + self.viewport_w / self.scale
+                self.bounds_bottom = self.bounds_top + self.viewport_h / self.scale
+                self.__state = "waiting"
+            end
+        end
     end
 end
 
