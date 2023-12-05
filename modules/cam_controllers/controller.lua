@@ -326,7 +326,7 @@ local function update_on_deadzone(self, dt)
     local targ = self.target
     local cam  = self.camera
 
-    if targ and self.type == Types.dynamic then
+    if self.type == Types.dynamic then
         local axis = self.axis
         local dimension = (axis == "x" and "w" or "h")
         local focus = "focus_" .. axis
