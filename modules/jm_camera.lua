@@ -3,23 +3,20 @@ local love_translate = lgx.translate
 local love_pop = lgx.pop
 local love_push = lgx.push
 local love_scale = lgx.scale
--- local love_get_scissor = lgx.getScissor
 local love_set_scissor = lgx.setScissor
--- local love_set_blend_mode = lgx.setBlendMode
--- local love_get_blend_mode = lgx.getBlendMode
+
 local love_set_color = lgx.setColor
-local love_clear = lgx.clear
--- local love_get_canvas = lgx.getCanvas
--- local love_set_canvas = lgx.setCanvas
--- local love_draw = lgx.draw
 local love_rect = lgx.rectangle
 local love_line = lgx.line
-local sin, cos, sqrt, abs = math.sin, math.cos, math.sqrt, math.abs
+local sin, cos = math.sin, math.cos
 local mfloor, mceil = math.floor, math.ceil
 local m_min, m_max = math.min, math.max
 
 ---@type JM.Camera.Controller
 local Controller = require((...):gsub("jm_camera", "cam_controllers.controller"))
+
+---@type JM.Camera.ShakeController
+local ShakeController = require((...):gsub("jm_camera", "cam_controllers.controller_shake"))
 
 -- the round function from lua programming book
 local function round(x)
@@ -34,287 +31,6 @@ end
 local function clamp(value, min, max)
     return m_min(m_max(value, min), max)
 end
-
--- --- Moves the camera's position until reaches the target's position.
--- ---@param self JM.Camera.Camera
--- local function chase_target(self, dt, chase_x_axis, chase_y_axis)
---     local reach_objective_x, reach_objective_y = not chase_x_axis, not chase_y_axis
-
---     if self.target then
---         --
---         if self.catch_target_x then
---             --self:set_position(self.target.x)
---             self.x = round(self.target.x)
---         else
---             self.catch_target_x = false
---         end
-
---         if self.catch_target_y then
---             -- self:set_position(nil, self.target.y)
---             self.y = round(self.target.y)
---         else
---             self.catch_target_y = false
---         end
-
---         if chase_x_axis
---             and (self.x ~= self.target.x or self.infinity_chase_x)
---         then
---             if self.constant_speed_x then
---                 self.follow_speed_x = self.constant_speed_x
---             else
---                 self.follow_speed_x = self.follow_speed_x + self.acc_x * dt
-
---                 if self.max_speed_x and self.follow_speed_x > self.max_speed_x then
---                     self.follow_speed_x = self.max_speed_x
---                 end
---             end
-
---             local cos_r = cos(self.target.angle_x)
-
---             if self.y <= self.bounds_top
---                 or self.y >= self.bounds_bottom - self.viewport_h / self.scale
---                 or not self:point_is_on_screen(self.target.x, self.target.y)
---             then
---                 cos_r = cos_r / abs(cos_r)
---             end
-
---             self:move(
---                 (self.follow_speed_x * dt + (self.acc_x * dt * dt) / 2)
---                 * cos_r)
-
---             self:move(abs(self.target.range_x) * cos_r * self.delay_x)
-
---             if (cos_r > 0 and self.x >= self.target.x)
---                 or (cos_r < 0 and self.x <= self.target.x)
---             then
---                 self.catch_target_x = true
---                 self:set_position(self.target.x)
---                 self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
---             end
-
---             -- if self.infinity_chase_x then
-
---             --     -- if self.follow_speed_x < 0
---             --     --     and self.x < self.target.x
---             --     --     and not self.touch_target
---             --     -- then
---             --     --     self.touch_target = true
---             --     --     self.follow_speed_x = sqrt(2 * self.acc_x * 32 * 5)
---             --     -- else
---             --     --     if self.follow_speed_x > 0
---             --     --         and self.x > self.target.x
---             --     --         and not self.touch_target
---             --     --     then
---             --     --         self.touch_target = true
---             --     --         self.follow_speed_x = -sqrt(2 * self.acc_x * 32 * 5)
-
---             --     --     else
---             --     --         self.touch_target = false
---             --     --     end
---             --     -- end
---             -- end
-
---             reach_objective_x = self.x == self.target.x
---         end
-
---         if chase_y_axis and self.y ~= self.target.y then
---             if self.constant_speed_y then
---                 self.follow_speed_y = self.constant_speed_y
---             else
---                 self.follow_speed_y = self.follow_speed_y + self.acc_y * dt
---             end
-
---             local sin_r = sin(self.target.angle_y)
-
---             if self.x <= self.bounds_left
---                 or self.x >= self.bounds_right - self.viewport_w / self.scale
---                 or not self:point_is_on_screen(self.target.x, self.target.y)
---             then
---                 sin_r = sin_r / abs(sin_r)
---             end
-
---             self:move(nil,
---                 (self.follow_speed_y * dt + (self.acc_y * dt * dt) / 2)
---                 * sin_r)
-
---             self:move(nil, abs(self.target.range_y) * self.target.direction_y * self.delay_y)
-
---             if (sin_r > 0 and self.y > self.target.y)
---                 or (sin_r < 0 and self.y < self.target.y)
---             then
---                 self.catch_target_y = true
---                 self:set_position(nil, self.target.y)
---                 self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
---             end
-
---             reach_objective_y = self.y == self.target.y
---         end
---     end
-
---     return reach_objective_x and reach_objective_y
--- end
-
--- ---@param self JM.Camera.Camera
--- local function chase_target_y(self, dt)
---     return chase_target(self, dt, nil, true)
--- end
-
--- ---@param self JM.Camera.Camera
--- local function chase_target_x(self, dt)
---     return chase_target(self, dt, true)
--- end
-
--- ---@param self JM.Camera.Camera
--- local function dynamic_x_offset(self, dt)
---     if not self.target then return end
-
---     local deadzone_w = self.deadzone_w
---     -- deadzone_w = deadzone_w / self.scale / self.desired_scale
-
---     local inverted = self.invert_dynamic_focus_x
-
---     local left_focus = self.desired_left_focus
---         or self.viewport_w * 0.7
-
---     local right_focus = self.desired_right_focus
---         or self.viewport_w * 0.3
-
---     local move_left_offset = ((not inverted and left_focus > right_focus)
---             or (inverted and left_focus < right_focus))
---         and left_focus or right_focus
-
---     local move_right_offset = move_left_offset == right_focus and left_focus or right_focus
-
---     self.catch_target_x = false
-
---     if not self:is_locked_in_x() then
---         local objective = chase_target_x(self, dt)
-
---         self:set_lock_x_axis(objective
---             and self.target.direction_x ~= self.target.last_direction_x
---         )
---     else
---         self.follow_speed_x = sqrt(2 * self.acc_x * self.default_initial_speed_x)
-
---         -- Target moving to right
---         if self.target.direction_x > 0
---         then
---             local right = self.x + deadzone_w / 2
---             right = self:screen_to_world(right)
-
---             if not self.use_deadzone
---                 or self:screen_to_world(self.target.x) > right
---             then
---                 self:set_lock_x_axis(false)
---             end
---         elseif self.target.direction_x <= 0 then
---             local left = self.x - deadzone_w / 2
---             left = self:screen_to_world(left)
-
---             if not self.use_deadzone
---                 or self:screen_to_world(self.target.x) < left
---             then
---                 self:set_lock_x_axis(false)
---             end
---         end
---     end
-
---     if self.target.direction_x < 0 and not self.lock_x then
---         self:set_focus_x(move_left_offset)
---     elseif self.target.direction_x > 0 and not self.lock_x then
---         self:set_focus_x(move_right_offset)
---     end
--- end
-
--- ---@param self JM.Camera.Camera
--- local function dynamic_y_offset(self, dt)
---     if not self.target then return end
-
---     --=========================================================================
---     local deadzone_h = self.deadzone_h
---     -- deadzone_h = deadzone_h / self.scale / self.desired_scale
-
---     local top_focus = self.desired_top_focus
---         or self.viewport_h * 0.4
---     local bottom_focus = self.desired_bottom_focus
---         or self.viewport_h * 0.6
---     --=========================================================================
---     local inverted = self.invert_dynamic_focus_y
-
---     local top_offset = ((not inverted and top_focus > bottom_focus)
---             or (inverted and top_focus < bottom_focus))
---         and top_focus or bottom_focus
-
---     local bottom_offset = top_offset == top_focus and bottom_focus or top_focus
-
---     self.catch_target_y = false
-
---     if not self:is_locked_in_y() then
---         local objective = chase_target_y(self, dt)
-
---         self:set_lock_y_axis(objective
---             and self.target.direction_y ~= self.target.last_direction_y
---         )
---     else
---         self.follow_speed_y = sqrt(2 * self.acc_y * self.default_initial_speed_y)
-
---         -- target is going down
---         if self.target.direction_y > 0 then
---             local bottom = self.y + deadzone_h / 2
---             bottom = self:y_screen_to_world(bottom)
-
---             local cy = self:y_screen_to_world(self.target.y)
---             if not self.use_deadzone or
---                 cy > bottom
---             then
---                 self:set_lock_y_axis(false)
---             end
---         elseif self.target.direction_y < 0 then
---             local top = self.y - deadzone_h / 2
---             top = self:y_screen_to_world(top)
-
---             if not self.use_deadzone
---                 or self:y_screen_to_world(self.target.y) < top
---             then
---                 self:set_lock_y_axis(false)
---             end
---         end
---     end
-
---     if self.target.direction_y < 0 and not self.lock_y then
---         self:set_focus_y(top_offset)
---     elseif self.target.direction_y > 0 and not self.lock_y then
---         self:set_focus_y(bottom_offset)
---     end
--- end
-
--- ---@param self JM.Camera.Camera
--- local function chase_y_when_not_moving(self, dt)
---     if not self.target then return end
-
---     local deadzone_height = self.deadzone_h
---     --=========================================================================
-
---     local top_limit = self:y_screen_to_world(self.viewport_h * 0.2)
---     local bottom = self:y_screen_to_world(self.y + deadzone_height)
---     local cy = self:y_screen_to_world(self.target.y)
-
---     self.catch_target_y = false
-
---     if self.target.direction_y == 0 then
---         chase_target_y(self, dt)
---     elseif self.target.direction_y <= 0 then
---         self.follow_speed_y = 0 --sqrt(2 * self.acc_y)
---     end
-
---     if self.target.y + self.focus_y / self.scale < top_limit then
---         self:move(nil, -abs(self.target.range_y))
---     end
-
---     if cy > bottom and self.target.last_direction_y == 1 then
---         self:move(nil, abs(self.target.range_y))
---     end
--- end
 
 ---@param self JM.Camera.Camera
 local function draw_grid(self)
@@ -594,55 +310,6 @@ local function show_border(self)
     love_rect("fill", vx, vy + vh - len, vw, len)
 end
 
----@param self JM.Camera.Camera
-local function shake_update(self, dt)
-    if self.shaking_in_x then
-        self.shake_rad_x = self.shake_rad_x
-            + (math.pi * 2)
-            / self.shake_speed_x * dt
-
-        self.shake_offset_x = round(self.shake_amplitude_x * self.scale
-            * cos(self.shake_rad_x - math.pi * self.shake_y_factor))
-
-        if self.shake_duration_x then
-            self.shake_time_x = self.shake_time_x + dt
-
-            if self.shake_time_x >= self.shake_duration_x then
-                if abs(self.shake_offset_x) <= self.shake_amplitude_x * 0.05
-                    or self.shake_time_x >= self.shake_duration_x
-                    + self.shake_speed_x
-                then
-                    self.shaking_in_x = false
-                end
-            end
-        end
-        self.shake_rad_x = self.shake_rad_x % (math.pi * 2)
-    end
-
-    if self.shaking_in_y then
-        self.shake_rad_y = self.shake_rad_y
-            + (math.pi * 2)
-            / self.shake_speed_y * dt
-
-        self.shake_offset_y = round(self.shake_amplitude_y * self.scale
-            * cos(self.shake_rad_y - math.pi * self.shake_y_factor))
-
-        if self.shake_duration_y then
-            self.shake_time_y = self.shake_time_y + dt
-
-            if self.shake_time_y >= self.shake_duration_y then
-                if abs(self.shake_offset_y) <= self.shake_amplitude_y * 0.05
-                    or self.shake_time_y >= self.shake_duration_y
-                    + self.shake_speed_y
-                then
-                    self.shaking_in_y = false
-                end
-            end
-        end
-        self.shake_rad_y = self.shake_rad_y % (math.pi * 2)
-    end
-end
-
 ---@enum JM.Camera.Type
 local TYPES = {
     Free = 0,
@@ -694,8 +361,6 @@ function Camera:__constructor__(
     ---@type JM.Scene
     self.scene = scene
 
-
-
     self.scale = scale or 1.0
 
     --- Viewport in real-screen coordinates
@@ -717,6 +382,11 @@ function Camera:__constructor__(
 
     self.controller_x = Controller:new(self, "x")
     self.controller_y = Controller:new(self, "y")
+
+    ---@type JM.Camera.ShakeController
+    self.controller_shake_x = ShakeController:new(self, 0)
+    ---@type JM.Camera.ShakeController
+    self.controller_shake_y = ShakeController:new(self, 0)
 
     self.focus_x = 0
     self.focus_y = 0
@@ -741,8 +411,6 @@ function Camera:__constructor__(
     self.color_b = color and color[3] or 0.9
     self.color_a = color and color[4] or 1
 
-
-
     self.debug = nil
     self.debug_msg_rad = 0
     self.debug_trgt_rad = 0
@@ -753,9 +421,6 @@ function Camera:__constructor__(
     self.is_showing_grid = self.debug or nil
     self.grid_desired_tile = self.tile_size * 1
     self.grid_num_tile = 4
-
-    -- self:shake_in_x(nil, self.tile_size * 2 / 4, nil, 7.587)
-    -- self:shake_in_y(nil, self.tile_size * 2.34 / 4, nil, 10.7564)
 
     self.min_zoom = min_zoom or 0.5
     self.max_zoom = max_zoom or 1.5
@@ -827,65 +492,6 @@ function Camera:set_type(s)
         cy.focus_1 = 1 - cy.focus_2
         cy.type = Controller.Type.dynamic
     end
-    -- if s == "super mario world" or s == CAMERA_TYPES.SuperMarioWorld then
-    --     self.type = CAMERA_TYPES.SuperMarioWorld
-
-    --     self.movement_x = dynamic_x_offset
-    --     self.movement_y = chase_y_when_not_moving
-
-    --     self:set_focus_y(self.viewport_h * 0.5)
-    --     -- self.desired_deadzone_height =
-    --     self.deadzone_h = self.tile_size * 6 * self.scale
-
-    --     -- self.desired_deadzone_width =
-    --     self.deadzone_w = self.tile_size * 2 * self.scale
-
-    --     self.desired_left_focus = self.viewport_w * 0.4
-    --     self.desired_right_focus = self.viewport_w * 0.6
-    --     self:set_focus_x(self.desired_left_focus)
-
-    --     self.use_deadzone = true
-    -- elseif s == "metroid" or s == CAMERA_TYPES.Metroid then
-    --     self.type = CAMERA_TYPES.Metroid
-    --     self.movement_x = chase_target_x
-    --     self.movement_y = chase_target_y
-
-    --     self:set_focus_y(self.viewport_h * 0.5)
-    --     self:set_focus_x(self.viewport_w * 0.5)
-    -- elseif s == "metroidvania" or s == CAMERA_TYPES.Metroidvania then
-    --     self.type = CAMERA_TYPES.Metroidvania
-    --     self.movement_x = chase_target_x
-    --     self.movement_y = dynamic_y_offset
-
-    --     self.desired_top_focus = self.viewport_h * 0.5
-    --     self:set_focus_y(self.viewport_h * 0.5)
-
-    --     -- self.desired_bottom_focus = self.viewport_h * 0.8
-    -- elseif s == "modern metroidvania" then
-    --     self:set_type("metroidvania")
-    --     self.delay_y = 0.1
-    -- elseif s == "follow boss" then
-    --     self.movement_x = dynamic_x_offset
-    --     self.invert_dynamic_focus_x = true
-
-    --     self.movement_y = chase_target_y
-    -- else
-    --     self.movement_x = chase_target_x --dynamic_x_offset
-    --     self.movement_y = chase_target_y
-    --     self.deadzone_h = 32 * 3 * self.scale
-
-    --     self.delay_y = 0.02 / 2
-
-    --     self.desired_top_focus = self.viewport_h * 0.25
-    --     self.desired_bottom_focus = self.viewport_h * 0.75
-
-    --     self.desired_left_focus = self.viewport_w * 0.5
-    --     self.desired_right_focus = self.viewport_w * 0.5
-    --     -- self.constant_speed_x = sqrt(2 * self.acc_x * 32 * 2)
-    --     -- self.constant_speed_y = sqrt(2 * self.acc_y * 32 * 3)
-    --     -- self.acc_x = 32 * 5
-    --     self:set_focus_y(self.desired_top_focus)
-    -- end
 end
 
 function Camera:get_color()
@@ -963,7 +569,10 @@ end
 
 --- Returns left, top, right and bottom!!!
 function Camera:get_viewport_in_world_coord()
-    return self.x, self.y, self.viewport_w / self.scale,
+    local sx = self.controller_shake_x.value
+    local sy = self.controller_shake_y.value
+
+    return self.x - sx, self.y - sy, self.viewport_w / self.scale,
         self.viewport_h / self.scale
 end
 
@@ -1004,7 +613,7 @@ function Camera:world_to_screen(x, y)
     return round(x * self.scale), round(y * self.scale)
 end
 
-function Camera:follow(x, y, name)
+function Camera:follow(x, y, id)
     self.controller_x:set_target(x, y)
     self.controller_y:set_target(x, y)
 end
@@ -1183,11 +792,6 @@ function Camera:is_locked_in_y()
     return self.lock_y
 end
 
----@param custom function
-function Camera:set_custom_update(custom)
-    self.custom_update = custom
-end
-
 function Camera:keep_on_bounds()
     local px = clamp(self.x, self.bounds_left, self.bounds_right - self.viewport_w / self.scale)
 
@@ -1202,16 +806,7 @@ end
 ---@param factor any
 ---@param speed any
 function Camera:shake_in_x(duration, amplitude, factor, speed)
-    self.is_shaking = true
-    self.shake_duration_x = duration
-    self.shake_time_x = 0
-    self.shake_amplitude_x = amplitude or self.tile_size * 0.3
-    self.shake_amplitude_x = self.shake_amplitude_x / self.scale
-    self.shake_x_factor = factor or math.random()
-    self.shake_speed_x = speed or (0.7 * math.random())
-    self.shake_rad_x = (math.pi) * math.random()
-    self.shaking_in_x = true
-    self.shake_offset_x = 0
+    return self:shake_x(amplitude, speed, duration, factor)
 end
 
 ---
@@ -1220,21 +815,19 @@ end
 ---@param factor any
 ---@param speed any
 function Camera:shake_in_y(duration, amplitude, factor, speed)
-    self.is_shaking = true
-    self.shake_duration_y = duration
-    self.shake_time_y = 0
-    self.shake_amplitude_y = amplitude or self.tile_size * 0.3
-    self.shake_amplitude_y = self.shake_amplitude_y / self.scale
-    self.shake_y_factor = factor or math.random()
-    self.shake_speed_y = speed or (0.7 * math.random())
-    self.shake_rad_y = (math.pi) * math.random()
-    self.shaking_in_y = true
-    self.shake_offset_y = 0
+    return self:shake_y(amplitude, speed, duration, factor)
 end
 
-function Camera:stop_shaking()
-    self.shaking_in_x = false
-    self.shaking_in_y = false
+function Camera:shake_x(amplitude, speed, duration, modifier)
+    amplitude = amplitude or 0
+    if amplitude < self.controller_shake_x.amplitude then return end
+    return self.controller_shake_x:refresh(amplitude, speed, duration, modifier)
+end
+
+function Camera:shake_y(amplitude, speed, duration, modifier)
+    amplitude = amplitude or 0
+    if amplitude < self.controller_shake_y.amplitude then return end
+    return self.controller_shake_y:refresh(amplitude, speed, duration, modifier)
 end
 
 ---@param self JM.Camera.Camera
@@ -1331,16 +924,6 @@ function Camera:draw_background()
     love_set_color(self.color_r, self.color_g, self.color_b, self.color_a)
     love_rect("fill", self.viewport_x, self.viewport_y, self.viewport_w,
         self.viewport_h)
-end
-
--- Used after attach and before detach
-function Camera:draw_grid()
-
-end
-
--- Used after attach and before detach
-function Camera:draw_world_bounds()
-
 end
 
 -- Used after attach and before detach
@@ -1553,52 +1136,15 @@ function Camera:update(dt)
 
     local last_x, last_y = self.x, self.y
 
-    if self.custom_update then
-        self:custom_update(dt)
-    end
-
-    -- if self.target then
-    --     local r = self.movement_x and self.movement_x(self, dt)
-    --     r = self.movement_y and self.movement_y(self, dt)
-    -- end
-
-    -- if self.is_shaking then
-    shake_update(self, dt)
-    -- end
-
     dynamic_zoom_update(self, dt)
-    -- local temp = self:target_on_focus()
-    -- self.zoom_rad = self.zoom_rad + (math.pi * 2) / 4 * dt
-    -- -- self.scale = 1.5 + 2.9 / 2.0 / 5.0 * cos(self.zoom_rad)
-    -- self.scale = 1.2 + 0.5 / 5.0 * cos(self.zoom_rad)
-    -- if true then
-    --     -- local lx = self.lock_x
-    --     -- self:unlock_x_axis()
-    --     -- self:set_position(0, 0)
-    --     -- self:set_position(self.target.x, self.target.y)
-    --     -- self.target.last_x = self.x
-    --     -- self.target.last_y = self.y
-    --     self.deadzone_w = self.tile_size * 2 * self.scale
-    --     -- self:set_lock_x_axis(lx)
-    -- end
 
-    -- self.zoom_rad = self.zoom_rad + (math.pi * 2) / 10 * dt
-    -- self.angle = self.zoom_rad
-
-    -- local left, top, right, bottom, lock, px, py
-
-    -- left, top = self:screen_to_world(self.bounds_left, self.bounds_top)
-    -- right, bottom = self:screen_to_world(
-    --     self.bounds_right - self.viewport_w / self.scale / self.desired_scale,
-    --     self.bounds_bottom - self.viewport_h / self.scale / self.desired_scale
-    -- )
-    -- px, py = self:screen_to_world(self.x, self.y)
-
-    -- --===================================
     self:keep_on_bounds()
 
     self.controller_x:update(dt)
     self.controller_y:update(dt)
+
+    self.controller_shake_x:update(dt)
+    self.controller_shake_y:update(dt)
 
     self.dx = self.x - last_x
     self.dy = self.y - last_y
@@ -1619,21 +1165,16 @@ function Camera:attach(lock_shake, subpixel)
     love_push()
     love_scale(self.scale)
 
-    local shake_x = (not lock_shake and self.shaking_in_x and self.shake_offset_x) or 0
-
-    local shake_y = (not lock_shake and self.shaking_in_y and self.shake_offset_y) or 0
+    local shake_x, shake_y = 0, 0
+    if not lock_shake then
+        shake_y = self.controller_shake_y.value
+        shake_x = self.controller_shake_x.value
+    end
 
     local tx = -round(self.x) + (self.viewport_x / self.scale) + shake_x
     local ty = -round(self.y) + (self.viewport_y / self.scale) + shake_y
 
     return love_translate(tx, ty)
-
-    -- love_translate(
-    --     -self.x + (self.viewport_x / self.scale)
-    --     + shake_x,
-    --     -self.y + (self.viewport_y / self.scale)
-    --     + shake_y
-    -- )
 end
 
 function Camera:detach()
