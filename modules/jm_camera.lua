@@ -779,11 +779,13 @@ function Camera:set_type(s)
         cx.focus_1 = 0.45
         cx.focus_2 = 1.0 - cx.focus_1
         cx.type = Controller.Type.dynamic
+        -- cx:set_move_behavior(1)
 
-        -- cy.type = Controller.Type.chase_when_not_moving
-        -- cy.focus_1 = 0.6
-        -- cy.focus_2 = 0.6
-        -- cy.delay = 0.25
+        cy.type = Controller.Type.chase_when_not_moving
+        cy.focus_1 = 0.6
+        cy.focus_2 = 0.6
+        cy.delay = 0.25
+        cy:set_move_behavior(3)
 
         return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_2)
     elseif s == "metroid" or s == TYPES.Metroid then
@@ -1428,9 +1430,9 @@ function Camera:get_state()
         local s = "chasing"
 
         if self.x <= self.bounds_left
-            or self.x <= self.bounds_right - self.viewport_w / self.scale
+            or self.x >= self.bounds_right - self.viewport_w / self.scale
             or self.y <= self.bounds_top
-            or self.y <= self.bounds_bottom - self.viewport_h / self.scale
+            or self.y >= self.bounds_bottom - self.viewport_h / self.scale
         then
             s = s .. " - blocked by"
         end
@@ -1442,7 +1444,7 @@ function Camera:get_state()
                 s = s .. " x axis"
             elseif self.x <= self.bounds_left then
                 s = s .. " left"
-            elseif self.x <= self.bounds_right - self.viewport_w / self.scale then
+            elseif self.x >= self.bounds_right - self.viewport_w / self.scale then
                 s = s .. " right"
             end
         end
@@ -1462,7 +1464,7 @@ function Camera:get_state()
                 else
                     s = s .. " top"
                 end
-            elseif self.y <= self.bounds_bottom - self.viewport_h / self.scale then
+            elseif self.y >= self.bounds_bottom - self.viewport_h / self.scale then
                 if s:match("left") or s:match("right") or s:match("axis") then
                     s = s .. " and bottom"
                 else
