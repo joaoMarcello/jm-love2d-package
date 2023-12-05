@@ -308,7 +308,8 @@ local function update_on_target(self, dt)
         local range = "range_" .. axis
         if targ[range] < 0 then
             self:set_state(States.chasing)
-            self.speed = 0.9
+            self.speed = 2.0 * (math.abs(targ["diff_" .. axis]) / self.camera.tile_size)
+            if self.speed < 0.9 then self.speed = 0.9 end
             return
         end
     end
@@ -399,7 +400,7 @@ function Controller:__constructor__(camera, axis, delay, type)
 
     self.targ_dir = nil
 
-    self:set_move_behavior(MoveTypes.balanced)
+    self:set_move_behavior()
 
     self:set_state(States.no_target)
 end
@@ -555,11 +556,15 @@ function Controller:target_position_x()
 end
 
 function Controller:update(dt)
-    if self.state == States.chasing then
+    local state = self.state
+
+    if not self.target then return end
+
+    if state == States.chasing then
         update_chasing(self, dt)
-    elseif self.state == States.on_target then
+    elseif state == States.on_target then
         update_on_target(self, dt)
-    elseif self.state == States.deadzone then
+    elseif state == States.deadzone then
         update_on_deadzone(self, dt)
     end
 
@@ -569,11 +574,12 @@ end
 function Controller:draw()
     local print = love.graphics.print
     local cam = self.camera
-    if self.axis == 'x' then
+    if self.axis == 'y' and self.target then
         self.tt = self.tt or -2.71
         self.tt = self.tt + ((2.71 * 2) / 5.0) * love.timer.getDelta()
         print(Behavior[4](self.time), cam.x + 10, cam.y + 20)
         print("time: " .. self.time, cam.x + 10, cam.y + 36)
+        print("diff_X: " .. self.target.diff_y, cam.x + 10, cam.y + 52)
     end
     do
         return
