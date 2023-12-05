@@ -527,49 +527,67 @@ function Camera:set_type(s)
         self.bounds_bottom = self.bounds_top + self.viewport_h / self.scale
 
         self.__state = "capture"
-        self:set_focus_x(0)
 
         self.custom_update = function(self, dt)
             local cx = self.controller_x
             local cy = self.controller_y
-            if not cx.target then return end
             local target = cx.target
+            if not target then return end
 
             if self.__state == "waiting" then
                 if target.rx > self.bounds_right
                     and target.range_x > 0
                 then
-                    self.__state = "allow_right"
+                    self.__state = "allow_x"
                     self.bounds_right = self.bounds_right + self.viewport_w
                     self:set_focus_x(0)
                 elseif target.rx + target.range_x < self.bounds_left
                     and target.range_x < 0
                 then
-                    self.__state = "allow_left"
+                    self.__state = "allow_x"
                     self.bounds_left = round(self.bounds_left - self.viewport_w)
                     self:set_focus_x(self.viewport_w)
                     cx:reset()
-                    -- cx:set_target(self.bounds_left, target.ry)
+                    return
+                elseif target.ry > self.bounds_bottom
+                    and target.range_y > 0
+                then
+                    self.__state = "allow_y"
+                    self.bounds_bottom = round(self.bounds_bottom + self.viewport_h)
+                    self:set_focus_y(0)
+                    cy:reset()
+                elseif target.ry < self.bounds_top
+                    and target.range_y < 0
+                then
+                    self.__state = "allow_y"
+                    self.bounds_top = round(self.bounds_top - self.viewport_h)
+                    self:set_focus_y(self.viewport_h)
+                    cy:reset()
                     return
                 end
             end
 
             if self.__state:match("allow") then
-                if self.__state:match("right") then
-                    cx:set_target(self.bounds_right - self.viewport_w, target.ry)
-                elseif self.__state:match("left") then
-                    cx:set_target(self.bounds_right - self.viewport_w, target.ry)
+                local axis = self.__state:match("x") and "x" or "y"
+
+                if axis == "x" then
+                    cx:set_target(round(self.bounds_right - self.viewport_w), target.ry)
+                else
+                    cy:set_target(target.rx, round(self.bounds_bottom - self.viewport_h))
                 end
+
                 cx:set_state(1)
                 cy:set_state(1)
-                if cx:is_on_target() then
+
+                if (axis == "x" and cx:is_on_target())
+                    or (axis == "y" and cy:is_on_target())
+                then
                     self.__state = "capture"
                     return
                 end
             end
 
-            if self.__state == "capture"
-            then
+            if self.__state == "capture" then
                 cx:set_state(4)
                 cy:set_state(4)
 
