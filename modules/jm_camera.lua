@@ -429,7 +429,9 @@ function Camera:__constructor__(
 
     self.is_visible = true
 
-    self.type = type_ or TYPES.SuperMarioWorld
+    self.custom_update = nil
+
+    self.type = type_ or TYPES.SuperMarioBros
     self:set_type(self.type)
 end
 
@@ -440,7 +442,7 @@ function Camera:set_type(s)
     local cx = self.controller_x
     local cy = self.controller_y
 
-    if s == "super mario world" or s == TYPES.SuperMarioWorld or true then
+    if s == "super mario world" or s == TYPES.SuperMarioWorld then
         cx.focus_1 = 0.4
         cx.focus_2 = 1.0 - cx.focus_1
         cx.type = Controller.Type.dynamic
@@ -482,15 +484,33 @@ function Camera:set_type(s)
         cy.focus_2 = 0.5
         cy.type = Controller.Type.normal
         cy.delay = 0.5
+
+        return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_1)
         ---
     elseif s == "follow boss" or s == TYPES.FollowBoss then
-        cx.focus_2 = 0.45
+        cx.focus_2 = 0.4
         cx.focus_1 = 1.0 - cx.focus_2
         cx.type = Controller.Type.dynamic
 
-        cy.focus_2 = 0.45
+        cy.focus_2 = 0.4
         cy.focus_1 = 1 - cy.focus_2
         cy.type = Controller.Type.dynamic
+
+        return self:set_focus(self.viewport_w * cx.focus_2, self.viewport_h * cy.focus_2)
+    elseif s == "super mario bros" or s == TYPES.SuperMarioBros then
+        cx.focus_1 = 0.4
+        cx.focus_2 = 0.4
+        cx.type = Controller.Type.normal
+
+        self.custom_update = function(self, dt)
+            if self.x < self.bounds_right - self.viewport_w / self.scale then
+                self.bounds_left = round(self.x)
+            end
+            self.bounds_top = round(self.y)
+            self.bounds_bottom = self.y + self.viewport_h / self.scale
+        end
+
+        return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_1)
     end
 end
 
@@ -614,8 +634,8 @@ function Camera:world_to_screen(x, y)
 end
 
 function Camera:follow(x, y, id)
-    self.controller_x:set_target(x, y)
-    self.controller_y:set_target(x, y)
+    self.controller_x:set_target(x, y, id)
+    self.controller_y:set_target(x, y, id)
 end
 
 function Camera:target_on_focus()
@@ -1139,6 +1159,10 @@ function Camera:update(dt)
     dynamic_zoom_update(self, dt)
 
     self:keep_on_bounds()
+
+    if self.custom_update then
+        self:custom_update(dt)
+    end
 
     self.controller_x:update(dt)
     self.controller_y:update(dt)
