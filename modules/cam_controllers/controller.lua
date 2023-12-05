@@ -558,7 +558,9 @@ end
 function Controller:update(dt)
     local state = self.state
 
-    if not self.target then return end
+    if not self.target then
+        return
+    end
 
     if state == States.chasing then
         update_chasing(self, dt)
