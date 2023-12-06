@@ -1064,6 +1064,12 @@ end
 
 ---@param self JM.Scene
 local init = function(self, ...)
+    for i = 1, self.amount_cameras do
+        ---@type JM.Camera.Camera
+        local cam = self.cameras_list[i]
+        cam:init()
+    end
+
     if self.time_pause
         or (self.transition and self.transition.pause_scene)
     then
