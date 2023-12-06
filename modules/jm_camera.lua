@@ -512,14 +512,17 @@ function Camera:set_type(s)
         end
 
         return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_1)
+        ---
     elseif s == "zelda gbc" or s == TYPES.Zelda_GBC then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
         cx.type = Controller.Type.normal
+        cx:set_move_behavior(2)
 
         cy.focus_1 = 0.5
         cy.focus_2 = 0.5
         cy.type = Controller.Type.normal
+        cy:set_move_behavior(2)
 
         self.bounds_left = round(self.x)
         self.bounds_top = round(self.y)
@@ -535,13 +538,18 @@ function Camera:set_type(s)
             if not target then return end
 
             if self.__state == "waiting" then
+                cx:set_state(1)
+                cy:set_state(1)
+                cx.speed = 2.0
+                cy.speed = 2.0
                 if target.rx > self.bounds_right
                     and target.range_x > 0
                 then
                     self.__state = "allow_x"
                     self.bounds_right = self.bounds_right + self.viewport_w
                     self:set_focus_x(0)
-                elseif target.rx + target.range_x < self.bounds_left
+                    cx:reset()
+                elseif target.rx < self.bounds_left
                     and target.range_x < 0
                 then
                     self.__state = "allow_x"
@@ -576,8 +584,7 @@ function Camera:set_type(s)
                     cy:set_target(target.rx, round(self.bounds_bottom - self.viewport_h))
                 end
 
-                cx:set_state(1)
-                cy:set_state(1)
+
 
                 if (axis == "x" and cx:is_on_target())
                     or (axis == "y" and cy:is_on_target())
