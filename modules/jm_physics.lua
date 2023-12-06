@@ -972,9 +972,12 @@ do
         local speed_y = self.speed_y
         if speed_y == 0.0 then return 0.0 end
 
-        if self.type == BodyTypes.dynamic and speed_y <= 0 then
+        if self.type == BodyTypes.dynamic and speed_y <= 0
+            and self.allowed_gravity
+        then
             return 0.0
         end
+
         local meter = self.world.meter
         local on_water = self.on_water
 
@@ -998,14 +1001,9 @@ do
             end
         end
 
-
-        -- local area = self.area_x
-        --     or ((self.w / meter) * ((self.w * 0.75) / meter))
-
-
         c = c * area
 
-        return 0.5 * c * d * math.pow(speed_y, 2) * self:direction_y()
+        return 0.5 * c * d * (speed_y ^ 2) * self:direction_y()
     end
 
     function Body:buoyant()
@@ -1054,7 +1052,7 @@ do
 
         c = c * area
 
-        return 0.5 * c * d * math.pow(speed_x, 2) * self:direction_x()
+        return 0.5 * c * d * (speed_x ^ 2) * self:direction_x()
     end
 
     function Body:friction_x()
@@ -1153,19 +1151,7 @@ do
                 obj:apply_force(nil, obj:weight() - self:buoyant() - self:resistance_y())
                 --
             else
-                -- do
-                --     if self.ground
-                --         and not self.ground:check_collision(self:rect())
-                --     then
-                --         self.ground = nil
-                --     end
-
-                --     if self.ceil
-                --         and not self.ceil:check_collision(self:rect())
-                --     then
-                --         self.ceil = nil
-                --     end
-                -- end
+                obj:apply_force(nil, -self:resistance_y())
 
                 if obj.dacc_y then
                     if obj.speed_y > 0 and obj.acc_y < 0 then
@@ -2290,9 +2276,37 @@ do
         return World.__constructor__(self, {})
     end
 
+    ---@param bd JM.Physics.Body
+    local update_order = function(bd)
+        if bd.__remove then
+            return -1000
+        end
+
+        local tp = bd.type
+        if tp == BodyTypes.static
+            or tp == BodyTypes.only_fall
+        then
+            return 1000
+        end
+
+        if tp == BodyTypes.kinematic then
+            return 100
+        end
+
+        return 0
+    end
+
+    ---@param a JM.Physics.Body
+    ---@param b JM.Physics.Body
+    local sort_update = function(a, b)
+        return update_order(a) > update_order(b)
+    end
+
     local dt_lim = 1 / 30
     function World:update(dt)
         dt = dt > dt_lim and dt_lim or dt
+
+        table.sort(self.bodies, sort_update)
 
         for i = self.bodies_number, 1, -1 do
             ---@type JM.Physics.Body|any
@@ -2302,6 +2316,10 @@ do
                 self:remove(obj, i)
                 push_body(obj)
                 obj = nil
+            elseif obj.type == BodyTypes.static
+                or obj.type == BodyTypes.only_fall
+            then
+                break
             end
 
             if obj and obj.is_stucked then
@@ -2311,6 +2329,7 @@ do
             if obj and obj.is_enabled then
                 obj:update(dt)
             end
+
         end
     end
 
