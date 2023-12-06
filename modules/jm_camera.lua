@@ -325,6 +325,7 @@ local TYPES = {
     ModernMetroidVania = 7,
     FollowBoss = 8,
     MegaMan = 9,
+    NewSuperMarioBros = 10,
 }
 
 ---@class JM.Camera.Camera
@@ -435,7 +436,7 @@ function Camera:__constructor__(
 
     self.custom_update = nil
 
-    self.type = type_ or TYPES.SuperMarioWorld
+    self.type = type_ or TYPES.NewSuperMarioBros
     self:set_type(self.type)
 end
 
@@ -447,7 +448,7 @@ function Camera:init()
     if self.__state then self.__state = "capture" end
 end
 
----@param s JM.Camera.Controller.Types|"super mario world"|"metroid"|"metroidvania"|"modern metroidvania"|"follow boss"|"super mario bros"|"zelda gbc"|"megaman"
+---@param s JM.Camera.Controller.Types|"super mario world"|"metroid"|"metroidvania"|"modern metroidvania"|"follow boss"|"super mario bros"|"zelda gbc"|"megaman"|"new super mario bros"
 function Camera:set_type(s)
     if type(s) == "string" then s = string.lower(s) end
 
@@ -467,6 +468,19 @@ function Camera:set_type(s)
         cy:set_move_behavior(Controller.MoveTypes.fast_smooth)
 
         return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_2)
+    elseif s == "new super mario bros" or s == TYPES.NewSuperMarioBros then
+        cx.focus_1 = 0.4
+        cx.focus_2 = 1.0 - cx.focus_1
+        cx.type = Controller.Type.dynamic
+        cx:set_move_behavior(Controller.MoveTypes.smooth)
+
+        cy.type = Controller.Type.normal
+        cy.focus_1 = 0.5
+        cy.focus_2 = 0.5
+        cy.delay = 0.6
+        cy:set_move_behavior(Controller.MoveTypes.fast_smooth)
+
+        return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_1)
     elseif s == "metroid" or s == TYPES.Metroid then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
