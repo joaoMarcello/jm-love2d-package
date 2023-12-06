@@ -1044,7 +1044,7 @@ do
             or ((0.6 * 0.6) * (self.h / (meter / 3.5)))
 
         if on_water and self.type == BodyTypes.dynamic then
-            c = not self.ground and 0.04 or 2.3
+            c = not self.ground and 0.04 or c --2.3
             area = area * 0.1
         end
 
@@ -1066,13 +1066,13 @@ do
         if abs(self.speed_x) > self.world.meter * 0.5 then --0.25
             -- cinetic
             local cc = ground.coef_cinetic or 0.5          --0.5
-            -- cc = self.on_water and 1.1 or cc
+            cc = self.on_water and ground and 1.1 or cc
 
             return FN * cc * (self:direction_x())
         else
             -- static
             local cs = ground.coef_static or 0.6 --0.6
-            -- cs = self.on_water and cs * 10 or cs
+            cs = self.on_water and ground and 1.3 or cs
 
             return FN * cs * (self:direction_x())
         end
@@ -2329,7 +2329,6 @@ do
             if obj and obj.is_enabled then
                 obj:update(dt)
             end
-
         end
     end
 
