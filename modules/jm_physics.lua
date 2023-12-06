@@ -260,7 +260,7 @@ local function kinematic_moves_dynamic_x(self, goalx, skip_move)
                 end
 
                 if not skip_move and collision_rect(goalx, self.y - 1, self.w, self.h, item.x, item.y, item.w, item.h) then
-                    item:refresh(nil, self.y - 0.1 - item.h)
+                    -- item:refresh(nil, self.y - 0.1 - item.h)
                     local col = item:check(item.x + diff, nil, collision_x_filter, empty_table(), empty_table_for_coll())
 
                     if col.n > 0 then
