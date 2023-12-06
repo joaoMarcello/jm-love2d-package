@@ -500,7 +500,17 @@ end
 function Controller:reset()
     self.state    = nil
     self.init_pos = nil
-    self.target   = nil
+    if not self.target then return end
+    self.target = nil
+
+    -- local target = self.target
+    -- target.last_direction_x = nil
+    -- target.last_direction_y = nil
+    -- target.last_x = nil
+    -- target.last_y = nil
+    -- target.last_id = nil
+    -- target:refresh(target.rx, target.ry, target.id)
+    -- self:set_state(States.chasing, true)
 end
 
 ---@param new_state JM.Camera.Controller.States
