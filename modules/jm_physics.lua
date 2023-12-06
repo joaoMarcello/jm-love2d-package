@@ -950,7 +950,7 @@ do
 
                 if is_kinematic(self) then
                     kinematic_moves_dynamic_x(self, final_x)
-                    kinematic_moves_dynamic_y(self, final_y)
+                    -- kinematic_moves_dynamic_y(self, final_y)
                 end
                 self:refresh(final_x, final_y)
                 return
