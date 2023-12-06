@@ -490,6 +490,10 @@ function Controller:target_changed_direction()
     return false
 end
 
+function Controller:skip_delay()
+    if self.time < 0 then self.time = 0 end
+end
+
 function Controller:is_on_target()
     if not self.target then return false end
     local axis = self.axis
