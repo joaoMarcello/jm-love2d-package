@@ -18,6 +18,9 @@ local Controller = require((...):gsub("jm_camera", "cam_controllers.controller")
 ---@type JM.Camera.ShakeController
 local ShakeController = require((...):gsub("jm_camera", "cam_controllers.controller_shake"))
 
+---@type JM.Camera.ZoomController
+local ZoomController = require((...):gsub("jm_camera", "cam_controllers.controller_zoom"))
+
 -- the round function from lua programming book
 local function round(x)
     local f = mfloor(x + 0.5)
@@ -384,10 +387,10 @@ function Camera:__constructor__(
     self.controller_x = Controller:new(self, "x")
     self.controller_y = Controller:new(self, "y")
 
-    ---@type JM.Camera.ShakeController
     self.controller_shake_x = ShakeController:new(self, 0)
-    ---@type JM.Camera.ShakeController
     self.controller_shake_y = ShakeController:new(self, 0)
+
+    self.controller_zoom = ZoomController:new(self, nil)
 
     self.focus_x = 0
     self.focus_y = 0
@@ -432,8 +435,16 @@ function Camera:__constructor__(
 
     self.custom_update = nil
 
-    self.type = type_ or TYPES.Zelda_GBC
+    self.type = type_ or TYPES.SuperMarioWorld
     self:set_type(self.type)
+end
+
+function Camera:init()
+    self.controller_shake_x.amplitude = 0
+    self.controller_shake_y.amplitude = 0
+    self.controller_x:reset()
+    self.controller_y:reset()
+    if self.__state then self.__state = "capture" end
 end
 
 ---@param s JM.Camera.Controller.Types|"super mario world"|"metroid"|"metroidvania"|"modern metroidvania"|"follow boss"|"super mario bros"|"zelda gbc"|"megaman"
@@ -634,36 +645,38 @@ end
 
 ---@param self JM.Camera.Camera
 local function dynamic_zoom_update(self, dt)
-    if not self.on_dynimac_zoom then return end
+    -- if not self.on_dynimac_zoom then return end
 
-    local r = self:get_state():match("blocked") and self.zoom_final < 1
-    if self.scale == self.zoom_final or r then
-        self.on_dynimac_zoom = false
-        return
-    end
+    -- local r = self:get_state():match("blocked") and self.zoom_final < 1
+    -- if self.scale == self.zoom_final or r then
+    --     self.on_dynimac_zoom = false
+    --     return
+    -- end
 
-    self.scale = self.scale + (self.zoom_speed * dt) + self.zoom_acc * dt * dt / 2.0
-    self.zoom_speed = self.zoom_speed + self.zoom_acc * dt
+    -- self.scale = self.scale + (self.zoom_speed * dt) + self.zoom_acc * dt * dt / 2.0
+    -- self.zoom_speed = self.zoom_speed + self.zoom_acc * dt
 
-    if self.zoom_acc < 0 or self.zoom_speed < 0 then
-        self.scale = clamp(self.scale, self.zoom_final, self.max_zoom)
-    else
-        self.scale = clamp(self.scale, self.min_zoom, self.zoom_final)
-    end
-    self:set_bounds()
+    -- if self.zoom_acc < 0 or self.zoom_speed < 0 then
+    --     self.scale = clamp(self.scale, self.zoom_final, self.max_zoom)
+    -- else
+    --     self.scale = clamp(self.scale, self.min_zoom, self.zoom_final)
+    -- end
+    -- self:set_bounds()
 end
 
-function Camera:set_scale_dynamic(scale, duration, speed)
-    assert(scale and scale ~= 0, ">> Error: Scale cannot be nil or zero!")
-    duration = duration or 1.0
+function Camera:set_scale_dynamic(scale, duration)
+    -- assert(scale and scale ~= 0, ">> Error: Scale cannot be nil or zero!")
+    -- duration = duration or 1.0
 
-    self.zoom_final = clamp(scale, self.min_zoom, self.max_zoom)
+    -- self.zoom_final = clamp(scale, self.min_zoom, self.max_zoom)
 
-    local direction = (self.scale > self.zoom_final and -1 or 1)
-    self.zoom_speed = speed and (speed * direction) or 0
-    self.zoom_acc = not speed and math.abs(self.scale - self.zoom_final) / duration or 0
-    self.zoom_acc = self.zoom_acc * direction
-    self.on_dynimac_zoom = true
+    -- local direction = (self.scale > self.zoom_final and -1 or 1)
+    -- self.zoom_speed = speed and (speed * direction) or 0
+    -- self.zoom_acc = not speed and math.abs(self.scale - self.zoom_final) / duration or 0
+    -- self.zoom_acc = self.zoom_acc * direction
+    -- self.on_dynimac_zoom = true
+
+    self.controller_zoom:refresh(scale, duration)
 end
 
 function Camera:set_viewport(x, y, w, h)
@@ -813,6 +826,11 @@ function Camera:set_zoom(value, clamp_to_minscale)
     self:keep_on_bounds()
 
     return true
+end
+
+function Camera:set_scale(value)
+    assert(value ~= 0)
+    self.scale = value
 end
 
 function Camera:jump_to(x, y)
@@ -1250,7 +1268,7 @@ function Camera:update(dt)
 
     local last_x, last_y = self.x, self.y
 
-    dynamic_zoom_update(self, dt)
+    self.controller_zoom:update(dt)
 
     self:keep_on_bounds()
 
@@ -1263,6 +1281,7 @@ function Camera:update(dt)
 
     self.controller_shake_x:update(dt)
     self.controller_shake_y:update(dt)
+
 
     self.dx = self.x - last_x
     self.dy = self.y - last_y
