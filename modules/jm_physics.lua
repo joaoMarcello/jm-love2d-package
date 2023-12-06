@@ -203,7 +203,10 @@ local collision_filter = function(obj, item)
 end
 
 ---@param self JM.Physics.Body
-local function kinematic_moves_dynamic_x(self, goalx)
+local function kinematic_moves_dynamic_x(self, goalx, skip_move)
+    goalx = goalx or (self.x + ((self.speed_x * love.timer.getDelta())
+        + (self.acc_x * (love.timer.getDelta() ^ 2)) * 0.5))
+
     local list = self.world:get_items_in_cell_obj(self.x - 2, self.y - 1, self.w + 4, self.h + 2,
         self.empty_table())
 
@@ -237,14 +240,27 @@ local function kinematic_moves_dynamic_x(self, goalx)
                     local col = item:check(nil, nil, collision_filter, empty_table(), empty_table_for_coll())
 
                     if col.n > 0 then
-                        item:set_stucked(true)
-                        -- if col.n == 1 and col.items[1] == self then
-                        -- else
-                        -- end
+                        local s = true
+                        for i = 1, col.n do
+                            ---@type JM.Physics.Collide
+                            local bd = col.items[i]
+                            if bd.is_slope then
+                                s = false
+                            elseif bd.is_slope_adj
+                                and ((bd.ground and bd.ground.is_floor)
+                                    or math.floor(item:bottom()) == bd.y)
+                            then
+                                s = false
+                            elseif bd == self then
+                                s = false
+                            end
+                        end
+                        item:set_stucked(s)
                     end
                 end
 
-                if collision_rect(goalx, self.y - 1, self.w, self.h, item.x, item.y, item.w, item.h) then
+                if not skip_move and collision_rect(goalx, self.y - 1, self.w, self.h, item.x, item.y, item.w, item.h) then
+                    item:refresh(nil, self.y - 0.1 - item.h)
                     local col = item:check(item.x + diff, nil, collision_x_filter, empty_table(), empty_table_for_coll())
 
                     if col.n > 0 then
@@ -932,6 +948,10 @@ do
                     end
                 end -- END for
 
+                if is_kinematic(self) then
+                    kinematic_moves_dynamic_x(self, final_x)
+                    kinematic_moves_dynamic_y(self, final_y)
+                end
                 self:refresh(final_x, final_y)
                 return
             end
@@ -1424,7 +1444,10 @@ do
 
                     if col.n > 0 then -- had collision!
                         obj:resolve_collisions_x(col)
-                    else              -- no collisions
+                        -- if is_kinematic(obj) then
+                        --     kinematic_moves_dynamic_x(obj, obj.x)
+                        -- end
+                    else -- no collisions
                         if obj.wall_left then
                             dispatch_event(obj, BodyEvents.leaving_wall_left)
                         end
