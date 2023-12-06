@@ -1042,8 +1042,8 @@ do
 
         local c        = self.coef_resis_x or 1.2
 
-        -- local area     = self.area_x or ((self.w * 1.4 / meter) * (1.7))
-        local area     = self.area_x or ((0.6 * 0.6) * (self.h / (meter / 3.5)))
+        local area     = self.area_x
+            or ((0.6 * 0.6) * (self.h / (meter / 3.5)))
 
         if on_water and self.type == BodyTypes.dynamic then
             c = not self.ground and 0.04 or 2.3
