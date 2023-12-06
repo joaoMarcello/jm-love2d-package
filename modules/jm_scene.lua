@@ -1068,6 +1068,7 @@ local init = function(self, ...)
         ---@type JM.Camera.Camera
         local cam = self.cameras_list[i]
         cam:init()
+        cam:set_type(cam.type)
     end
 
     if self.time_pause
