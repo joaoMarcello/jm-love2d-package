@@ -238,6 +238,9 @@ local function kinematic_moves_dynamic_x(self, goalx)
 
                     if col.n > 0 then
                         item:set_stucked(true)
+                        -- if col.n == 1 and col.items[1] == self then
+                        -- else
+                        -- end
                     end
                 end
 
