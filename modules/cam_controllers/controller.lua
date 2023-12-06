@@ -6,6 +6,8 @@ local MoveTypes = {
     linear = 2,
     fast_smooth = 3,
     balanced = 4,
+    strong_dash = 5,
+    smooth_dash = 6,
 }
 
 local Behavior = {
@@ -41,6 +43,21 @@ local Behavior = {
         end
     end,
     ---
+    [MoveTypes.strong_dash] = function(x)
+        -- x = math.abs(x - 3.0)
+        local E_2x = 2.718281828459 ^ (2.0 * x)
+        local r = ((E_2x - 1.0) / (E_2x + 1.0))
+        if x < 3.0 then
+            return r
+        else
+            return 1
+        end
+    end,
+    ---
+    [MoveTypes.smooth_dash] = function(x)
+        x = math.sin(x)
+        return x
+    end
 }
 
 local Domain = {
@@ -48,6 +65,8 @@ local Domain = {
     [MoveTypes.linear] = 1.0,
     [MoveTypes.fast_smooth] = 2.718281828459 * 2.0,
     [MoveTypes.balanced] = 4 + 2.718281828459 * 2.0,
+    [MoveTypes.strong_dash] = 3.0,
+    [MoveTypes.smooth_dash] = math.pi / 2,
 }
 --==========================================================================
 
@@ -216,6 +235,7 @@ local function update_chasing(self, dt)
 
     if self.get_factor ~= MoveTypes.balanced
         and self.get_factor ~= MoveTypes.fast_smooth
+        and self.get_factor ~= MoveTypes.strong_dash
     then
         self.time = Utils:clamp(self.time, 0, self.factor_domain)
     end
@@ -420,6 +440,8 @@ end
 ---@param b JM.Camera.Controller.MoveTypes|nil
 function Controller:set_move_behavior(b)
     b = b or MoveTypes.smooth
+    if not Behavior[b] then b = MoveTypes.smooth end
+    self.behavior_type = b
     self.get_factor = Behavior[b]
     self.factor_domain = Domain[b]
 end
