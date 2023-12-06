@@ -436,7 +436,7 @@ function Camera:__constructor__(
 
     self.custom_update = nil
 
-    self.type = type_ or TYPES.NewSuperMarioBros
+    self.type = type_ or TYPES.SuperMarioWorld
     self:set_type(self.type)
 end
 
@@ -459,13 +459,17 @@ function Camera:set_type(s)
         cx.focus_1 = 0.4
         cx.focus_2 = 1.0 - cx.focus_1
         cx.type = Controller.Type.dynamic
-        cx:set_move_behavior(Controller.MoveTypes.smooth)
+        cx:set_move_behavior(Controller.MoveTypes.smooth_dash)
 
         cy.type = Controller.Type.chase_when_not_moving
         cy.focus_1 = 0.6
         cy.focus_2 = 0.6
         cy.delay = 0.25
         cy:set_move_behavior(Controller.MoveTypes.fast_smooth)
+
+        -- self.custom_update = function(self, dt)
+        --     self.controller_y.speed = 0.9
+        -- end
 
         return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_2)
     elseif s == "new super mario bros" or s == TYPES.NewSuperMarioBros then
@@ -563,6 +567,7 @@ function Camera:set_type(s)
             if not target then return end
 
             if self.__state == "waiting" then
+                self:set_focus(self.viewport_w * 0.5, self.viewport_h * 0.5)
                 cx:set_state(1)
                 cy:set_state(1)
                 cx.speed = 2.0
