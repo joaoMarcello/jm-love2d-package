@@ -42,13 +42,12 @@ local Behavior = {
     end,
     ---
     [MoveTypes.strong_dash] = function(x)
-        -- x = math.abs(x - 3.0)
         local E_2x = 2.718281828459 ^ (2.0 * x)
         local r = ((E_2x - 1.0) / (E_2x + 1.0))
         if x < 3.0 then
             return r
         else
-            return 1
+            return 1.0
         end
     end,
     ---
@@ -64,7 +63,7 @@ local Domain = {
     [MoveTypes.fast_smooth] = 2.718281828459 * 2.0,
     [MoveTypes.balanced] = 10.0,
     [MoveTypes.strong_dash] = 3.0,
-    [MoveTypes.smooth_dash] = math.pi / 2,
+    [MoveTypes.smooth_dash] = math.pi / 2.0,
 }
 --==========================================================================
 
