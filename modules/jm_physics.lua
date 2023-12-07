@@ -495,8 +495,15 @@ do
         self.is_slope_adj = nil
         self.__is_ice = nil
 
-        self.events = self.events or {}
-        self.colls = self.colls or {}
+        if self.type ~= BodyTypes.static
+            and self.type ~= BodyTypes.only_fall
+        then
+            self.events = self.events or {}
+            self.colls = self.colls or {}
+        else
+            self.events = nil
+            self.colls = nil
+        end
     end
 
     function Body:turn_into_ice()
