@@ -285,7 +285,8 @@ local function kinematic_moves_dynamic_x(self, goalx)
                             local bd = col.items[i]
 
                             if bd == self
-                                or (ground and ground.is_slope and bd.is_slope_adj and bd.y == ground.y)
+                            -- or (bd.is_slope_adj
+                            --     and ground ~= bd.is_slope_adj)
                             then
                                 s = false
                             else
@@ -988,8 +989,13 @@ do
                     else
                         ---
                         local ground = self.ground
+                        local ceil = self.ceil
+
                         if not bd.is_slope_adj
-                            or (ground ~= bd.is_slope_adj)
+                            or (not bd.is_slope_adj.is_floor and not ceil)
+                        -- or ((ground and (ground ~= bd.is_slope_adj or not bd.is_slope_adj.is_floor))
+                        --     or (not bd.is_slope_adj.is_floor and ground))
+                        -- or (self.ceil and self.ceil ~= bd.is_slope_adj)
                         then
                             self.speed_x = 0.0
 
