@@ -278,11 +278,15 @@ local function kinematic_moves_dynamic_x(self, goalx)
 
                     if col.n > 0 then
                         local s = true
+                        local ground = self.ground
+
                         for i = 1, col.n do
                             ---@type JM.Physics.Collide
                             local bd = col.items[i]
 
-                            if bd == self then
+                            if bd == self
+                                or (ground and ground.is_slope and bd.is_slope_adj and bd.y == ground.y)
+                            then
                                 s = false
                             else
                                 s = true
@@ -983,7 +987,10 @@ do
                         ---
                     else
                         ---
-                        if not bd.is_slope_adj then
+                        local ground = self.ground
+                        if not bd.is_slope_adj
+                            or (ground ~= bd.is_slope_adj)
+                        then
                             self.speed_x = 0.0
 
                             if col.diff_x < 0 then
@@ -2150,11 +2157,11 @@ do
                         then
                             if bd.is_norm then
                                 if item.y == bd.y and item.x == bd:right() then
-                                    item.is_slope_adj = true
+                                    item.is_slope_adj = bd
                                 end
                             else
                                 if item.y == bd.y and item:right() == bd.x then
-                                    item.is_slope_adj = true
+                                    item.is_slope_adj = bd
                                 end
                             end
 
@@ -2167,11 +2174,11 @@ do
                         then
                             if bd.is_norm then
                                 if item:bottom() == bd:bottom() and item:right() == bd.x then
-                                    item.is_slope_adj = true
+                                    item.is_slope_adj = bd
                                 end
                             else
                                 if item:bottom() == bd:bottom() and item.x == bd:right() then
-                                    item.is_slope_adj = true
+                                    item.is_slope_adj = bd
                                 end
                             end
 
