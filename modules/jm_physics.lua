@@ -992,12 +992,13 @@ do
                         local ceil = self.ceil
 
                         if not bd.is_slope_adj
-                            or (not bd.is_slope_adj.is_floor and not ceil)
-                        -- or ((ground and (ground ~= bd.is_slope_adj or not bd.is_slope_adj.is_floor))
-                        --     or (not bd.is_slope_adj.is_floor and ground))
-                        -- or (self.ceil and self.ceil ~= bd.is_slope_adj)
+                            or (ground and (bd.is_slope_adj.y ~= ground.y or bd.is_slope_adj:bottom() ~= ground:bottom()))
+                        -- or (not bd.is_slope_adj.is_floor and not ceil)
+                        -- or (bd.is_slope_adj.is_floor and not ground)
+                        -- or (ceil and bd.is_slope_adj:bottom() ~= bd:bottom() and bd.is_slope_adj:bottom() ~= bd.y)
                         then
                             self.speed_x = 0.0
+                            self.acc_x = 0.0
 
                             if col.diff_x < 0 then
                                 final_x = bd:right() + 0.5
@@ -1022,6 +1023,7 @@ do
                 self.speed_x = -self.speed_x * self.bouncing_x
             else
                 self.speed_x = 0.0
+                self.acc_x = 0.0
             end
 
             dispatch_event(self, BodyEvents.axis_x_collision)
