@@ -211,12 +211,12 @@ local filter_stuck_x = function(obj, item)
     end
 
     do
-        local ceil = obj.ceil
-        if item.is_slope_adj and ((ceil and ceil.is_slope)
-                or math.floor(item.y) == obj:bottom())
-        then
-            return false
-        end
+        -- local ceil = obj.ceil
+        -- if item.is_slope_adj and ((ceil and ceil.is_slope)
+        --         or math.floor(item.y) == obj:bottom())
+        -- then
+        --     return false
+        -- end
     end
 
     local tp = item.type
@@ -231,7 +231,7 @@ local filter_stuck_y = function(obj, item)
 end
 
 ---@param self JM.Physics.Body
-local function kinematic_moves_dynamic_x(self, goalx, skip_move)
+local function kinematic_moves_dynamic_x(self, goalx)
     goalx = goalx or (self.x + ((self.speed_x * love.timer.getDelta())
         + (self.acc_x * (love.timer.getDelta() ^ 2)) * 0.5))
 
@@ -253,6 +253,7 @@ local function kinematic_moves_dynamic_x(self, goalx, skip_move)
             then
                 if collision_rect(goalx, self.y, self.w, self.h,
                         item.x, item.y, item.w, item.h)
+                    or collision_rect(self.x, self.y, self.w, self.h, item:rect())
                 then
                     local dist1 = abs(item:right() - self.x)
                     local dist2 = abs(item.x - self:right())
@@ -903,11 +904,6 @@ do
                     self.speed_y = 0.0
                 end
             else
-                -- if (col.diff_y >= 0 and col.most_up.type ~= BodyTypes.kinematic)
-                --     or col.diff_y < 0
-                -- then
-                --     self.speed_y = 0.0
-                -- end
                 self.speed_y = 0.0
             end
 
@@ -949,30 +945,6 @@ do
             end
         end
     end
-
-    -- ---@param bd JM.Physics.Body|any
-    -- ---@param slope JM.Physics.Slope|any
-    -- local function body_is_adjc_slope(bd, slope)
-    --     if not slope then return false end
-
-    --     local slope_r = slope.x + slope.w
-    --     local bd_bottom = bd.y + bd.h
-    --     local bd_right = bd.x + bd.w
-
-    --     if slope.is_floor then
-    --         local cond = bd.y == slope.y
-    --         local norm = slope.is_norm
-
-    --         return cond and ((bd.x == slope_r and norm)
-    --             or (bd_right == slope.x and not norm))
-    --     else
-    --         local cond = bd_bottom == (slope.y + slope.h)
-    --         local norm = slope.is_norm
-
-    --         return cond and ((bd.x == slope_r and not norm)
-    --             or (bd_right == slope.x and norm))
-    --     end
-    -- end
 
     ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_x(col)
@@ -1017,18 +989,12 @@ do
                 end -- END for
 
                 if is_kinematic(self) then
-                    kinematic_moves_dynamic_y(self, final_y)
                     kinematic_moves_dynamic_x(self, final_x)
+                    kinematic_moves_dynamic_y(self, final_y)
                 end
                 self:refresh(final_x, final_y)
                 return
             end
-
-            -- if self.ground and self.ground.is_slope
-            --     and not self.ground:check_collision(self.x, self.y, self.w, self.h + 2)
-            -- then
-            --     self.ground = nil
-            -- end
 
             self:refresh(col.end_x)
 
@@ -1467,7 +1433,7 @@ do
                 -- obj.acc_x = obj.ground and obj.acc_x * 0.5 or obj.acc_x
                 obj.speed_x = obj.speed_x + obj.acc_x * dt
 
-                obj.speed_x = obj.speed_x
+                -- obj.speed_x = obj.speed_x
 
                 -- if reach max speed
                 if obj.max_speed_x
@@ -1497,7 +1463,6 @@ do
 
                 if obj.type == BodyTypes.ghost then
                     obj:refresh(goalx)
-                    -- goto skip_collision_x
                 else
                     local ex = obj.speed_x > 0 and 1 or 0
                     ex = obj.speed_x < 0 and -1 or ex
@@ -1512,9 +1477,7 @@ do
 
                     if col.n > 0 then -- had collision!
                         obj:resolve_collisions_x(col)
-                        -- if is_kinematic(obj) then
-                        --     kinematic_moves_dynamic_x(obj, obj.x)
-                        -- end
+                        ---
                     else -- no collisions
                         if obj.wall_left then
                             dispatch_event(obj, BodyEvents.leaving_wall_left)
@@ -1548,7 +1511,6 @@ do
                         obj:apply_force(dacc * -obj:direction_x())
                     end
                 end
-                -- ::skip_collision_x::
             end -- end moving in x axis
 
             obj.force_x = 0.0
@@ -1559,6 +1521,7 @@ do
                     self.on_water = nil
                 end
             end
+
             if self.holder then
                 self.holder.x = obj.x
                 self.holder.y = obj.y
