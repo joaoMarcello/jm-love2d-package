@@ -325,7 +325,9 @@ local function kinematic_moves_dynamic_y(self, goaly)
                 and not item.is_stucked
                 and item.is_enabled
             then
-                if collision_rect(self.x, self.y - 2, self.w, self.h + 4, item.x, item.y, item.w, item.h) then
+                if collision_rect(self.x, self.y - 2, self.w, self.h + 4, item.x, item.y, item.w, item.h)
+                    or collision_rect(self.x, goaly, self.w, self.h, item:rect())
+                then
                     local dist1 = abs(self.y - (item.y + item.h))
                     local dist2 = abs((self.y + self.h) - item.y)
 
@@ -709,15 +711,19 @@ do
         local items = self.world:get_items_in_cell_obj(x, y, w, h, empty_tab)
 
         if not items then
-            self.colls.n = 0
-            self.colls.has_slope = false
-            return self.colls
+            if self.colls then
+                self.colls.n = 0
+                self.colls.has_slope = false
+                return self.colls
+            else
+                return { n = 0, has_slope = nil }
+            end
         end
 
         ---@type JM.Physics.Collisions
-        local collisions = self.colls --{}
+        local collisions = self.colls or {}
 
-        local col_items               --= {}
+        local col_items
         local n_collisions, has_slope = 0, nil
         ---@type JM.Physics.Collide, JM.Physics.Collide
         local most_left, most_right
@@ -836,20 +842,25 @@ do
 
     ---@return JM.Physics.Collisions
     function Body:check2(goal_x, goal_y, filter, x, y, w, h)
-        x = x or self.x
-        y = y or self.y
-        w = w or self.w
-        h = h or self.h
+        -- x = x or self.x
+        -- y = y or self.y
+        -- w = w or self.w
+        -- h = h or self.h
 
-        local bd = Body:new(x, y, w, h, self.type, self.world, self.id)
+        -- local bd = Body:new(x, y, w, h, self.type, self.world, self.id)
 
-        local filter__ = function(obj, item)
-            local r = filter and filter(obj, item)
-            r = r and item ~= bd
-            return r
-        end
+        -- local filter__ = function(obj, item)
+        --     local r = filter and filter(obj, item)
+        --     r = r and item ~= bd
+        --     return r
+        -- end
 
-        return bd:check(goal_x, goal_y, filter__)
+        -- return bd:check(goal_x, goal_y, filter__)
+        local lx, ly, lw, lh = self:rect()
+        self:refresh(x, y, w, h)
+        local col = self:check(goal_x, goal_y, filter, empty_table(), empty_table_for_coll())
+        self:refresh(lx, ly, lw, lh)
+        return col
     end
 
     function Body:right()
@@ -1006,8 +1017,8 @@ do
                 end -- END for
 
                 if is_kinematic(self) then
-                    kinematic_moves_dynamic_x(self, final_x)
                     kinematic_moves_dynamic_y(self, final_y)
+                    kinematic_moves_dynamic_x(self, final_x)
                 end
                 self:refresh(final_x, final_y)
                 return
