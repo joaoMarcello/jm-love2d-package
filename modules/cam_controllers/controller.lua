@@ -31,12 +31,10 @@ local Behavior = {
     end,
     ---
     [MoveTypes.balanced] = function(x)
-        x = x - 4.0
-        local r = (1 + (1.0 / (1.0 + (2.718281828459 ^ (-x))))) * 0.5
-        do
-            -- return 1.0
-        end
-        if x < 3.0 then
+        x = x - 5.0
+        local r = 1.0 / (1.0 + (2.718281828459 ^ (-x)))
+
+        if x < 5.0 then
             return r
         else
             return 1.0
@@ -64,7 +62,7 @@ local Domain = {
     [MoveTypes.smooth] = math.pi,
     [MoveTypes.linear] = 1.0,
     [MoveTypes.fast_smooth] = 2.718281828459 * 2.0,
-    [MoveTypes.balanced] = 4 + 2.718281828459 * 2.0,
+    [MoveTypes.balanced] = 10.0,
     [MoveTypes.strong_dash] = 3.0,
     [MoveTypes.smooth_dash] = math.pi / 2,
 }
