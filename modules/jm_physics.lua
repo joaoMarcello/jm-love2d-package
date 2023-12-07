@@ -990,9 +990,14 @@ do
                         ---
                         local ground = self.ground
                         local ceil = self.ceil
+                        local adj = bd.is_slope_adj
 
                         if not bd.is_slope_adj
-                            or (ground and (bd.is_slope_adj.y ~= ground.y or bd.is_slope_adj:bottom() ~= ground:bottom()))
+                        -- or (ground and (adj.y ~= ground.y
+                        --     and adj:bottom() ~= ground:bottom()
+                        --     and adj:bottom() ~= ground.y
+                        --     and adj.y ~= ground:bottom()))
+                        --- ---
                         -- or (not bd.is_slope_adj.is_floor and not ceil)
                         -- or (bd.is_slope_adj.is_floor and not ground)
                         -- or (ceil and bd.is_slope_adj:bottom() ~= bd:bottom() and bd.is_slope_adj:bottom() ~= bd.y)
