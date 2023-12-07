@@ -8,6 +8,7 @@ local MoveTypes = {
     balanced = 4,
     strong_dash = 5,
     smooth_dash = 6,
+    gaussian = 7,
 }
 
 local Behavior = {
@@ -54,6 +55,15 @@ local Behavior = {
     [MoveTypes.smooth_dash] = function(x)
         x = math.sin(x)
         return x
+    end,
+    ---
+    [MoveTypes.gaussian] = function(x)
+        local r = 2.718281828459 ^ (-(x ^ 2.0))
+        if x < 2.5 then
+            return 1.0 - r
+        else
+            return 1.0
+        end
     end
 }
 
@@ -64,6 +74,7 @@ local Domain = {
     [MoveTypes.balanced] = 10.0,
     [MoveTypes.strong_dash] = 3.0,
     [MoveTypes.smooth_dash] = math.pi / 2.0,
+    [MoveTypes.gaussian] = 2.5,
 }
 --==========================================================================
 
@@ -230,11 +241,15 @@ local function update_chasing(self, dt)
 
     self.time = self.time + (self.factor_domain / self.speed) * dt
 
-    if self.get_factor ~= MoveTypes.balanced
-        and self.get_factor ~= MoveTypes.fast_smooth
-        and self.get_factor ~= MoveTypes.strong_dash
-    then
-        self.time = Utils:clamp(self.time, 0, self.factor_domain)
+    do
+        local factor = self.get_factor
+        if factor ~= MoveTypes.balanced
+            and factor ~= MoveTypes.fast_smooth
+            and factor ~= MoveTypes.strong_dash
+            and factor ~= MoveTypes.gaussian
+        then
+            self.time = Utils:clamp(self.time, 0, self.factor_domain)
+        end
     end
 
     local diff = targ[axis] - self.init_pos
