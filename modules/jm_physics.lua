@@ -134,13 +134,16 @@ end
 ---@param obj JM.Physics.Body
 ---@param item JM.Physics.Body|JM.Physics.Slope
 local function coll_y_filter(obj, item)
-    if item.is_slope_adj then
-        if obj.y < item.y then
-            return obj:bottom() <= item.y
-        else
-            return obj.y >= item:bottom()
-        end
-    end
+    -- if item.is_slope_adj then
+    --     local dist1 = abs(item.y - obj:bottom())
+    --     local dist2 = abs(obj.y - item:bottom())
+
+    --     if dist1 < dist2 then
+    --         return obj:bottom() <= item.y
+    --     else
+    --         return obj.y >= item:bottom()
+    --     end
+    -- end
 
     if item.type == BodyTypes.only_fall and not item.is_slope then
         return (obj.y + obj.h) <= item.y
