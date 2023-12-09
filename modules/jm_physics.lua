@@ -401,6 +401,13 @@ Body.__index = Body
 Body.BodyRecycler = BodyRecycler
 
 do
+    ---@param x number
+    ---@param y number
+    ---@param w number
+    ---@param h number
+    ---@param type_ JM.Physics.BodyTypes
+    ---@param world JM.Physics.World
+    ---@param id any
     ---@return JM.Physics.Body
     function Body:new(x, y, w, h, type_, world, id)
         --
@@ -988,20 +995,7 @@ do
                         ---
                     else
                         ---
-                        local ground = self.ground
-                        local ceil = self.ceil
-                        local adj = bd.is_slope_adj
-
-                        if not bd.is_slope_adj
-                        -- or (ground and (adj.y ~= ground.y
-                        --     and adj:bottom() ~= ground:bottom()
-                        --     and adj:bottom() ~= ground.y
-                        --     and adj.y ~= ground:bottom()))
-                        --- ---
-                        -- or (not bd.is_slope_adj.is_floor and not ceil)
-                        -- or (bd.is_slope_adj.is_floor and not ground)
-                        -- or (ceil and bd.is_slope_adj:bottom() ~= bd:bottom() and bd.is_slope_adj:bottom() ~= bd.y)
-                        then
+                        if not bd.is_slope_adj then
                             self.speed_x = 0.0
                             self.acc_x = 0.0
 
@@ -2198,6 +2192,44 @@ do
                             -- if item:bottom() == bd.y then
                             --     item.is_slope_adj = true
                             -- end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    function World:fix_adj_bodies()
+        local N = #self.bodies_static
+
+        for i = N, 1, -1 do
+            ---@type JM.Physics.Collide
+            local bd = self.bodies_static[i]
+
+            if bd.is_slope then
+                local items = self:get_items_in_cell_obj(bd.x - 2, bd.y - 2, bd.w + 4, bd.h + 4)
+
+                if items then
+                    for item, _ in next, items do
+                        ---@type JM.Physics.Collide
+                        local item = item
+
+                        if item ~= bd
+                            and item.is_slope_adj
+                        then
+                            if bd.is_norm and bd.is_floor
+                                and collision_rect(bd.x, bd.y, bd.w + 1, bd.h, item:rect())
+                                and item.y < bd.y
+                            then
+                                self:add(Body:new(item.x, item.y, 0.5, bd.y - item.y, BodyTypes.static, self))
+                                ---
+                            elseif not bd.is_norm and bd.is_floor
+                                and collision_rect(bd.x - 1, bd.y, bd.w, bd.h, item:rect())
+                                and item.y < bd.y
+                            then
+                                self:add(Body:new(item:right() - 0.5, item.y, 0.5, bd.y - item.y, BodyTypes.static, self))
+                                ---
+                            end
                         end
                     end
                 end
