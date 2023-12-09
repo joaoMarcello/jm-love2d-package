@@ -1320,7 +1320,7 @@ function Map:build_world()
         world:optimize()
         world:optimize()
         world:fix_slope()
-        -- table.sort(world.bodies, function(obj1, obj2) return obj1.y < obj2.y end)
+        world:fix_adj_bodies()
         -- world:fix_ground_to_slope()
     end
 
