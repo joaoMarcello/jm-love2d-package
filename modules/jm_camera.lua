@@ -455,6 +455,8 @@ function Camera:set_type(s)
     local cx = self.controller_x
     local cy = self.controller_y
 
+    self.type = s
+
     if s == "super mario world" or s == TYPES.SuperMarioWorld then
         cx.focus_1 = 0.4
         cx.focus_2 = 1.0 - cx.focus_1
