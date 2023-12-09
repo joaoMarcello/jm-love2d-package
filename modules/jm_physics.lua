@@ -171,6 +171,8 @@ end
 ---@param obj JM.Physics.Body
 ---@param item JM.Physics.Body|JM.Physics.Slope
 local function collision_x_filter(obj, item)
+    if item.is_slope_adj then return false end
+
     if item.is_slope then
         if not item.is_floor then
             local py = item:get_y(obj.x, obj.y, obj.w, obj.h)
@@ -199,25 +201,20 @@ end
 ---@param obj JM.Physics.Body
 ---@param item JM.Physics.Collide
 local filter_stuck_x = function(obj, item)
-    if item.is_slope then return false end
-
-    do
-        local ground = obj.ground
-        if item.is_slope_adj and ((ground and ground.is_slope)
-                or math.floor(item:bottom()) == obj.y)
-        then
-            return false
-        end
+    if item.is_slope
+        or item.is_slope_adj
+    then
+        return false
     end
 
-    do
-        -- local ceil = obj.ceil
-        -- if item.is_slope_adj and ((ceil and ceil.is_slope)
-        --         or math.floor(item.y) == obj:bottom())
-        -- then
-        --     return false
-        -- end
-    end
+    -- do
+    --     local ground = obj.ground
+    --     if item.is_slope_adj and ((ground and ground.is_slope)
+    --             or math.floor(item:bottom()) == obj.y)
+    --     then
+    --         return false
+    --     end
+    -- end
 
     local tp = item.type
     return tp == BodyTypes.static or tp == BodyTypes.kinematic
@@ -757,25 +754,11 @@ do
 
             if not self.is_enabled then break end
 
-            -- local cond_y = (diff_y ~= 0
-            --     and (self:right() > item.x and self.x < item:right()))
-
-            -- local cond_x = (diff_x ~= 0
-            --     and (bottom >= item.y and top <= item:bottom()))
-
             if item ~= self and not item.__remove and not item.is_stucked
-
                 and item.is_enabled
-
                 and item.type ~= BodyTypes.ghost
-
-                -- and (cond_y or cond_x or (diff_x == 0 and diff_y == 0))
-
                 and item:check_collision(x, y, w, h)
-
                 and filter(self, item)
-
-            -- and self.extra_filter(self, item)
             then
                 col_items = col_items or tab_for_items or {}
 
@@ -2221,17 +2204,83 @@ do
                                 and collision_rect(bd.x, bd.y, bd.w + 1, bd.h, item:rect())
                                 and item.y < bd.y
                             then
-                                self:add(Body:new(item.x, item.y, 0.5, bd.y - item.y, BodyTypes.static, self))
+                                self:add(Body:new(item.x, item.y, 3, bd.y - item.y, BodyTypes.static, self))
                                 ---
                             elseif not bd.is_norm and bd.is_floor
                                 and collision_rect(bd.x - 1, bd.y, bd.w, bd.h, item:rect())
                                 and item.y < bd.y
                             then
-                                self:add(Body:new(item:right() - 0.5, item.y, 0.5, bd.y - item.y, BodyTypes.static, self))
+                                self:add(Body:new(item:right() - 3, item.y, 3, bd.y - item.y, BodyTypes.static, self))
                                 ---
                             end
                         end
                     end
+                end
+            end
+
+            if not bd.is_slope
+            then
+                local items = self:get_items_in_cell_obj(bd.x + 1, bd.y - 1, bd.w - 2, 1)
+
+                local above_is_empty = true
+                if items then
+                    for item, _ in next, items do
+                        ---@type JM.Physics.Collide
+                        local item = item
+
+                        if item ~= bd
+                            and collision_rect(bd.x, bd.y - 1, bd.w, 1, item:rect())
+                        then
+                            above_is_empty = false
+                        end
+                    end
+                end
+
+                if above_is_empty then
+                    local col = bd:check2(nil, nil, function(obj, item)
+                        return item.is_slope_adj
+                    end, bd.x, bd.y - 1, bd.w + 2, 1)
+
+                    if col.n > 0 then
+                        self:add(Body:new(
+                            col.most_right.x,
+                            col.most_up.y,
+                            3,
+                            bd.y - col.most_up.y,
+                            BodyTypes.static, self
+                        ))
+                    end
+
+                    col = bd:check2(nil, nil, function(obj, item)
+                        return item.is_slope_adj
+                    end, bd.x - 2, bd.y - 1, bd.w, 1)
+
+                    if col.n > 0 then
+                        self:add(Body:new(
+                            col.most_left:right() - 3,
+                            col.most_up.y,
+                            3,
+                            bd.y - col.most_up.y,
+                            BodyTypes.static, self
+                        ))
+                    end
+                end
+            end
+
+            if bd.is_slope_adj then
+                local col = bd:check2(nil, nil, nil, bd.x - 1, bd.y + 1, 1, bd.h - 2)
+
+                if col.n == 0 then
+                    self:add(Body:new(
+                        bd.x, bd.y, 3, bd.h, BodyTypes.static, self
+                    ))
+                end
+
+                col = bd:check2(nil, nil, nil, bd:right() + 1, bd.y + 1, 1, bd.h - 2)
+                if col.n == 0 then
+                    self:add(Body:new(
+                        bd:right() - 3, bd.y, 3, bd.h, BodyTypes.static, self
+                    ))
                 end
             end
         end
