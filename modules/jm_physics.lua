@@ -2138,11 +2138,13 @@ do
                             and bd.is_norm
                         then
                             self:remove_by_obj(item, self.bodies_static)
+                            self:remove_by_obj(item, self.bodies)
                             item.__remove = true
                         end
 
                         if item.w <= 0 then
                             self:remove_by_obj(item, self.bodies_static)
+                            self:remove_by_obj(item, self.bodies)
                             item.__remove = true
                         end
                     end
@@ -2210,6 +2212,7 @@ do
 
                         if item ~= bd
                             and item.is_slope_adj
+                            and item.type == BodyTypes.static
                         then
                             if bd.is_norm and bd.is_floor
                                 and collision_rect(bd.x, bd.y, bd.w + 1, bd.h, item:rect())
@@ -2222,6 +2225,17 @@ do
                                 and item.y < bd.y
                             then
                                 self:add(Body:new(item:right() - 3, item.y, 3, bd.y - item.y, BodyTypes.static, self))
+                                ---
+                            elseif bd.is_norm and not bd.is_floor
+                                and collision_rect(bd.x - 1, bd.y, bd.w, bd.h, item:rect())
+                                and item:bottom() > bd:bottom()
+                            then
+                                -- self:add(Body:new(bd.x - 3, bd:bottom(), 3, item:bottom() - bd:bottom(), BodyTypes
+                                --     .static, self))
+                                ---
+                            elseif not bd.is_norm and not bd.is_floor then
+                                -- self:add(Body:new(bd:right(), bd:bottom(), 3, item:bottom() - bd:bottom(), BodyTypes
+                                --     .static, self))
                                 ---
                             end
                         end
@@ -2276,6 +2290,56 @@ do
                         ))
                     end
                 end
+                --========================================================
+
+                items = self:get_items_in_cell_obj(bd.x + 1, bd.y + 1, bd.w - 2, 1)
+                local down_is_empty = true
+                if items then
+                    for item, _ in next, items do
+                        ---@type JM.Physics.Collide
+                        local item = item
+
+                        if item ~= bd
+                            and collision_rect(bd.x, bd.y + 1, bd.w, 1, item:rect())
+                        then
+                            down_is_empty = false
+                        end
+                    end
+                end
+
+                if down_is_empty
+                    and false
+                then
+                    local col = bd:check2(nil, nil, function(obj, item)
+                        return item.is_slope_adj
+                            and item:bottom() > obj:bottom()
+                    end, bd.x - 2, bd.y + 1, bd.w, 1)
+
+                    if col.n > 0 then
+                        self:add(Body:new(
+                            bd.x - 3,
+                            col.most_bottom:bottom(),
+                            3,
+                            bd:bottom() - col.most_bottom:bottom(),
+                            BodyTypes.static, self
+                        ))
+                    end
+
+                    col = bd:check2(nil, nil, function(obj, item)
+                        return item.is_slope_adj
+                            and item:bottom() > obj:bottom()
+                    end, bd.x, bd.y + 1, bd.w + 2, 1)
+
+                    if col.n > 0 then
+                        self:add(Body:new(
+                            bd:right(),
+                            col.most_bottom:bottom(),
+                            3,
+                            bd:bottom() - col.most_bottom:bottom(),
+                            BodyTypes.static, self
+                        ))
+                    end
+                end
             end
 
             if bd.is_slope_adj then
@@ -2312,6 +2376,11 @@ do
 
                 if col.n > 0 then
                     self:remove_by_obj(bd, self.bodies_static)
+
+                    if bd.type == BodyTypes.only_fall then
+                        self:remove_by_obj(bd, self.bodies)
+                    end
+
                     bd.__remove = true
 
                     ---@type JM.Physics.Body
@@ -2339,6 +2408,11 @@ do
 
                 if col.n > 0 then
                     self:remove_by_obj(bd, self.bodies_static)
+
+                    if bd.type == BodyTypes.only_fall then
+                        self:remove_by_obj(bd, self.bodies)
+                    end
+
                     bd.__remove = true
 
                     ---@type JM.Physics.Body
@@ -2696,6 +2770,10 @@ local function merge_slopes(slope, world)
         if (px == sx and py == sy) and same_dir then
             if merged then
                 world:remove_by_obj(item)
+
+                if item.type == BodyTypes.only_fall then
+                    world:remove_by_obj(item, world.bodies)
+                end
 
                 if slope.is_norm then
                     slope:refresh(nil, item.y, slope.w + item.w, slope.h + item.h)
