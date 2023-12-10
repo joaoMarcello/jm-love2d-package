@@ -478,7 +478,7 @@ function Camera:set_type(s)
         cx.focus_1 = 0.4
         cx.focus_2 = 1.0 - cx.focus_1
         cx.type = Controller.Type.dynamic
-        cx:set_move_behavior(Controller.MoveTypes.smooth)
+        cx:set_move_behavior(Controller.MoveTypes.smooth_dash)
 
         cy.type = Controller.Type.normal
         cy.focus_1 = 0.5
