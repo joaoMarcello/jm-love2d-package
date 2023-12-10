@@ -461,6 +461,7 @@ function Camera:set_type(s)
         cx.focus_1 = 0.4
         cx.focus_2 = 1.0 - cx.focus_1
         cx.type = Controller.Type.dynamic
+        cx.delay = 0.0
         cx:set_move_behavior(Controller.MoveTypes.smooth_dash)
 
         cy.type = Controller.Type.chase_when_not_moving
@@ -477,6 +478,7 @@ function Camera:set_type(s)
     elseif s == "new super mario bros" or s == TYPES.NewSuperMarioBros then
         cx.focus_1 = 0.4
         cx.focus_2 = 1.0 - cx.focus_1
+        cx.delay = 0.0
         cx.type = Controller.Type.dynamic
         cx:set_move_behavior(Controller.MoveTypes.smooth_dash)
 
@@ -490,20 +492,24 @@ function Camera:set_type(s)
     elseif s == "metroid" or s == TYPES.Metroid then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
+        cx.delay = 0.0
         cx.type = Controller.Type.normal
 
         cy.focus_1 = 0.5
         cy.focus_2 = 0.5
+        cy.delay = 0.0
         cy.type = Controller.Type.normal
 
         return self:set_focus(self.viewport_w * cx.focus_1)
     elseif s == "metroidvania" or s == TYPES.Metroidvania then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
+        cx.delay = 0.0
         cx.type = Controller.Type.normal
 
         cy.focus_1 = 0.5
         cy.focus_2 = 0.8
+        cy.delay = 0.0
         cy.type = Controller.Type.dynamic
 
         return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_1)
@@ -511,6 +517,7 @@ function Camera:set_type(s)
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
         cx.type = Controller.Type.normal
+        cx.delay = 0.0
 
         cy.focus_1 = 0.5
         cy.focus_2 = 0.5
@@ -522,16 +529,19 @@ function Camera:set_type(s)
     elseif s == "follow boss" or s == TYPES.FollowBoss then
         cx.focus_2 = 0.4
         cx.focus_1 = 1.0 - cx.focus_2
+        cx.delay = 0.0
         cx.type = Controller.Type.dynamic
 
         cy.focus_2 = 0.4
         cy.focus_1 = 1 - cy.focus_2
+        cy.delay = 0.0
         cy.type = Controller.Type.dynamic
 
         return self:set_focus(self.viewport_w * cx.focus_2, self.viewport_h * cy.focus_2)
     elseif s == "super mario bros" or s == TYPES.SuperMarioBros then
         cx.focus_1 = 0.4
         cx.focus_2 = 0.4
+        cx.delay = 0.0
         cx.type = Controller.Type.normal
 
         self.custom_update = function(self, dt)
@@ -547,11 +557,13 @@ function Camera:set_type(s)
     elseif s == "zelda gbc" or s == TYPES.Zelda_GBC then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
+        cx.delay = 0.0
         cx.type = Controller.Type.normal
         cx:set_move_behavior(2)
 
         cy.focus_1 = 0.5
         cy.focus_2 = 0.5
+        cy.delay = 0.0
         cy.type = Controller.Type.normal
         cy:set_move_behavior(2)
 
