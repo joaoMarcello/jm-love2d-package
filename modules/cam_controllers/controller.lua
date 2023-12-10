@@ -609,6 +609,9 @@ function Controller:update(dt)
 end
 
 function Controller:draw()
+    do
+        return
+    end
     local print = love.graphics.print
     local cam = self.camera
     if self.axis == 'y' and self.target then
