@@ -2270,13 +2270,20 @@ do
                     end, bd.x, bd.y - 1, bd.w + 2, 1)
 
                     if col.n > 0 then
-                        self:add(Body:new(
-                            col.most_right.x,
-                            col.most_up.y,
-                            3,
-                            bd.y - col.most_up.y,
-                            BodyTypes.static, self
-                        ))
+                        local most_up = col.most_up
+                        local most_right = col.most_right
+
+                        -- col = bd:check(bd.x + 1, nil, nil)
+
+                        do
+                            self:add(Body:new(
+                                most_right.x,
+                                most_up.y,
+                                3,
+                                bd.y - most_up.y,
+                                BodyTypes.static, self
+                            ))
+                        end
                     end
 
                     col = bd:check2(nil, nil, function(obj, item)
@@ -2295,7 +2302,7 @@ do
                 end
                 --========================================================
 
-                items = self:get_items_in_cell_obj(bd.x + 1, bd.y + 1, bd.w - 2, 1)
+                items = self:get_items_in_cell_obj(bd.x + 1, bd:bottom() + 1, bd.w - 2, 1)
                 local down_is_empty = true
                 if items then
                     for item, _ in next, items do
@@ -2303,7 +2310,7 @@ do
                         local item = item
 
                         if item ~= bd
-                            and collision_rect(bd.x, bd.y + 1, bd.w, 1, item:rect())
+                            and collision_rect(bd.x, bd:bottom() + 1, bd.w, 1, item:rect())
                         then
                             down_is_empty = false
                         end
