@@ -2160,11 +2160,11 @@ do
                         then
                             if bd.is_norm then
                                 if item.y == bd.y and item.x == bd:right() then
-                                    item.is_slope_adj = bd
+                                    item.is_slope_adj = true
                                 end
                             else
                                 if item.y == bd.y and item:right() == bd.x then
-                                    item.is_slope_adj = bd
+                                    item.is_slope_adj = true
                                 end
                             end
 
@@ -2177,11 +2177,11 @@ do
                         then
                             if bd.is_norm then
                                 if item:bottom() == bd:bottom() and item:right() == bd.x then
-                                    item.is_slope_adj = bd
+                                    item.is_slope_adj = true
                                 end
                             else
                                 if item:bottom() == bd:bottom() and item.x == bd:right() then
-                                    item.is_slope_adj = bd
+                                    item.is_slope_adj = true
                                 end
                             end
 
@@ -2230,13 +2230,16 @@ do
                                 and collision_rect(bd.x - 1, bd.y, bd.w, bd.h, item:rect())
                                 and item:bottom() > bd:bottom()
                             then
-                                -- self:add(Body:new(bd.x - 3, bd:bottom(), 3, item:bottom() - bd:bottom(), BodyTypes
-                                --     .static, self))
-                                ---
-                            elseif not bd.is_norm and not bd.is_floor then
-                                -- self:add(Body:new(bd:right(), bd:bottom(), 3, item:bottom() - bd:bottom(), BodyTypes
-                                --     .static, self))
-                                ---
+                                self:add(Body:new(bd.x - 3, bd:bottom(), 3, item:bottom() - bd:bottom(), BodyTypes
+                                    .static, self))
+                                --- ---
+                            elseif not bd.is_norm and not bd.is_floor
+                                and collision_rect(bd.x + 1, bd.y, bd.w, bd.h, item:rect())
+                                and item:bottom() > bd:bottom()
+                            then
+                                self:add(Body:new(bd:right(), bd:bottom(), 3, item:bottom() - bd:bottom(), BodyTypes
+                                    .static, self))
+                                --- ---
                             end
                         end
                     end
@@ -2308,7 +2311,7 @@ do
                 end
 
                 if down_is_empty
-                    and false
+                -- and false
                 then
                     local col = bd:check2(nil, nil, function(obj, item)
                         return item.is_slope_adj
@@ -2316,13 +2319,21 @@ do
                     end, bd.x - 2, bd.y + 1, bd.w, 1)
 
                     if col.n > 0 then
-                        self:add(Body:new(
-                            bd.x - 3,
-                            col.most_bottom:bottom(),
-                            3,
-                            bd:bottom() - col.most_bottom:bottom(),
-                            BodyTypes.static, self
-                        ))
+                        local most_bottom = col.most_bottom
+
+                        col = bd:check(bd.x - 1, nil, function(obj, item)
+                            return not item.is_slope_adj
+                        end)
+
+                        if col.n == 0 then
+                            self:add(Body:new(
+                                bd.x - 3,
+                                bd:bottom(),
+                                3,
+                                most_bottom:bottom() - bd:bottom(),
+                                BodyTypes.static, self
+                            ))
+                        end
                     end
 
                     col = bd:check2(nil, nil, function(obj, item)
@@ -2331,13 +2342,21 @@ do
                     end, bd.x, bd.y + 1, bd.w + 2, 1)
 
                     if col.n > 0 then
-                        self:add(Body:new(
-                            bd:right(),
-                            col.most_bottom:bottom(),
-                            3,
-                            bd:bottom() - col.most_bottom:bottom(),
-                            BodyTypes.static, self
-                        ))
+                        local most_bottom = col.most_bottom
+
+                        col = bd:check(bd.x + 2, nil, function(obj, item)
+                            return not item.is_slope_adj
+                        end)
+
+                        if col.n == 0 then
+                            self:add(Body:new(
+                                bd:right(),
+                                bd:bottom(),
+                                3,
+                                most_bottom:bottom() - bd:bottom(),
+                                BodyTypes.static, self
+                            ))
+                        end
                     end
                 end
             end
