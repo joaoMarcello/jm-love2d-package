@@ -913,12 +913,14 @@ do
 
         if self.x < most_bottom.x
             and self:right() < most_bottom.x + lim
+            and self.speed_x >= 0
         then
             self:refresh(most_bottom.x - self.w - 0.5, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
             return true
         elseif self:right() > most_bottom:right()
             and self.x > most_bottom:right() - lim
+            and self.speed_x <= 0
         then
             self:refresh(most_bottom:right() + 0.5, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
@@ -990,7 +992,12 @@ do
     ---@param col JM.Physics.Collisions
     function Body:ledge_hop_action(col)
         local most_up = col.most_up
-        local lim = self.world.tile * 0.3
+
+        if most_up.type == BodyTypes.kinematic and most_up.speed_y ~= 0 then
+            return false
+        end
+
+        local lim = self.world.tile * 0.4
 
         if self:bottom() < most_up.y + lim
             and self:bottom() > most_up.y
