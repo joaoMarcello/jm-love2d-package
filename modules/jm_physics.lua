@@ -79,8 +79,9 @@ local BodyEvents = {
     leaving_wall_right = 13,
     leaving_x_axis_body = 14,
     on_stucked = 15,
+    pushed_off_ledge = 16,
 }
----@alias JM.Physics.EventNames "ground_touch"|"ceil_touch"|"wall_left_touch"|"wall_right_touch"|"axis_x_collision"|"axis_y_collision"|"start_falling"|"speed_y_change_direction"|"speed_x_change_direction"|"leaving_ground"|"leaving_ceil"|"leaving_y_axis_body"|"leaving_wall_left"|"leaving_wall_right"|"leaving_x_axis_body"|"on_stucked"
+---@alias JM.Physics.EventNames "ground_touch"|"ceil_touch"|"wall_left_touch"|"wall_right_touch"|"axis_x_collision"|"axis_y_collision"|"start_falling"|"speed_y_change_direction"|"speed_x_change_direction"|"leaving_ground"|"leaving_ceil"|"leaving_y_axis_body"|"leaving_wall_left"|"leaving_wall_right"|"leaving_x_axis_body"|"on_stucked"|"pushed_off_ledge"
 
 ---@alias JM.Physics.Collide JM.Physics.Body|JM.Physics.Slope|any
 
@@ -512,6 +513,7 @@ do
         self.__is_ice = nil
 
         self.push_off_ledges = nil
+        self.use_ledge_hop = nil
 
         if self.type ~= BodyTypes.static
             and self.type ~= BodyTypes.only_fall
@@ -904,8 +906,35 @@ do
     end
 
     ---@param col JM.Physics.Collisions
+    function Body:push_off_ledges_action(col)
+        local most_bottom = col.most_bottom
+        local lim = self.world.tile * 0.5
+
+        if self.x < most_bottom.x
+            and self:right() < most_bottom.x + lim
+        then
+            self:refresh(most_bottom.x - self.w - 0.5, col.goal_y)
+            dispatch_event(self, BodyEvents.pushed_off_ledge)
+            return true
+        elseif self:right() > most_bottom:right()
+            and self.x > most_bottom:right() - lim
+        then
+            self:refresh(most_bottom:right() + 0.5, col.goal_y)
+            dispatch_event(self, BodyEvents.pushed_off_ledge)
+            return true
+        end
+
+        return false
+    end
+
+    ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_y(col)
         if col.n > 0 then -- collision!
+            if self.push_off_ledges and self.speed_y < 0 then
+                local r = self:push_off_ledges_action(col)
+                if r then return end
+            end
+
             self:refresh(nil, col.end_y)
 
             if self.bouncing_y and (not col.most_up.is_slope) then
