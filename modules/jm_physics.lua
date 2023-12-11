@@ -472,14 +472,10 @@ do
 
         self.dacc_x = self.world.meter * 3.5
         self.dacc_y = nil
-        -- self.over_speed_dacc_x = self.dacc_x
-        -- self.over_speed_dacc_y = self.dacc_x
 
         self.force_x = 0.0
         self.force_y = 0.0
 
-        -- used if body is static or kinematic
-        -- self.resistance_x = 1
 
         ---@type JM.Physics.Body|JM.Physics.Slope
         self.ground = nil -- used if body is not static
@@ -514,6 +510,8 @@ do
 
         self.is_slope_adj = nil
         self.__is_ice = nil
+
+        self.push_off_ledges = nil
 
         if self.type ~= BodyTypes.static
             and self.type ~= BodyTypes.only_fall
@@ -2246,11 +2244,11 @@ do
                 end
             end
 
-            if not bd.is_slope
-            then
+            if not bd.is_slope then
                 local items = self:get_items_in_cell_obj(bd.x + 1, bd.y - 1, bd.w - 2, 1)
 
                 local above_is_empty = true
+
                 if items then
                     for item, _ in next, items do
                         ---@type JM.Physics.Collide
@@ -2303,7 +2301,9 @@ do
                 --========================================================
 
                 items = self:get_items_in_cell_obj(bd.x + 1, bd:bottom() + 1, bd.w - 2, 1)
+
                 local down_is_empty = true
+
                 if items then
                     for item, _ in next, items do
                         ---@type JM.Physics.Collide
@@ -2317,12 +2317,12 @@ do
                     end
                 end
 
-                if down_is_empty
-                -- and false
-                then
+                if down_is_empty then
+                    local bottom = bd:bottom()
+
                     local col = bd:check2(nil, nil, function(obj, item)
                         return item.is_slope_adj
-                            and item:bottom() > obj:bottom()
+                            and item:bottom() > bottom
                     end, bd.x - 2, bd.y + 1, bd.w, 1)
 
                     if col.n > 0 then
@@ -2345,7 +2345,7 @@ do
 
                     col = bd:check2(nil, nil, function(obj, item)
                         return item.is_slope_adj
-                            and item:bottom() > obj:bottom()
+                            and item:bottom() > bottom
                     end, bd.x, bd.y + 1, bd.w + 2, 1)
 
                     if col.n > 0 then
