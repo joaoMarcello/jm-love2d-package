@@ -80,8 +80,9 @@ local BodyEvents = {
     leaving_x_axis_body = 14,
     on_stucked = 15,
     pushed_off_ledge = 16,
+    hop_ledge = 17,
 }
----@alias JM.Physics.EventNames "ground_touch"|"ceil_touch"|"wall_left_touch"|"wall_right_touch"|"axis_x_collision"|"axis_y_collision"|"start_falling"|"speed_y_change_direction"|"speed_x_change_direction"|"leaving_ground"|"leaving_ceil"|"leaving_y_axis_body"|"leaving_wall_left"|"leaving_wall_right"|"leaving_x_axis_body"|"on_stucked"|"pushed_off_ledge"
+---@alias JM.Physics.EventNames "ground_touch"|"ceil_touch"|"wall_left_touch"|"wall_right_touch"|"axis_x_collision"|"axis_y_collision"|"start_falling"|"speed_y_change_direction"|"speed_x_change_direction"|"leaving_ground"|"leaving_ceil"|"leaving_y_axis_body"|"leaving_wall_left"|"leaving_wall_right"|"leaving_x_axis_body"|"on_stucked"|"pushed_off_ledge"|"hop_ledge"
 
 ---@alias JM.Physics.Collide JM.Physics.Body|JM.Physics.Slope|any
 
@@ -997,6 +998,7 @@ do
             if self.speed_y >= 0 then
                 self:jump(lim + 1, -1)
                 self.speed_x = self.speed_x * 0.5
+                dispatch_event(self, BodyEvents.hop_ledge)
             end
             return true
         end
