@@ -987,6 +987,24 @@ do
     end
 
     ---@param col JM.Physics.Collisions
+    function Body:ledge_hop_action(col)
+        local most_up = col.most_up
+        local lim = self.world.tile * 0.3
+
+        if self:bottom() < most_up.y + lim
+            and self:bottom() > most_up.y
+        then
+            if self.speed_y >= 0 then
+                self:jump(lim + 1, -1)
+                self.speed_x = self.speed_x * 0.5
+            end
+            return true
+        end
+
+        return false
+    end
+
+    ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_x(col)
         if col.n > 0 then
             if col.has_slope then
@@ -1035,6 +1053,11 @@ do
                 end
                 self:refresh(final_x, final_y)
                 return
+            end
+
+            if self.use_ledge_hop then
+                local r = self:ledge_hop_action(col)
+                if r then return end
             end
 
             self:refresh(col.end_x)
