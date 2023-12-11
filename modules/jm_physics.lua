@@ -387,7 +387,7 @@ end
 local function dispatch_event(body, type_)
     ---@type JM.Physics.Event
     local evt = body.events[type_]
-    local r = evt and evt.action(evt.args)
+    local r = evt and evt.action(body, evt.args)
 end
 
 --=============================================================================
