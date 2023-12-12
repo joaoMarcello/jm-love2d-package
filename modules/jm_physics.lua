@@ -1034,7 +1034,7 @@ do
 
         if bottom < most_up.y + lim
             and bottom > most_up.y
-            and self.speed_y > 0
+            and self.speed_y >= 0
         -- and round(self.speed_x) ~= 0
         then
             if bottom - most_up.y <= lim * 0.5 then
@@ -1107,6 +1107,7 @@ do
             end
 
             self:refresh(col.end_x)
+
 
             if self.bouncing_x then
                 self.speed_x = -self.speed_x * self.bouncing_x
