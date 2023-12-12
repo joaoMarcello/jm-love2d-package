@@ -1047,6 +1047,14 @@ do
             return true
         end
 
+        -- if self.speed_y >= 0 then
+        --     local coll = self:check2(nil, self.y + 1, coll_y_filter, nil, self.y - 16, nil, self.h)
+
+        --     if coll.n > 0 then
+        --         self:resolve_collisions_y(coll)
+        --     end
+        -- end
+
         return false
     end
 
@@ -1108,6 +1116,7 @@ do
 
             self:refresh(col.end_x)
 
+            self.last_speed_x = self.speed_x
 
             if self.bouncing_x then
                 self.speed_x = -self.speed_x * self.bouncing_x
