@@ -721,7 +721,7 @@ do
     -- end
 
     ---@return JM.Physics.Collisions collisions
-    function Body:check(goal_x, goal_y, filter, empty_tab, tab_for_items)
+    function Body:check(goal_x, goal_y, filter, empty_tab, tab_for_items, tab_for_colls)
         goal_x = goal_x or self.x
         goal_y = goal_y or self.y
         filter = filter or default_filter
@@ -740,7 +740,12 @@ do
         local items = self.world:get_items_in_cell_obj(x, y, w, h, empty_tab)
 
         if not items then
-            if self.colls then
+            if tab_for_colls then
+                tab_for_colls.n = 0
+                tab_for_colls.has_slope = nil
+                return tab_for_colls
+                ---
+            elseif self.colls then
                 self.colls.n = 0
                 self.colls.has_slope = false
                 return self.colls
@@ -750,7 +755,7 @@ do
         end
 
         ---@type JM.Physics.Collisions
-        local collisions = self.colls or {}
+        local collisions = tab_for_colls or self.colls or {}
 
         local col_items
         local n_collisions, has_slope = 0, nil
@@ -855,26 +860,18 @@ do
         return collisions
     end
 
+    local temp_t = setmetatable({}, { __mode = 'v' })
+
     ---@return JM.Physics.Collisions
     function Body:check2(goal_x, goal_y, filter, x, y, w, h)
-        -- x = x or self.x
-        -- y = y or self.y
-        -- w = w or self.w
-        -- h = h or self.h
-
-        -- local bd = Body:new(x, y, w, h, self.type, self.world, self.id)
-
-        -- local filter__ = function(obj, item)
-        --     local r = filter and filter(obj, item)
-        --     r = r and item ~= bd
-        --     return r
-        -- end
-
-        -- return bd:check(goal_x, goal_y, filter__)
         local lx, ly, lw, lh = self:rect()
+
         self:refresh(x, y, w, h)
-        local col = self:check(goal_x, goal_y, filter, empty_table(), empty_table_for_coll())
+
+        local col = self:check(goal_x, goal_y, filter, empty_table(), empty_table_for_coll(), temp_t)
+
         self:refresh(lx, ly, lw, lh)
+
         return col
     end
 
@@ -909,6 +906,27 @@ do
     ---@param col JM.Physics.Collisions
     function Body:push_off_ledges_action(col)
         local most_bottom = col.most_bottom
+
+        if most_bottom.is_slope
+            and self.y <= most_bottom.y
+        then
+            return false
+        end
+
+        do
+            local colls = self:check2(nil, self.y - 1, coll_y_filter, self.x - 1, self.y, 1, 1)
+
+            if colls.n > 0 then
+                return false
+            end
+
+            colls = self:check2(nil, self.y - 1, coll_y_filter, self:right() + 1, self.y, 1, 1)
+            if colls.n > 0 then
+                return false
+            end
+        end
+
+
         local lim = self.world.tile * 0.5
 
         if self.x < most_bottom.x
@@ -920,8 +938,10 @@ do
             return true
         elseif self:right() > most_bottom:right()
             and self.x > most_bottom:right() - lim
-            and self.speed_x <= 0
+            and (self.speed_x <= 0)
         then
+            self.speed_x = 0.0
+            self.acc_x = 0.0
             self:refresh(most_bottom:right() + 0.5, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
             return true
@@ -933,7 +953,7 @@ do
     ---@param col JM.Physics.Collisions
     function Body:resolve_collisions_y(col)
         if col.n > 0 then -- collision!
-            if self.push_off_ledges and self.speed_y < 0 then
+            if self.push_off_ledges and self.speed_y <= 0 then
                 local r = self:push_off_ledges_action(col)
                 if r then return end
             end
@@ -997,6 +1017,10 @@ do
             return false
         end
 
+        if most_up.is_slope then
+            return false
+        end
+
         local lim = self.world.tile * 0.4
 
         if self:bottom() < most_up.y + lim
@@ -1004,7 +1028,7 @@ do
         then
             if self.speed_y >= 0 then
                 self:jump(lim + 1, -1)
-                self.speed_x = self.speed_x * 0.5
+                self.speed_x = self.speed_x * 0.25
                 dispatch_event(self, BodyEvents.hop_ledge)
             end
             return true
@@ -1734,6 +1758,8 @@ function Slope:check_collision(x, y, w, h)
     else
         if self.next and not self.is_norm and y >= self.y + self.h then
             return false
+            -- elseif not self.next and self.is_norm and y <= self.y then
+            --     return false
         end
     end
 
