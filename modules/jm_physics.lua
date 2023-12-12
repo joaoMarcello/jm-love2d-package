@@ -802,6 +802,8 @@ do
                     or (not most_up.is_slope and not item.is_slope_adj)
                 then
                     most_up = (item.y < most_up.y and item) or most_up
+                    most_up = (item.is_slope and item.y <= most_up.y and item)
+                        or most_up
                 end
 
                 most_bottom = most_bottom or item
@@ -812,6 +814,10 @@ do
                     most_bottom = ((item.y + item.h)
                             > (most_bottom.y + most_bottom.h) and item)
                         or most_bottom
+
+                    most_bottom = (item.is_slope
+                        and item:bottom() >= most_bottom:bottom()
+                        and item) or most_bottom
                 end
             end
         end
