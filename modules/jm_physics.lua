@@ -1024,15 +1024,20 @@ do
         end
 
         local lim = self.world.tile * 0.4
+        local bottom = self:bottom()
 
-        if self:bottom() < most_up.y + lim
-            and self:bottom() > most_up.y
+        if bottom < most_up.y + lim
+            and bottom > most_up.y
+            and self.speed_y > 0
+        -- and round(self.speed_x) ~= 0
         then
-            if self.speed_y >= 0 then
+            if bottom - most_up.y <= lim * 0.5 then
+                self:refresh(col.goal_x, most_up.y - self.h - 0.1)
+            else
                 self:jump(lim + 1, -1)
                 self.speed_x = self.speed_x * 0.25
-                dispatch_event(self, BodyEvents.hop_ledge)
             end
+            dispatch_event(self, BodyEvents.hop_ledge)
             return true
         end
 
