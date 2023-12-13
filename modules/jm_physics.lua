@@ -836,7 +836,7 @@ do
         collisions.diff_x = diff_x
         collisions.diff_y = diff_y
 
-        local offset = abs(diff_y) > 0 and 0.1 or 0.5 --0.1
+        local offset = 0.1 --abs(diff_y) > 0 and 0.1 or 0.5 --0.1
 
         collisions.end_x = (diff_x >= 0 and most_left
                 and most_left.x - self.w - offset)
@@ -1130,9 +1130,9 @@ do
                             self.acc_x = 0.0
 
                             if col.diff_x < 0 then
-                                final_x = bd:right() + 0.5
+                                final_x = bd:right() + 0.1
                             else
-                                final_x = bd:left() - 0.5 - self.w
+                                final_x = bd:left() - 0.1 - self.w
                             end
                         end
                     end
