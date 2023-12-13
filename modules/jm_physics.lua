@@ -1052,7 +1052,7 @@ do
                     self:refresh(col.goal_x, most_up.y - self.h - 0.1)
                 else
                     self:jump(lim + 0.5, -1)
-                    self.speed_x = self.speed_x * 0.25
+                    self.speed_x = self.speed_x * 0.5
                 end
             end
             return true
