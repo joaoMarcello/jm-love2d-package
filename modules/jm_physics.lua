@@ -1015,9 +1015,9 @@ do
                     dispatch_event(self, BodyEvents.ceil_touch)
                 end
 
+                self.ceil = col.most_bottom
                 -- self.speed_y = 0.1
 
-                self.ceil = col.most_bottom
 
                 if self.ceil.is_slope and self.allowed_gravity then
                     self.speed_y = self.world.meter
