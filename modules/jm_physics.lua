@@ -524,9 +524,11 @@ do
         then
             self.events = self.events or {}
             self.colls = self.colls or {}
+            self.colls2 = self.colls2 or {}
         else
             self.events = nil
             self.colls = nil
+            self.colls2 = nil
         end
     end
 
@@ -801,9 +803,10 @@ do
 
                 most_up = most_up or item
 
-                if true or (most_up.is_slope and item.is_slope)
-                    or (not most_up.is_slope and not item.is_slope_adj)
-                then
+                -- if true or (most_up.is_slope and item.is_slope)
+                --     or (not most_up.is_slope and not item.is_slope_adj)
+                -- then
+                do
                     most_up = (item.y < most_up.y and item) or most_up
                     most_up = (item.is_slope and item.y <= most_up.y and item)
                         or most_up
@@ -811,9 +814,10 @@ do
 
                 most_bottom = most_bottom or item
 
-                if true or (most_bottom.is_slope and item.is_slope)
-                    or (not most_bottom.is_slope and not item.is_slope_adj)
-                then
+                -- if true or (most_bottom.is_slope and item.is_slope)
+                --     or (not most_bottom.is_slope and not item.is_slope_adj)
+                -- then
+                do
                     most_bottom = ((item.y + item.h)
                             > (most_bottom.y + most_bottom.h) and item)
                         or most_bottom
@@ -877,7 +881,7 @@ do
 
         self:refresh(x, y, w, h)
 
-        local col = self:check(goal_x, goal_y, filter, empty_table(), empty_table_for_coll(), temp_t)
+        local col = self:check(goal_x, goal_y, filter, empty_table(), empty_table_for_coll(), self.colls2 or temp_t)
 
         self:refresh(lx, ly, lw, lh)
 
