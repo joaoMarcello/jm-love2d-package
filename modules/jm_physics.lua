@@ -1628,13 +1628,7 @@ do
                         obj:refresh(goalx)
                     end
 
-                    if self.use_ledge_hop then
-                        col = obj:check2()
 
-                        if col.n > 0 then
-                            self:hop_on_only_fall_ledge(col)
-                        end
-                    end
 
                     -- simulating the enviroment resistence (friction)
                     if obj.dacc_x and obj.speed_x ~= 0.0
@@ -1663,6 +1657,14 @@ do
                     dispatch_event(self, BodyEvents.leaving_wall_right)
                 end
             end -- end moving in x axis
+
+            if self.use_ledge_hop then
+                local col = obj:check2()
+
+                if col.n > 0 then
+                    self:hop_on_only_fall_ledge(col)
+                end
+            end
 
             obj.force_x = 0.0
             obj.force_y = 0.0
