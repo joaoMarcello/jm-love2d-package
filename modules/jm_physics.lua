@@ -136,17 +136,6 @@ end
 ---@param obj JM.Physics.Body
 ---@param item JM.Physics.Body|JM.Physics.Slope
 local function coll_y_filter(obj, item)
-    -- if item.is_slope_adj then
-    --     local dist1 = abs(item.y - obj:bottom())
-    --     local dist2 = abs(obj.y - item:bottom())
-
-    --     if dist1 < dist2 then
-    --         return obj:bottom() <= item.y
-    --     else
-    --         return obj.y >= item:bottom()
-    --     end
-    -- end
-
     if item.type == BodyTypes.only_fall and not item.is_slope then
         return (obj.y + obj.h) <= item.y
     else
@@ -1525,34 +1514,6 @@ do
             if (obj.acc_x ~= 0.0) or (obj.speed_x ~= 0.0) then
                 local last_sx = obj.speed_x
 
-                -- if obj.speed_x > 0 and obj.acc_x < 0 then
-                --     obj.acc_x = -abs(obj.dacc_x)
-                -- elseif obj.speed_x < 0 and obj.acc_x > 0 then
-                --     obj.acc_x = abs(obj.dacc_x)
-                -- end
-
-                -- local mult = 1
-                -- do
-                --     if obj.ground and obj.ground.is_slope
-                --         and self.y + self.h ~= obj.ground.y
-                --     then
-                --         if obj.ground.is_norm and obj.speed_x > 0
-                --             or (not obj.ground.is_norm and obj.speed_x < 0)
-                --         then
-                --             mult = 1 - abs(math.sin(self.ground.angle))
-                --         end
-                --     end
-                -- end
-
-                -- local mult = 1
-                -- do
-                --     if obj.ground and obj.ground.is_slope then
-                --         if obj.ground.is_norm and obj.speed_x > 0 or (not obj.ground.is_norm and obj.speed_x < 0) then
-                --             mult = abs(math.cos(self.ground and self.ground.angle or 0))
-                --         end
-                --     end
-                -- end
-
                 if self.on_water then
                     obj.acc_x = obj.acc_x * 0.5
                 end
@@ -1561,10 +1522,7 @@ do
                     + (obj.acc_x * dt * dt) * 0.5) --* mult
 
 
-                -- obj.acc_x = obj.ground and obj.acc_x * 0.5 or obj.acc_x
                 obj.speed_x = obj.speed_x + obj.acc_x * dt
-
-                -- obj.speed_x = obj.speed_x
 
                 -- if reach max speed
                 if obj.max_speed_x
@@ -1597,10 +1555,6 @@ do
                 else
                     local ex = obj.speed_x > 0 and 1 or 0
                     ex = obj.speed_x < 0 and -1 or ex
-
-                    -- if obj.ground and obj.ground.is_slope then
-                    --     goalx = goalx - goalx * abs(math.cos(self.ground.angle))
-                    -- end
 
                     --- will store the body collisions with other bodies
                     ---@type JM.Physics.Collisions
