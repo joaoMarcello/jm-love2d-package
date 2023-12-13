@@ -1038,26 +1038,21 @@ do
 
         if bottom < most_up.y + lim
             and bottom > most_up.y
-            and self.speed_y >= 0
-            and self.acc_x ~= 0
+        -- and self.speed_y >= 0
+        -- and self.acc_x ~= 0
         then
-            if bottom - most_up.y <= lim * 0.5 then
-                self:refresh(col.goal_x, most_up.y - self.h - 0.1)
-            else
-                self:jump(lim + 1, -1)
-                self.speed_x = self.speed_x * 0.25
+            if self.speed_y >= 0 then
+                dispatch_event(self, BodyEvents.hop_ledge)
+
+                if bottom - most_up.y <= lim * 0.5 then
+                    self:refresh(col.goal_x, most_up.y - self.h - 0.1)
+                else
+                    self:jump(lim + 0.5, -1)
+                    self.speed_x = self.speed_x * 0.25
+                end
             end
-            dispatch_event(self, BodyEvents.hop_ledge)
             return true
         end
-
-        -- if self.speed_y >= 0 then
-        --     local coll = self:check2(nil, self.y + 1, coll_y_filter, nil, self.y - 16, nil, self.h)
-
-        --     if coll.n > 0 then
-        --         self:resolve_collisions_y(coll)
-        --     end
-        -- end
 
         return false
     end
