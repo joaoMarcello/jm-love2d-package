@@ -458,7 +458,7 @@ function Camera:set_type(s)
     self.type = s
 
     if s == "super mario world" or s == TYPES.SuperMarioWorld then
-        cx.focus_1 = 0.4
+        cx.focus_1 = 0.35
         cx.focus_2 = 1.0 - cx.focus_1
         cx.type = Controller.Type.dynamic
         cx.delay = 0.0
@@ -468,6 +468,7 @@ function Camera:set_type(s)
         cy.focus_1 = 0.6
         cy.focus_2 = 0.6
         cy.delay = 0.25
+        self.deadzone_h = self.tile_size * 4
         cy:set_move_behavior(Controller.MoveTypes.fast_smooth)
 
         -- self.custom_update = function(self, dt)
