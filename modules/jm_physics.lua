@@ -1022,6 +1022,46 @@ do
     end
 
     ---@param col JM.Physics.Collisions
+    function Body:hop_on_only_fall_ledge(col)
+        if col.n == 0 then return false end
+
+        for i = 1, col.n do
+            ---@type JM.Physics.Collide
+            local item = col.items[i]
+
+            if item.type == BodyTypes.only_fall then
+                col.most_up = item
+                break
+            end
+        end
+
+        local most_up = col.most_up
+
+        if most_up.type ~= BodyTypes.only_fall then
+            return false
+        end
+
+        -- local lim = self.world.tile * 0.4
+        -- local bottom = self:bottom()
+
+        -- if bottom < most_up.y + lim
+        --     and bottom > most_up.y
+        --     and self.speed_y >= 0
+        -- then
+        --     if bottom - most_up.y <= lim * 0.5 then
+        --         self:refresh(nil, col.most_up.y - self.h - 0.1)
+        --     else
+        --         self:jump(lim + 0.5, -1)
+        --     end
+        --     dispatch_event(self, BodyEvents.hop_ledge)
+        --     return true
+        -- end
+
+        col.goal_x = nil
+        return self:ledge_hop_action(col)
+    end
+
+    ---@param col JM.Physics.Collisions
     function Body:ledge_hop_action(col)
         local most_up = col.most_up
 
@@ -1038,8 +1078,6 @@ do
 
         if bottom < most_up.y + lim
             and bottom > most_up.y
-        -- and self.speed_y >= 0
-        -- and self.acc_x ~= 0
         then
             if self.speed_y >= 0 then
                 dispatch_event(self, BodyEvents.hop_ledge)
@@ -1128,16 +1166,16 @@ do
 
             if col.diff_x < 0 then
                 if not self.wall_left then
-                    self.wall_left = col.most_left
                     dispatch_event(self, BodyEvents.wall_left_touch)
                 end
+                self.wall_left = col.most_left
             end
 
             if col.diff_x > 0 then
                 if not self.wall_right then
-                    self.wall_right = col.most_right
                     dispatch_event(self, BodyEvents.wall_right_touch)
                 end
+                self.wall_right = col.most_right
             end
 
             return true
@@ -1410,6 +1448,10 @@ do
                         ex = ex - self.world.tile * 0.25
                     end
 
+                    if self.use_ledge_hop then
+
+                    end
+
                     ---@type JM.Physics.Collisions
                     local col = obj:check(nil, goaly + ex, coll_y_filter, empty_table(), empty_table_for_coll())
 
@@ -1584,6 +1626,14 @@ do
                         end
 
                         obj:refresh(goalx)
+                    end
+
+                    if self.use_ledge_hop then
+                        col = obj:check2()
+
+                        if col.n > 0 then
+                            self:hop_on_only_fall_ledge(col)
+                        end
                     end
 
                     -- simulating the enviroment resistence (friction)
