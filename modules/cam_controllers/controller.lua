@@ -13,10 +13,14 @@ local MoveTypes = {
 
 local Behavior = {
     [MoveTypes.smooth] = function(x)
+        if x >= math.pi then
+            return 1.0
+        end
         return (1.0 - (1.0 + math.cos(x)) * 0.5)
     end,
     ---
     [MoveTypes.linear] = function(x)
+        if x > 1.0 then return 1.0 end
         return x
     end,
     ---
@@ -53,6 +57,9 @@ local Behavior = {
     end,
     ---
     [MoveTypes.smooth_dash] = function(x)
+        if x >= math.pi * 0.5 then
+            return 1.0
+        end
         x = math.sin(x)
         return x
     end,
@@ -210,7 +217,8 @@ local function update_chasing(self, dt)
                     cam.y = cam.y + (targ.ry - lim)
                 end
 
-                lim = vy + vh * 0.75
+                -- lim = vy + vh * 0.75
+                lim = vy + cam.focus_y + cam.deadzone_h * 0.5
                 if targ.ry > lim then
                     cam.y = cam.y + (targ.ry - lim)
                 end
