@@ -1039,7 +1039,7 @@ do
         if bottom < most_up.y + lim
             and bottom > most_up.y
             and self.speed_y >= 0
-        -- and round(self.speed_x) ~= 0
+            and self.acc_x ~= 0
         then
             if bottom - most_up.y <= lim * 0.5 then
                 self:refresh(col.goal_x, most_up.y - self.h - 0.1)
