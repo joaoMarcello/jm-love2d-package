@@ -650,8 +650,11 @@ do
         direction = direction or -1
         self:refresh(nil, self.y + direction)
 
-        local acc = abs(self.world.gravity) - (self:buoyant() / self.mass)
-        -- local acc = abs(self.acc_y)
+        local mult = self.mass / self.world.default_mass
+
+        local acc = abs(self.world.gravity) * mult
+            - (self:buoyant() / self.mass)
+
         acc = acc < 0 and 0 or acc
         self.speed_y = sqrt(2.0 * acc * desired_height) * direction
     end
@@ -910,9 +913,13 @@ do
         self.force_x = self.force_x + ((fx or 0.0))
         self.force_y = self.force_y + ((fy or 0.0))
 
-        self.acc_x = fx and fx ~= 0 and (self.force_x / self.mass)
+        self.force_y = self.force_y * (self.mass / self.world.default_mass)
+
+        self.acc_x = fx and fx ~= 0
+            and (self.force_x / self.mass)
             or self.acc_x
-        self.acc_y = fy and fy ~= 0 and (self.force_y / self.mass)
+        self.acc_y = fy and fy ~= 0
+            and (self.force_y / self.mass)
             or self.acc_y
     end
 
@@ -1132,16 +1139,16 @@ do
 
             if col.diff_x < 0 then
                 if not self.wall_left then
+                    self.wall_left = col.most_left
                     dispatch_event(self, BodyEvents.wall_left_touch)
                 end
-                self.wall_left = col.most_left
             end
 
             if col.diff_x > 0 then
                 if not self.wall_right then
+                    self.wall_right = col.most_right
                     dispatch_event(self, BodyEvents.wall_right_touch)
                 end
-                self.wall_right = col.most_right
             end
 
             return true
