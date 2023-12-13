@@ -516,6 +516,9 @@ do
         self.push_off_ledges = nil
         self.use_ledge_hop = nil
 
+        self.last_speed_x = nil
+        self.last_speed_y = nil
+
         if self.type ~= BodyTypes.static
             and self.type ~= BodyTypes.only_fall
         then
@@ -967,6 +970,7 @@ do
             end
 
             self:refresh(nil, col.end_y)
+            self.last_speed_y = self.speed_y
 
             if self.bouncing_y and (not col.most_up.is_slope) then
                 self.speed_y = -self.speed_y * self.bouncing_y
@@ -1631,6 +1635,22 @@ do
                         -- dacc = obj.ground and dacc * 0.3 or dacc
                         obj:apply_force(dacc * -obj:direction_x())
                     end
+                end
+                ---
+            else
+                ---
+                if self.wall_left or self.wall_right then
+                    dispatch_event(self, BodyEvents.leaving_x_axis_body)
+                end
+
+                if self.wall_left then
+                    self.wall_left = nil
+                    dispatch_event(self, BodyEvents.leaving_wall_left)
+                end
+
+                if self.wall_right then
+                    self.wall_right = nil
+                    dispatch_event(self, BodyEvents.leaving_wall_right)
                 end
             end -- end moving in x axis
 
