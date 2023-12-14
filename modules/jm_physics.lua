@@ -1232,7 +1232,8 @@ do
         V = V < 0 and 0 or V
 
         if self.type == BodyTypes.dynamic then
-            V = (V / meter) * (self.w * 0.8 / meter) * (0.6 * 0.6)
+            -- V = (V / meter) * (self.w * 0.8 / meter) * (0.6 * 0.6)
+            V = (V / meter) * (self.w * 0.7 / meter) * (0.6 * 0.6)
         else
             V = (V / meter) * (self.w / meter) * (0.6 * 0.6)
         end
