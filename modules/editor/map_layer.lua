@@ -173,12 +173,18 @@ function Layer:tilemap_tostring()
     local str_format = string.format
     local tile = map.tile_size
 
-    local f = [[local e=function(x,y,id) return Entry(x*tile_size,y*tile_size,id or %d) end]]
+    local f = [[local e=function(x,y,id) return Entry(x*tile,y*tile,id or %d) end]]
 
     f = str_format(f, block_id)
 
-    for j = map.min_y, map.max_y, tile do
-        for i = map.min_x, map.max_x, tile do
+    local j = map.min_y
+    -- for j = map.min_y, map.max_y, tile do
+    while j <= map.max_y do
+        ---
+        -- for i = map.min_x, map.max_x, tile do
+        local i = map.min_x
+
+        while i <= map.max_x do
             local index = map:get_index(i, j)
             local id = map.cells_by_pos[index]
 
@@ -188,13 +194,39 @@ function Layer:tilemap_tostring()
                 local y = j / tile
 
                 if id == block_id then
-                    line = str_format("e(%d,%d)", x, y)
+                    local n = 1
+                    -- counting block tiles
+                    for k = i + tile, map.max_x, tile do
+                        local index_ = map:get_index(k, j)
+                        local id_ = map.cells_by_pos[index_]
+                        if id_ and id_ == block_id then
+                            n = n + 1
+                        else
+                            break
+                        end
+                    end
+
+                    if n > 1 then
+                        line =
+                            str_format(
+                                "for i=0,%d do e(%d+i,%d)end",
+                                n - 1, x, y)
+
+                        i = i + (tile * n) - tile
+                    else
+                        line = str_format("e(%d,%d)", x, y)
+                    end
                 else
                     line = str_format("e(%d,%d,%d)", x, y, id)
                 end
+
                 f = str_format("%s\n%s", f, line)
             end
+
+            i = i + tile
         end
+
+        j = j + tile
     end
 
     return f
@@ -207,8 +239,13 @@ function Layer:output_map_tostring()
 
     local f = [[local e=function(x,y,id) return Entry(x*tile_size,y*tile_size,id) end]]
 
-    for j = map.min_y, map.max_y, tile do
-        for i = map.min_x, map.max_x, tile do
+    -- for j = map.min_y, map.max_y, tile do
+    local j = map.min_x
+    while j <= map.max_y do
+        ---
+        -- for i = map.min_x, map.max_x, tile do
+        local i = map.min_x
+        while i <= map.max_x do
             local index = map:get_index(i, j)
             local id = map.cells_by_pos[index]
 
@@ -219,7 +256,11 @@ function Layer:output_map_tostring()
                 local line = str_format("e(%d,%d,%d)", x, y, id)
                 f = str_format("%s\n%s", f, line)
             end
+
+            i = i + tile
         end
+
+        j = j + tile
     end
 
     return f
