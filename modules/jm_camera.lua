@@ -465,8 +465,8 @@ function Camera:set_type(s)
         cx:set_move_behavior(Controller.MoveTypes.smooth_dash)
 
         cy.type = Controller.Type.chase_when_not_moving
-        cy.focus_1 = 0.6
-        cy.focus_2 = 0.6
+        cy.focus_1 = 0.5
+        cy.focus_2 = 0.5
         cy.delay = 0.25
         self.deadzone_h = self.tile_size * 4
         cy:set_move_behavior(Controller.MoveTypes.fast_smooth)
