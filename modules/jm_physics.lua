@@ -699,8 +699,8 @@ do
             end -- End If
 
             if self.type == BodyTypes.kinematic then
-                if true or self.x ~= x then kinematic_moves_dynamic_x(self, x) end
-                if true or self.y ~= y then kinematic_moves_dynamic_y(self, y) end
+                if self.x ~= x then kinematic_moves_dynamic_x(self, x) end
+                if self.y ~= y then kinematic_moves_dynamic_y(self, y) end
             end
 
             self.x, self.y, self.w, self.h = x, y, w, h
