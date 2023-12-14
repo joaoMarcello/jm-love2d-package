@@ -262,14 +262,14 @@ local function kinematic_moves_dynamic_x(self, goalx)
                             or true
                         -- or item.speed_x <= 0
                         then
-                            item:refresh(goalx + self.w + 0.5)
+                            item:refresh(goalx + self.w + 0.1)
                         end
                     else
                         if diff < 0
                             or true
                         -- or item.speed_x >= 0
                         then
-                            item:refresh(goalx - item.w - 0.5)
+                            item:refresh(goalx - item.w - 0.1)
                         end
                     end
 
@@ -697,6 +697,11 @@ do
                     end
                 end
             end -- End If
+
+            if self.type == BodyTypes.kinematic then
+                if true or self.x ~= x then kinematic_moves_dynamic_x(self, x) end
+                if true or self.y ~= y then kinematic_moves_dynamic_y(self, y) end
+            end
 
             self.x, self.y, self.w, self.h = x, y, w, h
         end
@@ -1138,10 +1143,10 @@ do
                     end
                 end -- END for
 
-                if is_kinematic(self) then
-                    kinematic_moves_dynamic_x(self, final_x)
-                    kinematic_moves_dynamic_y(self, final_y)
-                end
+                -- if is_kinematic(self) then
+                --     kinematic_moves_dynamic_x(self, final_x)
+                --     kinematic_moves_dynamic_y(self, final_y)
+                -- end
                 self:refresh(final_x, final_y)
                 return
             end
@@ -1474,12 +1479,12 @@ do
                         obj.ground = nil
                         obj.ceil = nil
 
-                        if is_kinematic(obj)
-                        -- and obj.speed_y ~= 0.0
-                        -- and obj.acc_y ~= 0
-                        then
-                            kinematic_moves_dynamic_y(obj, goaly)
-                        end
+                        -- if is_kinematic(obj)
+                        -- -- and obj.speed_y ~= 0.0
+                        -- -- and obj.acc_y ~= 0
+                        -- then
+                        --     kinematic_moves_dynamic_y(obj, goaly)
+                        -- end
 
                         obj:refresh(nil, goaly)
                     end
@@ -1622,9 +1627,9 @@ do
                         obj.wall_left = nil
                         obj.wall_right = nil
 
-                        if is_kinematic(obj) then
-                            kinematic_moves_dynamic_x(obj, goalx)
-                        end
+                        -- if is_kinematic(obj) then
+                        --     kinematic_moves_dynamic_x(obj, goalx)
+                        -- end
 
                         obj:refresh(goalx)
                     end
