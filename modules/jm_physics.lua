@@ -330,7 +330,7 @@ local function kinematic_moves_dynamic_y(self, goaly)
                 and not item.is_stucked
                 and item.is_enabled
             then
-                if collision_rect(self.x, self.y - 2, self.w, self.h + 4, item.x, item.y, item.w, item.h)
+                if collision_rect(self.x, self.y - 1, self.w, self.h + 2, item.x, item.y, item.w, item.h)
                     or collision_rect(self.x, goaly, self.w, self.h, item:rect())
                 then
                     local dist1 = abs(self.y - (item.y + item.h))
@@ -927,34 +927,41 @@ do
             return false
         end
 
-        do
-            local colls = self:check2(nil, self.y - 1, coll_y_filter, self.x - 1, self.y, 1, 1)
+        local lim = self.world.tile * 0.5
 
-            if colls.n > 0 then
+        local cond_push_right = self.x < most_bottom.x
+            and self:right() < most_bottom.x + lim
+
+        local cond_push_left = self:right() > most_bottom:right()
+            and self.x > most_bottom:right() - lim
+
+        do
+            local colls = cond_push_right
+                and self:check2(nil, nil, coll_y_filter,
+                    most_bottom.x - 1, most_bottom:bottom() - 1, 1, 1)
+
+            if colls and colls.n > 0 then
                 return false
             end
 
-            colls = self:check2(nil, self.y - 1, coll_y_filter, self:right() + 1, self.y, 1, 1)
-            if colls.n > 0 then
+            colls = cond_push_left and
+                self:check2(nil, nil, coll_y_filter,
+                    most_bottom:right() + 1, most_bottom:bottom() - 1, 1, 1)
+            if colls and colls.n > 0 then
                 return false
             end
         end
 
 
-        local lim = self.world.tile * 0.5
-
-        if self.x < most_bottom.x
-            and self:right() < most_bottom.x + lim
-            and self.speed_x >= 0
-        then
+        if cond_push_right then
             self.speed_x = 0.0
             self.acc_x = 0.0
             self:refresh(most_bottom.x - self.w - 0.5, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
             return true
-        elseif self:right() > most_bottom:right()
-            and self.x > most_bottom:right() - lim
-            and (self.speed_x <= 0)
+            ---
+        elseif cond_push_left
+        -- and (self.speed_x <= 0)
         then
             self.speed_x = 0.0
             self.acc_x = 0.0
@@ -991,10 +998,11 @@ do
 
             if col.diff_y >= 0 then -- body hit the floor/ground
                 if not self.ground then
+                    self.ground = col.most_up
                     dispatch_event(self, BodyEvents.ground_touch)
+                else
+                    self.ground = col.most_up
                 end
-
-                self.ground = col.most_up
 
                 if self.ground.is_slope then
                     -- self.y = self.ground:get_y(self:rect()) - self.h
@@ -1006,12 +1014,11 @@ do
                 end
             else -- body hit the ceil
                 if not self.ceil then
+                    self.ceil = col.most_bottom
                     dispatch_event(self, BodyEvents.ceil_touch)
+                else
+                    self.ceil = col.most_bottom
                 end
-
-                self.ceil = col.most_bottom
-                -- self.speed_y = 0.1
-
 
                 if self.ceil.is_slope and self.allowed_gravity then
                     self.speed_y = self.world.meter
@@ -1171,16 +1178,20 @@ do
 
             if col.diff_x < 0 then
                 if not self.wall_left then
+                    self.wall_left = col.most_left
                     dispatch_event(self, BodyEvents.wall_left_touch)
+                else
+                    self.wall_left = col.most_left
                 end
-                self.wall_left = col.most_left
             end
 
             if col.diff_x > 0 then
                 if not self.wall_right then
+                    self.wall_right = col.most_right
                     dispatch_event(self, BodyEvents.wall_right_touch)
+                else
+                    self.wall_right = col.most_right
                 end
-                self.wall_right = col.most_right
             end
 
             return true
