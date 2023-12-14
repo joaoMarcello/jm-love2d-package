@@ -135,6 +135,7 @@ function TileMap:load_map(data, filter, regions, clean_up)
         Entry = Entry,
         Region = Region,
         tile_size = self.tile_size,
+        tile = self.tile_size,
         _G = _G
     })
 
