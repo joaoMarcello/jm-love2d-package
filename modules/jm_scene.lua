@@ -1225,6 +1225,9 @@ local keypressed = function(self, key, scancode, isrepeat)
         keyboard_owner:set_state(Controllers.State.keyboard)
     end
 
+    Controllers.P1:keypressed(key)
+    Controllers.P2:keypressed(key)
+
     local param = self.__param__
     local r = param.keypressed and param.keypressed(key, scancode, isrepeat)
 end
@@ -1241,6 +1244,9 @@ local keyreleased = function(self, key, scancode)
     if keyboard_owner then
         keyboard_owner:set_state(Controllers.State.keyboard)
     end
+
+    Controllers.P1:keyreleased(key)
+    Controllers.P2:keyreleased(key)
 
     local param = self.__param__
     local r = param.keyreleased and param.keyreleased(key, scancode)
