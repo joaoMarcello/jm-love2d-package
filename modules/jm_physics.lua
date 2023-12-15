@@ -1467,10 +1467,6 @@ do
                         ex = ex - self.world.tile * 0.25
                     end
 
-                    if self.use_ledge_hop then
-
-                    end
-
                     ---@type JM.Physics.Collisions
                     local col = obj:check(nil, goaly + ex, coll_y_filter, empty_table(), empty_table_for_coll())
 
@@ -1610,6 +1606,8 @@ do
                     obj.acc_x = 0.0
                     dispatch_event(obj, BodyEvents.speed_x_change_direction)
                 end
+
+                self.last_speed_x = self.speed_x
 
                 if obj.type == BodyTypes.ghost then
                     obj:refresh(goalx)
