@@ -929,14 +929,16 @@ do
 
         local lim = self.world.tile * 0.5
 
-        local cond_push_right = self.x < most_bottom.x
+        local cond_push_left = self.x < most_bottom.x
             and self:right() < most_bottom.x + lim
+        -- and self.speed_x >= 0
 
-        local cond_push_left = self:right() > most_bottom:right()
+        local cond_push_right = self:right() > most_bottom:right()
             and self.x > most_bottom:right() - lim
+        -- and self.speed_x <= 0
 
         do
-            local colls = cond_push_right
+            local colls = cond_push_left
                 and self:check2(nil, nil, coll_y_filter,
                     most_bottom.x - 1, most_bottom:bottom() - 1, 1, 1)
 
@@ -944,7 +946,7 @@ do
                 return false
             end
 
-            colls = cond_push_left and
+            colls = cond_push_right and
                 self:check2(nil, nil, coll_y_filter,
                     most_bottom:right() + 1, most_bottom:bottom() - 1, 1, 1)
             if colls and colls.n > 0 then
@@ -953,14 +955,14 @@ do
         end
 
 
-        if cond_push_right then
+        if cond_push_left then
             self.speed_x = 0.0
             self.acc_x = 0.0
             self:refresh(most_bottom.x - self.w - 0.5, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
             return true
             ---
-        elseif cond_push_left
+        elseif cond_push_right
         -- and (self.speed_x <= 0)
         then
             self.speed_x = 0.0
