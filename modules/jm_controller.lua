@@ -454,8 +454,8 @@ function Controller:__constructor__(args)
     end
 
     self.button_param = {}
-    for i = 0, 28 do
-        self.button_param[i] = ButtonParam:new()
+    for id = 0, 28 do
+        self.button_param[id] = ButtonParam:new()
     end
 
     self.key_to_button = {}
@@ -567,6 +567,15 @@ function Controller:tilt_button_count(bt)
     return param and param.tilt_count or 0
 end
 
+function Controller:tilt_count_reset(bt)
+    ---@type JM.Controller.ButtonParam
+    local param = self.button_param[bt]
+    if param then
+        param.time_reset_tilt = 0.0
+        param.tilt_count = 0.0
+    end
+end
+
 ---@return JM.Controller.Buttons|nil
 function Controller:keyboard_to_button(key)
     do
@@ -577,7 +586,7 @@ function Controller:keyboard_to_button(key)
         end
     end
 
-    for name, id in next, Buttons do
+    for id = 0, 28 do
         local t = self.button_to_key[id]
 
         if t then
@@ -622,6 +631,7 @@ function Controller:keyreleased(key)
             param.time_reset_tilt = param.value_reset_tilt_count
         else
             param.tilt_count = 0
+            param.time_reset_tilt = 0.0
         end
     end
 end
@@ -644,8 +654,7 @@ function Controller:update(dt)
     end
 
     -- for button_name, id in next, Buttons do
-    for i = 0, 28 do
-        local id = i
+    for id = 0, 28 do
         local button_is_axis = is_axis(id)
         local r = self:pressing(id)
 
