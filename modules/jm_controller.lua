@@ -97,6 +97,23 @@ local States = {
     mouse = 4,
     vpad = 5,
 }
+
+---@class JM.Controller.ButtonParam
+local ButtonParam = {}
+ButtonParam.__index = ButtonParam
+
+---@return JM.Controller.ButtonParam
+function ButtonParam:new()
+    local o = setmetatable({}, ButtonParam)
+    ButtonParam.__constructor__(o)
+    return o
+end
+
+function ButtonParam:__constructor__()
+    self.time_press_interval = 0.0
+    self.interval_value = 0.5
+end
+
 --==========================================================================
 
 local keyboard_is_down = love.keyboard.isScancodeDown
@@ -425,6 +442,11 @@ function Controller:__constructor__(args)
         self.time_delay_button[i] = 0
     end
 
+    self.button_param = {}
+    for bt, v in next, Buttons do
+        self.button_param[v] = ButtonParam:new()
+    end
+
     self:set_state(args.state or States.keyboard)
 end
 
@@ -495,6 +517,29 @@ function Controller:pressing_time(bt)
     return r --self:pressing(bt)
 end
 
+---@param bt JM.Controller.Buttons
+function Controller:pressing_interval(bt)
+    local button_is_axis = is_axis(bt)
+
+    ---@type JM.Controller.ButtonParam
+    local param = self.button_param[bt]
+
+    if not param
+        or param.time_press_interval ~= 0
+    then
+        return button_is_axis and 0 or false
+    end
+
+    local r = self:pressing(bt)
+    if (type(r) == "number" and math.abs(r) > 0)
+        or (not button_is_axis and r)
+    then
+        param.time_press_interval = param.interval_value
+    end
+
+    return r
+end
+
 function Controller:update(dt)
     local i = 0
     while i <= Buttons.R2 do
@@ -510,6 +555,28 @@ function Controller:update(dt)
             end
         end
         i = i + 1
+    end
+
+    for button_name, id in next, Buttons do
+        local button_is_axis = is_axis(id)
+        local r = self:pressing(id)
+
+        ---@type JM.Controller.ButtonParam
+        local param = self.button_param[id]
+
+        if (type(r) == "number" and math.abs(r) == 0)
+            or (not button_is_axis and not r)
+        then
+            param.time_press_interval = 0.0
+        end
+
+        if param.time_press_interval > 0.0 then
+            param.time_press_interval = param.time_press_interval - dt
+
+            if param.time_press_interval < 0.0 then
+                param.time_press_interval = 0.0
+            end
+        end
     end
 end
 
