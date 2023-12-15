@@ -454,8 +454,8 @@ function Controller:__constructor__(args)
     end
 
     self.button_param = {}
-    for bt, v in next, Buttons do
-        self.button_param[v] = ButtonParam:new()
+    for i = 0, 28 do
+        self.button_param[i] = ButtonParam:new()
     end
 
     self.key_to_button = {}
