@@ -111,18 +111,51 @@ local function pressing_key(self, button)
         return button_is_axis and 0 or false
     end
 
+    if button_is_axis
+        and button ~= Buttons.L2
+        and button ~= Buttons.R2
+    then
+        if button == Buttons.left_stick_x then
+            if self:pressing(Buttons.stick_1_right) then return 1 end
+            if self:pressing(Buttons.stick_1_left) then return -1 end
+            ---
+        elseif button == Buttons.left_stick_y then
+            if self:pressing(Buttons.stick_1_down) then return 1 end
+            if self:pressing(Buttons.stick_1_up) then return -1 end
+            ---
+        elseif button == Buttons.right_stick_x then
+            if self:pressing(Buttons.stick_2_right) then return 1 end
+            if self:pressing(Buttons.stick_2_left) then return -1 end
+            ---
+        elseif button == Buttons.right_stick_y then
+            if self:pressing(Buttons.stick_2_down) then return 1 end
+            if self:pressing(Buttons.stick_2_up) then return -1 end
+            ---
+        end
+
+        return 0
+    end
+
     local field = self.button_to_key[button]
+
     if not field then
         return button_is_axis and 0 or false
     end
 
+    local r
     if type(field) == "string" then
-        return keyboard_is_down(field)
+        r = keyboard_is_down(field)
     else
-        return keyboard_is_down(field[1])
+        r = keyboard_is_down(field[1])
             or (field[2] and keyboard_is_down(field[2]))
             or (field[3] and keyboard_is_down(field[3]))
     end
+
+    if button_is_axis then
+        return r and 1 or 0
+    end
+
+    return r
 end
 
 ---@param self JM.Controller
