@@ -112,6 +112,17 @@ end
 function ButtonParam:__constructor__()
     self.time_press_interval = 0.0
     self.interval_value = 0.5
+
+    self.press_count = 0
+    self.time_press_count = 0.0
+    self.value_reset_press_count = 0.2
+
+    self.time_pressing = 0.0
+
+    self.tilt_count = 0
+    self.time_reset_tilt = 0.0
+    self.tilt_min_pressing_time = 0.5
+    self.value_reset_tilt_count = 0.2
 end
 
 --==========================================================================
@@ -447,6 +458,8 @@ function Controller:__constructor__(args)
         self.button_param[v] = ButtonParam:new()
     end
 
+    self.key_to_button = {}
+
     self:set_state(args.state or States.keyboard)
 end
 
@@ -540,6 +553,79 @@ function Controller:pressing_interval(bt)
     return r
 end
 
+---@param bt JM.Controller.Buttons
+function Controller:pressed_count(bt)
+    ---@type JM.Controller.ButtonParam
+    local param = self.button_param[bt]
+    return param and param.press_count or 0
+end
+
+---@param bt JM.Controller.Buttons
+function Controller:tilt_button_count(bt)
+    ---@type JM.Controller.ButtonParam
+    local param = self.button_param[bt]
+    return param and param.tilt_count or 0
+end
+
+---@return JM.Controller.Buttons|nil
+function Controller:keyboard_to_button(key)
+    do
+        local r = self.key_to_button[key]
+        if r then
+            if r < 0 then return end
+            return r
+        end
+    end
+
+    for name, id in next, Buttons do
+        local t = self.button_to_key[id]
+
+        if t then
+            if type(t) == "table" then
+                for i = 1, #t do
+                    if t[i] == key then
+                        self.key_to_button[key] = id
+                        return id
+                    end
+                end
+            else
+                if t == key then
+                    self.key_to_button[key] = id
+                    return id
+                end
+            end
+        end
+    end
+
+    self.key_to_button[key] = -1
+end
+
+function Controller:keypressed(key)
+    local bt = self:keyboard_to_button(key)
+
+    if bt then
+        ---@type JM.Controller.ButtonParam
+        local param = self.button_param[bt]
+        param.press_count = param.press_count + 1
+        param.time_press_count = param.value_reset_press_count
+    end
+end
+
+function Controller:keyreleased(key)
+    local bt = self:keyboard_to_button(key)
+    if bt then
+        ---@type JM.Controller.ButtonParam
+        local param = self.button_param[bt]
+
+        if param.time_pressing <= param.tilt_min_pressing_time then
+            param.tilt_count = param.tilt_count + 1
+            param.time_reset_tilt = param.value_reset_tilt_count
+        else
+            param.tilt_count = 0
+        end
+    end
+end
+
 function Controller:update(dt)
     local i = 0
     while i <= Buttons.R2 do
@@ -557,16 +643,26 @@ function Controller:update(dt)
         i = i + 1
     end
 
-    for button_name, id in next, Buttons do
+    -- for button_name, id in next, Buttons do
+    for i = 0, 28 do
+        local id = i
         local button_is_axis = is_axis(id)
         local r = self:pressing(id)
+
+        local button_is_pressed = (type(r) == "number" and math.abs(r) ~= 0)
+            or (not button_is_axis and r)
 
         ---@type JM.Controller.ButtonParam
         local param = self.button_param[id]
 
-        if (type(r) == "number" and math.abs(r) == 0)
-            or (not button_is_axis and not r)
-        then
+        --===============================================================
+        if button_is_pressed then
+            param.time_pressing = param.time_pressing + dt
+        else
+            param.time_pressing = 0.0
+        end
+        --===============================================================
+        if not button_is_pressed then
             param.time_press_interval = 0.0
         end
 
@@ -575,6 +671,23 @@ function Controller:update(dt)
 
             if param.time_press_interval < 0.0 then
                 param.time_press_interval = 0.0
+            end
+        end
+        --===============================================================
+        if param.time_press_count ~= 0.0 then
+            param.time_press_count = param.time_press_count - dt
+
+            if param.time_press_count < 0.0 then
+                param.time_press_count = 0
+                param.press_count = 0
+            end
+        end
+        --===============================================================
+        if param.time_reset_tilt ~= 0 then
+            param.time_reset_tilt = param.time_reset_tilt - dt
+            if param.time_reset_tilt < 0.0 then
+                param.time_reset_tilt = 0.0
+                param.tilt_count = 0
             end
         end
     end
