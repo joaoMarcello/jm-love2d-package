@@ -160,26 +160,59 @@ end
 
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
----@param key_pressed string
-local function pressed_key(self, button, key_pressed)
+---@param key string
+local function pressed_key(self, button, key)
     local button_is_axis = is_axis(button)
 
     if self.state ~= States.keyboard or not self.is_keyboard_owner then
         return button_is_axis and 0 or false
     end
 
+    if button_is_axis
+        and button ~= Buttons.L2
+        and button ~= Buttons.R2
+    then
+        if button == Buttons.left_stick_x then
+            if self:pressed(Buttons.stick_1_right, key) then return 1 end
+            if self:pressed(Buttons.stick_1_left, key) then return -1 end
+            ---
+        elseif button == Buttons.left_stick_y then
+            if self:pressed(Buttons.stick_1_down, key) then return 1 end
+            if self:pressed(Buttons.stick_1_up, key) then return -1 end
+            ---
+        elseif button == Buttons.right_stick_x then
+            if self:pressed(Buttons.stick_2_right, key) then return 1 end
+            if self:pressed(Buttons.stick_2_left, key) then return -1 end
+            ---
+        elseif button == Buttons.right_stick_y then
+            if self:pressed(Buttons.stick_2_down, key) then return 1 end
+            if self:pressed(Buttons.stick_2_up, key) then return -1 end
+            ---
+        end
+
+        return 0
+    end
+
     local field = self.button_to_key[button]
+
     if not field then
         return button_is_axis and 0 or false
     end
 
+    local r
     if type(field) == "string" then
-        return key_pressed == field
+        r = key == field
     else
-        return key_pressed == field[1]
-            or key_pressed == field[2]
-            or key_pressed == field[3]
+        r = key == field[1]
+            or key == field[2]
+            or key == field[3]
     end
+
+    if button_is_axis then
+        return r and 1 or 0
+    end
+
+    return r
 end
 
 ---@param self JM.Controller
