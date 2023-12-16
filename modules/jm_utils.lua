@@ -365,6 +365,8 @@ function Utils:hex_to_rgba_float(hex)
     return r / 255, g / 255, b / 255, a / 255
 end
 
+--=========================================================================
+
 local E = 2.718281828459
 
 local function sigmoid(x)
@@ -376,8 +378,99 @@ local function tanh(x)
     return (E_2x - 1) / (E_2x + 1)
 end
 
-Utils.E       = E
-Utils.tanh    = tanh
+--=========================================================================
+---@enum JM.Utils.MoveTypes
+local MoveTypes = {
+    smooth = 1,
+    linear = 2,
+    fast_smooth = 3,
+    balanced = 4,
+    strong_dash = 5,
+    smooth_dash = 6,
+    gaussian = 7,
+}
+
+local Behavior = {
+    [MoveTypes.smooth] = function(x)
+        if x >= math.pi then
+            return 1.0
+        end
+        return (1.0 - (1.0 + math.cos(x)) * 0.5)
+    end,
+    ---
+    [MoveTypes.linear] = function(x)
+        if x > 1.0 then return 1.0 end
+        return x
+    end,
+    ---
+    [MoveTypes.fast_smooth] = function(x)
+        x = x - E
+        local E_2x = E ^ (2.0 * x)
+        local r = (1.0 + (E_2x - 1.0) / (E_2x + 1.0)) * 0.5
+        if x < E then
+            return r
+        else
+            return 1.0
+        end
+    end,
+    ---
+    [MoveTypes.balanced] = function(x)
+        x = x - 5.0
+        local r = 1.0 / (1.0 + (E ^ (-x)))
+
+        if x < 5.0 then
+            return r
+        else
+            return 1.0
+        end
+    end,
+    ---
+    [MoveTypes.strong_dash] = function(x)
+        local E_2x = E ^ (2.0 * x)
+        local r = ((E_2x - 1.0) / (E_2x + 1.0))
+        if x < 3.0 then
+            return r
+        else
+            return 1.0
+        end
+    end,
+    ---
+    [MoveTypes.smooth_dash] = function(x)
+        if x >= math.pi * 0.5 then
+            return 1.0
+        end
+        x = math.sin(x)
+        return x
+    end,
+    ---
+    [MoveTypes.gaussian] = function(x)
+        local r = E ^ (-(x ^ 2.0))
+        if x < 2.5 then
+            return 1.0 - r
+        else
+            return 1.0
+        end
+    end
+}
+
+local Domain = {
+    [MoveTypes.smooth] = math.pi,
+    [MoveTypes.linear] = 1.0,
+    [MoveTypes.fast_smooth] = E * 2.0,
+    [MoveTypes.balanced] = 10.0,
+    [MoveTypes.strong_dash] = 3.0,
+    [MoveTypes.smooth_dash] = math.pi / 2.0,
+    [MoveTypes.gaussian] = 2.5,
+}
+
+Utils.MoveTypes = MoveTypes
+Utils.Behavior = Behavior
+Utils.Domain = Domain
+
+--=========================================================================
+
+Utils.E = E
+Utils.tanh = tanh
 Utils.sigmoid = sigmoid
 
 return Utils
