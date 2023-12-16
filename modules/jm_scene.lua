@@ -880,7 +880,7 @@ local draw = function(self)
     --=====================================================
     local param = self.__param__
 
-    for i = 1, self.amount_cameras, 1 do
+    for i = 1, self.amount_cameras do
         --
         ---@type JM.Camera.Camera
         local camera = self.cameras_list[i]
@@ -1019,6 +1019,8 @@ local draw = function(self)
         self.transition:draw()
     end
 
+
+
     pop()
     set_canvas(last_canvas)
 
@@ -1028,9 +1030,14 @@ local draw = function(self)
     setBlendMode("alpha", 'premultiplied')
     setShader(self.shader)
 
-    love_draw(self.canvas, self.x + self.offset_x,
-        self.y + self.offset_y,
-        0, self.canvas_scale, self.canvas_scale)
+    do
+        local canvas_scale = self.canvas_scale
+        love_draw(self.canvas,
+            self.x + self.offset_x,
+            self.y + self.offset_y,
+            0, canvas_scale, canvas_scale
+        )
+    end
 
     setBlendMode("alpha")
     setShader()
@@ -1052,7 +1059,11 @@ local draw = function(self)
     -- set_blend_mode("alpha")
     -- love.graphics.setScissor()
 
-    local r = self.draw_foreground and self.draw_foreground()
+    do
+        local draw_foreground = self.draw_foreground
+        if draw_foreground then draw_foreground(self) end
+    end
+    -- local r = self.draw_foreground and self.draw_foreground()
 
     setScissor(sx, sy, sw, sh)
 
@@ -1549,10 +1560,12 @@ function Scene:implements(param)
     self.resize = resize
 end
 
+---@param action function
 function Scene:set_background_draw(action)
     self.draw_background = action
 end
 
+---@param action function
 function Scene:set_foreground_draw(action)
     self.draw_foreground = action
 end
