@@ -679,6 +679,41 @@ local function draw_black_bar(self, bar)
 end
 --==========================================================================
 
+function Scene:toggle_scanline()
+    self.scanline = not self.scanline
+end
+
+function Scene:activate_scanline(intensity)
+    self.scanline = true
+    self.scanline_intensity = intensity or 0.25
+end
+
+function Scene:deactivate_scaline()
+    self.scanline = false
+end
+
+function Scene:draw_scanlines(intensity)
+    intensity = intensity or 0.25
+    local line_width = lgx.getLineWidth()
+    local line_style = lgx.getLineStyle()
+    local width = self.screen_w
+    local height = self.screen_h
+    local draw_line = lgx.line
+
+    lgx.setLineStyle("rough")
+    lgx.setLineWidth(1)
+    lgx.setColor(0.3, 0.3, 0.3, intensity)
+
+    for i = 0, height - 1, 2 do
+        draw_line(0, i, width, i)
+    end
+
+    lgx.setLineWidth(line_width)
+    lgx.setLineStyle(line_style)
+end
+
+--==========================================================================
+
 ---@param skip integer
 ---@param duration number|nil
 ---@param on_skip_action function|nil
@@ -1097,10 +1132,11 @@ local draw = function(self)
         if black_bar then
             draw_black_bar(self, black_bar)
         end
-        -- love.graphics.setColor(0, 0, 0)
-        -- love_rect("fill", 0, 0, self.screen_w, self.screen_h * 0.15)
     end
 
+    if self.scanline then
+        self:draw_scanlines(self.scanline_intensity)
+    end
 
     pop()
     set_canvas(last_canvas)
