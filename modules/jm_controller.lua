@@ -626,7 +626,7 @@ function Controller:keyreleased(key)
         ---@type JM.Controller.ButtonParam
         local param = self.button_param[bt]
 
-        if param.time_pressing <= param.tilt_min_pressing_time then
+        if param.time_pressing <= param.value_reset_tilt_count then
             param.tilt_count = param.tilt_count + 1
             param.time_reset_tilt = param.value_reset_tilt_count
         else
