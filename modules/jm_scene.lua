@@ -617,6 +617,68 @@ function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
     setScissor(scx, scy, scw, sch)
 end
 
+--==========================================================================
+
+local black_bar_param = {} --setmetatable({}, { __mode = "k" })
+---@alias JM.Scene.BlackBar {action:function, domain:number, time:number, direction:integer, speed:number, factor:number, type_move:integer}
+
+function Scene:show_black_bar()
+    local Utils = JM.Utils
+    local type_move = Utils.MoveTypes.smooth_dash
+
+    local black_bar = black_bar_param[self] or {}
+    black_bar.type_move = type_move
+    black_bar.action = Utils.Behavior[type_move]
+    black_bar.domain = Utils.Domain[type_move]
+    black_bar.time = 0.0
+    black_bar.direction = 1
+    black_bar.speed = 0.75
+    black_bar.factor = black_bar.action(black_bar.time)
+
+    black_bar_param[self] = black_bar
+end
+
+function Scene:remove_black_bar()
+    local Utils = JM.Utils
+
+    ---@type JM.Scene.BlackBar
+    local black_bar = black_bar_param[self]
+    if not black_bar then return false end
+
+    if black_bar.time > Utils.Domain[black_bar.type_move] then
+        black_bar.time = Utils.Domain[black_bar.type_move]
+    end
+    black_bar.direction = -1
+    black_bar.speed = 0.4
+end
+
+---@param self JM.Scene
+---@param bar JM.Scene.BlackBar
+---@param dt number
+local function update_black_bar(self, bar, dt)
+    bar.time = bar.time + (bar.domain / bar.speed) * dt * bar.direction
+
+    bar.factor = bar.action(bar.time)
+
+    if bar.direction < 0 then
+        if bar.time <= 0.0 then
+            black_bar_param[self] = nil
+        end
+    end
+end
+
+---@param self JM.Scene
+---@param bar JM.Scene.BlackBar
+local function draw_black_bar(self, bar)
+    -- local height = (self.screen_h * 0.1) * bar.factor
+    local height = (self.tile_size_y * 2) * bar.factor
+
+    setColor(0, 0, 0)
+    love_rect("fill", 0, 0, self.screen_w, height)
+    love_rect("fill", 0, self.screen_h - height, self.screen_w, height)
+end
+--==========================================================================
+
 ---@param skip integer
 ---@param duration number|nil
 ---@param on_skip_action function|nil
@@ -781,6 +843,15 @@ local update = function(self, dt)
 
     if self.use_vpad then
         VPad:update(dt)
+    end
+
+    do
+        ---@type JM.Scene.BlackBar
+        local black_bar = black_bar_param[self]
+
+        if black_bar then
+            update_black_bar(self, black_bar, dt)
+        end
     end
 
     if self.time_pause then
@@ -1019,6 +1090,16 @@ local draw = function(self)
         self.transition:draw()
     end
 
+    do
+        ---@type JM.Scene.BlackBar
+        local black_bar = black_bar_param[self]
+
+        if black_bar then
+            draw_black_bar(self, black_bar)
+        end
+        -- love.graphics.setColor(0, 0, 0)
+        -- love_rect("fill", 0, 0, self.screen_w, self.screen_h * 0.15)
+    end
 
 
     pop()
