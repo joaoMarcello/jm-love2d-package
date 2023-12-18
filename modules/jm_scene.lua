@@ -683,19 +683,21 @@ function Scene:toggle_scanline()
     self.scanline = not self.scanline
 end
 
-function Scene:activate_scanline(intensity)
+function Scene:activate_scanline(intensity, thickness, phase)
     self.scanline = true
     self.scanline_intensity = intensity or 0.25
+    self.scanline_thickness = thickness
+    self.scanline_phase = phase
 end
 
 function Scene:deactivate_scaline()
     self.scanline = false
 end
 
-function Scene:draw_scanlines(intensity)
+function Scene:draw_scanlines(intensity, thickness, phase)
     intensity = intensity or 0.25
-    local thickness = 0.5
-    local phase = 2
+    thickness = thickness or 0.5
+    phase = phase or 2
 
     local line_width = lgx.getLineWidth()
     local line_style = lgx.getLineStyle()
@@ -1138,7 +1140,11 @@ local draw = function(self)
     end
 
     if self.scanline then
-        self:draw_scanlines(self.scanline_intensity)
+        self:draw_scanlines(
+            self.scanline_intensity,
+            self.scanline_thickness,
+            self.scanline_phase
+        )
     end
 
     pop()
