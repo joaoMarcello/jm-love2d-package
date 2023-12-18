@@ -218,7 +218,8 @@ local function update_chasing(self, dt)
                 end
 
                 -- lim = vy + vh * 0.75
-                lim = vy + (cam.focus_y + (cam.deadzone_h * 0.5)) / cam.scale
+                lim = vy + (cam.focus_y / cam.scale)
+                    + (cam.deadzone_h * 0.5) / cam.scale
                 if targ.ry > lim then
                     cam.y = cam.y + (targ.ry - lim)
                 end
