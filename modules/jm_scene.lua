@@ -113,8 +113,13 @@ local Scene = {
     end,
     --
     __is_scene = true,
+    default_config = function(...) end
 }
 Scene.__index = Scene
+
+function Scene.set_default_scene_config(conf)
+    Scene.default_config = conf
+end
 
 ---@param self JM.Scene
 ---@return JM.Scene
@@ -1201,6 +1206,8 @@ end
 
 ---@param self JM.Scene
 local init = function(self, ...)
+    Scene.default_config(self)
+
     for i = 1, self.amount_cameras do
         ---@type JM.Camera.Camera
         local cam = self.cameras_list[i]
