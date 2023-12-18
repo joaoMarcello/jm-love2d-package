@@ -670,8 +670,8 @@ end
 ---@param self JM.Scene
 ---@param bar JM.Scene.BlackBar
 local function draw_black_bar(self, bar)
-    -- local height = (self.screen_h * 0.1) * bar.factor
     local height = (self.tile_size_y * 2) * bar.factor
+    height = round(height)
 
     setColor(0, 0, 0)
     love_rect("fill", 0, 0, self.screen_w, height)
@@ -694,6 +694,9 @@ end
 
 function Scene:draw_scanlines(intensity)
     intensity = intensity or 0.25
+    local thickness = 0.5
+    local phase = 2
+
     local line_width = lgx.getLineWidth()
     local line_style = lgx.getLineStyle()
     local width = self.screen_w
@@ -701,10 +704,10 @@ function Scene:draw_scanlines(intensity)
     local draw_line = lgx.line
 
     lgx.setLineStyle("rough")
-    lgx.setLineWidth(1)
+    lgx.setLineWidth(thickness)
     lgx.setColor(0.3, 0.3, 0.3, intensity)
 
-    for i = 0, height - 1, 2 do
+    for i = 0, height - 1, phase do
         draw_line(0, i, width, i)
     end
 
