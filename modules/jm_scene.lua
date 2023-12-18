@@ -703,6 +703,7 @@ function Scene:draw_scanlines(intensity, thickness, phase)
     intensity = intensity or 0.25
     thickness = thickness or 0.5
     phase = phase or 2
+    local color = JM.Utils:get_rgba(0.3, 0.3, 0.3, intensity)
 
     local line_width = lgx.getLineWidth()
     local line_style = lgx.getLineStyle()
@@ -712,7 +713,7 @@ function Scene:draw_scanlines(intensity, thickness, phase)
 
     lgx.setLineStyle("rough")
     lgx.setLineWidth(thickness)
-    lgx.setColor(0.3, 0.3, 0.3, intensity)
+    lgx.setColor(color)
 
     for i = 0, height - 1, phase do
         draw_line(0, i, width, i)
