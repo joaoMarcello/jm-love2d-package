@@ -352,7 +352,7 @@ local function update_on_target(self, dt)
             self:set_state(States.chasing)
             self.speed = 2.0 * (math.abs(targ["diff_" .. axis]) / self.camera.tile_size)
             if self.speed < 0.9 then self.speed = 0.9 end
-            if self.speed > 2 then self.speed = 2 end
+            if self.speed > 1.5 then self.speed = 1.5 end
             return
         end
     end
@@ -533,7 +533,8 @@ function Controller:target_changed_direction()
 end
 
 function Controller:skip_delay()
-    if self.time < 0 then self.time = 0 end
+    if not self.target then return end
+    if self.time and self.time < 0 then self.time = 0 end
 end
 
 function Controller:is_on_target()
