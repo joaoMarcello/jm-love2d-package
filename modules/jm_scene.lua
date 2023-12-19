@@ -1191,7 +1191,7 @@ local draw = function(self)
             setShader(list[i])
             do
                 local action = self.shader_action
-                if action then action(self, list[i]) end
+                if action then action(self, list[i], n) end
             end
 
             love_draw(canvas1)
