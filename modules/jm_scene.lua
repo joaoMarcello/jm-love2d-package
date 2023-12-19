@@ -703,7 +703,7 @@ function Scene:draw_scanlines(intensity, thickness, phase)
     intensity = intensity or 0.25
     thickness = thickness or 0.5
     phase = phase or 2
-    local color = JM.Utils:get_rgba(0.2, 0.2, 0.2, intensity)
+    local color = JM.Utils:get_rgba(0.3, 0.3, 0.3, intensity)
 
     local line_width = lgx.getLineWidth()
     local line_style = lgx.getLineStyle()
@@ -1162,6 +1162,7 @@ local draw = function(self)
         setColor(1, 1, 1, 1)
         setBlendMode("alpha", 'premultiplied')
         setShader(self.shader)
+        if self.shader_action then self:shader_action(self.shader) end
 
         do
             local canvas_scale = self.canvas_scale
@@ -1177,7 +1178,8 @@ local draw = function(self)
         ---
     else
         local canvas1, canvas2 = self.canvas, self.canvas_layer
-        local n = self.shader.n or (#self.shader)
+        local list = self.shader
+        local n = list.n or (#list)
 
         setColor(1, 1, 1, 1)
         setBlendMode("alpha", "premultiplied")
@@ -1186,13 +1188,16 @@ local draw = function(self)
             set_canvas(canvas2)
             clear_screen()
 
-            setShader(self.shader[i])
+            setShader(list[i])
+            if self.shader_action then self:shader_action(list[i]) end
+
             love_draw(canvas1, 0, 0, 0, 1, 1)
-            setShader()
+            -- setShader()
 
             canvas1, canvas2 = canvas2, canvas1
             self.canvas, self.canvas_layer = self.canvas_layer, self.canvas
         end
+        setShader()
         --===========================================================
         set_canvas(last_canvas)
 
@@ -1744,12 +1749,16 @@ function Scene:set_foreground_draw(action)
 end
 
 ---@param shader love.Shader|table
+---@param action function|nil
 ---@return love.Shader|table
-function Scene:set_shader(shader)
+function Scene:set_shader(shader, action)
     self.shader = shader
+    self.shader_action = action
+
     if type(shader) == "table" then
         self.using_canvas_layer = true
         self:restaure_canvas()
+        self.shader.n = #self.shader
     end
     return shader
 end
