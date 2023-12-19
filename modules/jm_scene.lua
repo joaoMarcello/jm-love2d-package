@@ -1189,10 +1189,12 @@ local draw = function(self)
             clear_screen()
 
             setShader(list[i])
-            if self.shader_action then self:shader_action(list[i]) end
+            do
+                local action = self.shader_action
+                if action then action(self, list[i]) end
+            end
 
-            love_draw(canvas1, 0, 0, 0, 1, 1)
-            -- setShader()
+            love_draw(canvas1)
 
             canvas1, canvas2 = canvas2, canvas1
             self.canvas, self.canvas_layer = self.canvas_layer, self.canvas
