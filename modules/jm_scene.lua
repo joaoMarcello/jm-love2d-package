@@ -675,7 +675,7 @@ end
 ---@param self JM.Scene
 ---@param bar JM.Scene.BlackBar
 local function draw_black_bar(self, bar)
-    local height = (self.tile_size_y * 2) * bar.factor
+    local height = (self.tile_size_y * 1.5) * bar.factor
     height = round(height)
 
     setColor(0, 0, 0)
@@ -695,7 +695,7 @@ function Scene:activate_scanline(intensity, thickness, phase)
     self.scanline_phase = phase
 end
 
-function Scene:deactivate_scaline()
+function Scene:deactivate_scanline()
     self.scanline = false
 end
 
@@ -703,7 +703,7 @@ function Scene:draw_scanlines(intensity, thickness, phase)
     intensity = intensity or 0.25
     thickness = thickness or 0.5
     phase = phase or 2
-    local color = JM.Utils:get_rgba(0.3, 0.3, 0.3, intensity)
+    local color = JM.Utils:get_rgba(0.2, 0.2, 0.2, intensity)
 
     local line_width = lgx.getLineWidth()
     local line_style = lgx.getLineStyle()
@@ -1154,29 +1154,69 @@ local draw = function(self)
     end
 
     pop()
-    set_canvas(last_canvas)
 
-    if self.capture_mode then return end
+    if not self.shader or type(self.shader) ~= "table" then
+        set_canvas(last_canvas)
 
-    setColor(1, 1, 1, 1)
-    setBlendMode("alpha", 'premultiplied')
-    setShader(self.shader)
+        if self.capture_mode then return end
+        setColor(1, 1, 1, 1)
+        setBlendMode("alpha", 'premultiplied')
+        setShader(self.shader)
 
-    do
-        local canvas_scale = self.canvas_scale
-        love_draw(self.canvas,
-            self.x + self.offset_x,
-            self.y + self.offset_y,
-            0, canvas_scale, canvas_scale
-        )
+        do
+            local canvas_scale = self.canvas_scale
+            love_draw(self.canvas,
+                self.x + self.offset_x,
+                self.y + self.offset_y,
+                0, canvas_scale, canvas_scale
+            )
+        end
+
+        setBlendMode("alpha")
+        setShader()
+        ---
+    else
+        local canvas1, canvas2 = self.canvas, self.canvas_layer
+        local n = self.shader.n or (#self.shader)
+
+        setColor(1, 1, 1, 1)
+        setBlendMode("alpha", "premultiplied")
+
+        for i = 1, n do
+            set_canvas(canvas2)
+            clear_screen()
+
+            setShader(self.shader[i])
+            love_draw(canvas1, 0, 0, 0, 1, 1)
+            setShader()
+
+            canvas1, canvas2 = canvas2, canvas1
+            self.canvas, self.canvas_layer = self.canvas_layer, self.canvas
+        end
+        --===========================================================
+        set_canvas(last_canvas)
+
+        if self.capture_mode then
+            setBlendMode("alpha")
+            return
+        end
+
+        do
+            local canvas_scale = self.canvas_scale
+            love_draw(self.canvas,
+                self.x + self.offset_x,
+                self.y + self.offset_y,
+                0, canvas_scale, canvas_scale
+            )
+        end
+
+        setBlendMode("alpha")
     end
-
-    setBlendMode("alpha")
-    setShader()
 
     if self.use_vpad and self:is_current_active() then
         VPad:draw()
     end
+
     -- love.graphics.setScissor(self.x,
     --     math_abs(self.h - self.dispositive_h),
     --     self.w, self.h
@@ -1195,7 +1235,6 @@ local draw = function(self)
         local draw_foreground = self.draw_foreground
         if draw_foreground then draw_foreground(self) end
     end
-    -- local r = self.draw_foreground and self.draw_foreground()
 
     setScissor(sx, sy, sw, sh)
 
@@ -1704,8 +1743,15 @@ function Scene:set_foreground_draw(action)
     self.draw_foreground = action
 end
 
+---@param shader love.Shader|table
+---@return love.Shader|table
 function Scene:set_shader(shader)
     self.shader = shader
+    if type(shader) == "table" then
+        self.using_canvas_layer = true
+        self:restaure_canvas()
+    end
+    return shader
 end
 
 function Scene:rect_is_on_view(x, y, w, h)
