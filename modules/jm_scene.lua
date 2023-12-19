@@ -1750,7 +1750,7 @@ function Scene:set_foreground_draw(action)
     self.draw_foreground = action
 end
 
----@param shader love.Shader|table
+---@param shader love.Shader|table|any
 ---@param action function|nil
 ---@return love.Shader|table
 function Scene:set_shader(shader, action)
