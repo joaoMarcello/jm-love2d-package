@@ -82,6 +82,8 @@ function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regi
 
     self.color = { 1, 1, 1, 1 }
 
+    self.changed = nil
+
     self:load_map(path_map, filter, regions)
 end
 
@@ -306,6 +308,17 @@ function TileMap:update(dt)
 end
 
 ---@param self JM.TileMap
+---@param batch love.SpriteBatch
+local function draw_spritebatch(self, batch)
+    if batch:getCount() == 0 then
+        return
+    end
+    self.changed = false
+    love_set_color(self.color)
+    return love_draw(batch)
+end
+
+---@param self JM.TileMap
 local function draw_with_bounds(self, left, top, right, bottom)
     self.__bound_left = left
     self.__bound_top = top
@@ -341,10 +354,11 @@ local function draw_with_bounds(self, left, top, right, bottom)
         and bottom == self.last_index_bottom
         and not self.tile_set:frame_changed()
     then
-        love_set_color(self.color)
-        love_draw(self.sprite_batch)
-        self.changed = false
-        return
+        -- love_set_color(self.color)
+        -- love_draw(self.sprite_batch)
+        -- self.changed = false
+        -- return
+        return draw_spritebatch(self, self.sprite_batch)
     end
 
     self.changed = true
@@ -354,11 +368,15 @@ local function draw_with_bounds(self, left, top, right, bottom)
     self.last_index_bottom = bottom
     self.last_index_right = right
 
-    self.sprite_batch:clear()
+    local batch = self.sprite_batch
+    batch:clear()
 
     if left > self.max_x or top > self.max_y then
         return
     end
+
+    local tile_set = self.tile_set
+    local cells_by_pos = self.cells_by_pos
 
     for j = top, bottom, tile_size do
         --
@@ -370,23 +388,23 @@ local function draw_with_bounds(self, left, top, right, bottom)
 
             local index = y * MAX_COLUMN + x
 
-            local cell = self.cells_by_pos[index]
+            local cell = cells_by_pos[index]
 
             if cell then
-                local tile = self.tile_set:get_tile(cell)
+                local tile = tile_set:get_tile(cell)
 
                 if tile then
-                    self.sprite_batch:add(tile.quad, i, j)
+                    batch:add(tile.quad, i, j)
                 end
             end
         end
         --
     end
-    self.sprite_batch:flush()
+    batch:flush()
 
-    love_set_color(self.color)
-    love_draw(self.sprite_batch)
-    -- Font:print("" .. (self.n_cells), 32 * 15, 32 * 8)
+    -- love_set_color(self.color)
+    -- return love_draw(batch)
+    return draw_spritebatch(self, batch)
 end
 
 ---@param tileset JM.TileSet
@@ -434,9 +452,10 @@ function TileMap:draw(camera, factor_x, factor_y)
             draw_with_bounds(self, x, y, right, bottom)
             --
         else
-            love_set_color(self.color)
-            love_draw(self.sprite_batch)
-            self.changed = false
+            -- love_set_color(self.color)
+            -- love_draw(self.sprite_batch)
+            -- self.changed = false
+            return draw_spritebatch(self, self.sprite_batch)
         end
     end
 end
@@ -447,9 +466,10 @@ function TileMap:draw_with_bounds(left, top, right, bottom)
     then
         return draw_with_bounds(self, left, top, right, bottom)
     else
-        love_set_color(self.color)
-        love_draw(self.sprite_batch)
-        self.changed = false
+        -- love_set_color(self.color)
+        -- love_draw(self.sprite_batch)
+        -- self.changed = false
+        return draw_spritebatch(self, self.sprite_batch)
     end
 end
 
