@@ -64,8 +64,19 @@ local data = {
                             transition_conf = { delay = 0.2, duration = 0.25 }
                         })
                     else
-                        State:add_transition("fade", "in", { delay = 0.25, duration = 0.8 })
-                        State:init(States.jm)
+                        -- State:add_transition("fade", "in", { delay = 0.25, duration = 0.8 })
+                        -- State:init(States.jm)
+
+                        State:change_gamestate(require(self.next_state), {
+                            unload = path,
+                            skip_transition = true,
+                            transition = "fade",
+                            transition_conf = { delay = 0.2, duration = 0.25 },
+                        })
+
+                        if self.sound then
+                            self.sound:stop()
+                        end
                     end
                 end)
 
@@ -239,6 +250,11 @@ local function load()
             and love.audio.newSource('data/sfx/simple-clean-logo.ogg', 'static'))
 end
 
+---@param sound love.Source
+function State:set_sound(sound)
+    data.sound = sound
+end
+
 local function init(state)
     SCREEN_WIDTH = State.screen_w
     RECT_HEIGHT = State.screen_h * 0.5
@@ -342,14 +358,18 @@ local function finish()
         data.img["heart"]:release()
         data.img["made-with"]:release()
         data.img["love-text"]:release()
+        data.img = nil
     end
 
     if data.sound then
         data.sound:stop()
         data.sound:release()
+        data.sound = nil
     end
 
     mask_shader:release()
+    ---@diagnostic disable-next-line: cast-local-type
+    mask_shader = nil
 end
 
 local function keypressed(key)
