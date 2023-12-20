@@ -187,7 +187,7 @@ end
 function Sound:play_sfx(name, force)
     ---@type JM.Sound.Audio|nil
     local audio = list_sfx[name]
-    if not audio then return false end
+    if not audio then return end
 
     if not audio.source:isPlaying() then
         audio.source:play()
@@ -197,6 +197,7 @@ function Sound:play_sfx(name, force)
         audio.source:stop()
         audio.source:play()
     end
+    return audio.source
 end
 
 function Sound:pause()
