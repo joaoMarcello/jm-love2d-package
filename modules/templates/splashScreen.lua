@@ -439,8 +439,16 @@ local function love_logo_update(dt)
 
         if not State.transition and data.result_rot >= 1 then
             State:add_transition("fade", "out", { duration = 1.1 }, nil, function()
-                State:init(States.jm)
-                State:add_transition("fade", "in", { duration = 0.8, delay = 0.25 })
+                -- State:init(States.jm)
+                -- State:add_transition("fade", "in", { duration = 0.8, delay = 0.25 })
+
+                State:change_gamestate(require(data.next_state), {
+                    unload = path,
+                    skip_transition = true,
+                    transition = "fade",
+                    transition_conf = { delay = 0.2, duration = 0.25 },
+                })
+
                 if data.sound then
                     data.sound:stop()
                 end
