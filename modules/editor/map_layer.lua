@@ -194,25 +194,25 @@ function Layer:tilemap_tostring()
                 local y = j / tile
 
                 if id == block_id then
-                    local n = 1
+                    local nx = 1
                     -- counting block tiles
                     for k = i + tile, map.max_x, tile do
                         local index_ = map:get_index(k, j)
                         local id_ = map.cells_by_pos[index_]
                         if id_ and id_ == block_id then
-                            n = n + 1
+                            nx = nx + 1
                         else
                             break
                         end
                     end
 
-                    if n > 1 then
+                    if nx > 1 then
                         line =
                             str_format(
                                 "for i=0,%d do e(%d+i,%d)end",
-                                n - 1, x, y)
+                                nx - 1, x, y)
 
-                        i = i + (tile * n) - tile
+                        i = i + (tile * nx) - tile
                     else
                         line = str_format("e(%d,%d)", x, y)
                     end
@@ -227,6 +227,105 @@ function Layer:tilemap_tostring()
         end
 
         j = j + tile
+    end
+
+    return f
+end
+
+function Layer:tilemap_tostring_v2()
+    local map = self.tilemap
+    local block_id = game_map.pieces["block-1x1"].tiles[1][1]
+    local str_format = string.format
+    local tile = map.tile_size
+
+    local f = [[local e=function(x,y,id) return Entry(x*tile,y*tile,id or %d) end]]
+
+    f = str_format(f, block_id)
+
+    local mapped = {}
+
+    for j = map.min_y, map.max_y, tile do
+        for i = map.min_x, map.max_x, tile do
+            ---
+            local index = map:get_index(i, j)
+            local id = map.cells_by_pos[index]
+
+            if id and not mapped[index] then
+                local line --- string
+                local x = i / tile
+                local y = j / tile
+
+
+                if id == block_id then
+                    local w = tile
+                    local h = tile
+
+                    for _i_ = i + tile, map.max_x, tile do
+                        local index_ = map:get_index(_i_, j)
+                        local _id_ = map.cells_by_pos[index_]
+
+                        if not mapped[index_] and _id_ == block_id then
+                            w = w + tile
+                        else
+                            break
+                        end
+                    end
+
+                    local min_h = math.huge
+
+                    for _i_ = i, i + w - 1, tile do
+                        --
+                        local column_h = tile
+
+                        for _j_ = j + tile, map.max_y, tile do
+                            --
+                            local index_ = map:get_index(_i_, _j_)
+                            local _id_ = map.cells_by_pos[index_]
+
+                            if not mapped[index_] and _id_ == block_id then
+                                column_h = column_h + tile
+                            else
+                                break
+                            end
+                        end
+
+                        if column_h < min_h and column_h ~= 0 then
+                            min_h = column_h
+                        end
+                    end
+
+                    h = min_h
+
+                    for _j_ = j, j + h - 1, tile do
+                        for _i_ = i, i + w - 1, tile do
+                            local index_ = map:get_index(_i_, _j_)
+                            mapped[index_] = true
+                        end
+                    end
+
+                    local nx = w / tile
+                    local ny = h / tile
+
+                    if nx > 1 and ny > 1 then
+                        line = str_format("for j=0,%d do for i=0,%d do e(%d+i,%d+j) end end", ny - 1, nx - 1, x, y)
+                        ---
+                    elseif nx > 1 then
+                        line = str_format("for i=0,%d do e(%d+i,%d) end", nx - 1, x, y)
+                        ---
+                    elseif ny > 1 then
+                        line = str_format("for j=0,%d do e(%d,%d+j) end", ny - 1, x, y)
+                        ---
+                    else
+                        line = str_format("e(%d,%d)", x, y)
+                    end
+                else
+                    line = str_format("e(%d,%d,%d)", x, y, id)
+                    mapped[index] = true
+                end
+
+                f = str_format("%s\n%s", f, line)
+            end
+        end
     end
 
     return f
@@ -278,7 +377,7 @@ function Layer:get_save_data()
         factor_x       = self.factor_x,
         factor_y       = self.factor_y,
         tilemap_number = self.tilemap_number,
-        map            = self:tilemap_tostring(),
+        map            = self:tilemap_tostring_v2(),
     }
 end
 
