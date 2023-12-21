@@ -287,6 +287,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     self.use_stencil = conf.use_stencil or nil
 
+    self.show_info = conf.debug or nil
+
     self.game_objects = {}
 end
 
@@ -1155,14 +1157,22 @@ local draw = function(self)
 
     pop()
 
-    if not self.shader or type(self.shader) ~= "table" then
+    local shader = self.shader
+
+    if not shader or type(shader) ~= "table" then
         set_canvas(last_canvas)
 
         if self.capture_mode then return end
         setColor(1, 1, 1, 1)
         setBlendMode("alpha", 'premultiplied')
-        setShader(self.shader)
-        if self.shader_action then self:shader_action(self.shader) end
+
+        setShader(shader)
+        do
+            local action = self.shader_action
+            if action then
+                action(self, shader, 1)
+            end
+        end
 
         do
             local canvas_scale = self.canvas_scale
@@ -1178,7 +1188,7 @@ local draw = function(self)
         ---
     else
         local canvas1, canvas2 = self.canvas, self.canvas_layer
-        local list = self.shader
+        local list = shader
         local n = list.n or (#list)
 
         setColor(1, 1, 1, 1)
@@ -1244,6 +1254,35 @@ local draw = function(self)
     end
 
     setScissor(sx, sy, sw, sh)
+
+    --- Drawing debugging info
+    do
+        local show_info = self.show_info
+        if show_info then
+            local km = collectgarbage("count") / 1024.0
+            lgx.setColor(0, 0, 0, 0.7)
+            lgx.rectangle("fill", 0, 0, 80, 120)
+            lgx.setColor(1, 1, 0, 1)
+            lgx.print(string.format("Memory:\n\t%.2f Mb", km), 5, 10)
+            lgx.print("FPS: " .. tostring(love.timer.getFPS()), 5, 50)
+            local maj, min, rev, code = love.getVersion()
+            lgx.print(string.format("Version:\n\t%d.%d.%d", maj, min, rev), 5, 75)
+
+            local stats = love.graphics.getStats()
+            local fmt = string.format
+            lgx.setColor(0.9, 0.9, 0.9)
+            lgx.printf(
+                fmt("draw: %d\ncanvas_sw: %d\nshader_sw: %d\ntextMemo: %.2f\ncanvases: %d\ndrawBatched: %d",
+                    stats.drawcalls,
+                    stats.canvasswitches,
+                    stats.shaderswitches,
+                    stats.texturememory / (1024 ^ 2),
+                    stats.canvases,
+                    stats.drawcallsbatched),
+                lgx.getWidth() - 212, 12, 200,
+                "right")
+        end
+    end
 
     if self.show_border then
         setColor(1, 1, 1, 1)
