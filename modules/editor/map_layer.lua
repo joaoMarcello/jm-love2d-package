@@ -243,6 +243,7 @@ function Layer:tilemap_tostring_v2()
     f = str_format(f, block_id)
 
     local mapped = {}
+    local others = {}
 
     for j = map.min_y, map.max_y, tile do
         for i = map.min_x, map.max_x, tile do
@@ -307,25 +308,78 @@ function Layer:tilemap_tostring_v2()
                     local ny = h / tile
 
                     if nx > 1 and ny > 1 then
-                        line = str_format("for j=0,%d do for i=0,%d do e(%d+i,%d+j) end end", ny - 1, nx - 1, x, y)
+                        line = str_format("for j=0,%d do for i=0,%d do e(%d+i,%d+j)end end", ny - 1, nx - 1, x, y)
                         ---
                     elseif nx > 1 then
-                        line = str_format("for i=0,%d do e(%d+i,%d) end", nx - 1, x, y)
+                        line = str_format("for i=0,%d do e(%d+i,%d)end", nx - 1, x, y)
                         ---
                     elseif ny > 1 then
-                        line = str_format("for j=0,%d do e(%d,%d+j) end", ny - 1, x, y)
+                        line = str_format("for j=0,%d do e(%d,%d+j)end", ny - 1, x, y)
                         ---
                     else
                         line = str_format("e(%d,%d)", x, y)
                     end
                 else
-                    line = str_format("e(%d,%d,%d)", x, y, id)
+                    others[id] = others[id] or {}
+                    table.insert(others[id], x)
+                    table.insert(others[id], y)
+
+                    -- line = str_format("e(%d,%d,%d)", x, y, id)
                     mapped[index] = true
                 end
 
-                f = str_format("%s\n%s", f, line)
+                if line then
+                    f = str_format("%s\n%s", f, line)
+                end
             end
         end
+    end
+
+    local ser = function(t, n)
+        n = n or #t
+        local r = "{"
+
+        for i = 1, n do
+            if i == n then
+                r = str_format("%s%d", r, t[i])
+            else
+                r = str_format("%s%d,", r, t[i])
+            end
+        end
+
+        return str_format("%s}", r)
+    end
+
+    local serialize = ser
+    local add_var = false
+
+    for id, t in next, others do
+        local line
+        local n = #t
+
+        if n <= (4 * 2) then -- only one tile from this type of id
+            for i = 1, n, 2 do
+                local x, y = t[i], t[i + 1]
+                line = str_format("e(%d,%d,%d)", x, y, id)
+            end
+        else
+            if not add_var then
+                local ff = [[local F=function(t,n,D)for i=1,n,2 do e(t[i],t[i+1],D)end end]]
+
+                f = str_format("%s\n%s", f, ff)
+                add_var = true
+            end
+
+            --             line = str_format([[t=%s;D=%d
+            -- for i=1,%d,2 do e(t[i],t[i+1],D)end]], serialize(t, n), id, n)
+            line = str_format([[F(%s,%d,%d)]],
+                serialize(t, n),
+                n,
+                id
+            )
+        end
+
+        f = str_format("%s\n%s", f, line)
     end
 
     return f
