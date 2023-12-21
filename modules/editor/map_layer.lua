@@ -357,10 +357,11 @@ function Layer:tilemap_tostring_v2()
         local n = #t
 
         if n <= (1 * 2) then -- only one tile from this type of id
-            line = ""
+            -- line = ""
             for i = 1, n, 2 do
                 local x, y = t[i], t[i + 1]
-                line = line .. str_format("e(%d,%d,%d);", x, y, id)
+                -- line = line .. str_format("e(%d,%d,%d);", x, y, id)
+                line = str_format("e(%d,%d,%d)", x, y, id)
             end
         else
             if not add_func then
