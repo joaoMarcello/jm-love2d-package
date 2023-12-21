@@ -200,6 +200,14 @@ function Sound:play_sfx(name, force)
     return audio.source
 end
 
+function Sound:stop_sfx(name)
+    ---@type JM.Sound.Audio|nil
+    local audio = list_sfx[name]
+    if not audio then return end
+
+    return audio.source:stop()
+end
+
 function Sound:pause()
     for _, audio in pairs(list_sfx) do
         ---@type JM.Sound.Audio
