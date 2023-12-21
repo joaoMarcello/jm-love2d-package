@@ -335,7 +335,7 @@ function Layer:tilemap_tostring_v2()
         end
     end
 
-    local ser = function(t, n)
+    local serialize = function(t, n)
         n = n or #t
         local r = "{"
 
@@ -350,28 +350,26 @@ function Layer:tilemap_tostring_v2()
         return str_format("%s}", r)
     end
 
-    local serialize = ser
-    local add_var = false
+    local add_func = false
 
     for id, t in next, others do
         local line
         local n = #t
 
-        if n <= (4 * 2) then -- only one tile from this type of id
+        if n <= (1 * 2) then -- only one tile from this type of id
+            line = ""
             for i = 1, n, 2 do
                 local x, y = t[i], t[i + 1]
-                line = str_format("e(%d,%d,%d)", x, y, id)
+                line = line .. str_format("e(%d,%d,%d);", x, y, id)
             end
         else
-            if not add_var then
+            if not add_func then
                 local ff = [[local F=function(t,n,D)for i=1,n,2 do e(t[i],t[i+1],D)end end]]
 
                 f = str_format("%s\n%s", f, ff)
-                add_var = true
+                add_func = true
             end
 
-            --             line = str_format([[t=%s;D=%d
-            -- for i=1,%d,2 do e(t[i],t[i+1],D)end]], serialize(t, n), id, n)
             line = str_format([[F(%s,%d,%d)]],
                 serialize(t, n),
                 n,
