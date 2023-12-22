@@ -371,7 +371,9 @@ local function draw_with_bounds(self, left, top, right, bottom)
     local batch = self.sprite_batch
     batch:clear()
 
-    if left > self.max_x or top > self.max_y then
+    if left > self.max_x or top > self.max_y
+        or bottom < self.min_y or right < self.min_x
+    then
         return
     end
 
