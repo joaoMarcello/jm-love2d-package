@@ -156,6 +156,11 @@ function Sound:remove_song(name)
     ---@type JM.Sound.Audio
     local audio = list_song[name]
     if not audio then return false end
+
+    if audio == current_song then
+        current_song = nil
+    end
+
     audio.source:stop()
     audio.source:release()
     list_song[name] = nil
@@ -165,12 +170,12 @@ function Sound:get_current_song()
     return current_song
 end
 
-function Sound:play_song(name)
+function Sound:play_song(name, reset)
     ---@type JM.Sound.Audio|nil
     local audio = list_song[name]
     if not audio then return false end
 
-    if current_song and current_song.name == name then
+    if current_song and current_song.name == name and not reset then
         return
     end
     -- stopping all others songs
@@ -181,6 +186,7 @@ function Sound:play_song(name)
     end
 
     current_song = audio
+
     return audio.source:play()
 end
 
