@@ -820,11 +820,13 @@ function Camera:set_focus(x, y)
     end
 end
 
-function Camera:set_position(x, y)
+function Camera:set_position(x, y, do_round)
     self.x = (not self.lock_x and x) or self.x
     self.y = (not self.lock_y and y) or self.y
-    -- self.x = round(self.x)
-    -- self.y = round(self.y)
+    if do_round then
+        self.x = round(self.x)
+        self.y = round(self.y)
+    end
 end
 
 function Camera:set_zoom(value, clamp_to_minscale)
@@ -863,6 +865,7 @@ function Camera:set_zoom(value, clamp_to_minscale)
 end
 
 function Camera:set_scale(value)
+    if not value then return end
     assert(value ~= 0)
     self.scale = value
 end
