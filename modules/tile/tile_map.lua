@@ -377,6 +377,7 @@ local function draw_with_bounds(self, left, top, right, bottom)
 
     local tile_set = self.tile_set
     local cells_by_pos = self.cells_by_pos
+    local get_tile = tile_set.get_tile
 
     for j = top, bottom, tile_size do
         --
@@ -391,7 +392,8 @@ local function draw_with_bounds(self, left, top, right, bottom)
             local cell = cells_by_pos[index]
 
             if cell then
-                local tile = tile_set:get_tile(cell)
+                -- local tile = tile_set:get_tile(cell)
+                local tile = get_tile(tile_set, cell)
 
                 if tile then
                     batch:add(tile.quad, i, j)
