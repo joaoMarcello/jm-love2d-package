@@ -47,12 +47,12 @@ function GC:__constructor__(x, y, w, h, draw_order, update_order)
 end
 
 function GC:set_draw_order(value)
-    value = math.abs(value)
+    value = math.floor(value)
     self.draw_order = value + math.random()
 end
 
 function GC:set_update_order(value)
-    value = math.abs(value)
+    value = math.floor(value)
     self.update_order = value + math.random()
 end
 
