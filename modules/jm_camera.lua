@@ -1348,7 +1348,7 @@ function Camera:attach(lock_shake, subpixel)
     local tx = -round(self.x) + (self.viewport_x / self.scale) + shake_x
     local ty = -round(self.y) + (self.viewport_y / self.scale) + shake_y
 
-    return love_translate(tx, ty)
+    return love_translate(round(tx), round(ty))
 end
 
 function Camera:detach()
