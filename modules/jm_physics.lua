@@ -931,11 +931,11 @@ do
 
         local cond_push_left = self.x < most_bottom.x
             and self:right() < most_bottom.x + lim
-        -- and self.speed_x >= 0
+            and self.speed_x >= 0
 
         local cond_push_right = self:right() > most_bottom:right()
             and self.x > most_bottom:right() - lim
-        -- and self.speed_x <= 0
+            and self.speed_x <= 0
 
         do
             local colls = cond_push_left
