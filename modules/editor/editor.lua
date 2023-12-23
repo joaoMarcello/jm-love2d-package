@@ -85,6 +85,8 @@ local function finish()
 end
 
 local function init(args)
+    State:set_shader()
+
     love.filesystem.setIdentity("map-editor")
 
     JM.GameObject:init_state(State)
