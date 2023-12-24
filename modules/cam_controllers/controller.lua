@@ -210,7 +210,7 @@ local function update_chasing(self, dt)
         local w1, w2 = self.window_1, self.window_2
 
         if w1 and w2 then
-            if w2 > w1 then w1, w2 = w2, w1 end
+            if w2 < w1 then w1, w2 = w2, w1 end
             local is_x = axis == "x"
             local lim_1 = is_x and (vx + vw * w1) or (vy + vh * w1)
             local lim_2 = is_x and (vx + vw * w2) or (vy + vh * w2)
