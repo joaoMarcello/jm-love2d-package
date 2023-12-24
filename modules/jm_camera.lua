@@ -1082,6 +1082,21 @@ local function debbug(self)
         lgx.pop()
         Font:pop()
     end
+
+    local wx1, wx2 = self.controller_x.window_1, self.controller_x.window_2
+    local wy1, wy2 = self.controller_y.window_1, self.controller_y.window_2
+
+    if wx1 and wx2 and wy1 and wy2 then
+        local x, y, w, h
+
+        y = vy + vh * wy1
+        h = vy + vh * wy2
+        x = vx + vw * wx1
+        w = vx + vw * wx2
+
+        love_set_color(1, 0, 1)
+        love_rect("line", x, y, w - x, h - y)
+    end
 end
 
 function Camera:set_shader(shader)
