@@ -183,26 +183,49 @@ local function update_chasing(self, dt)
     -- if axis == "x" then self.speed = 8 end
 
     -- Dont allow target run off the screen
-    if axis == "x" and targ.rx > vx + vw then
-        local diff = targ.rx - (vx + vw)
-        cam.x = cam.x + diff
-        self.init_pos = self.init_pos + diff
-        ---
-    elseif axis == "x" and targ.rx < vx then
-        local diff = targ.rx - vx
-        cam.x = cam.x + diff
-        self.init_pos = self.init_pos + diff
-        ---
-    elseif axis == "y" and targ.ry > vy + vh then
-        local diff = (targ.ry) - (vy + vh)
-        cam.y = cam.y + diff
-        self.init_pos = self.init_pos + diff
-        ---
-    elseif axis == "y" and targ.ry < vy then
-        local diff = targ.ry - vy
-        cam.y = cam.y + diff
-        self.init_pos = self.init_pos + diff
-        ---
+    -- if axis == "x" and targ.rx > vx + vw then
+    --     local diff = targ.rx - (vx + vw)
+    --     cam.x = cam.x + diff
+    --     self.init_pos = self.init_pos + diff
+    --     ---
+    -- elseif axis == "x" and targ.rx < vx then
+    --     local diff = targ.rx - vx
+    --     cam.x = cam.x + diff
+    --     self.init_pos = self.init_pos + diff
+    --     ---
+    -- elseif axis == "y" and targ.ry > vy + vh then
+    --     local diff = (targ.ry) - (vy + vh)
+    --     cam.y = cam.y + diff
+    --     self.init_pos = self.init_pos + diff
+    --     ---
+    -- elseif axis == "y" and targ.ry < vy then
+    --     local diff = targ.ry - vy
+    --     cam.y = cam.y + diff
+    --     self.init_pos = self.init_pos + diff
+    --     ---
+    -- end
+
+    do
+        -- Dont allow target run off the screen window
+        local w1, w2 = self.window_1, self.window_2
+
+        if w1 and w2 then
+            local is_x = axis == "x"
+            local lim_1 = is_x and (vx + vw * w1) or (vy + vh * w1)
+            local lim_2 = is_x and (vx + vw * w2) or (vy + vh * w2)
+            local r = is_x and "rx" or "ry"
+
+            if targ[r] < lim_1 then
+                local last = cam[axis]
+                cam[axis] = cam[axis] + (targ[r] - lim_1)
+                self.init_pos = self.init_pos + (cam[axis] - last)
+                ---
+            elseif targ[r] > lim_2 then
+                local last = cam[axis]
+                cam[axis] = cam[axis] + (targ[r] - lim_2)
+                self.init_pos = self.init_pos + (cam[axis] - last)
+            end
+        end
     end
 
     if self.type == Types.chase_when_not_moving then
@@ -211,19 +234,19 @@ local function update_chasing(self, dt)
         if targ[range] ~= 0 then
             self.time = -self.delay
 
-            if axis == "y" then
-                local lim = vy + vh * 0.25
-                if targ.ry < lim then
-                    cam.y = cam.y + (targ.ry - lim)
-                end
+            -- if axis == "y" then
+            --     local lim = vy + vh * self.window_1
+            --     if targ.ry < lim then
+            --         cam.y = cam.y + (targ.ry - lim)
+            --     end
 
-                -- lim = vy + vh * 0.75
-                lim = vy + (cam.focus_y / cam.scale)
-                    + (cam.deadzone_h * 0.5) / cam.scale
-                if targ.ry > lim then
-                    cam.y = cam.y + (targ.ry - lim)
-                end
-            end
+            --     lim = vy + vh * self.window_2
+            --     -- lim = vy + (cam.focus_y / cam.scale)
+            --     --     + (cam.deadzone_h * 0.5) / cam.scale
+            --     if targ.ry > lim then
+            --         cam.y = cam.y + (targ.ry - lim)
+            --     end
+            -- end
 
             local set_focus = "set_focus_" .. axis
             local viewport = (axis == "x" and "viewport_w" or "viewport_h")
@@ -290,6 +313,8 @@ local function update_chasing(self, dt)
             cam:keep_on_bounds()
             return self:set_state(States.chasing, true)
         end
+
+        self:check_and_fix_cam_focus()
         ---
     elseif self.type == Types.normal then
         -- local dir = targ[axis] > cam[axis] and 1 or 0
@@ -335,8 +360,12 @@ local function update_on_target(self, dt)
 
     if type == Types.dynamic then
         if self:target_changed_direction() then
+            if self:camera_hit_bounds() then
+                self:check_and_fix_cam_focus()
+            end
             self:set_state(States.deadzone)
         end
+        ---
     elseif type == Types.normal then
         if self.delay ~= 0 then
             if self:target_changed_direction()
@@ -439,6 +468,14 @@ function Controller:__constructor__(camera, axis, delay, type)
     self.delay = delay or 0.0
     self.delay = math.abs(self.delay)
 
+    self.window_1 = 0.25
+    self.window_2 = 0.6
+
+    if self.axis == "x" then
+        self.window_1 = 0.1
+        self.window_2 = 0.9
+    end
+
     self.speed = 10
     self.type = type or Types.normal
 
@@ -499,6 +536,35 @@ function Controller:get_target_relative_position()
     else
         return 0
     end
+end
+
+function Controller:check_and_fix_cam_focus()
+    local cam = self.camera
+    local axis = self.axis
+    local targ = self.target
+    local is_x = axis == "x"
+    local direction = is_x and "direction_x" or "direction_y"
+    local set_focus = is_x and "set_focus_x" or "set_focus_y"
+    local viewport = is_x and "viewport_w" or "viewport_h"
+    local focus = is_x and "focus_x" or "focus_y"
+
+    if self.focus_1 <= self.focus_2 then
+        local focus_1 = Utils:round(self.focus_1 * cam[viewport])
+        if targ[direction] > 0
+            and cam[focus] ~= focus_1
+        then
+            cam[set_focus](cam, focus_1)
+            return true
+        end
+
+        local focus_2 = Utils:round(self.focus_2 * cam[viewport])
+        if targ[direction] < 0 and cam[focus] ~= focus_2 then
+            cam[set_focus](cam, focus_2)
+            return true
+        end
+    end
+
+    return false
 end
 
 function Controller:camera_hit_bounds()
@@ -576,7 +642,7 @@ function Controller:set_state(new_state, force)
 
     if new_state == States.chasing then
         self.init_pos = cam[self.axis]
-        self.init_dist = self.init_pos - self.target["r" .. self.axis]
+        self.init_dist = self.init_pos - self.target[self.axis == "x" and "rx" or "ry"]
         self.time = -self.delay
         self.speed = 1.5
     elseif new_state == States.on_target then
@@ -631,6 +697,7 @@ function Controller:draw()
         print("time: " .. self.time, cam.x + 10, cam.y + 36)
         print("diff_X: " .. self.target.diff_y, cam.x + 10, cam.y + 52)
     end
+
     do
         return
     end
