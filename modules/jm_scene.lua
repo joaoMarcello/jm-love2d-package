@@ -46,7 +46,7 @@ local VPad = require(string.gsub(path, "jm_scene", "jm_virtual_pad"))
 
 local Controllers = JM.ControllerManager
 
----@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, cam_scale:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean}
+---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, cam_scale:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean, post_update:function}
 
 local function round(value)
     local absolute = abs(value)
@@ -1022,6 +1022,13 @@ local draw = function(self)
                     ---
                 elseif layer.shader then
                     setShader(layer.shader)
+                end
+
+                do
+                    local post_update = layer.post_update
+                    if post_update then
+                        post_update(layer, love.timer.getDelta(), camera)
+                    end
                 end
 
                 local last_cam_px = camera.x
