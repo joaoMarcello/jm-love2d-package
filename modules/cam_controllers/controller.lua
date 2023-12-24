@@ -214,16 +214,16 @@ local function update_chasing(self, dt)
             local is_x = axis == "x"
             local lim_1 = is_x and (vx + vw * w1) or (vy + vh * w1)
             local lim_2 = is_x and (vx + vw * w2) or (vy + vh * w2)
-            local r = is_x and "rx" or "ry"
+            local pos = is_x and "rx" or "ry"
 
-            if targ[r] < lim_1 then
+            if targ[pos] < lim_1 then
                 local last = cam[axis]
-                cam[axis] = cam[axis] + (targ[r] - lim_1)
+                cam[axis] = cam[axis] + (targ[pos] - lim_1)
                 self.init_pos = self.init_pos + (cam[axis] - last)
                 ---
-            elseif targ[r] > lim_2 then
+            elseif targ[pos] > lim_2 then
                 local last = cam[axis]
-                cam[axis] = cam[axis] + (targ[r] - lim_2)
+                cam[axis] = cam[axis] + (targ[pos] - lim_2)
                 self.init_pos = self.init_pos + (cam[axis] - last)
             end
         end
