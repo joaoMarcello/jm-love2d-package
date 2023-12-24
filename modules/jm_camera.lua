@@ -313,6 +313,109 @@ local function show_border(self)
     love_rect("fill", vx, vy + vh - len, vw, len)
 end
 
+---@param self JM.Camera.Camera
+local function debbug(self)
+    --Drawing a yellow rectangle
+    if not self:hit_border() then
+        love_set_color(1, 1, 0, 1)
+    else
+        love_set_color(1, 1, 0, 0.5)
+    end
+
+    local border_len = self.tile_size --/ self.scale
+
+    local vx, vy, vw, vh = self:get_viewport_in_world_coord()
+    vx = round(vx)
+    vy = round(vy)
+    do
+        love.graphics.rectangle("line",
+            vx + border_len,
+            vy + border_len,
+            vw - border_len * 2,
+            vh - border_len * 2
+        )
+
+        -- Top-Middle
+        love.graphics.line(
+            vx + vw / 2,
+            vy,
+            vx + vw / 2,
+            vy + border_len
+        )
+
+        --Bottom-Middle
+        love.graphics.line(
+            vx + vw / 2,
+            vy + vh - border_len,
+            vx + vw / 2,
+            vy + vh
+        )
+
+        --Left-Middle
+        love.graphics.line(
+            vx,
+            vy + vh / 2,
+            vx + border_len,
+            vy + vh / 2
+        )
+
+        love.graphics.line(
+            vx + vw - border_len,
+            vy + vh / 2,
+            vx + vw,
+            vy + vh / 2
+        )
+    end
+    --===========================================================
+
+    -- Showing the current state
+    local r, g, b, a
+    r, g, b, a = 1, 0, 0, 1
+
+    local Font = JM:get_font() --_G.JM_Font
+
+    love_set_color(r, g, b, a)
+
+    if Font then
+        Font:push()
+        Font:set_font_size(8)
+        local state = '<color>' .. self:get_state()
+        Font:print(state,
+            vx + border_len + 2,
+            vy + vh - border_len - 20)
+        Font:pop()
+
+        -- Showing the message DEBUG MODE
+        Font:push()
+        Font:set_font_size(8)
+
+        lgx.push()
+        lgx.translate(vx, vy)
+        Font:printx("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE", 0, border_len + 10,
+            vw - border_len - 10, "right")
+        lgx.pop()
+        Font:pop()
+    end
+
+    local wx1, wx2 = self.controller_x.window_1, self.controller_x.window_2
+    local wy1, wy2 = self.controller_y.window_1, self.controller_y.window_2
+
+    if wx1 and wx2 and wy1 and wy2 then
+        local x, y, w, h
+
+        y = vy + vh * wy1
+        h = vy + vh * wy2
+        x = vx + vw * wx1
+        w = vx + vw * wx2
+
+        love_set_color(1, 0, 1)
+        local lw = love.graphics.getLineWidth()
+        love.graphics.setLineWidth(2)
+        love_rect("line", x, y, w - x, h - y)
+        love.graphics.setLineWidth(lw)
+    end
+end
+
 ---@enum JM.Camera.Type
 local TYPES = {
     Free = 0,
@@ -997,106 +1100,6 @@ function Camera:shake_y(amplitude, speed, duration, modifier)
     amplitude = amplitude or 0
     if amplitude < self.controller_shake_y.amplitude then return end
     return self.controller_shake_y:refresh(amplitude, speed, duration, modifier)
-end
-
----@param self JM.Camera.Camera
-local function debbug(self)
-    --Drawing a yellow rectangle
-    if not self:hit_border() then
-        love_set_color(1, 1, 0, 1)
-    else
-        love_set_color(1, 1, 0, 0.5)
-    end
-
-    local border_len = self.tile_size --/ self.scale
-
-    local vx, vy, vw, vh = self:get_viewport_in_world_coord()
-    vx = round(vx)
-    vy = round(vy)
-    do
-        love.graphics.rectangle("line",
-            vx + border_len,
-            vy + border_len,
-            vw - border_len * 2,
-            vh - border_len * 2
-        )
-
-        -- Top-Middle
-        love.graphics.line(
-            vx + vw / 2,
-            vy,
-            vx + vw / 2,
-            vy + border_len
-        )
-
-        --Bottom-Middle
-        love.graphics.line(
-            vx + vw / 2,
-            vy + vh - border_len,
-            vx + vw / 2,
-            vy + vh
-        )
-
-        --Left-Middle
-        love.graphics.line(
-            vx,
-            vy + vh / 2,
-            vx + border_len,
-            vy + vh / 2
-        )
-
-        love.graphics.line(
-            vx + vw - border_len,
-            vy + vh / 2,
-            vx + vw,
-            vy + vh / 2
-        )
-    end
-    --===========================================================
-
-    -- Showing the current state
-    local r, g, b, a
-    r, g, b, a = 1, 0, 0, 1
-
-    local Font = JM:get_font() --_G.JM_Font
-
-    love_set_color(r, g, b, a)
-
-    if Font then
-        Font:push()
-        Font:set_font_size(8)
-        local state = '<color>' .. self:get_state()
-        Font:print(state,
-            vx + border_len + 2,
-            vy + vh - border_len - 20)
-        Font:pop()
-
-        -- Showing the message DEBUG MODE
-        Font:push()
-        Font:set_font_size(8)
-
-        lgx.push()
-        lgx.translate(vx, vy)
-        Font:printx("<color><effect=ghost, min=0.4, max=1.0, speed=0.5>DEBUG MODE", 0, border_len + 10,
-            vw - border_len - 10, "right")
-        lgx.pop()
-        Font:pop()
-    end
-
-    local wx1, wx2 = self.controller_x.window_1, self.controller_x.window_2
-    local wy1, wy2 = self.controller_y.window_1, self.controller_y.window_2
-
-    if wx1 and wx2 and wy1 and wy2 then
-        local x, y, w, h
-
-        y = vy + vh * wy1
-        h = vy + vh * wy2
-        x = vx + vw * wx1
-        w = vx + vw * wx2
-
-        love_set_color(1, 0, 1)
-        love_rect("line", x, y, w - x, h - y)
-    end
 end
 
 function Camera:set_shader(shader)
