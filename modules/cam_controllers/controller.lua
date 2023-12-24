@@ -682,6 +682,9 @@ function Controller:update(dt)
         update_on_deadzone(self, dt)
     end
 
+    self.camera.x = Utils:round(self.camera.x)
+    self.camera.y = Utils:round(self.camera.y)
+
     self.camera:keep_on_bounds()
 end
 
