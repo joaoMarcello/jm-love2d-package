@@ -25,7 +25,7 @@ function M:noise_generator(w, h, seed)
         math.randomseed(os.time())
     end
 
-    return love.graphics.newImage(noisetex)
+    return love.graphics.newImage(noisetex, { dpiscale = 1 })
 end
 
 local shaders = setmetatable({}, { __mode = "v" })
@@ -268,8 +268,10 @@ function M:get_shader(shader, state, conf)
             water = lgx.newShader(code)
             shaders[shader] = water
 
-            local noise_water = conf.noise or self:noise_generator(64, 64, 42)
+            -- local noise_water = conf.noise or self:noise_generator(64, 64, 42)
+            local noise_water = lgx.newImage("/jm-love2d-package/data/img/3-simplex-noise-64.png")
             water:send("simplex", noise_water)
+
             water:send("canvas_width", conf.width or (state and state.screen_w)
                 or lgx.getWidth())
             water:send("time", 0.0)
