@@ -1012,7 +1012,7 @@ local draw = function(self)
                 ---@type JM.Scene.Layer
                 local layer = param.layers[i]
 
-                local last_canvas = self.canvas
+                -- local last_canvas_2 = self.canvas
 
                 if layer.use_canvas then
                     set_canvas(self.canvas_layer)
@@ -1077,7 +1077,7 @@ local draw = function(self)
                 end
 
                 if layer.use_canvas and not layer.skip_draw then
-                    set_canvas(last_canvas)
+                    set_canvas(self.canvas)
                     local r = layer.shader and setShader(layer.shader)
                     setColor(1, 1, 1, 1)
                     -- set_blend_mode("alpha")
@@ -1105,7 +1105,7 @@ local draw = function(self)
                 if layer.use_canvas and layer.skip_draw then
 
                 else
-                    set_canvas(last_canvas)
+                    set_canvas(self.canvas)
                 end
                 setShader()
 
