@@ -102,10 +102,6 @@ function State:__get_data__()
     return data
 end
 
-local function sigmoid(x)
-    return 1.0 / (1.0 + (E ^ (-x)))
-end
-
 local function tanh(x)
     local E_2x = E ^ (2 * x)
     return (E_2x - 1) / (E_2x + 1)
