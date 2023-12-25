@@ -273,16 +273,18 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.subpixel = conf.subpixel or 4
     self.canvas_filter = conf.canvas_filter or 'linear'
 
-    self.canvas = create_canvas(
-        self.screen_w,
-        self.screen_h,
-        self.canvas_filter,
-        self.subpixel
-    )
-
     self.canvas_scale_x = 1
     self.canvas_scale_y = 1
     self:set_scale_type(conf.scale_type or ScaleType.keepProportions)
+
+    -- self.canvas = create_canvas(
+    --     self.screen_w,
+    --     self.screen_h,
+    --     self.canvas_filter,
+    --     self.subpixel
+    -- )
+    self:restaure_canvas()
+
 
     self:implements {}
 
@@ -322,7 +324,33 @@ function Scene:set_scale_type(v)
         end
     else
         self.scale_type = v
+
+        if v == ScaleType.pixelPerfect then
+            self.canvas_filter = 'nearest'
+            self:set_subpixel(1)
+            self.canvas:setFilter("nearest", "nearest")
+            if self.canvas_layer then
+                self.canvas_layer:setFilter("nearest", "nearest")
+            end
+        end
     end
+end
+
+---@param v number
+---@return boolean
+function Scene:set_subpixel(v)
+    v = v or 1
+    if v <= 0 then v = 1 end
+    if self.subpixel ~= v then
+        self.subpixel = v
+        if self.canvas then self.canvas:release() end
+        if self.canvas_layer then self.canvas_layer:release() end
+        self.canvas = nil
+        self.canvas_layer = nil
+        self:restaure_canvas()
+        return true
+    end
+    return false
 end
 
 function Scene:change_game_screen(w, h)
@@ -364,7 +392,7 @@ function Scene:restaure_canvas()
     end
 
     if self.using_canvas_layer and not self.canvas_layer then
-        local w, h        = self.canvas:getDimensions()
+        local w, h = self.canvas:getDimensions()
         self.canvas_layer = love.graphics.newCanvas(w, h, { dpiscale = self.canvas:getDPIScale() })
         self.canvas_layer:setFilter(self.canvas_filter, self.canvas_filter)
     end
@@ -624,16 +652,17 @@ function Scene:calc_canvas_scale()
         local minC = min(self.screen_w, self.screen_h)
         local minW = minC == self.screen_w and windowWidth or windowHeight
 
-        local minScale = floor(
-        -- min(windowWidth, windowHeight)
-        -- / min(self.screen_w, self.screen_h)
-            minW / minC
-        )
+        -- local minScale = floor(
+        --  min(windowWidth, windowHeight)
+        --  / min(self.screen_w, self.screen_h)
+        -- )
 
-        self.canvas:setFilter("nearest", "nearest")
-        if self.canvas_layer then
-            self.canvas_layer:setFilter("nearest", "nearest")
-        end
+        local minScale = floor(minW / minC)
+
+        -- self.canvas:setFilter("nearest", "nearest")
+        -- if self.canvas_layer then
+        --     self.canvas_layer:setFilter("nearest", "nearest")
+        -- end
 
         self.canvas_scale_x = (1.0 / self.subpixel) * minScale
 
