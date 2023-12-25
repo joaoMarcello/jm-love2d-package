@@ -307,6 +307,15 @@ function M:get_shader(shader, state, conf)
         end
 
         return mix
+        ---
+    elseif shader == "mask" then
+        local m = shaders[shader]
+        if not m then
+            code = lfs.read("/jm-love2d-package/data/shader/mask.glsl")
+            m = lgx.newShader(code)
+            shaders[shader] = m
+        end
+        return m
     end
 end
 
