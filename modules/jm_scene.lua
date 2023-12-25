@@ -160,10 +160,10 @@ end
 
 function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     bounds = bounds or {
-        left = -32 * 0,
-        right = 32 * 60,
-        top = -32 * 0,
-        bottom = 32 * 12,
+        left = -math.huge,
+        right = math.huge,
+        top = -math.huge,
+        bottom = math.huge,
     }
 
     conf = conf or {}
@@ -1078,9 +1078,13 @@ local draw = function(self)
 
                 if layer.use_canvas and not layer.skip_draw then
                     set_canvas(self.canvas)
-                    local r = layer.shader and setShader(layer.shader)
+
+                    local layer_shader = layer.shader
+
+                    if layer_shader then setShader(layer_shader) end
+
                     setColor(1, 1, 1, 1)
-                    -- set_blend_mode("alpha")
+
                     local px = camera.x + (px ~= 0 and layer.pos_x or 0)
                         - camera.viewport_x / camera.scale
                     px = round(px)
@@ -1093,7 +1097,7 @@ local draw = function(self)
 
                     love_draw(self.canvas_layer, px, py, 0, scale)
 
-                    if layer.shader and layer.adjust_shader then
+                    if layer_shader and layer.adjust_shader then
                         layer:adjust_shader(px, py, scale, camera)
                     end
                     setShader()
@@ -1110,11 +1114,6 @@ local draw = function(self)
                 setShader()
 
                 pop()
-
-                -- local condition = not param.draw and i == self.n_layers
-                -- if condition then
-                --     camera:draw_info()
-                -- end
 
                 camera:detach()
                 --
