@@ -255,23 +255,23 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     end
 
 
-    self.n_layers      = 0
-    self.shader        = nil
+    self.n_layers       = 0
+    self.shader         = nil
 
     -- used when scene is in frame skip mode
-    self.__skip        = nil
+    self.__skip         = nil
 
-    self.subpixel      = conf.subpixel or 4
-    self.canvas_filter = conf.canvas_filter or 'linear'
+    self.subpixel       = conf.subpixel or 4
+    self.canvas_filter  = conf.canvas_filter or 'linear'
 
-    self.canvas        = create_canvas(
+    self.canvas         = create_canvas(
         self.screen_w,
         self.screen_h,
         self.canvas_filter,
         self.subpixel
     )
 
-    self.canvas_scale  = 1
+    self.canvas_scale_x = 1
 
     self:implements {}
 
@@ -558,13 +558,14 @@ end
 function Scene:calc_canvas_scale()
     local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
     local canvasWidth, canvasHeight = self.canvas:getDimensions()
-    self.canvas_scale               = min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+    self.canvas_scale_x = min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+    self.canvas_scale_y = self.canvas_scale_x
 
-    local canvasWidthScaled         = canvasWidth * self.canvas_scale
-    local canvasHeightScaled        = canvasHeight * self.canvas_scale
+    local canvasWidthScaled = canvasWidth * self.canvas_scale_x
+    local canvasHeightScaled = canvasHeight * self.canvas_scale_y
 
-    self.offset_x                   = floor((windowWidth - canvasWidthScaled) / 2)
-    self.offset_y                   = floor((windowHeight - canvasHeightScaled) / 2)
+    self.offset_x = floor((windowWidth - canvasWidthScaled) * 0.5)
+    self.offset_y = floor((windowHeight - canvasHeightScaled) * 0.5)
 end
 
 ---@param scene JM.Scene
@@ -1181,7 +1182,7 @@ local draw = function(self)
         end
 
         do
-            local canvas_scale = self.canvas_scale
+            local canvas_scale = self.canvas_scale_x
             love_draw(self.canvas,
                 self.x + self.offset_x,
                 self.y + self.offset_y,
@@ -1225,7 +1226,7 @@ local draw = function(self)
         end
 
         do
-            local canvas_scale = self.canvas_scale
+            local canvas_scale = self.canvas_scale_x
             love_draw(self.canvas,
                 self.x + self.offset_x,
                 self.y + self.offset_y,
