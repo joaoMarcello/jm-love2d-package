@@ -39,6 +39,13 @@ local Transitions = {
 
 ---@alias JM.Transitions.TypeNames "cartoon"|"curtain"|"diamond"|"door"|"fade"|"masker"|"pass"|"stripe"|"tile"
 
+---@enum JM.Scene.ScaleType
+local ScaleType = {
+    keepProportions = 1,
+    scaleToFit = 2,
+    pixelPerfect = 3,
+}
+
 local SceneManager = _G.JM_SceneManager
 
 ---@type JM.GUI.VPad
@@ -113,7 +120,9 @@ local Scene = {
     end,
     --
     __is_scene = true,
-    default_config = function(...) end
+    default_config = function(...) end,
+    ---
+    ScaleType = ScaleType,
 }
 Scene.__index = Scene
 
@@ -255,16 +264,16 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     end
 
 
-    self.n_layers       = 0
-    self.shader         = nil
+    self.n_layers = 0
+    self.shader = nil
 
     -- used when scene is in frame skip mode
-    self.__skip         = nil
+    self.__skip = nil
 
-    self.subpixel       = conf.subpixel or 4
-    self.canvas_filter  = conf.canvas_filter or 'linear'
+    self.subpixel = conf.subpixel or 4
+    self.canvas_filter = conf.canvas_filter or 'linear'
 
-    self.canvas         = create_canvas(
+    self.canvas = create_canvas(
         self.screen_w,
         self.screen_h,
         self.canvas_filter,
@@ -272,6 +281,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     )
 
     self.canvas_scale_x = 1
+    self.canvas_scale_y = 1
+    self:set_scale_type(conf.scale_type or ScaleType.keepProportions)
 
     self:implements {}
 
@@ -294,6 +305,24 @@ end
 
 function Scene:get_vpad()
     return VPad
+end
+
+---@param v string|JM.Scene.ScaleType
+function Scene:set_scale_type(v)
+    if type(v) == "string" then
+        v = v:lower()
+        if v == "pixel perfect" or v == "pixelperfect" then
+            return self:set_scale_type(ScaleType.pixelPerfect)
+            ---
+        elseif v == "scale to fit" or v == "scaletofit" then
+            return self:set_scale_type(ScaleType.scaleToFit)
+            ---
+        else
+            return self:set_scale_type(ScaleType.keepProportions)
+        end
+    else
+        self.scale_type = v
+    end
 end
 
 function Scene:change_game_screen(w, h)
@@ -556,16 +585,73 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
 end
 
 function Scene:calc_canvas_scale()
-    local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
-    local canvasWidth, canvasHeight = self.canvas:getDimensions()
-    self.canvas_scale_x = min(windowWidth / canvasWidth, windowHeight / canvasHeight)
-    self.canvas_scale_y = self.canvas_scale_x
+    local scale_type = self.scale_type
 
-    local canvasWidthScaled = canvasWidth * self.canvas_scale_x
-    local canvasHeightScaled = canvasHeight * self.canvas_scale_y
+    if scale_type == ScaleType.keepProportions then
+        -- keep proportions
+        local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
+        local canvasWidth, canvasHeight = self.canvas:getDimensions()
+        self.canvas_scale_x = min(windowWidth / canvasWidth, windowHeight / canvasHeight)
+        self.canvas_scale_y = self.canvas_scale_x
 
-    self.offset_x = floor((windowWidth - canvasWidthScaled) * 0.5)
-    self.offset_y = floor((windowHeight - canvasHeightScaled) * 0.5)
+        local canvasWidthScaled = canvasWidth * self.canvas_scale_x
+        local canvasHeightScaled = canvasHeight * self.canvas_scale_y
+
+        self.offset_x = floor((windowWidth - canvasWidthScaled) * 0.5)
+        self.offset_y = floor((windowHeight - canvasHeightScaled) * 0.5)
+    end
+
+    if scale_type == ScaleType.scaleToFit then
+        --- scale to fit
+        local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
+        local canvasWidth, canvasHeight = self.canvas:getDimensions()
+
+        self.canvas_scale_x = windowWidth / canvasWidth
+        self.canvas_scale_y = windowHeight / canvasHeight
+
+        local canvasWidthScaled = canvasWidth * self.canvas_scale_x
+        local canvasHeightScaled = canvasHeight * self.canvas_scale_y
+
+        self.offset_x = floor((windowWidth - canvasWidthScaled) * 0.5)
+        self.offset_y = floor((windowHeight - canvasHeightScaled) * 0.5)
+    end
+
+    if scale_type == ScaleType.pixelPerfect then
+        -- pixel perfect
+        local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
+        local canvasWidth, canvasHeight = self.canvas:getDimensions()
+
+        local minC = min(self.screen_w, self.screen_h)
+        local minW = minC == self.screen_w and windowWidth or windowHeight
+
+        local minScale = floor(
+        -- min(windowWidth, windowHeight)
+        -- / min(self.screen_w, self.screen_h)
+            minW / minC
+        )
+
+        self.canvas:setFilter("nearest", "nearest")
+        if self.canvas_layer then
+            self.canvas_layer:setFilter("nearest", "nearest")
+        end
+
+        self.canvas_scale_x = (1.0 / self.subpixel) * minScale
+
+        if self.canvas_scale_x <= 0
+            or (self.screen_w * self.canvas_scale_x > windowWidth)
+            or (self.screen_h * self.canvas_scale_x > windowHeight)
+        then
+            self.canvas_scale_x = (1.0 / self.subpixel)
+        end
+
+        self.canvas_scale_y = self.canvas_scale_x
+
+        local canvasWidthScaled = canvasWidth * self.canvas_scale_x
+        local canvasHeightScaled = canvasHeight * self.canvas_scale_y
+
+        self.offset_x = floor((windowWidth - canvasWidthScaled) * 0.5)
+        self.offset_y = floor((windowHeight - canvasHeightScaled) * 0.5)
+    end
 end
 
 ---@param scene JM.Scene
@@ -1182,11 +1268,10 @@ local draw = function(self)
         end
 
         do
-            local canvas_scale = self.canvas_scale_x
             love_draw(self.canvas,
                 self.x + self.offset_x,
                 self.y + self.offset_y,
-                0, canvas_scale, canvas_scale
+                0, self.canvas_scale_x, self.canvas_scale_y
             )
         end
 
