@@ -424,6 +424,51 @@ function M:get_shader(shader, state, conf)
             shaders[shader] = hd
         end
         return hd
+        ---
+    elseif shader == "dotnbloom" or shader == "dotbloom" then
+        local dot = shaders["dotnbloom"] or shaders["dotbloom"]
+        if not dot then
+            code = lfs.read("/jm-love2d-package/data/shader/dotnbloom.frag")
+            dot = lgx.newShader(code)
+            shaders["dotnbloom"] = dot
+            shaders["dotbloom"] = dot
+
+            dot:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return dot
+        ---
+    elseif shader == "curvature" then
+        local curv = shaders[shader]
+        if not curv then
+            code = lfs.read("/jm-love2d-package/data/shader/curvature.frag")
+            curv = lgx.newShader(code)
+            shaders[shader] = curv
+
+            curv:send("inputSize", {
+                (conf.inputSize and conf.inputSize[1])
+                or (state and state.screen_w)
+                or lgx.getWidth(),
+
+                (conf.inputSize and conf.inputSize[2])
+                or (state and state.screen_h)
+                or lgx.getHeight()
+            })
+
+            curv:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return curv
     end
 end
 
