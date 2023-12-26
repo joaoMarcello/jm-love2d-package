@@ -631,6 +631,33 @@ function M:get_shader(shader, state, conf)
             shaders[shader] = tech
         end
         return tech
+        ---
+    elseif shader == "pip" then
+        local pip = shaders[shader]
+        if not pip then
+            code = lfs.read("/jm-love2d-package/data/shader/pip.frag")
+            pip = lgx.newShader(code)
+            shaders[shader] = pip
+
+            pip:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+
+            pip:send("outputSize", {
+                (conf.outputSize and conf.outputSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.outputSize and conf.outputSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+
+            pip:send("time", 0.0)
+        end
+        return pip
     end
 end
 
