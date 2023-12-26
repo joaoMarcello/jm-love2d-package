@@ -204,12 +204,14 @@ function M:get_shader(shader, state, conf)
             dmg = lgx.newShader(code)
             shaders["dmg"] = dmg
             shaders["palette"] = dmg
+
             local pallette = conf.palette or {
-                { 33 / 255,  32 / 255,  16 / 255 },
-                { 107 / 255, 105 / 255, 49 / 255 },
-                { 181 / 255, 174 / 255, 74 / 255 },
-                { 255 / 255, 247 / 255, 123 / 255 }
+                { 15 / 255,  56 / 255,  15 / 255 },
+                { 48 / 255,  98 / 255,  48 / 255 },
+                { 139 / 255, 172 / 255, 15 / 255 },
+                { 155 / 255, 188 / 255, 15 / 255 }
             }
+
 
             dmg:send('palette', unpack(pallette))
         end
@@ -316,6 +318,112 @@ function M:get_shader(shader, state, conf)
             shaders[shader] = m
         end
         return m
+        ---
+    elseif shader == "pico8" then
+        local pico8 = shaders[shader]
+        if not pico8 then
+            code = lfs.read("/jm-love2d-package/data/shader/pico8.glsl")
+            pico8 = lgx.newShader(code)
+            shaders[shader] = pico8
+
+            local palette = {
+                { 0.0,           0.0,           0.0 },
+                { 29.0 / 255.0,  43.0 / 255.0,  83.0 / 255.0 },
+                { 126.0 / 255.0, 37.0 / 255.0,  83.0 / 255.0 },
+                { 0.0,           135.0 / 255.0, 81.0 / 255.0 },
+                { 171.0 / 255.0, 82.0 / 255.0,  54.0 / 255.0 },
+                { 95.0 / 255.0,  87.0 / 255.0,  79.0 / 255.0 },
+                { 194.0 / 255.0, 195.0 / 255.0, 199.0 / 255.0 },
+                { 255.0 / 255.0, 241.0 / 255.0, 232.0 / 255.0 },
+                { 255.0 / 255.0, 0.0,           77.0 / 255.0 },
+                { 255.0 / 255.0, 163.0 / 255.0, 0.0 },
+                { 255.0 / 255.0, 236.0 / 255.0, 39.0 / 255.0 },
+                { 0.0,           228.0 / 255.0, 54.0 / 255.0 },
+                { 41.0 / 255.0,  173.0 / 255.0, 255.0 / 255.0 },
+                { 131.0 / 255.0, 118.0 / 255.0, 156.0 / 255.0 },
+                { 255.0 / 255.0, 119.0 / 255.0, 168.0 / 255.0 },
+                { 255.0 / 255.0, 204.0 / 255.0, 170.0 / 255.0 },
+            }
+
+            -- pico8:send("palette", unpack(palette))
+        end
+        return pico8
+    elseif shader == "godsray" then
+        local god = shaders[shader]
+        if not god then
+            code = lfs.read("/jm-love2d-package/data/shader/godsray.glsl")
+            god = lgx.newShader(code)
+            shaders[shader] = god
+
+            god:send("exposure", 0.25)
+            god:send("decay", 0.95)
+            god:send("density", 0.15)
+            god:send("weight", 0.5)
+            god:send("light_position", { 0.5, 0.5 })
+            god:send("samples", 70)
+        end
+        return god
+        ---
+    elseif shader == "phosphor" then
+        local ph = shaders[shader]
+        if not ph then
+            code = lfs.read("/jm-love2d-package/data/shader/phosphor.frag")
+            ph = lgx.newShader(code)
+            shaders[shader] = ph
+
+            ph:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return ph
+        ---
+    elseif shader == "hq4x" then
+        local hq = shaders[shader]
+        if not hq then
+            code = lfs.read("/jm-love2d-package/data/shader/hq4x.frag")
+            hq = lgx.newShader(code)
+            shaders[shader] = hq
+
+            hq:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return hq
+        ---
+    elseif shader == "hq2x" then
+        local hq = shaders[shader]
+        if not hq then
+            code = lfs.read("/jm-love2d-package/data/shader/hq2x.frag")
+            hq = lgx.newShader(code)
+            shaders[shader] = hq
+
+            hq:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return hq
+        ---
+    elseif string.lower(shader) == "hdr-tv" then
+        shader = string.lower(shader)
+        local hd = shaders[shader]
+        if not hd then
+            code = lfs.read("/jm-love2d-package/data/shader/HDR-TV.frag")
+            hd = lgx.newShader(code)
+            shaders[shader] = hd
+        end
+        return hd
     end
 end
 
