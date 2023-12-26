@@ -502,6 +502,54 @@ function M:get_shader(shader, state, conf)
             blk:send("brightness", 0.75)
         end
         return blk
+        ---
+    elseif shader == "scanline-4x" then
+        local scan = shaders[shader]
+        if not scan then
+            code = lfs.read("/jm-love2d-package/data/shader/scanline-4x.frag")
+            scan = lgx.newShader(code)
+        end
+        return scan
+        ---
+    elseif shader == "scanline-3x" then
+        local scan = shaders[shader]
+        if not scan then
+            code = lfs.read("/jm-love2d-package/data/shader/scanline-3x.frag")
+            scan = lgx.newShader(code)
+        end
+        return scan
+        ---
+    elseif shader == "scanline2" then
+        local scan = shaders[shader]
+        if not scan then
+            code = lfs.read("/jm-love2d-package/data/shader/scanlines2.frag")
+            scan = lgx.newShader(code)
+
+            scan:send("inputSize", {
+                (conf.inputSize and conf.inputSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.inputSize and conf.inputSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+
+            scan:send("outputSize", {
+                (conf.outputSize and conf.outputSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.outputSize and conf.outputSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+
+            scan:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return scan
     end
 end
 
