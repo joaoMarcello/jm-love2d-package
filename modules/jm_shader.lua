@@ -469,6 +469,39 @@ function M:get_shader(shader, state, conf)
             })
         end
         return curv
+        ---
+    elseif shader == "phosporish" then
+        local ph = shaders[shader]
+        if not ph then
+            code = lfs.read("/jm-love2d-package/data/shader/phosphorish.frag")
+            ph = lgx.newShader(code)
+            shaders[shader] = ph
+
+            ph:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return ph
+        ---
+    elseif shader == "blknwht" or shader == "blkwht" or shader == "black_white"
+        or shader == "blackwhite"
+    then
+        local blk = shaders["blknwht"] or shaders["blkwht"] or shaders["black_white"] or shaders["blackwhite"]
+        if not blk then
+            code = lfs.read("/jm-love2d-package/data/shader/blcknwht.frag")
+            blk = lgx.newShader(code)
+            shaders["blknwht"] = blk
+            shaders["blkwht"] = blk
+            shaders["black_white"] = blk
+            shaders["blackwhite"] = blk
+
+            blk:send("brightness", 0.75)
+        end
+        return blk
     end
 end
 
