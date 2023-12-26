@@ -676,6 +676,57 @@ function M:get_shader(shader, state, conf)
             })
         end
         return br
+        ---
+    elseif shader == "waterpaint" then
+        local water = shaders[shader]
+        if not water then
+            code = lfs.read("/jm-love2d-package/data/shader/waterpaint.frag")
+            water = lgx.newShader(code)
+            shaders[shader] = water
+
+            water:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return water
+        ---
+    elseif shader:lower() == "crt-simple" then
+        shader = string.lower(shader)
+        local crt = shaders[shader]
+        if not crt then
+            code = lfs.read("/jm-love2d-package/data/shader/CRT-Simple.frag")
+            crt = lgx.newShader(code)
+            shaders[shader] = crt
+
+            crt:send("inputSize", {
+                (conf.inputSize and conf.inputSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.inputSize and conf.inputSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+
+            crt:send("outputSize", {
+                (conf.outputSize and conf.outputSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.outputSize and conf.outputSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+
+            crt:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return crt
     end
 end
 
