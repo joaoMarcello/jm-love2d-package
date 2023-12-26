@@ -658,6 +658,24 @@ function M:get_shader(shader, state, conf)
             pip:send("time", 0.0)
         end
         return pip
+        ---
+    elseif shader:lower() == "4xbr" then
+        shader = string.lower(shader)
+        local br = shaders[shader]
+        if not br then
+            code = lfs.read("/jm-love2d-package/data/shader/4xBR.frag")
+            br = lgx.newShader(code)
+            shaders[shader] = br
+
+            br:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return br
     end
 end
 
