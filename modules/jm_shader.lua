@@ -508,6 +508,7 @@ function M:get_shader(shader, state, conf)
         if not scan then
             code = lfs.read("/jm-love2d-package/data/shader/scanline-4x.frag")
             scan = lgx.newShader(code)
+            shaders[shader] = scan
         end
         return scan
         ---
@@ -516,6 +517,7 @@ function M:get_shader(shader, state, conf)
         if not scan then
             code = lfs.read("/jm-love2d-package/data/shader/scanline-3x.frag")
             scan = lgx.newShader(code)
+            shaders[shader] = scan
         end
         return scan
         ---
@@ -524,6 +526,7 @@ function M:get_shader(shader, state, conf)
         if not scan then
             code = lfs.read("/jm-love2d-package/data/shader/scanlines2.frag")
             scan = lgx.newShader(code)
+            shaders[shader] = scan
 
             scan:send("inputSize", {
                 (conf.inputSize and conf.inputSize[1])
@@ -556,6 +559,7 @@ function M:get_shader(shader, state, conf)
         if not pix then
             code = lfs.read("/jm-love2d-package/data/shader/pixellate.frag")
             pix = lgx.newShader(code)
+            shaders[shader] = pix
 
             pix:send("textureSize", {
                 (conf.textureSize and conf.textureSize[1])
@@ -572,6 +576,7 @@ function M:get_shader(shader, state, conf)
         if not pix then
             code = lfs.read("/jm-love2d-package/data/shader/pixellate2.frag")
             pix = lgx.newShader(code)
+            shaders[shader] = pix
 
             pix:send("textureSize", {
                 (conf.textureSize and conf.textureSize[1])
@@ -591,6 +596,41 @@ function M:get_shader(shader, state, conf)
             shaders[shader] = rad
         end
         return rad
+        ---
+    elseif shader == "simplebloom" then
+        local bloom = shaders[shader]
+        if not bloom then
+            code = lfs.read("/jm-love2d-package/data/shader/simplebloom.frag")
+            bloom = lgx.newShader(code)
+            shaders[shader] = bloom
+
+            bloom:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return bloom
+        ---
+    elseif shader == "technicolor1" then
+        local tech = shaders[shader]
+        if not tech then
+            code = lfs.read("/jm-love2d-package/data/shader/technicolor1.frag")
+            tech = lgx.newShader(code)
+            shaders[shader] = tech
+        end
+        return tech
+        ---
+    elseif shader == "technicolor2" then
+        local tech = shaders[shader]
+        if not tech then
+            code = lfs.read("/jm-love2d-package/data/shader/technicolor2.frag")
+            tech = lgx.newShader(code)
+            shaders[shader] = tech
+        end
+        return tech
     end
 end
 
