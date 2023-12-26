@@ -550,6 +550,47 @@ function M:get_shader(shader, state, conf)
             })
         end
         return scan
+        ---
+    elseif shader == "pixellate" then
+        local pix = shaders[shader]
+        if not pix then
+            code = lfs.read("/jm-love2d-package/data/shader/pixellate.frag")
+            pix = lgx.newShader(code)
+
+            pix:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return pix
+        ---
+    elseif shader == "pixellate2" then
+        local pix = shaders[shader]
+        if not pix then
+            code = lfs.read("/jm-love2d-package/data/shader/pixellate2.frag")
+            pix = lgx.newShader(code)
+
+            pix:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return pix
+        ---
+    elseif shader == "radialblur" then
+        local rad = shaders[shader]
+        if not rad then
+            code = lfs.read("/jm-love2d-package/data/shader/radialblur.frag")
+            rad = lgx.newShader(code)
+            shaders[shader] = rad
+        end
+        return rad
     end
 end
 
