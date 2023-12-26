@@ -727,6 +727,23 @@ function M:get_shader(shader, state, conf)
             })
         end
         return crt
+        ---
+    elseif shader == "heavybloom" then
+        local bloom = shaders[shader]
+        if not bloom then
+            code = lfs.read("/jm-love2d-package/data/shader/heavybloom.frag")
+            bloom = lgx.newShader(code)
+            shaders[shader] = bloom
+
+            bloom:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return bloom
     end
 end
 
