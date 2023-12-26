@@ -1345,6 +1345,7 @@ end
 
 function Camera:attach(lock_shake, subpixel)
     local x, y, w, h = self:get_viewport()
+    -- local x, y, w, h = self.viewport_x, self.viewport_y, self.viewport_w, self.viewport_h
 
     if subpixel then
         x = x * subpixel
@@ -1364,8 +1365,8 @@ function Camera:attach(lock_shake, subpixel)
         shake_x = self.controller_shake_x.value
     end
 
-    local tx = -round(self.x) + (self.viewport_x / self.scale) + shake_x
-    local ty = -round(self.y) + (self.viewport_y / self.scale) + shake_y
+    local tx = -(self.x) + (self.viewport_x / self.scale) + shake_x
+    local ty = -(self.y) + (self.viewport_y / self.scale) + shake_y
 
     return love_translate(round(tx), round(ty))
 end
