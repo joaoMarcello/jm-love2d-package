@@ -47,6 +47,7 @@ function Manager:change_gamestate(new_state, conf)
 
     scene = new_state
     scene:restaure_canvas()
+    if conf.skip_init then scene.default_config(scene) end
 
     r = (not conf.skip_collect) and collectgarbage()
 
