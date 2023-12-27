@@ -4,6 +4,7 @@ local love_pop = lgx.pop
 local love_push = lgx.push
 local love_scale = lgx.scale
 local love_set_scissor = lgx.setScissor
+local love_rotate = lgx.rotate
 
 local love_set_color = lgx.setColor
 local love_rect = lgx.rectangle
@@ -1374,9 +1375,9 @@ function Camera:attach(lock_shake, subpixel)
     local scale = self.scale
 
     love_push()
-    love_translate(ox, oy)           ---
+    love_translate(ox, oy)  ---
     love_scale(scale)
-    love.graphics.rotate(self.angle) ---
+    love_rotate(self.angle) ---
 
     local shake_x, shake_y = 0, 0
     if not lock_shake then
