@@ -266,6 +266,8 @@ local function gamepadreleased(joystick, button)
 end
 
 local function update(dt)
+    -- data.map.camera.scale = 1.0
+
     if not data.debug then
         local speed = 150 * dt
         local cam = State.camera
