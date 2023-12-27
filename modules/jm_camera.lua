@@ -1371,10 +1371,11 @@ function Camera:attach(lock_shake, subpixel)
     love_set_scissor(x, y, w, h)
 
     local ox, oy = (self.viewport_w * 0.5), (self.viewport_h * 0.5)
+    local scale = self.scale
 
     love_push()
     love_translate(ox, oy)           ---
-    love_scale(self.scale)
+    love_scale(scale)
     love.graphics.rotate(self.angle) ---
 
     local shake_x, shake_y = 0, 0
@@ -1383,14 +1384,14 @@ function Camera:attach(lock_shake, subpixel)
         shake_x = self.controller_shake_x.value
     end
 
-    local tx = -(self.x) + (self.viewport_x / self.scale) + shake_x
-    local ty = -(self.y) + (self.viewport_y / self.scale) + shake_y
+    local tx = -(self.x) + (self.viewport_x / scale) + shake_x
+    local ty = -(self.y) + (self.viewport_y / scale) + shake_y
 
     -- return love_translate(round(tx), round(ty))
 
     return love_translate(
-        (tx - (ox / self.scale)),
-        (ty - (oy / self.scale))
+        (tx - (ox / scale)),
+        (ty - (oy / scale))
     )
 end
 
