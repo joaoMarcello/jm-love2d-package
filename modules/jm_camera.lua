@@ -907,6 +907,9 @@ function Camera:set_focus(x, y)
     x = x and round(x) or lfx
     y = y and round(y) or lfy
 
+    -- x = x or lfx
+    -- y = y or lfy
+
     self.focus_x = x
     self.focus_y = y
 
@@ -1358,9 +1361,9 @@ function Camera:attach(lock_shake, subpixel)
     love_set_scissor(x, y, w, h)
 
     love_push()
-    -- love_translate(self.focus_x, self.focus_y)
+    love_translate(self.focus_x, self.focus_y) ---
     love_scale(self.scale)
-    -- love.graphics.rotate(self.angle)
+    love.graphics.rotate(self.angle)           ---
 
     local shake_x, shake_y = 0, 0
     if not lock_shake then
@@ -1371,17 +1374,12 @@ function Camera:attach(lock_shake, subpixel)
     local tx = -(self.x) + (self.viewport_x / self.scale) + shake_x
     local ty = -(self.y) + (self.viewport_y / self.scale) + shake_y
 
-    -- local tx = -self.x - (self.focus_x)
-    --     + (self.viewport_x) + shake_x
-    -- local ty = -self.y - (self.focus_y)
-    --     + (self.viewport_y) + shake_y
+    -- return love_translate(round(tx), round(ty))
 
-    return love_translate(round(tx), round(ty))
-
-    -- return love_translate(
-    --     round(tx) - round(self.focus_x / self.scale),
-    --     round(ty) - round(self.focus_y / self.scale)
-    -- )
+    return love_translate(
+        round(tx - (self.focus_x / self.scale)),
+        round(ty - (self.focus_y / self.scale))
+    )
 end
 
 function Camera:detach()
