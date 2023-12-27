@@ -443,6 +443,7 @@ Camera.__index = Camera
 ---@return JM.Camera.Camera
 function Camera:new(args)
     local obj = {}
+    args = args or {}
     setmetatable(obj, self)
 
     Camera.__constructor__(obj,
@@ -504,10 +505,10 @@ function Camera:__constructor__(
     self.deadzone_w = self.tile_size * 1.5
     self.deadzone_h = self.tile_size * 1.5
 
-    self.bounds_left = bounds and bounds.left or 0
-    self.bounds_top = bounds and bounds.top or 0
-    self.bounds_right = bounds and bounds.right or self.viewport_w
-    self.bounds_bottom = bounds and bounds.bottom or self.viewport_h / self.scale
+    self.bounds_left = bounds and bounds.left or -math.huge
+    self.bounds_top = bounds and bounds.top or -math.huge
+    self.bounds_right = bounds and bounds.right or math.huge
+    self.bounds_bottom = bounds and bounds.bottom or math.huge
     self:set_bounds()
 
     self.lock_x = false
