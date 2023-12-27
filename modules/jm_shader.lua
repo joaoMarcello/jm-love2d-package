@@ -34,6 +34,7 @@ local shaders = setmetatable({}, { __mode = "v" })
 ---@param state JM.Scene|nil
 ---@return love.Shader|any
 function M:get_shader(shader, state, conf)
+    state = state or JM.SceneManager.scene
     conf = conf or {}
     local lgx = love.graphics
     local lfs = love.filesystem
@@ -118,7 +119,9 @@ function M:get_shader(shader, state, conf)
             crt_scan:send("thickness", conf.thickness or 1)
             crt_scan:send("opacity", conf.opacity or 0.3)
             crt_scan:send("color_ex", conf.color_ex or { 0, 0, 0 })
-            crt_scan:send("screen_h", conf.screen_h or (224 * 3.5))
+            crt_scan:send("screen_h", conf.screen_h or
+                (state and (state.screen_h * state.subpixel))
+                or lgx.getHeight())
 
             crt_scan:send("feather", conf.feather or 0.02)
             crt_scan:send("distortionFactor", conf.distortionFactor
@@ -744,6 +747,39 @@ function M:get_shader(shader, state, conf)
             })
         end
         return bloom
+        ---
+    elseif shader == "scanline3" then
+        local scan = shaders[shader]
+        if not scan then
+            code = lfs.read("/jm-love2d-package/data/shader/scanline3.frag")
+            scan = lgx.newShader(code)
+            shaders[shader] = scan
+
+            scan:send("inputSize", {
+                (conf.inputSize and conf.inputSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.inputSize and conf.inputSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+
+            scan:send("outputSize", {
+                (conf.outputSize and conf.outputSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.outputSize and conf.outputSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+
+            scan:send("textureSize", {
+                (conf.textureSize and conf.textureSize[1])
+                or (state and state.screen_w) or lgx.getWidth(),
+
+                (conf.textureSize and conf.textureSize[2]) or
+                (state and state.screen_h) or lgx.getHeight(),
+            })
+        end
+        return scan
     end
 end
 
