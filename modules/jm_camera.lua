@@ -1029,6 +1029,7 @@ function Camera:rect_is_on_view(x, y, w, h)
     h = h or 0
     x, y = self:world_to_screen(x, y)
     w, h = w * self.scale, h * self.scale
+    -- w, h = self:world_to_screen(w, h)
 
     local cx, cy = self:world_to_screen(self.x, self.y)
     -- cx = cx + self.viewport_x
@@ -1323,6 +1324,15 @@ function Camera:unlock_movements()
     self:set_lock_y_axis(false)
 end
 
+function Camera:set_angle(a)
+    a = a or self.angle
+    -- local cos_r, sin_r = cos(self.angle), sin(self.angle)
+
+    -- local vx, vy, vw, vh = self.viewport_x, self.viewport_y, self.viewport_w, self.viewport_h
+
+    -- self:set_viewport()
+end
+
 function Camera:update(dt)
     assert(self.scale and self.scale ~= 0, ">> Error: Scale cannot be zero or nil !!!")
 
@@ -1360,10 +1370,12 @@ function Camera:attach(lock_shake, subpixel)
 
     love_set_scissor(x, y, w, h)
 
+    local ox, oy = (self.viewport_w * 0.5), (self.viewport_h * 0.5)
+
     love_push()
-    love_translate(self.focus_x, self.focus_y) ---
+    love_translate(ox, oy)           ---
     love_scale(self.scale)
-    love.graphics.rotate(self.angle)           ---
+    love.graphics.rotate(self.angle) ---
 
     local shake_x, shake_y = 0, 0
     if not lock_shake then
@@ -1377,8 +1389,8 @@ function Camera:attach(lock_shake, subpixel)
     -- return love_translate(round(tx), round(ty))
 
     return love_translate(
-        round(tx - (self.focus_x / self.scale)),
-        round(ty - (self.focus_y / self.scale))
+        (tx - (ox / self.scale)),
+        (ty - (oy / self.scale))
     )
 end
 
