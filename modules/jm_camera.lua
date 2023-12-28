@@ -849,8 +849,7 @@ function Camera:get_viewport()
 end
 
 function Camera:screen_to_world(x, y)
-    local cos_r, sin_r
-    cos_r, sin_r = cos(self.angle), sin(self.angle)
+    local cos_r, sin_r = cos(self.angle), sin(self.angle)
 
     y = y or 0
     x = x or 0
@@ -865,8 +864,7 @@ function Camera:screen_to_world(x, y)
 end
 
 function Camera:world_to_screen(x, y)
-    local cos_r, sin_r
-    cos_r, sin_r = cos(self.angle), sin(self.angle)
+    local cos_r, sin_r = cos(self.angle), sin(self.angle)
 
     y = y or 0
     x = x or 0
