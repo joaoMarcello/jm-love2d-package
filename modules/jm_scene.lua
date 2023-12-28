@@ -1072,13 +1072,10 @@ local update = function(self, dt)
         end
     end
 
-
-
     local r = param.update and param.update(dt)
 
     Controllers.P1:update(dt)
     Controllers.P2:update(dt)
-
 
     for i = 1, self.amount_cameras do
         ---@type JM.Camera.Camera
@@ -1153,7 +1150,7 @@ local draw = function(self)
                 local last_cam_py = camera.y
                 local last_cam_scale = camera.scale
 
-                camera:set_position(layer.cam_px, layer.cam_py, true)
+                camera:set_position(layer.cam_px, layer.cam_py, nil)
                 camera:set_scale(layer.cam_scale)
                 camera:attach(layer.lock_shake, self.subpixel)
 
