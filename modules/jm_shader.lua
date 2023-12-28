@@ -63,7 +63,7 @@ function M:get_shader(shader, state, conf)
             shaders[shader] = crt
 
             crt:send("feather", conf.feather or 0.02)
-            crt:send("distortionFactor", conf.distortionFactor or { 1.04, 1.04 })
+            crt:send("distortionFactor", conf.distortionFactor or { 1.03, 1.04 })
             crt:send("scaleFactor", conf.scaleFactor or { 1, 1 })
         end
 
@@ -114,14 +114,15 @@ function M:get_shader(shader, state, conf)
             crt_scan = lgx.newShader(code)
             shaders[shader] = crt_scan
 
-            crt_scan:send("width", conf.width or 2)
+            crt_scan:send("width", conf.width or 1)
             crt_scan:send("phase", conf.phase or 1)
             crt_scan:send("thickness", conf.thickness or 1)
-            crt_scan:send("opacity", conf.opacity or 0.3)
+            crt_scan:send("opacity", conf.opacity or 0.15)
             crt_scan:send("color_ex", conf.color_ex or { 0, 0, 0 })
-            crt_scan:send("screen_h", conf.screen_h or
-                (state and (state.screen_h * state.subpixel))
-                or lgx.getHeight())
+            -- crt_scan:send("screen_h", conf.screen_h or
+            --     (state and (state.h - state.y))
+            --     or lgx.getHeight())
+            crt_scan:send("screen_h", 288)
 
             crt_scan:send("feather", conf.feather or 0.02)
             crt_scan:send("distortionFactor", conf.distortionFactor
