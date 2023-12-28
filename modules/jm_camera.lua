@@ -607,7 +607,7 @@ function Camera:set_type(s)
         cy.delay = 0.0
         cy.type = Controller.Type.normal
 
-        return self:set_focus(self.viewport_w * cx.focus_1)
+        return self:set_focus(self.viewport_w * cx.focus_1, self.viewport_h * cy.focus_1)
     elseif s == "metroidvania" or s == TYPES.Metroidvania then
         cx.focus_1 = 0.5
         cx.focus_2 = 0.5
@@ -1076,8 +1076,10 @@ function Camera:keep_on_bounds()
 
     local py = clamp(self.y, self.bounds_top, self.bounds_bottom - self.viewport_h / self.scale)
 
-    self.x = round(px)
-    self.y = round(py)
+    -- self.x = round(px)
+    -- self.y = round(py)
+    self.x = px
+    self.y = py
 end
 
 ---@param duration any
@@ -1391,8 +1393,8 @@ function Camera:attach(lock_shake, subpixel)
     -- return love_translate(round(tx), round(ty))
 
     return love_translate(
-        (tx - (ox / scale)),
-        (ty - (oy / scale))
+        round(tx - (ox / scale)),
+        round(ty - (oy / scale))
     )
 end
 
