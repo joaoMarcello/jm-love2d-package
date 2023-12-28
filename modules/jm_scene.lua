@@ -1316,6 +1316,9 @@ local draw = function(self)
         setBlendMode("alpha", "premultiplied")
 
         for i = 1, n do
+            -- canvas1:setFilter("nearest", "nearest")
+            -- canvas2:setFilter("linear", "linear")
+
             set_canvas(canvas2)
             clear_screen()
 
@@ -1330,6 +1333,9 @@ local draw = function(self)
             canvas1, canvas2 = canvas2, canvas1
             self.canvas, self.canvas_layer = self.canvas_layer, self.canvas
         end
+
+
+
         setShader()
         --===========================================================
         set_canvas(last_canvas)
@@ -1340,11 +1346,13 @@ local draw = function(self)
         end
 
         do
-            local canvas_scale = self.canvas_scale_x
+            setColor(1, 1, 1, 1)
+            setBlendMode("alpha", 'premultiplied')
+
             love_draw(self.canvas,
-                self.x + self.offset_x,
-                self.y + self.offset_y,
-                0, canvas_scale, canvas_scale
+                (self.x + self.offset_x),
+                (self.y + self.offset_y),
+                0, self.canvas_scale_x, self.canvas_scale_y
             )
         end
 
@@ -1378,8 +1386,7 @@ local draw = function(self)
 
     --- Drawing debugging info
     do
-        local show_info = self.show_info
-        if show_info then
+        if self.show_info then
             local km = collectgarbage("count") / 1024.0
             lgx.setColor(0, 0, 0, 0.7)
             lgx.rectangle("fill", 0, 0, 80, 120)
