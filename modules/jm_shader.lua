@@ -789,9 +789,20 @@ function M:get_shader(shader, state, conf)
             shaders[shader] = gl
             gl:send("iTime", 0.0)
             gl:send("glitchScale", 0.25)
+            gl:send("glitchSwapSpeed", 30)
+            gl:send("glitchSeedProb", 0.75)
         end
         return gl
         ---
+    elseif shader == "glitch_2" then
+        local gl = shaders[shader]
+        if not gl then
+            code = lfs.read("/jm-love2d-package/data/shader/glitch_shampain.glsl")
+            gl = lgx.newShader(code)
+            shaders[shader] = gl
+            gl:send("glitch", 0.1)
+        end
+        return gl
     end
 end
 
