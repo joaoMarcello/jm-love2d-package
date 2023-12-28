@@ -780,6 +780,18 @@ function M:get_shader(shader, state, conf)
             })
         end
         return scan
+        ---
+    elseif shader == "glitch_1" then
+        local gl = shaders[shader]
+        if not gl then
+            code = lfs.read("/jm-love2d-package/data/shader/glitch_transform_tdhooper.glsl")
+            gl = lgx.newShader(code)
+            shaders[shader] = gl
+            gl:send("iTime", 0.0)
+            gl:send("glitchScale", 0.25)
+        end
+        return gl
+        ---
     end
 end
 
