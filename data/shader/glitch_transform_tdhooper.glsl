@@ -1,8 +1,10 @@
 // https://love2d.org/forums/viewtopic.php?t=87653
 
-uniform float iTime;
-uniform float glitchScale = .2;
-	
+extern float iTime = 0.0;
+uniform float glitchScale = 0.2;
+uniform float glitchSwapSpeed = 25.0;
+uniform float glitchSeedProb = 1.0;
+
 float time;
 	
 float round(float n) {
@@ -36,9 +38,9 @@ GlitchSeed glitchSeed(vec2 p, float speed) {
 	) / 100.;
 	seed += p;
 
-	float prob = 1;
+	//float prob = 0.5; //1.0
 
-	return GlitchSeed(seed, prob);
+	return GlitchSeed(seed, glitchSeedProb);
 }
 
 float shouldApply(GlitchSeed seed) {
@@ -116,7 +118,7 @@ void glitchSwap(inout vec2 p) {
 	vec2 pp = p;
 	
 	float scale = glitchScale;
-	float speed = 25.;
+	float speed = glitchSwapSpeed; // 25.
 		
 	vec2 groupSize;
 	vec2 subGrid;
