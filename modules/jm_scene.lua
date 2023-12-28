@@ -1221,7 +1221,8 @@ local draw = function(self)
                 camera:set_position(last_cam_px, last_cam_py)
                 camera.scale = last_cam_scale
 
-                if layer.use_canvas and layer.skip_draw then
+                -- if layer.use_canvas and layer.skip_draw then
+                if layer.skip_draw then
 
                 else
                     set_canvas(self.canvas)
