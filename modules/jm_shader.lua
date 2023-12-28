@@ -803,6 +803,19 @@ function M:get_shader(shader, state, conf)
             gl:send("glitch", 0.1)
         end
         return gl
+        ---
+    elseif shader == "wiggle" then
+        local wig = shaders[shader]
+        if not wig then
+            code = lfs.read("/jm-love2d-package/data/shader/wiggle.glsl")
+            wig = lgx.newShader(code)
+            shaders[shader] = wig
+
+            local noise = lgx.newImage("/jm-love2d-package/data/img/blue_noise.png")
+
+            wig:send("NOISE_TEXTURE", noise)
+        end
+        return wig
     end
 end
 
