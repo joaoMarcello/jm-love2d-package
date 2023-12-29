@@ -6,7 +6,7 @@ local Iterator = {}
 Iterator.__index = Iterator
 
 local metatable_mode_k = { __mode = 'k' }
-local metatable_mode_v = { __mode = 'v' }
+local metatable_mode_kv = { __mode = 'kv' }
 
 local iterators = setmetatable({}, metatable_mode_k)
 
@@ -27,7 +27,7 @@ function Iterator:new(text, font)
     Iterator.__constructor__(obj, text, font)
 
     iterators[font] = iterators[font] or setmetatable({}, metatable_mode_k)
-    iterators[font][text] = iterators[font][text] or setmetatable({}, metatable_mode_v)
+    iterators[font][text] = iterators[font][text] or setmetatable({}, metatable_mode_kv)
     iterators[font][text][font.__format] = obj
 
     return obj
