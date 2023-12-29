@@ -491,6 +491,11 @@ function Scene:get_mouse_position(camera)
 
     x, y = camera:screen_to_world(x, y)
 
+    -- local vx, vy = camera:screen_to_world(camera.viewport_x, camera.viewport_y)
+
+    -- return x - vx - camera.x / camera.scale,
+    --     y - vy - camera.y / camera.scale
+
     return x - (camera.viewport_x / camera.scale),
         y - (camera.viewport_y / camera.scale)
 end
