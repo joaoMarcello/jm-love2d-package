@@ -875,7 +875,8 @@ function Camera:world_to_screen(x, y)
     x = cos_r * x - sin_r * y
     y = sin_r * x + cos_r * y
 
-    return round(x * self.scale), round(y * self.scale)
+    return round(x * self.scale),
+        round(y * self.scale)
 end
 
 function Camera:follow(x, y, id)
