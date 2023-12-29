@@ -76,12 +76,12 @@ function M:get_shader(shader, state, conf)
             scan = lgx.newShader(code)
             shaders[shader] = scan
 
-            scan:send("width", conf.width or 2)
+            scan:send("width", conf.width or 1)
             scan:send("phase", conf.phase or 1)
-            scan:send("thickness", conf.thickness or 0.5)
-            scan:send("opacity", conf.opacity or 0.3)
-            scan:send("color", conf.color or { 0.3, 0.3, 0.3 })
-            scan:send("screen_h", conf.screen_h or (state and state.screen_h) or lgx.getHeight())
+            scan:send("thickness", conf.thickness or 1)
+            scan:send("opacity", conf.opacity or 0.15)
+            scan:send("color", conf.color or { 0, 0, 0 })
+            scan:send("screen_h", conf.screen_h or 288)
         end
 
         return scan
@@ -122,7 +122,7 @@ function M:get_shader(shader, state, conf)
             -- crt_scan:send("screen_h", conf.screen_h or
             --     (state and (state.h - state.y))
             --     or lgx.getHeight())
-            crt_scan:send("screen_h", 288)
+            crt_scan:send("screen_h", conf.screen_h or 288)
 
             crt_scan:send("feather", conf.feather or 0.02)
             crt_scan:send("distortionFactor", conf.distortionFactor
