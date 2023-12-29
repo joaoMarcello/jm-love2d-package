@@ -1197,7 +1197,7 @@ function Font:get_tag_args(s)
     return result
 end
 
-local codes_result = setmetatable({}, metatable_mode_k)
+local codes_result = setmetatable({}, metatable_mode_kv)
 Font.CODES = codes_result
 
 ---@param text string
@@ -1396,6 +1396,9 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
     end
 
     self:pop()
+
+    _G[text] = nil
+
     return tx, ty
 end
 
