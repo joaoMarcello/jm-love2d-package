@@ -662,19 +662,8 @@ function Scene:calc_canvas_scale()
         local canvasWidth, canvasHeight = self.canvas:getDimensions()
 
         local minC = min(self.screen_w, self.screen_h)
-        local minW = minC == self.screen_w and windowWidth or windowHeight
-
-        -- local minScale = floor(
-        --  min(windowWidth, windowHeight)
-        --  / min(self.screen_w, self.screen_h)
-        -- )
-
+        local minW = min(windowWidth, windowHeight)
         local minScale = floor(minW / minC)
-
-        -- self.canvas:setFilter("nearest", "nearest")
-        -- if self.canvas_layer then
-        --     self.canvas_layer:setFilter("nearest", "nearest")
-        -- end
 
         self.canvas_scale_x = (1.0 / self.subpixel) * minScale
 
@@ -682,7 +671,8 @@ function Scene:calc_canvas_scale()
             or (self.screen_w * self.canvas_scale_x > windowWidth)
             or (self.screen_h * self.canvas_scale_x > windowHeight)
         then
-            self.canvas_scale_x = (1.0 / self.subpixel)
+            -- self.canvas_scale_x = (1.0 / self.subpixel)
+            self.canvas_scale_x = self.canvas_scale_x - (1 / self.subpixel)
         end
 
         self.canvas_scale_y = self.canvas_scale_x
