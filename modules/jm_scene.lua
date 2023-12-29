@@ -477,22 +477,22 @@ function Scene:get_mouse_position(camera)
     camera = camera or self.camera
 
     local x, y = mouseGetPosition()
-    local ds --= self.camera.desired_scale
 
-    ds = min((self.w - self.x) / self.screen_w,
-        (self.h - self.y) / self.screen_h
-    )
-
-    local offset_x = self.offset_x
-    local off_y = self.offset_y
+    local sub = self.subpixel
+    local scx = self.canvas_scale_x * sub
+    local scy = self.canvas_scale_y * sub
 
     -- turning the mouse position into Camera's screen coordinates
-    x, y = x / ds, y / ds
-    x, y = x - (self.x + offset_x) / ds, y - (self.y + off_y) / ds
+    x = x / scx
+    y = y / scy
+
+    x = x - (self.x + self.offset_x) / scx
+    y = y - (self.y + self.offset_y) / scy
 
     x, y = camera:screen_to_world(x, y)
 
-    return x - camera.viewport_x / camera.scale, y - camera.viewport_y / camera.scale
+    return x - (camera.viewport_x / camera.scale),
+        y - (camera.viewport_y / camera.scale)
 end
 
 ---@param camera JM.Camera.Camera|nil
@@ -1311,13 +1311,14 @@ local draw = function(self)
         local canvas1, canvas2 = self.canvas, self.canvas_layer
         local list = shader
         local n = list.n or (#list)
+        local filter = self.canvas_filter
 
         setColor(1, 1, 1, 1)
         setBlendMode("alpha", "premultiplied")
 
         for i = 1, n do
-            -- canvas1:setFilter("nearest", "nearest")
-            -- canvas2:setFilter("linear", "linear")
+            canvas1:setFilter(filter, filter)
+            canvas2:setFilter("nearest", "nearest")
 
             set_canvas(canvas2)
             clear_screen()
@@ -1334,7 +1335,8 @@ local draw = function(self)
             self.canvas, self.canvas_layer = self.canvas_layer, self.canvas
         end
 
-
+        canvas1:setFilter(filter, filter)
+        canvas2:setFilter(filter, filter)
 
         setShader()
         --===========================================================
