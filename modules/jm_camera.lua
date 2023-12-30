@@ -888,6 +888,10 @@ function Camera:world_to_screen(x, y)
         (y + oy) * scale
 end
 
+function Camera:get_mouse_position()
+    return self:screen_to_world(love.mouse.getPosition())
+end
+
 function Camera:follow(x, y, id)
     self.controller_x:set_target(x, y, id)
     self.controller_y:set_target(x, y, id)
