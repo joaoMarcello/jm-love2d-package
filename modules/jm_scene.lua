@@ -489,18 +489,10 @@ function Scene:get_mouse_position(camera)
     x = x - (self.x + self.offset_x) / scx
     y = y - (self.y + self.offset_y) / scy
 
-    -- local angle = math.pi * 2 - camera.angle
-    -- local cos_r, sin_r = math.cos(angle), math.sin(angle)
-    -- x = cos_r * x - sin_r * y
-    -- y = sin_r * x + cos_r * y
-
     x = x - camera.viewport_x
     y = y - camera.viewport_y
 
     x, y = camera:screen_to_world(x, y)
-
-    -- return x - (camera.viewport_x / camera.scale),
-    --     y - (camera.viewport_y / camera.scale)
 
     return x, y
 end
