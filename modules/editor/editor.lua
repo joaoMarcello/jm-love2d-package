@@ -103,6 +103,7 @@ local function init(args)
         min_zoom = 0.15,
         max_zoom = 3,
     }
+    -- data.cam_map.angle = math.pi * 0.1
     data.map:set_camera(data.cam_map)
 
     data.map.camera:set_viewport(State.screen_w * 0.1,
@@ -308,6 +309,17 @@ local layer_main = {
 
             -- font:print("Saving...", camera.viewport_x, State.screen_h - 30)
         end
+
+        local lgx = love.graphics
+        lgx.setColor(0, 0, 0)
+        local mx, my = State:get_mouse_position(cam)
+        lgx.circle("line", mx, my, 5)
+
+        lgx.line(0, data.cam_map.viewport_y, State.screen_w, data.cam_map.viewport_y)
+
+        lgx.line(0, data.cam_map.viewport_y + data.cam_map.viewport_h, State.screen_w,
+            data.cam_map.viewport_y + data.cam_map.viewport_h)
+
         -- font:print(love.filesystem.getSaveDirectory(), 0, 0)
         -- font:print(love.filesystem.getWorkingDirectory(), 0, 40)
     end
