@@ -1038,6 +1038,10 @@ end
 ---@param w number|nil
 ---@param h number|nil
 function Camera:rect_is_on_view(x, y, w, h)
+    do
+        return self:rect_is_on_view2(x, y, w, h)
+    end
+
     w = w or 0
     h = h or 0
     x, y = self:world_to_screen(x, y)
@@ -1068,11 +1072,30 @@ end
 ---@param y number # position in y-axis (world coordinates)
 ---@return boolean
 function Camera:point_is_on_view(x, y)
-    return self:rect_is_on_view(x, y)
+    -- return self:rect_is_on_view(x, y)
+    local sx, sy = self:world_to_screen(x, y)
+    return sx >= 0
+        and sx <= self.viewport_w
+        and sy >= 0
+        and sy <= self.viewport_h
 end
 
 function Camera:point_is_on_screen(x, y)
-    return self:rect_is_on_view(x, y)
+    -- return self:rect_is_on_view(x, y)
+    return self:point_is_on_view(x, y)
+end
+
+function Camera:rect_is_on_view2(x, y, w, h)
+    local px, py
+    px, py = x, y         --self:world_to_screen(x, y)
+    if self:point_is_on_view(px, py) then return true end
+    px, py = x + w, y     --self:world_to_screen(x + w, y)
+    if self:point_is_on_view(px, py) then return true end
+    px, py = x + w, y + h --self:world_to_screen(x + w, y + h)
+    if self:point_is_on_view(px, py) then return true end
+    px, py = x, y + h     --self:world_to_screen(x, y + h)
+    if self:point_is_on_view(px, py) then return true end
+    return false
 end
 
 function Camera:is_locked_in_x()
@@ -1389,9 +1412,9 @@ function Camera:attach(lock_shake, subpixel)
     local scale = self.scale
 
     love_push()
-    love_translate(ox, oy)  ---
+    love_translate(ox + self.viewport_x, oy + self.viewport_y) ---
     love_scale(scale)
-    love_rotate(self.angle) ---
+    love_rotate(self.angle)                                    ---
 
     local shake_x, shake_y = 0, 0
     if not lock_shake then
@@ -1405,8 +1428,8 @@ function Camera:attach(lock_shake, subpixel)
     -- return love_translate(round(tx), round(ty))
 
     return love_translate(
-        round(tx - (ox / scale)),
-        round(ty - (oy / scale))
+        round(tx - ((ox + self.viewport_x) / scale)),
+        round(ty - ((oy + self.viewport_y) / scale))
     )
 end
 
