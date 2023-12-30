@@ -342,7 +342,7 @@ end
 ---@return boolean
 function Scene:set_subpixel(v)
     v = v or 1
-    if v <= 0 then v = 1 end
+    if v < 1 then v = 1 end
     if self.subpixel ~= v then
         self.subpixel = v
         if self.canvas then self.canvas:release() end
@@ -661,24 +661,23 @@ function Scene:calc_canvas_scale()
         local windowWidth, windowHeight = (self.w - self.x), (self.h - self.y)
         local canvasWidth, canvasHeight = self.canvas:getDimensions()
 
-        local minC = min(self.screen_w, self.screen_h)
-        local minW = min(windowWidth, windowHeight)
-        local minScale = floor(minW / minC)
+        local scale_ = floor(min(windowWidth / self.screen_w, windowHeight / self.screen_h))
+            / self.subpixel
 
-        self.canvas_scale_x = (1.0 / self.subpixel) * minScale
+        self.canvas_scale_x = scale_
 
-        if self.canvas_scale_x <= 0
-            or (self.screen_w * self.canvas_scale_x > windowWidth)
-            or (self.screen_h * self.canvas_scale_x > windowHeight)
+        if scale_ <= 0
+            or (self.screen_w * scale_ > windowWidth)
+            or (self.screen_h * scale_ > windowHeight)
         then
-            -- self.canvas_scale_x = (1.0 / self.subpixel)
-            self.canvas_scale_x = self.canvas_scale_x - (1 / self.subpixel)
+            scale_ = 1.0 / self.subpixel
+            self.canvas_scale_x = scale_
         end
 
-        self.canvas_scale_y = self.canvas_scale_x
+        self.canvas_scale_y = scale_
 
-        local canvasWidthScaled = canvasWidth * self.canvas_scale_x
-        local canvasHeightScaled = canvasHeight * self.canvas_scale_y
+        local canvasWidthScaled = canvasWidth * scale_
+        local canvasHeightScaled = canvasHeight * scale_
 
         self.offset_x = floor((windowWidth - canvasWidthScaled) * 0.5)
         self.offset_y = floor((windowHeight - canvasHeightScaled) * 0.5)
