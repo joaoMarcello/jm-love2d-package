@@ -864,19 +864,23 @@ function Camera:screen_to_world(x, y)
 end
 
 function Camera:world_to_screen(x, y)
-    local cos_r, sin_r = cos(self.angle), sin(self.angle)
+    local angle = self.angle
+    local cos_r, sin_r = cos(angle), sin(angle)
+    local scale = self.scale
+    local ox, oy = (self.viewport_w * 0.5) / scale,
+        (self.viewport_h * 0.5) / scale
 
     y = y or 0
     x = x or 0
 
-    x = x - self.x
-    y = y - self.y
+    x = x - self.x - ox
+    y = y - self.y - oy
 
-    x = cos_r * x - sin_r * y
-    y = sin_r * x + cos_r * y
+    x, y = cos_r * x - sin_r * y,
+        cos_r * y + sin_r * x
 
-    return round(x * self.scale),
-        round(y * self.scale)
+    return (x + ox) * scale,
+        (y + oy) * scale
 end
 
 function Camera:follow(x, y, id)
