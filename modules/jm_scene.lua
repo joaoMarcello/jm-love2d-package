@@ -53,7 +53,7 @@ local VPad = require(string.gsub(path, "jm_scene", "jm_virtual_pad"))
 
 local Controllers = JM.ControllerManager
 
----@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, cam_scale:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean, post_update:function}
+---@alias JM.Scene.Layer {draw:function, update:function, factor_x:number, factor_y:number, name:string, fixed_on_ground:boolean, fixed_on_ceil:boolean, top:number, bottom:number, shader:love.Shader, name:string, lock_shake:boolean, infinity_scroll_x:boolean, infinity_scroll_y:boolean, pos_x:number, pos_y:number, scroll_width:number, scroll_height:number, speed_x:number, speed_y: number, cam_px:number, cam_py:number, cam_scale:number, use_canvas:boolean, adjust_shader:function, skip_clear:boolean, skip_draw:boolean, post_update:function, cam_angle:number}
 
 local function round(value)
     local absolute = abs(value)
@@ -1060,17 +1060,6 @@ local update = function(self, dt)
     self.__skip = frame_skip_update(self)
     if self.__skip then return end
 
-    if param.layers then
-        for i = 1, self.n_layers, 1 do
-            ---@type JM.Scene.Layer
-            local layer = param.layers[i]
-
-            if layer.update then
-                layer:update(dt)
-            end
-        end
-    end
-
     local r = param.update and param.update(dt)
 
     Controllers.P1:update(dt)
@@ -1080,6 +1069,17 @@ local update = function(self, dt)
         ---@type JM.Camera.Camera
         local camera = self.cameras_list[i]
         camera:update(dt)
+    end
+
+    if param.layers then
+        for i = 1, self.n_layers, 1 do
+            ---@type JM.Scene.Layer
+            local layer = param.layers[i]
+
+            if layer.update then
+                layer:update(dt)
+            end
+        end
     end
 end
 
@@ -1148,9 +1148,11 @@ local draw = function(self)
                 local last_cam_px = camera.x
                 local last_cam_py = camera.y
                 local last_cam_scale = camera.scale
+                local last_cam_angle = camera.angle
 
                 camera:set_position(layer.cam_px, layer.cam_py, nil)
                 camera:set_scale(layer.cam_scale)
+                camera.angle = layer.cam_angle or camera.angle
                 camera:attach(layer.lock_shake, self.subpixel)
 
                 push()
@@ -1219,6 +1221,7 @@ local draw = function(self)
 
                 camera:set_position(last_cam_px, last_cam_py)
                 camera.scale = last_cam_scale
+                camera.angle = last_cam_angle
 
                 -- if layer.use_canvas and layer.skip_draw then
                 if layer.skip_draw then
