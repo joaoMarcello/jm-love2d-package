@@ -1032,47 +1032,46 @@ function Camera:set_bounds(left, right, top, bottom)
     end
 end
 
---- Receive the rect parameters in world coordinates.
----@param x number
----@param y number
----@param w number|nil
----@param h number|nil
-function Camera:rect_is_on_view(x, y, w, h)
-    do
-        return self:rect_is_on_view2(x, y, w, h)
-    end
+-- --- Receive the rect parameters in world coordinates.
+-- ---@param x number
+-- ---@param y number
+-- ---@param w number|nil
+-- ---@param h number|nil
+-- function Camera:rect_is_on_view(x, y, w, h)
+--     do
+--         return self:rect_is_on_view2(x, y, w, h)
+--     end
 
-    w = w or 0
-    h = h or 0
-    x, y = self:world_to_screen(x, y)
-    w, h = w * self.scale, h * self.scale
-    -- w, h = self:world_to_screen(w, h)
+--     w = w or 0
+--     h = h or 0
+--     x, y = self:world_to_screen(x, y)
+--     w, h = w * self.scale, h * self.scale
+--     -- w, h = self:world_to_screen(w, h)
 
-    local cx, cy = self:world_to_screen(self.x, self.y)
-    -- cx = cx + self.viewport_x
-    -- cy = cy + self.viewport_y
-    local cw, ch = self.viewport_w,
-        self.viewport_h
-    -- local cw, ch = self.desired_canvas_w,
-    --     self.desired_canvas_h
+--     local cx, cy = self:world_to_screen(self.x, self.y)
+--     -- cx = cx + self.viewport_x
+--     -- cy = cy + self.viewport_y
+--     local cw, ch = self.viewport_w,
+--         self.viewport_h
+--     -- local cw, ch = self.desired_canvas_w,
+--     --     self.desired_canvas_h
 
-    -- do
-    --     -- cx = cx + 32
-    --     -- cy = cy + 32
-    --     -- cw = cw - 32
-    --     -- ch = ch - 32
-    -- end
+--     -- do
+--     --     -- cx = cx + 32
+--     --     -- cy = cy + 32
+--     --     -- cw = cw - 32
+--     --     -- ch = ch - 32
+--     -- end
 
-    return x + w >= cx and x <= cx + cw
-        and y + h >= cy and y <= cy + ch
-end
+--     return x + w >= cx and x <= cx + cw
+--         and y + h >= cy and y <= cy + ch
+-- end
 
 --- Checks if point is on screen.
 ---@param x number # position in x-axis (world coordinates)
 ---@param y number # position in y-axis (world coordinates)
 ---@return boolean
 function Camera:point_is_on_view(x, y)
-    -- return self:rect_is_on_view(x, y)
     local sx, sy = self:world_to_screen(x, y)
     return sx >= 0
         and sx <= self.viewport_w
@@ -1081,20 +1080,24 @@ function Camera:point_is_on_view(x, y)
 end
 
 function Camera:point_is_on_screen(x, y)
-    -- return self:rect_is_on_view(x, y)
     return self:point_is_on_view(x, y)
 end
 
-function Camera:rect_is_on_view2(x, y, w, h)
-    local px, py
-    px, py = x, y         --self:world_to_screen(x, y)
-    if self:point_is_on_view(px, py) then return true end
-    px, py = x + w, y     --self:world_to_screen(x + w, y)
-    if self:point_is_on_view(px, py) then return true end
-    px, py = x + w, y + h --self:world_to_screen(x + w, y + h)
-    if self:point_is_on_view(px, py) then return true end
-    px, py = x, y + h     --self:world_to_screen(x, y + h)
-    if self:point_is_on_view(px, py) then return true end
+--- Receive the rect parameters in world coordinates.
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function Camera:rect_is_on_view(x, y, w, h)
+    local px, py = x, y
+    local is_on_view = self.point_is_on_view
+    if is_on_view(self, px, py) then return true end
+    px, py = x + w, y
+    if is_on_view(self, px, py) then return true end
+    px, py = x + w, y + h
+    if is_on_view(self, px, py) then return true end
+    px, py = x, y + h
+    if is_on_view(self, px, py) then return true end
     return false
 end
 
