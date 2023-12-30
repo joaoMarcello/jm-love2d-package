@@ -1089,16 +1089,12 @@ end
 ---@param w number
 ---@param h number
 function Camera:rect_is_on_view(x, y, w, h)
-    local px, py = x, y
     local is_on_view = self.point_is_on_view
-    if is_on_view(self, px, py) then return true end
-    px, py = x + w, y
-    if is_on_view(self, px, py) then return true end
-    px, py = x + w, y + h
-    if is_on_view(self, px, py) then return true end
-    px, py = x, y + h
-    if is_on_view(self, px, py) then return true end
-    return false
+
+    return is_on_view(self, x, y)
+        or is_on_view(self, x + w, y)
+        or is_on_view(self, x + w, y + h)
+        or is_on_view(self, x, y + h)
 end
 
 function Camera:is_locked_in_x()
