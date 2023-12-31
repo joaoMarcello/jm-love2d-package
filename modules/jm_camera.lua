@@ -1072,11 +1072,11 @@ end
 ---@param y number # position in y-axis (world coordinates)
 ---@return boolean
 function Camera:point_is_on_view(x, y)
-    local sx, sy = self:world_to_screen(x, y)
-    return sx >= 0
-        and sx <= self.viewport_w
-        and sy >= 0
-        and sy <= self.viewport_h
+    local px, py = self:world_to_screen(x, y)
+    return px >= 0
+        and px <= self.viewport_w
+        and py >= 0
+        and py <= self.viewport_h
 end
 
 function Camera:point_is_on_screen(x, y)
