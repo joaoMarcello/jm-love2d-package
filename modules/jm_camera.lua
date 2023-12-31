@@ -843,6 +843,21 @@ function Camera:get_viewport_in_world_coord()
         self.viewport_h / self.scale
 end
 
+function Camera:get_drawing_viewport()
+    local vw, vh = self.viewport_w, self.viewport_h
+    local p1x, p1y = self:screen_to_world(0, 0)
+    local p2x, p2y = self:screen_to_world(vw, vh)
+    local p3x, p3y = self:screen_to_world(0, vh)
+    local p4x, p4y = self:screen_to_world(vw, 0)
+
+    local left = m_min(p1x, p2x, p3x, p4x)
+    local top = m_min(p1y, p2y, p3y, p4y)
+    local right = m_max(p1x, p2x, p3x, p4x)
+    local bottom = m_max(p1y, p2y, p3y, p4y)
+
+    return left, top, (right - left), (bottom - top)
+end
+
 --- Viewport in Camera Screen coordinates.
 function Camera:get_viewport()
     return round(self.viewport_x), round(self.viewport_y), round(self.viewport_w), round(self.viewport_h)
@@ -1084,7 +1099,6 @@ function Camera:point_is_on_screen(x, y)
 end
 
 -- https://2dengine.com/doc/intersections.html#Segment_vs_segment
-
 local function segmentVsAABB(x1, y1, x2, y2, l, t, r, b)
     -- normalize segment
     local dx, dy = x2 - x1, y2 - y1
