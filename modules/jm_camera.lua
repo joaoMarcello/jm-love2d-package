@@ -1083,18 +1083,90 @@ function Camera:point_is_on_screen(x, y)
     return self:point_is_on_view(x, y)
 end
 
+-- https://2dengine.com/doc/intersections.html#Segment_vs_segment
+
+local function segmentVsAABB(x1, y1, x2, y2, l, t, r, b)
+    -- normalize segment
+    local dx, dy = x2 - x1, y2 - y1
+    local d = math.sqrt(dx * dx + dy * dy)
+    if d == 0 then
+        return false
+    end
+    local nx, ny = dx / d, dy / d
+    -- minimum and maximum intersection values
+    local tmin, tmax = 0, d
+    -- x-axis check
+    if nx == 0 then
+        if x1 < l or x1 > r then
+            return false
+        end
+    else
+        local t1, t2 = (l - x1) / nx, (r - x1) / nx
+        if t1 > t2 then
+            t1, t2 = t2, t1
+        end
+        tmin = m_max(tmin, t1)
+        tmax = m_min(tmax, t2)
+        if tmin > tmax then
+            return false
+        end
+    end
+    -- y-axis check
+    if ny == 0 then
+        if y1 < t or y1 > b then
+            return false
+        end
+    else
+        local t1, t2 = (t - y1) / ny, (b - y1) / ny
+        if t1 > t2 then
+            t1, t2 = t2, t1
+        end
+        tmin = m_max(tmin, t1)
+        tmax = m_min(tmax, t2)
+        if tmin > tmax then
+            return false
+        end
+    end
+    -- points of intersection
+    -- one point
+    local qx, qy = x1 + nx * tmin, y1 + ny * tmin
+    if tmin == tmax then
+        return true, qx, qy
+    end
+    -- two points
+    return true, qx, qy, x1 + nx * tmax, y1 + ny * tmax
+end
+
 --- Receive the rect parameters in world coordinates.
 ---@param x number
 ---@param y number
 ---@param w number
 ---@param h number
 function Camera:rect_is_on_view(x, y, w, h)
-    local is_on_view = self.point_is_on_view
+    local vw, vh = self.viewport_w, self.viewport_h
+    local p1x, p1y, p2x, p2y, r
 
-    return is_on_view(self, x, y)
-        or is_on_view(self, x + w, y)
-        or is_on_view(self, x + w, y + h)
-        or is_on_view(self, x, y + h)
+    p1x, p1y = self:world_to_screen(x, y)
+    p2x, p2y = self:world_to_screen(x + w, y)
+    r = segmentVsAABB(p1x, p1y, p2x, p2y, 0, 0, vw, vh)
+    if r then return true end
+
+    p1x, p1y = p2x, p2y
+    p2x, p2y = self:world_to_screen(x + w, y + h)
+    r = segmentVsAABB(p1x, p1y, p2x, p2y, 0, 0, vw, vh)
+    if r then return true end
+
+    p1x, p1y = self:world_to_screen(x, y + h)
+    -- p2x, p2y = self:world_to_screen(x + w, y)
+    r = segmentVsAABB(p1x, p1y, p2x, p2y, 0, 0, vw, vh)
+    if r then return true end
+
+    p2x, p2y = p1x, p1y
+    p1x, p1y = self:world_to_screen(x, y)
+    r = segmentVsAABB(p1x, p1y, p2x, p2y, 0, 0, vw, vh)
+    if r then return true end
+
+    return false
 end
 
 function Camera:is_locked_in_x()
