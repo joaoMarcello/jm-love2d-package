@@ -442,11 +442,18 @@ end
 ---@param camera JM.Camera.Camera|nil
 function TileMap:draw(camera, factor_x, factor_y)
     if camera then
-        local x, y, w, h = camera:get_viewport_in_world_coord()
+        -- local x, y, w, h = camera:get_viewport_in_world_coord()
+        -- x = x + (factor_x and round(x * factor_x) or 0)
+        -- y = y + (factor_y and round(y * factor_y) or 0)
+        -- local right, bottom = x + w, y + h
+        -- -- x, y = x + 16, y + 16
+        -- -- right, bottom = right - 16, bottom - 16
+
+        local x, y, w, h = camera:get_drawing_viewport()
         x = x + (factor_x and round(x * factor_x) or 0)
         y = y + (factor_y and round(y * factor_y) or 0)
-        local right, bottom = x + w, y + h
-
+        local right = x + w
+        local bottom = y + h
         -- x, y = x + 16, y + 16
         -- right, bottom = right - 16, bottom - 16
 
