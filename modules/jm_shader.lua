@@ -830,4 +830,12 @@ function M:get_shader(shader, state, conf)
     end
 end
 
+function M:get_exclusive_shader(shader, state, conf)
+    local temp = shaders[shader]
+    shaders[shader] = nil
+    local ex_shader = self:get_shader(shader, state, conf)
+    shaders[shader] = temp
+    return ex_shader
+end
+
 return M
