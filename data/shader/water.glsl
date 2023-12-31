@@ -8,14 +8,14 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
     // as a uniform.
     float noise_width = 64.0;
     // the width of the sprite being drawn.
-    float sprite_width = 65.0;
+    float sprite_width = 64.0;
 
     // how fast should the textures scroll. Here we use one speed for all
     // directions, but we could use a different speed for each
     float speed = 0.1; //* (sprite_width / noise_width);
 
     // the amp (amplitude) controles the degree of the effect
-    float amp = 0.05 * (sprite_width/canvas_width);   //0.00634765625;
+    float amp = 0.25 * (sprite_width/canvas_width);   //0.00634765625;
     //float amp = 0.00634765625;
 
     // shift the noise index by time. Fract returns the fractional portion

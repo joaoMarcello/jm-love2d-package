@@ -3,7 +3,7 @@
 
 uniform Image NOISE_TEXTURE;
 uniform float strength = 0.01;
-uniform float scaling = 256.0/512.0;//288.0/(768*0.7);
+uniform float scaling = 256.0/(270.0);//288.0/(768*0.7);
 uniform vec2 direction = vec2(1.0, 0.0);
 uniform float speed = 0.1;
 uniform float iTime = 0.0;
