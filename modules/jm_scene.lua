@@ -1310,7 +1310,7 @@ local draw = function(self)
         setColor(1, 1, 1, 1)
         setBlendMode("alpha", "premultiplied")
 
-        for i = 1, n do
+        for i = 1, n - 1 do
             canvas1:setFilter(filter, filter)
             canvas2:setFilter("nearest", "nearest")
 
@@ -1345,11 +1345,18 @@ local draw = function(self)
             setColor(1, 1, 1, 1)
             setBlendMode("alpha", 'premultiplied')
 
+            setShader(list[n])
+            do
+                local action = self.shader_action
+                if action then action(self, list[n], n) end
+            end
+
             love_draw(self.canvas,
                 (self.x + self.offset_x),
                 (self.y + self.offset_y),
                 0, self.canvas_scale_x, self.canvas_scale_y
             )
+            setShader()
         end
 
         setBlendMode("alpha")
