@@ -278,7 +278,8 @@ function M:get_shader(shader, state, conf)
             local noise_water = lgx.newImage("/jm-love2d-package/data/img/3-simplex-noise-64.png")
             water:send("simplex", noise_water)
 
-            water:send("canvas_width", conf.width or (state and state.screen_w)
+            water:send("canvas_width", conf.width
+                or (state and (state.screen_w * state.subpixel))
                 or lgx.getWidth())
             water:send("time", 0.0)
         end
