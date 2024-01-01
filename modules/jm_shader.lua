@@ -823,6 +823,15 @@ function M:get_shader(shader, state, conf)
         end
         return gl
         ---
+    elseif shader == "glitch_3" then
+        local gl = shaders[shader]
+        if not gl then
+            code = lfs.read("/jm-love2d-package/data/shader/glitch_3.glsl")
+            gl = lgx.newShader(code)
+            shaders[shader] = gl
+        end
+        return gl
+        ---
     elseif shader == "wiggle" then
         local wig = shaders[shader]
         if not wig then
