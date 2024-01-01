@@ -201,13 +201,12 @@ function M:get_shader(shader, state, conf)
 
         return desaturate
         ---
-    elseif shader == "dmg" or shader == "palette" then
-        local dmg = shaders["dmg"] or shaders["palette"]
+    elseif shader == "dmg" then
+        local dmg = shaders[shader]
         if not dmg then
             code = lfs.read("/jm-love2d-package/data/shader/dmg.glsl")
             dmg = lgx.newShader(code)
-            shaders["dmg"] = dmg
-            shaders["palette"] = dmg
+            shaders[shader] = dmg
 
             local pallette = conf.palette or {
                 { 15 / 255,  56 / 255,  15 / 255 },
@@ -215,7 +214,6 @@ function M:get_shader(shader, state, conf)
                 { 139 / 255, 172 / 255, 15 / 255 },
                 { 155 / 255, 188 / 255, 15 / 255 }
             }
-
 
             dmg:send('palette', unpack(pallette))
         end
@@ -325,32 +323,51 @@ function M:get_shader(shader, state, conf)
         return m
         ---
     elseif shader == "pico8" then
+        --[[
+            // uniform vec3 palette[] = vec3[](
+            // vec3(0.0, 0.0, 0.0),
+            // vec3(29.0/255.0, 43.0/255.0, 83.0/255.0),
+            // vec3(126.0/255.0, 37.0/255.0, 83.0/255.0),
+            // vec3(0.0, 135.0/255.0, 81.0/255.0),
+            // vec3(171.0/255.0, 82.0/255.0, 54.0/255.0),
+            // vec3(95.0/255.0, 87.0/255.0, 79.0/255.0),
+            // vec3(194.0/255.0, 195.0/255.0, 199.0/255.0),
+            // vec3(1.0, 241.0/255.0, 232.0/255.0),
+            // vec3(1.0, 0.0, 77.0/255.0),
+            // vec3(1.0, 163.0/255.0, 0.0),
+            // vec3(1.0, 236.0/255.0, 39.0/255.0),
+            // vec3(0.0, 228.0/255.0, 54.0/255.0),
+            // vec3(41.0/255.0, 173.0/255.0, 1.0),
+            // vec3(131.0/255.0, 118.0/255.0, 156.0/255.0),
+            // vec3(1.0, 119.0/255.0, 168.0/255.0),
+            // vec3(1.0, 204.0/255.0, 170.0/255.0));
+        ]]
         local pico8 = shaders[shader]
         if not pico8 then
             code = lfs.read("/jm-love2d-package/data/shader/pico8.glsl")
             pico8 = lgx.newShader(code)
             shaders[shader] = pico8
 
-            -- local palette = {
-            --     { 0.0,           0.0,           0.0 },
-            --     { 29.0 / 255.0,  43.0 / 255.0,  83.0 / 255.0 },
-            --     { 126.0 / 255.0, 37.0 / 255.0,  83.0 / 255.0 },
-            --     { 0.0,           135.0 / 255.0, 81.0 / 255.0 },
-            --     { 171.0 / 255.0, 82.0 / 255.0,  54.0 / 255.0 },
-            --     { 95.0 / 255.0,  87.0 / 255.0,  79.0 / 255.0 },
-            --     { 194.0 / 255.0, 195.0 / 255.0, 199.0 / 255.0 },
-            --     { 255.0 / 255.0, 241.0 / 255.0, 232.0 / 255.0 },
-            --     { 255.0 / 255.0, 0.0,           77.0 / 255.0 },
-            --     { 255.0 / 255.0, 163.0 / 255.0, 0.0 },
-            --     { 255.0 / 255.0, 236.0 / 255.0, 39.0 / 255.0 },
-            --     { 0.0,           228.0 / 255.0, 54.0 / 255.0 },
-            --     { 41.0 / 255.0,  173.0 / 255.0, 255.0 / 255.0 },
-            --     { 131.0 / 255.0, 118.0 / 255.0, 156.0 / 255.0 },
-            --     { 255.0 / 255.0, 119.0 / 255.0, 168.0 / 255.0 },
-            --     { 255.0 / 255.0, 204.0 / 255.0, 170.0 / 255.0 },
-            -- }
-
-            -- pico8:send("palette", unpack(palette))
+            local palette = {
+                { 0.0,           0.0,           0.0 },
+                { 29.0 / 255.0,  43.0 / 255.0,  83.0 / 255.0 },
+                { 126.0 / 255.0, 37.0 / 255.0,  83.0 / 255.0 },
+                { 0.0,           135.0 / 255.0, 81.0 / 255.0 },
+                { 171.0 / 255.0, 82.0 / 255.0,  54.0 / 255.0 },
+                { 95.0 / 255.0,  87.0 / 255.0,  79.0 / 255.0 },
+                { 194.0 / 255.0, 195.0 / 255.0, 199.0 / 255.0 },
+                { 255.0 / 255.0, 241.0 / 255.0, 232.0 / 255.0 },
+                { 255.0 / 255.0, 0.0,           77.0 / 255.0 },
+                { 255.0 / 255.0, 163.0 / 255.0, 0.0 },
+                { 255.0 / 255.0, 236.0 / 255.0, 39.0 / 255.0 },
+                { 0.0,           228.0 / 255.0, 54.0 / 255.0 },
+                { 41.0 / 255.0,  173.0 / 255.0, 255.0 / 255.0 },
+                { 131.0 / 255.0, 118.0 / 255.0, 156.0 / 255.0 },
+                { 255.0 / 255.0, 119.0 / 255.0, 168.0 / 255.0 },
+                { 255.0 / 255.0, 204.0 / 255.0, 170.0 / 255.0 },
+            }
+            pico8:send("size", 16)
+            pico8:send("palette", unpack(palette))
         end
         return pico8
     elseif shader == "godsray" then
@@ -827,6 +844,15 @@ function M:get_shader(shader, state, conf)
             shaders[shader] = out
         end
         return out
+        ---
+    elseif shader == "water2" then
+        local water = shaders[shader]
+        if not water then
+            code = lfs.read("/jm-love2d-package/data/shader/water2.glsl")
+            water = lgx.newShader(code)
+            shaders[shader] = water
+        end
+        return water
     end
 end
 
