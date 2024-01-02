@@ -17,12 +17,13 @@ vec4 scanln(vec4 c,Image tex,vec2 tc){
     return c;
 }
 
-vec4 crt(vec4 c,Image tex,vec2 uv,vec2 px){
+vec4 crt(vec4 c, Image tex, vec2 uv, vec2 sc){
     uv = (uv * 2.0) - vec2(1.0);
 
     uv *= scaleFactor;
     uv += (uv.yx * uv.yx) * uv *(distortionFactor - 1.0);
-    number mask = (1.0 - smoothstep(1.0 - feather, 1.0, abs(uv.x)))
+
+    float mask = (1.0 - smoothstep(1.0 - feather, 1.0, abs(uv.x)))
                 * (1.0 - smoothstep(1.0 - feather, 1.0, abs(uv.y)));
 
     uv = (uv + vec2(1.0)) / 2.0;
@@ -30,6 +31,6 @@ vec4 crt(vec4 c,Image tex,vec2 uv,vec2 px){
     return c * Texel(tex, uv) * mask;
 }
 
-vec4 effect(vec4 c,Image tex,vec2 uv,vec2 px){
-    return crt(scanln(c, tex, uv), tex, uv, px);
+vec4 effect(vec4 c,Image tex,vec2 uv,vec2 sc){
+    return crt(scanln(c, tex, uv), tex, uv, sc);
 }
