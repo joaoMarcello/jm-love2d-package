@@ -574,7 +574,7 @@ function Camera:set_type(s)
         cy.focus_2 = 0.5
         cy.delay = 0.25
         -- self.deadzone_h = self.tile_size * 4
-        -- cy.window_2 = 0.7
+        cy.window_1 = 0.22
         cy:set_move_behavior(Controller.MoveTypes.fast_smooth)
 
         -- self.custom_update = function(self, dt)
