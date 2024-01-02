@@ -865,6 +865,24 @@ function M:get_shader(shader, state, conf)
             shaders[shader] = water
         end
         return water
+        ---
+    elseif shader == "shockwave_1" then
+        local shock = shaders[shader]
+        if not shock then
+            code = lfs.read("/jm-love2d-package/data/shader/shockwave_1.glsl")
+            shock = lgx.newShader(code)
+            shaders[shader] = shock
+        end
+        return shock
+        ---
+    elseif shader == "shockwave_2" then
+        local shock = shaders[shader]
+        if not shock then
+            code = lfs.read("/jm-love2d-package/data/shader/shockwave_2.glsl")
+            shock = lgx.newShader(code)
+            shaders[shader] = shock
+        end
+        return shock
     end
 end
 
