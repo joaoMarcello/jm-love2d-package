@@ -81,7 +81,10 @@ function M:get_shader(shader, state, conf)
             scan:send("thickness", conf.thickness or 1)
             scan:send("opacity", conf.opacity or 0.15)
             scan:send("color", conf.color or { 0, 0, 0 })
-            scan:send("screen_h", conf.screen_h or 288)
+            -- scan:send("screen_h", conf.screen_h or 270)
+            scan:send("screen_h", conf.screen_h or
+                (state and state.screen_h)
+                or lgx.getHeight())
         end
 
         return scan
@@ -118,11 +121,11 @@ function M:get_shader(shader, state, conf)
             crt_scan:send("phase", conf.phase or 1)
             crt_scan:send("thickness", conf.thickness or 1)
             crt_scan:send("opacity", conf.opacity or 0.15)
-            crt_scan:send("color_ex", conf.color_ex or { 0, 0, 0 })
+            crt_scan:send("scan_color", conf.scan_color or { 0, 0, 0 })
             -- crt_scan:send("screen_h", conf.screen_h or
-            --     (state and (state.h - state.y))
+            --     (state and 288)
             --     or lgx.getHeight())
-            crt_scan:send("screen_h", conf.screen_h or 288)
+            crt_scan:send("screen_h", conf.screen_h or 270)
 
             crt_scan:send("feather", conf.feather or 0.02)
             crt_scan:send("distortionFactor", conf.distortionFactor
