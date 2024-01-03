@@ -1,7 +1,8 @@
 // https://www.shadertoy.com/view/wsGSR1
+// Created by trisslotten and edited by JM for use with LÖVE2D
 uniform float iTime = 0.0;
 uniform float duration = 0.4;
-uniform vec2 iResolution = vec2(244, 288.0);
+uniform vec2 iResolution = vec2(512.0, 288.0);
 uniform vec2 center = vec2(0.5, 0.5);
 
 vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc ){
