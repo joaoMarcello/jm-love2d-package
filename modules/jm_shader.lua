@@ -881,6 +881,15 @@ function M:get_shader(shader, state, conf)
             code = lfs.read("/jm-love2d-package/data/shader/shockwave_2.glsl")
             shock = lgx.newShader(code)
             shaders[shader] = shock
+
+            if conf.duration then
+                shock:send("duration", conf.duration)
+            end
+
+            shock:send("iResolution",
+                conf.iResolution or (state
+                    and { state.screen_w, state.screen_h }
+                    or { lgx:getDimensions() }))
         end
         return shock
     end

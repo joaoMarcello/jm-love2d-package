@@ -1,6 +1,6 @@
 // https://www.shadertoy.com/view/llj3Dz
 uniform float iTime = 0.0;
-uniform float ratio = 288.0/512.0;
+// uniform float ratio = 288.0/512.0;
 uniform vec2 center = vec2(0.0, 0.5);
 const vec3 WaveParams = vec3(10.0, 0.1, 0.1 ); 
 
@@ -15,7 +15,8 @@ vec4 effect( vec4 color, Image tex, vec2 tc, vec2 sc )
 	// vec3 WaveParams = vec3(10.0, 0.8, 0.1 ); 
    
 	vec2 uv = tc;      
-
+    float ratio = love_ScreenSize.y/float(love_ScreenSize.x);
+    
 	float Dist = distance(vec2(uv.x, uv.y * ratio),
         vec2(center.x, center.y * ratio));
     
