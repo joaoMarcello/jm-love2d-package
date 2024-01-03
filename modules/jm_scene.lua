@@ -1949,6 +1949,10 @@ function Scene:set_shader(shader, action)
         shader_param[self] = params
     end
 
+    if not shader then
+        shader_param[self] = nil
+    end
+
     return shader
 end
 
