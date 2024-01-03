@@ -1311,22 +1311,26 @@ local draw = function(self)
         setBlendMode("alpha", "premultiplied")
 
         for i = 1, n - 1 do
-            canvas1:setFilter(filter, filter)
-            canvas2:setFilter("nearest", "nearest")
-
-            set_canvas(canvas2)
-            clear_screen()
-
-            setShader(list[i])
+            -- if i ~= 1 then
             do
-                local action = self.shader_action
-                if action then action(self, list[i], i) end
+                canvas1:setFilter(filter, filter)
+                canvas2:setFilter("nearest", "nearest")
+
+                set_canvas(canvas2)
+                clear_screen()
+
+                do
+                    local cur_shader = list[i]
+                    setShader(cur_shader)
+                    local action = self.shader_action
+                    if action then action(self, cur_shader, i) end
+                end
+
+                love_draw(canvas1)
+
+                canvas1, canvas2 = canvas2, canvas1
+                self.canvas, self.canvas_layer = self.canvas_layer, self.canvas
             end
-
-            love_draw(canvas1)
-
-            canvas1, canvas2 = canvas2, canvas1
-            self.canvas, self.canvas_layer = self.canvas_layer, self.canvas
         end
 
         canvas1:setFilter(filter, filter)
@@ -1920,6 +1924,8 @@ function Scene:set_foreground_draw(action)
     self.draw_foreground = action
 end
 
+-- local shader_param = setmetatable({}, { __mode = 'k' })
+
 ---@param shader love.Shader|table|any
 ---@param action function|nil
 ---@return love.Shader|table
@@ -1931,6 +1937,13 @@ function Scene:set_shader(shader, action)
         self.using_canvas_layer = true
         self:restaure_canvas()
         -- self.shader.n = #self.shader
+
+        -- local list = shader
+        -- shader_param = shader_param[self]
+        --     or setmetatable({}, { __mode = 'kv' })
+        -- for i = 1, #list do
+        --     shader_param[list[i]]
+        -- end
     end
     return shader
 end
