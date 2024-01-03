@@ -1349,10 +1349,11 @@ local draw = function(self)
             setColor(1, 1, 1, 1)
             setBlendMode("alpha", 'premultiplied')
 
-            setShader(list[n])
             do
+                local cur_shader = list[n]
+                setShader(cur_shader)
                 local action = self.shader_action
-                if action then action(self, list[n], n) end
+                if action then action(self, cur_shader, n) end
             end
 
             love_draw(self.canvas,
