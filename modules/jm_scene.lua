@@ -1306,13 +1306,14 @@ local draw = function(self)
         local list = shader
         local n = #list
         local filter = self.canvas_filter
+        local params = self:get_shader_params()
 
         setColor(1, 1, 1, 1)
         setBlendMode("alpha", "premultiplied")
 
         for i = 1, n - 1 do
-            -- if i ~= 1 then
-            do
+            local cur_shader = list[i]
+            if params[cur_shader].is_enabled then
                 canvas1:setFilter(filter, filter)
                 canvas2:setFilter("nearest", "nearest")
 
@@ -1320,7 +1321,6 @@ local draw = function(self)
                 clear_screen()
 
                 do
-                    local cur_shader = list[i]
                     setShader(cur_shader)
                     local action = self.shader_action
                     if action then action(self, cur_shader, i) end
@@ -1925,7 +1925,7 @@ function Scene:set_foreground_draw(action)
     self.draw_foreground = action
 end
 
--- local shader_param = setmetatable({}, { __mode = 'k' })
+local shader_param = {}
 
 ---@param shader love.Shader|table|any
 ---@param action function|nil
@@ -1939,14 +1939,31 @@ function Scene:set_shader(shader, action)
         self:restaure_canvas()
         -- self.shader.n = #self.shader
 
-        -- local list = shader
-        -- shader_param = shader_param[self]
-        --     or setmetatable({}, { __mode = 'kv' })
-        -- for i = 1, #list do
-        --     shader_param[list[i]]
-        -- end
+        local list = shader
+        local params = shader_param[self] or {}
+
+        for i = 1, #list do
+            params[list[i]] = { is_enabled = true }
+        end
+
+        shader_param[self] = params
     end
+
     return shader
+end
+
+function Scene:get_shader_params()
+    return shader_param[self]
+end
+
+function Scene:set_shader_params(shader, enabled)
+    local params = shader_param[self]
+    if not params then return end
+
+    local args = params[shader]
+    if args then
+        args.is_enabled = enabled
+    end
 end
 
 function Scene:rect_is_on_view(x, y, w, h)
