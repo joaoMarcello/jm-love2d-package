@@ -1304,7 +1304,7 @@ local draw = function(self)
     else
         local canvas1, canvas2 = self.canvas, self.canvas_layer
         local list = shader
-        local n = list.n or (#list)
+        local n = #list
         local filter = self.canvas_filter
 
         setColor(1, 1, 1, 1)
@@ -1930,7 +1930,7 @@ function Scene:set_shader(shader, action)
     if type(shader) == "table" then
         self.using_canvas_layer = true
         self:restaure_canvas()
-        self.shader.n = #self.shader
+        -- self.shader.n = #self.shader
     end
     return shader
 end
