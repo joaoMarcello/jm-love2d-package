@@ -1589,11 +1589,11 @@ do
                 -- if reach max speed
                 do
                     local huge = math.huge
-                    local max_speed_x = min(
+                    local max_speed = min(
                         self.world.max_speed_x or huge,
                         self.max_speed_x or huge
                     )
-                    self.speed_x = clamp(self.speed_x, -max_speed_x, max_speed_x)
+                    self.speed_x = clamp(self.speed_x, -max_speed, max_speed)
                 end
 
                 -- dacc
