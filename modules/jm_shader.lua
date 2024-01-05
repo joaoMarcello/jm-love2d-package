@@ -892,6 +892,33 @@ function M:get_shader(shader, state, conf)
                     or { lgx:getDimensions() }))
         end
         return shock
+        ---
+    elseif shader == "water_gbc" then
+        local water = shaders[shader]
+        if not water then
+            code = lfs.read("/jm-love2d-package/data/shader/wave_gbc.glsl")
+            water = lgx.newShader(code)
+            shaders[shader] = water
+
+            local w = conf.width or (state and state.screen_w)
+                or lgx.getWidth()
+            local h = conf.height or (state and state.screen_h)
+                or lgx.getHeight()
+            water:send("scaling", { 1.0 / w, 1.0 / h })
+        end
+        return water
+        ---
+    elseif shader == "water3" then
+        local water = shaders[shader]
+        if not water then
+            code = lfs.read("/jm-love2d-package/data/shader/my_water.glsl")
+            water = lgx.newShader(code)
+            shaders[shader] = water
+
+            local noise = lgx.newImage("/jm-love2d-package/data/img/3-simplex-noise-64.png")
+            water:send("NOISE", noise)
+        end
+        return water
     end
 end
 
