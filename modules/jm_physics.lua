@@ -267,14 +267,14 @@ local function kinematic_moves_dynamic_x(self, goalx)
                             or true
                         -- or item.speed_x <= 0
                         then
-                            item:refresh(goalx + self.w + 0.1)
+                            item:refresh(goalx + self.w + 0.5)
                         end
                     else
                         if diff < 0
                             or true
                         -- or item.speed_x >= 0
                         then
-                            item:refresh(goalx - item.w - 0.1)
+                            item:refresh(goalx - item.w - 0.5)
                         end
                     end
 
@@ -846,7 +846,7 @@ do
         collisions.diff_x = diff_x
         collisions.diff_y = diff_y
 
-        local offset = 0.1 --abs(diff_y) > 0 and 0.1 or 0.5 --0.1
+        local offset = abs(diff_y) > 0 and 0.1 or 0.5 --0.1
 
         collisions.end_x = (diff_x >= 0 and most_left
                 and most_left.x - self.w - offset)
@@ -1270,16 +1270,16 @@ do
         local speed_x = self.speed_x
         if speed_x == 0 then return 0.0 end
 
-        local meter    = self.world.meter
+        local meter = self.world.meter
         local on_water = self.on_water
 
-        local d        = 1.2754 -- air density
-        d              = on_water and 997 or d
+        local d = 1.2754 -- air density
+        d = on_water and 997 or d
         -- d              = self.ground and (d * 10) or d
 
-        local c        = self.coef_resis_x or 1.2
+        local c = self.coef_resis_x or 1.2
 
-        local area     = self.area_x
+        local area = self.area_x
             or ((0.6 * 0.6) * (self.h / (meter / 3.5)))
 
         if on_water and self.type == BodyTypes.dynamic then
@@ -1287,6 +1287,7 @@ do
             area = area * 0.1
         end
 
+        -- c = self.allowed_air_dacc and not self.ground and (c * 2) or c
         c = self.allowed_air_dacc and not self.ground and (c * 2) or c
 
         c = c * area
