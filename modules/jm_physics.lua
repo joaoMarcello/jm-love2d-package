@@ -5,6 +5,11 @@ local table_insert, table_remove, table_sort = table.insert, table.remove, table
 local pairs, setmetatable = pairs, setmetatable
 local next = next
 
+local clamp = function(value, edge1, edge2)
+    if edge1 > edge2 then edge1, edge2 = edge2, edge1 end
+    return min(max(value, edge1), edge2)
+end
+
 local metatable_mode_v = { __mode = 'v' }
 local metatable_mode_k = { __mode = 'k' }
 
@@ -1582,20 +1587,13 @@ do
                 obj.speed_x = obj.speed_x + obj.acc_x * dt
 
                 -- if reach max speed
-                if obj.max_speed_x
-                    and abs(obj.speed_x) > obj.max_speed_x
-                then
-                    obj.speed_x = obj.max_speed_x
-                        * obj:direction_x()
-                end
-
                 do
-                    local max_speed_x = self.world.max_speed_x
-                    if max_speed_x
-                        and abs(self.speed_x) > max_speed_x
-                    then
-                        self.speed_x = max_speed_x * self:direction_x()
-                    end
+                    local huge = math.huge
+                    local max_speed_x = min(
+                        self.world.max_speed_x or huge,
+                        self.max_speed_x or huge
+                    )
+                    self.speed_x = clamp(self.speed_x, -max_speed_x, max_speed_x)
                 end
 
                 -- dacc
