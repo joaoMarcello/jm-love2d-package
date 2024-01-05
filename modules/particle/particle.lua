@@ -68,6 +68,7 @@ local abs = math.abs
 ---@field __remove boolean
 ---@field draw_order number
 ---@field id string|any
+---@field prop any
 local Particle = {}
 Particle.__index = Particle
 
@@ -154,6 +155,8 @@ function Particle:new(
             reuse_table.body = false
         end
 
+        reuse_table.prop = false
+
         reuse_table.__custom_update__ = false
     end
 
@@ -189,6 +192,8 @@ function Particle:new(
         --
         draw_order = draw_order and (draw_order + random())
             or random(),
+        --
+        prop = false,
         --
         update = Particle.update,
         draw = Particle.draw_normal,
