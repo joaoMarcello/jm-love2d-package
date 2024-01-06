@@ -95,7 +95,7 @@ function Particle:new(
         -- IMG[img_dir] = IMG[img_dir] or love.graphics.newImage(img_dir)
         -- img = IMG[img_dir]
 
-        local key = str_format("%d-%d-%d-%d")
+        local key = str_format("%d-%d-%d-%d", qx, qy, qw, qh)
 
         QUADS[img] = QUADS[img] or {}
         QUADS[img][key] = QUADS[img][key]
