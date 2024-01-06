@@ -102,16 +102,20 @@ function Emitter:pop_anima(id)
     return Emitter.Animas[id]:copy()
 end
 
+---@param anima JM.Anima
 function Emitter:push_anima(anima, id)
     if not id then return false end
     local rec = Emitter.AnimaRecycler[id]
     if rec then
+        -- anima.events = nil
         rec[anima] = true
     end
     return true
 end
 
+---@param p JM.Particle
 function Emitter:push_particle(p)
+    p.prop = false
     Emitter.ParticleRecycler[p] = true
 end
 
@@ -137,7 +141,9 @@ function Emitter:update(dt)
     local list = self.particles
     local N = self.N
 
-    self.lifetime = self.lifetime - dt
+    if self.lifetime ~= math.huge then
+        self.lifetime = self.lifetime - dt
+    end
 
     if self.lifetime <= 0.0 then
         if N <= 0 then
@@ -187,7 +193,7 @@ function Emitter:update(dt)
     end
 end
 
-function Emitter:draw()
+function Emitter:draw(cam)
     local list = self.particles
 
     for i = 1, self.N do
@@ -195,7 +201,7 @@ function Emitter:draw()
         local p = list[i]
 
         if not p.__remove and not p.delay then
-            p:draw()
+            p:draw(cam)
         end
     end
 end
