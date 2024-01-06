@@ -69,6 +69,7 @@ local abs = math.abs
 ---@field draw_order number
 ---@field id string|any
 ---@field prop any
+---@field direction number
 local Particle = {}
 Particle.__index = Particle
 
@@ -137,6 +138,7 @@ function Particle:new(
         reuse_table.max_speed_x = max_speed_x or false
         reuse_table.max_speed_y = max_speed_y or false
         reuse_table.mass = mass or world.default_mass
+        reuse_table.direction = 1
         --
         reuse_table.__remove = false
         reuse_table.__custom_update__ = false
@@ -156,6 +158,7 @@ function Particle:new(
         end
 
         reuse_table.prop = false
+        -- reuse_table.alpha = 1.0
 
         reuse_table.__custom_update__ = false
     end
@@ -186,6 +189,7 @@ function Particle:new(
         max_speed_x = max_speed_x or false,
         max_speed_y = max_speed_y or false,
         mass = mass or world.default_mass,
+        direction = 1,
         --
         __remove = false,
         __custom_update__ = generic,
@@ -194,6 +198,7 @@ function Particle:new(
             or random(),
         --
         prop = false,
+        -- alpha = 1.0,
         --
         update = Particle.update,
         draw = Particle.draw_normal,
@@ -203,6 +208,22 @@ function Particle:new(
 
 
     return obj
+end
+
+function Particle:copy()
+    local p = Particle:new()
+    for k, v in next, self do
+        p[k] = v
+    end
+
+    if self.prop then
+        local prop = {}
+        for k, v in next, self.prop do
+            prop[k] = v
+        end
+        p.prop = prop
+    end
+    return p
 end
 
 function Particle:newAnimated(
