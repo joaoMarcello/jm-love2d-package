@@ -260,6 +260,7 @@ function JM:keypressed(key, scancode, isrepeat)
     key = scancode
 
     if key == "escape" then
+        JM.Shader:finish()
         scene:finish()
         scene = nil
         collectgarbage()
