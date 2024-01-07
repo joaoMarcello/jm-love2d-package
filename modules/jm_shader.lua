@@ -1,5 +1,3 @@
-local dir = ...
-
 ---@class JM.ShaderManager
 local M = {}
 
@@ -928,6 +926,16 @@ function M:get_exclusive_shader(shader, state, conf)
     local ex_shader = self:get_shader(shader, state, conf)
     shaders[shader] = temp
     return ex_shader
+end
+
+function M:finish()
+    for id, shader in next, shaders do
+        ---@type love.Shader
+        local shader = shader
+
+        shader:release()
+        shaders[id] = nil
+    end
 end
 
 return M
