@@ -80,13 +80,19 @@ function Emitter:__constructor__(lifetime, update_action, action_args)
     self.N = 0
     self.lifetime = lifetime or 1.0
     self.pause = false
+    self.shader = nil
     self.time = 0.0
+    self.duration = 0.0
     self.fr = 0.2
     self.__custom_update__ = update_action
     self.update_args = action_args
 
     self.update = Emitter.update
     self.draw = Emitter.draw
+end
+
+function Emitter:set_shader(shader)
+    self.shader = shader
 end
 
 function Emitter:pop_anima(id)
@@ -145,6 +151,11 @@ function Emitter:update(dt)
         self.lifetime = self.lifetime - dt
     end
 
+    if self.duration ~= 0.0 then
+        self.duration = self.duration - dt
+        if self.duration < 0.0 then self.duration = 0.0 end
+    end
+
     if self.lifetime <= 0.0 then
         if N <= 0 then
             self.__remove = true
@@ -193,10 +204,14 @@ function Emitter:update(dt)
     end
 end
 
+local setShader = love.graphics.setShader
 function Emitter:draw(cam)
     local list = self.particles
 
     for i = 1, self.N do
+        if i == 1 then
+            setShader(self.shader)
+        end
         ---@type JM.Particle
         local p = list[i]
 
@@ -204,6 +219,7 @@ function Emitter:draw(cam)
             p:draw(cam)
         end
     end
+    setShader()
 end
 
 return Emitter
