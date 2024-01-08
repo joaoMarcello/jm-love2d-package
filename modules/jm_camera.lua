@@ -843,6 +843,10 @@ function Camera:get_viewport_in_world_coord()
         self.viewport_h / self.scale
 end
 
+---@return number x
+---@return number y
+---@return number w
+---@return number h
 function Camera:get_drawing_viewport()
     local vw, vh = self.viewport_w, self.viewport_h
     local p1x, p1y = self:screen_to_world(0, 0)
@@ -1480,7 +1484,7 @@ function Camera:update(dt)
     self.dy = self.y - last_y
 end
 
-function Camera:attach(lock_shake, subpixel)
+function Camera:attach(lock_shake, subpixel, shake_factor)
     local x, y, w, h = self:get_viewport()
     -- local x, y, w, h = self.viewport_x, self.viewport_y, self.viewport_w, self.viewport_h
 
@@ -1503,8 +1507,9 @@ function Camera:attach(lock_shake, subpixel)
 
     local shake_x, shake_y = 0, 0
     if not lock_shake then
-        shake_y = self.controller_shake_y.value
-        shake_x = self.controller_shake_x.value
+        shake_factor = shake_factor or 1.0
+        shake_y = self.controller_shake_y.value * shake_factor
+        shake_x = self.controller_shake_x.value * shake_factor
     end
 
     local tx = -(self.x) + (self.viewport_x / scale) + shake_x
