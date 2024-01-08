@@ -1351,9 +1351,11 @@ local draw = function(self)
 
             do
                 local cur_shader = list[n]
-                setShader(cur_shader)
-                local action = self.shader_action
-                if action then action(self, cur_shader, n) end
+                if params[cur_shader].is_enabled then
+                    setShader(cur_shader)
+                    local action = self.shader_action
+                    if action then action(self, cur_shader, n) end
+                end
             end
 
             love_draw(self.canvas,
