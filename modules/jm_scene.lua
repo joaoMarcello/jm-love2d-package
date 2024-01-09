@@ -283,6 +283,9 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     --     self.canvas_filter,
     --     self.subpixel
     -- )
+    self.use_canvas_layer = conf.use_canvas_layer or nil
+    self.canvas_layer = nil
+
     self:restaure_canvas()
 
 
@@ -292,7 +295,6 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     self.capture_mode = false
 
-    self.canvas_layer = nil
 
     self.use_vpad = conf.use_vpad or false
 
