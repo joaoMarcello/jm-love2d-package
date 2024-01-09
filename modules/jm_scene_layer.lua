@@ -31,6 +31,8 @@ function Layer:__constructor__(state, args)
     self.py = args.y or 0
     self.state = state
     self.lock_shake = args.lock_shake or nil
+    self.lock_py = args.lock_py or nil
+    self.lock_px = args.lock_px or nil
     self.custom_draw = args.custom_draw or args.draw or default
     self.update = args.custom_update or args.update or default
 end
@@ -107,6 +109,10 @@ function Layer:draw(cam)
         -- px = math.floor(cam.x + 0.5)
         -- py = math.floor(cam.y + 0.5)
 
+        if self.lock_py then
+            self.py = math.floor(cam.y + 0.5)
+        end
+
         local rx = (cx * self.factor_x) - self.px
         local ry = (cy * self.factor_y) - self.py
 
@@ -120,7 +126,7 @@ function Layer:draw(cam)
         elseif self.infinity_scroll_x then
             cam:set_position(
                 rx % (self.width * self.scale) - vx + cam.viewport_x,
-                cy * self.factor_y - cy
+                ry - cy + cam.viewport_y
             )
         else
             cam:set_position(
