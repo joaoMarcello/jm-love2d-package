@@ -74,6 +74,7 @@ local function draw_scroll_x(self, cam, qx, qi)
     local push, pop = lgx.push, lgx.pop
     local translate, love_scale = lgx.translate, lgx.scale
 
+    qi = -1
     for i = qi or 0, qx - 1 do
         push()
         translate(width * i * scale, 0)
@@ -95,7 +96,7 @@ local function draw_scroll_y(self, cam, qy, qx, qix, qiy)
     local translate, love_scale = lgx.translate, lgx.scale
     local infinity_scroll_x = self.infinity_scroll_x
 
-    for i = 0, qy - 1 do
+    for i = -1, qy - 1 do
         push()
 
         if not infinity_scroll_x then
@@ -135,6 +136,9 @@ local function draw(self, cam, qx, qy, cx, vx)
         return lgx.pop()
     end
 end
+
+local tr = love.math.newTransform()
+
 ---@param cam JM.Camera.Camera
 ---@param canvas1 love.Canvas|any
 ---@param canvas2 love.Canvas|any
@@ -166,35 +170,25 @@ function Layer:draw(cam, canvas1, canvas2)
     local qy = ceil(vh / self.height) + 1
 
     do
-        -- self.px = self.px - 64 * love.timer.getDelta() * self.factor_x
-        -- self.py = self.py - 64 * love.timer.getDelta() * self.factor_y
-
-        -- px = math.floor(cam.x + 0.5)
-        -- py = math.floor(cam.y + 0.5)
-
-        -- if self.lock_py then
-        --     self.py = math.floor(cam.y + 0.5)
-        -- end
-
         local rx = (cx * self.factor_x) - self.px
         local ry = (cy * self.factor_y) - self.py
 
         if self.infinity_scroll_y then
             cam:set_position(
                 self.infinity_scroll_x
-                and (rx % (self.width * self.scale) - vx + cam.viewport_x)
-                or (rx - cx),
-                ry % (self.height * self.scale) - vy + cam.viewport_y
+                and (rx % (self.width * self.scale) - vx * 0 + cam.viewport_x * 0)
+                or (rx - cx * 0),
+                ry % (self.height * self.scale) - vy * 0 + cam.viewport_y * 0
             )
         elseif self.infinity_scroll_x then
             cam:set_position(
-                rx % (self.width * self.scale) - cx + cam.viewport_x,
-                ry - cy + cam.viewport_y
+                rx % (self.width * self.scale) - cx * 0 + cam.viewport_x * 0,
+                ry - cy * 0 + cam.viewport_y * 0
             )
         else
             cam:set_position(
-                rx - cx + cam.viewport_x,
-                ry - cy + cam.viewport_y
+                rx - cx * 0 + cam.viewport_x * 0,
+                ry - cy * 0 + cam.viewport_y * 0
             )
         end
 
@@ -202,12 +196,14 @@ function Layer:draw(cam, canvas1, canvas2)
         -- cam.y = round(cam.y)
     end
 
-    cam.scale = 1
-    cam.angle = 0
+    cam.scale = scale
+    cam.angle = angle
 
     lgx.push()
-    -- lgx.replaceTransform(tr)
-    -- lgx.scale(subpixel, subpixel)
+
+    lgx.replaceTransform(tr)
+    lgx.scale(subpixel, subpixel)
+
     cam:attach(nil, subpixel, self.lock_shake and -1.0 or 1.0)
 
     -- not using canvas
@@ -222,18 +218,17 @@ function Layer:draw(cam, canvas1, canvas2)
     cam:detach()
     lgx.setScissor(scix, sciy, sciw, scih)
 
-    lgx.pop()
-
     if canvas1 then
         lgx.setCanvas(last_canvas)
         lgx.setColor(1, 1, 1)
-        local sc = 1.0 / subpixel / scale
-        local px = cx - cam.viewport_x / scale
-        local py = cy - cam.viewport_y / scale
+
+        local sc = 1.0 / subpixel -- / scale
+        local px = cx * 0         --+ cam.viewport_x --/ scale
+        local py = cy * 0         -- + cam.viewport_y --/ scale
 
         if self.lock_shake then
-            px = px - cam.controller_shake_x.value
-            py = py - cam.controller_shake_y.value
+            px = px + cam.controller_shake_x.value
+            py = py + cam.controller_shake_y.value
         end
 
         if not self.keep_proportions then
@@ -251,6 +246,8 @@ function Layer:draw(cam, canvas1, canvas2)
         lgx.draw(canvas1, px, py, 0, sc, sc)
         lgx.setShader()
     end
+    lgx.pop()
+
 
     cam.x, cam.y = cx, cy
     cam.scale = scale
