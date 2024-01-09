@@ -43,14 +43,14 @@ end
 
 ---@param self JM.SceneLayer
 ---@param cam JM.Camera.Camera
-local function draw_scroll_x(self, cam, qx)
+local function draw_scroll_x(self, cam, qx, qi)
     local scale = self.scale
     local draw = self.custom_draw
     local width = self.width
     local push, pop = lgx.push, lgx.pop
     local translate, love_scale = lgx.translate, lgx.scale
 
-    for i = 0, qx - 1 do
+    for i = qi or 0, qx - 1 do
         push()
         translate(width * i * scale, 0)
         love_scale(scale, scale)
@@ -63,7 +63,7 @@ end
 
 ---@param self JM.SceneLayer
 ---@param cam JM.Camera.Camera
-local function draw_scroll_y(self, cam, qy, qx)
+local function draw_scroll_y(self, cam, qy, qx, qix, qiy)
     local scale = self.scale
     local draw = self.custom_draw
     local height = self.height
@@ -125,7 +125,7 @@ function Layer:draw(cam)
             )
         elseif self.infinity_scroll_x then
             cam:set_position(
-                rx % (self.width * self.scale) - vx + cam.viewport_x,
+                rx % (self.width * self.scale) - cx + cam.viewport_x,
                 ry - cy + cam.viewport_y
             )
         else
@@ -145,10 +145,10 @@ function Layer:draw(cam)
     cam:attach(nil, subpixel, self.lock_shake and -1.0 or 1.0)
 
     if self.infinity_scroll_y then
-        draw_scroll_y(self, cam, qy, qx)
+        draw_scroll_y(self, cam, qy, qx, cx > vx and -1)
         ---
     elseif self.infinity_scroll_x then
-        draw_scroll_x(self, cam, qx)
+        draw_scroll_x(self, cam, qx, cx > vx and -1)
     else
         local sc = self.scale
         lgx.push()
