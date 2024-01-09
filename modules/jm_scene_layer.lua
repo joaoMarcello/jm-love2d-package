@@ -29,6 +29,7 @@ function Layer:new(state, args)
 end
 
 local default = function(...) end
+local default_color = { .8, .8, .8, 0 }
 
 ---@param state JM.Scene
 ---@param args table
@@ -43,9 +44,9 @@ function Layer:__constructor__(state, args)
     self.keep_proportions = args.keep_proportions or false
     self.px = args.x or 0
     self.py = args.y or 0
-    self.state = state
+    self.gamestate = state
     self.lock_shake = args.lock_shake
-
+    self.clear_color = args.clear_color
     -- if args.lock_shake then
     --     self.shake_factor_x = 1
     --     self.shake_factor_y = 1
@@ -147,15 +148,15 @@ local tr = love.math.newTransform()
 function Layer:draw(cam, canvas1, canvas2)
     if not self.is_visible then return end
 
-    local last_canvas = lgx.getCanvas()
+    -- local last_canvas = lgx.getCanvas()
     local shader = self.shader
 
     if canvas1 then
         lgx.setCanvas(canvas1)
-        if not self.skip_clear then lgx.clear(.8, .8, .8, 0) end
+        if not self.skip_clear then lgx.clear(self.clear_color or default_color) end
     end
 
-    local state = self.state
+    local state = self.gamestate
     local cx, cy = cam.x, cam.y
     local scale = cam.scale
 
@@ -226,10 +227,7 @@ function Layer:draw(cam, canvas1, canvas2)
     cam:detach()
     lgx.setScissor(scix, sciy, sciw, scih)
 
-    if canvas1 then
-        lgx.setCanvas(last_canvas)
-        lgx.setColor(1, 1, 1)
-
+    if canvas1 and not self.skip_draw then
         local sc = 1.0 / subpixel -- / scale
         local px = 0              -- cx * 0 + cam.viewport_x --/ scale
         local py = 0              --cy * 0 + cam.viewport_y --/ scale
@@ -239,24 +237,70 @@ function Layer:draw(cam, canvas1, canvas2)
             py = py + cam.controller_shake_y.value
         end
 
-        -- if not self.keep_proportions then
-        do
-            px = round(px)
-            py = round(py)
+        px = round(px)
+        py = round(py)
+
+        if not shader or type(shader) ~= "table" then
+            lgx.setCanvas(self.gamestate.canvas)
+            lgx.setColor(1, 1, 1)
+            -- lgx.setBlendMode("alpha", "premultiplied")
+
+            lgx.setShader(shader)
+            do
+                local action = self.shader_action
+                if action then
+                    action(shader, 1)
+                end
+            end
+            lgx.draw(canvas1, px, py, 0, sc, sc)
+            lgx.setShader()
+            ---
+        else
+            local list = shader
+            local n = #list
+            local filter = self.gamestate.canvas_filter
+
+            lgx.setColor(1, 1, 1)
+
+            for i = 1, n - 1 do
+                local cur_shader = list[i]
+
+                canvas1:setFilter(filter, filter)
+                canvas2:setFilter("nearest", "nearest")
+
+                lgx.setCanvas(canvas2)
+                lgx.clear()
+
+                do
+                    lgx.setShader(cur_shader)
+                    local action = self.shader_action
+                    if action then action(cur_shader, n) end
+                end
+
+                lgx.draw(canvas1, 0, 0, 0, sc, sc)
+
+                canvas1, canvas2 = canvas2, canvas1
+            end
+            canvas1:setFilter(filter, filter)
+            canvas2:setFilter(filter, filter)
+
+            lgx.setShader()
+
+            lgx.setCanvas(self.gamestate.canvas)
+            do
+                local cur_shader = list[n]
+                lgx.setShader(cur_shader)
+                local action = self.shader_action
+                if action then action(cur_shader, n) end
+            end
+
+            lgx.draw(canvas1, px, py, 0, sc, sc)
+            lgx.setShader()
         end
 
-        lgx.setShader(shader)
-        do
-            local action = self.shader_action
-            if action then
-                action(shader, 1)
-            end
-        end
-        lgx.draw(canvas1, px, py, 0, sc, sc)
-        lgx.setShader()
+        -- lgx.setBlendMode("alpha")
     end
     lgx.pop()
-
 
     cam.x, cam.y = cx, cy
     cam.scale = scale
