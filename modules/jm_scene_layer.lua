@@ -37,6 +37,7 @@ function Layer:__constructor__(state, args)
     self.factor_x = args.factor_x or 1
     self.factor_y = args.factor_y or 1
     self.scale = 1
+    self.angle = args.angle
     self.width = args.width or 64
     self.height = args.height or 64
     self.infinity_scroll_x = args.infinity_scroll_x or false
@@ -119,7 +120,9 @@ end
 ---@return love.Shader|table
 function Layer:set_shader(shader, action)
     self.shader = shader
-    self.shader_action = action
+    if shader then
+        self.shader_action = action
+    end
     return shader
 end
 
@@ -206,7 +209,7 @@ function Layer:draw(cam, canvas1, canvas2)
     end
 
     cam.scale = self.scale
-    cam.angle = angle
+    cam.angle = self.angle or angle
 
     lgx.push()
 
