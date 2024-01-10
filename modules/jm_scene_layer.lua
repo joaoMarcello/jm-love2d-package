@@ -70,7 +70,7 @@ end
 ---@param self JM.SceneLayer
 ---@param cam JM.Camera.Camera
 local function draw_scroll_x(self, cam, qx, qi)
-    local scale = self.scale
+    local scale = 1 --self.scale
     local draw = self.custom_draw
     local width = self.width
     local push, pop = lgx.push, lgx.pop
@@ -80,7 +80,7 @@ local function draw_scroll_x(self, cam, qx, qi)
     for i = qi or 0, qx - 1 do
         push()
         translate(width * i * scale, 0)
-        love_scale(scale, scale)
+        -- love_scale(scale, scale)
 
         draw(cam)
 
@@ -91,7 +91,7 @@ end
 ---@param self JM.SceneLayer
 ---@param cam JM.Camera.Camera
 local function draw_scroll_y(self, cam, qy, qx, qix, qiy)
-    local scale = self.scale
+    local scale = 1 -- self.scale
     local draw = self.custom_draw
     local height = self.height
     local push, pop = lgx.push, lgx.pop
@@ -103,7 +103,7 @@ local function draw_scroll_y(self, cam, qy, qx, qix, qiy)
 
         if not infinity_scroll_x then
             translate(0, height * i * scale)
-            love_scale(scale, scale)
+            -- love_scale(scale, scale)
 
             draw(cam)
         else
@@ -137,7 +137,7 @@ local function draw(self, cam, qx, qy)
     else
         local sc = self.scale
         lgx.push()
-        lgx.scale(sc, sc)
+        -- lgx.scale(sc, sc)
         self.custom_draw(cam)
         return lgx.pop()
     end
@@ -204,6 +204,9 @@ function Layer:draw(cam, canvas1, canvas2)
         end
     end
 
+    -- self.scale = 1 - (1 - scale) * 0.05
+    -- assert(self.scale > 0)
+
     cam.scale = self.scale
     cam.angle = self.angle or angle
 
@@ -230,17 +233,17 @@ function Layer:draw(cam, canvas1, canvas2)
     lgx.setScissor(scix, sciy, sciw, scih)
 
     if canvas1 and not self.skip_draw then
-        local sc = 1.0 / subpixel -- / scale
-        local px = 0              -- cx * 0 + cam.viewport_x --/ scale
-        local py = 0              --cy * 0 + cam.viewport_y --/ scale
+        local sc = 1.0 / subpixel
+        local px = 0
+        local py = 0
 
         -- if self.lock_shake then
         --     px = px + cam.controller_shake_x.value
         --     py = py + cam.controller_shake_y.value
         -- end
 
-        px = round(px)
-        py = round(py)
+        -- px = round(px)
+        -- py = round(py)
 
         if not shader or type(shader) ~= "table" then
             -- lgx.setScissor(scix, sciy, sciw, scih)
