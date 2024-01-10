@@ -1484,18 +1484,19 @@ function Camera:update(dt)
     self.dy = self.y - last_y
 end
 
-function Camera:attach(lock_shake, subpixel, shake_factor)
-    local x, y, w, h = self:get_viewport()
-    -- local x, y, w, h = self.viewport_x, self.viewport_y, self.viewport_w, self.viewport_h
+function Camera:attach(lock_shake, subpixel, shake_factor, skip_scissor)
+    if not skip_scissor then
+        local x, y, w, h = self:get_viewport()
 
-    if subpixel then
-        x = x * subpixel
-        y = y * subpixel
-        h = h * subpixel
-        w = w * subpixel
+        if subpixel then
+            x = x * subpixel
+            y = y * subpixel
+            h = h * subpixel
+            w = w * subpixel
+        end
+
+        love_set_scissor(x, y, w, h)
     end
-
-    love_set_scissor(x, y, w, h)
 
     local ox, oy = (self.viewport_w * 0.5), (self.viewport_h * 0.5)
     local scale = self.scale
