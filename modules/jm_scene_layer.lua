@@ -151,6 +151,9 @@ local tr = love.math.newTransform()
 function Layer:draw(cam, canvas1, canvas2)
     if not self.is_visible then return end
 
+    local scix, sciy, sciw, scih = lgx.getScissor()
+    lgx.setScissor()
+
     -- local last_canvas = lgx.getCanvas()
     local shader = self.shader
 
@@ -169,7 +172,8 @@ function Layer:draw(cam, canvas1, canvas2)
 
     local angle = cam.angle
     local subpixel = state.subpixel
-    local scix, sciy, sciw, scih = lgx.getScissor()
+
+
     local vx, vy, vw, vh = cam:get_drawing_viewport()
 
     local qx = ceil(vw / self.width) + 1
@@ -188,24 +192,16 @@ function Layer:draw(cam, canvas1, canvas2)
             -- )
             cam:set_position(
                 self.infinity_scroll_x
-                and (rx % (self.width))
-                or (rx),
-                ry % (self.height)
+                and (rx % self.width)
+                or rx,
+
+                ry % self.height
             )
         elseif self.infinity_scroll_x then
-            cam:set_position(
-                rx % (self.width),
-                ry
-            )
+            cam:set_position(rx % self.width, ry)
         else
-            cam:set_position(
-                rx,
-                ry
-            )
+            cam:set_position(rx, ry)
         end
-
-        -- cam.x = round(cam.x)
-        -- cam.y = round(cam.y)
     end
 
     cam.scale = self.scale
@@ -216,7 +212,10 @@ function Layer:draw(cam, canvas1, canvas2)
     lgx.replaceTransform(tr)
     lgx.scale(subpixel, subpixel)
 
-    cam:attach(nil, subpixel, self.lock_shake and -1.0 or 1.0)
+    cam:attach(self.lock_shake, subpixel,
+        self.lock_shake and -1.0 or 1.0,
+        canvas1 or self.shader
+    )
 
     -- not using canvas
     if not canvas1 then
@@ -235,15 +234,17 @@ function Layer:draw(cam, canvas1, canvas2)
         local px = 0              -- cx * 0 + cam.viewport_x --/ scale
         local py = 0              --cy * 0 + cam.viewport_y --/ scale
 
-        if self.lock_shake then
-            px = px + cam.controller_shake_x.value
-            py = py + cam.controller_shake_y.value
-        end
+        -- if self.lock_shake then
+        --     px = px + cam.controller_shake_x.value
+        --     py = py + cam.controller_shake_y.value
+        -- end
 
         px = round(px)
         py = round(py)
 
         if not shader or type(shader) ~= "table" then
+            -- lgx.setScissor(scix, sciy, sciw, scih)
+
             lgx.setCanvas(self.gamestate.canvas)
             lgx.setColor(1, 1, 1)
             -- lgx.setBlendMode("alpha", "premultiplied")
@@ -264,6 +265,8 @@ function Layer:draw(cam, canvas1, canvas2)
             local filter = self.gamestate.canvas_filter
 
             lgx.setColor(1, 1, 1)
+
+            -- lgx.setScissor()
 
             for i = 1, n - 1 do
                 local cur_shader = list[i]
@@ -297,13 +300,15 @@ function Layer:draw(cam, canvas1, canvas2)
                 if action then action(cur_shader, n) end
             end
 
+            lgx.setScissor(scix, sciy, sciw, scih)
             lgx.draw(canvas1, px, py, 0, sc, sc)
             lgx.setShader()
+            -- lgx.setScissor()
         end
-
         -- lgx.setBlendMode("alpha")
     end
     lgx.pop()
+    lgx.setScissor(scix, sciy, sciw, scih)
 
     cam.x, cam.y = cx, cy
     cam.scale = scale
