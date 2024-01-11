@@ -246,7 +246,7 @@ function Layer:draw(cam, canvas1, canvas2)
         -- py = round(py)
 
         if not shader or type(shader) ~= "table" then
-            -- lgx.setScissor(scix, sciy, sciw, scih)
+            lgx.setScissor(scix, sciy, sciw, scih)
 
             lgx.setCanvas(self.gamestate.canvas)
             lgx.setColor(1, 1, 1)
@@ -290,6 +290,7 @@ function Layer:draw(cam, canvas1, canvas2)
 
                 canvas1, canvas2 = canvas2, canvas1
             end
+
             canvas1:setFilter(filter, filter)
             canvas2:setFilter(filter, filter)
 
