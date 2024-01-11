@@ -480,6 +480,9 @@ function Camera:__constructor__(
     self.viewport_w = w or device_width  -- self.device_width
     self.viewport_h = h or device_height -- self.device_height
 
+    self.ox = self.viewport_w * 0.5
+    self.oy = self.viewport_h * 0.5
+
     self.tile_size = tile_size or 32
 
     self.x = 0
@@ -820,6 +823,9 @@ function Camera:set_scale_dynamic(scale, duration)
 end
 
 function Camera:set_viewport(x, y, w, h)
+    local prop_x = self.ox / self.viewport_w
+    local prop_y = self.oy / self.viewport_h
+
     self.viewport_x = x or self.viewport_x
     self.viewport_y = y or self.viewport_y
     self.viewport_w = w or self.viewport_w
@@ -830,8 +836,18 @@ function Camera:set_viewport(x, y, w, h)
     -- self.viewport_w = round(self.viewport_w)
     -- self.viewport_h = round(self.viewport_h)
 
+    self.ox = self.viewport_w * prop_x
+    self.oy = self.viewport_h * prop_y
+
     self:set_type(self.type)
     self:set_bounds()
+end
+
+function Camera:set_origin(x, y)
+    x = x or self.ox
+    y = y or self.oy
+    self.ox = x
+    self.oy = y
 end
 
 --- Returns left, top, right and bottom!!!
@@ -871,8 +887,10 @@ function Camera:screen_to_world(x, y)
     local angle = self.angle
     local cos_r, sin_r = cos(angle), sin(angle)
     local scale = self.scale
-    local ox = (self.viewport_w * 0.5) / scale
-    local oy = (self.viewport_h * 0.5) / scale
+    -- local ox = (self.viewport_w * 0.5) / scale
+    -- local oy = (self.viewport_h * 0.5) / scale
+    local ox = self.ox / scale
+    local oy = self.oy / scale
 
     y = y or 0
     x = x or 0
@@ -891,8 +909,10 @@ function Camera:world_to_screen(x, y)
     local angle = self.angle
     local cos_r, sin_r = cos(angle), sin(angle)
     local scale = self.scale
-    local ox, oy = (self.viewport_w * 0.5) / scale,
-        (self.viewport_h * 0.5) / scale
+    -- local ox, oy = (self.viewport_w * 0.5) / scale,
+    --     (self.viewport_h * 0.5) / scale
+    local ox, oy = self.ox / scale,
+        self.oy / scale
 
     y = y or 0
     x = x or 0
@@ -1498,7 +1518,8 @@ function Camera:attach(lock_shake, subpixel, shake_factor, skip_scissor)
         love_set_scissor(x, y, w, h)
     end
 
-    local ox, oy = (self.viewport_w * 0.5), (self.viewport_h * 0.5)
+    -- local ox, oy = (self.viewport_w * 0.5), (self.viewport_h * 0.5)
+    local ox, oy = self.ox, self.oy
     local scale = self.scale
 
     love_push()
