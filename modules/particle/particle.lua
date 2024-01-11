@@ -70,6 +70,11 @@ local abs = math.abs
 ---@field id string|any
 ---@field prop any
 ---@field direction number
+---@field var1 any
+---@field var2 any
+---@field var3 any
+---@field var4 any
+---@field var5 any
 local Particle = {}
 Particle.__index = Particle
 
@@ -158,7 +163,12 @@ function Particle:new(
         end
 
         reuse_table.prop = false
-        -- reuse_table.alpha = 1.0
+
+        reuse_table.var1 = false
+        reuse_table.var2 = false
+        reuse_table.var3 = false
+        reuse_table.var4 = false
+        reuse_table.var5 = false
 
         reuse_table.__custom_update__ = false
     end
@@ -198,7 +208,12 @@ function Particle:new(
             or random(),
         --
         prop = false,
-        -- alpha = 1.0,
+
+        var1 = false,
+        var2 = false,
+        var3 = false,
+        var4 = false,
+        var5 = false,
         --
         update = Particle.update,
         draw = Particle.draw_normal,
