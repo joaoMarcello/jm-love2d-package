@@ -165,6 +165,7 @@ function Layer:draw(cam, canvas1, canvas2)
     local state = self.gamestate
     local cx, cy = cam.x, cam.y
     local scale = cam.scale
+    -- local ox, oy = cam.ox, cam.oy
 
     -- if self.keep_proportions then
     --     self.scale = 1 / scale
@@ -204,8 +205,19 @@ function Layer:draw(cam, canvas1, canvas2)
         end
     end
 
-    -- self.scale = 1 - (1 - scale) * 0.05
-    -- assert(self.scale > 0)
+    -- do
+    --     local diff = 1 - scale
+    --     if diff > 0 then                 -- zoom out
+    --         self.scale = 1 - diff * 1.05 --0.05
+    --         cam.y = cam.y - 100 * diff
+    --     elseif diff < 0 then             -- zoom in
+    --         self.scale = 1 - diff * 1.01
+    --         -- cam.y = cam.y - 100 * diff
+    --     else
+    --         self.scale = 1
+    --     end
+    --     assert(self.scale > 0)
+    -- end
 
     cam.scale = self.scale
     cam.angle = self.angle or angle
@@ -317,6 +329,7 @@ function Layer:draw(cam, canvas1, canvas2)
     cam.x, cam.y = cx, cy
     cam.scale = scale
     cam.angle = angle
+    -- cam.ox, cam.oy = ox, oy
 end
 
 return Layer
