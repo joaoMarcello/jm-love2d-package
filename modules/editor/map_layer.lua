@@ -436,7 +436,9 @@ end
 
 function Layer:set_opacity(value)
     value = value or 1
-    self.tilemap.color[4] = value
+    if self.tilemap then
+        self.tilemap.color[4] = value
+    end
     self.out_tilemap.color[4] = value
 end
 
