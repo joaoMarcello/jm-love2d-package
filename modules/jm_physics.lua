@@ -2077,6 +2077,10 @@ do
     end
 
     function World:add_obj_to_cell(obj, cx, cy)
+        do
+            return self:add_obj_to_cell_v2(obj, cx, cy)
+        end
+
         self.grid[cy] = self.grid[cy] or setmetatable({}, metatable_mode_v)
         local row = self.grid[cy]
 
@@ -2099,6 +2103,10 @@ do
     end
 
     function World:remove_obj_from_cell(obj, cx, cy)
+        do
+            return self:remove_obj_from_cell_v2(obj, cx, cy)
+        end
+
         local row = self.grid[cy]
         if not row or not row[cx] or not row[cx].items[obj] then return end
 
@@ -2122,6 +2130,10 @@ do
     ---@param h number
     ---@return table|nil
     function World:get_items_in_cell_obj(x, y, w, h, empty_tab)
+        do
+            return self:get_items_in_cell_obj_v2(x, y, w, h, empty_tab)
+        end
+
         local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
         local items
 
@@ -2144,6 +2156,71 @@ do
                 end -- End For Columns
             end
         end         -- End for rows
+
+        return items
+    end
+
+    local MAX_COLUMN = 9999
+    function World:add_obj_to_cell_v2(obj, cx, cy)
+        local index = cy * MAX_COLUMN + cx
+        self.grid[index] = self.grid[index] or {
+            count = 0,
+            -- x = cx,
+            -- y = cy,
+            items = setmetatable({}, metatable_mode_k)
+        }
+
+        ---@type JM.Physics.Cell
+        local cell = self.grid[index]
+        -- self.non_empty_cells[cell] = true
+
+        if not cell.items[obj] then
+            cell.items[obj] = true
+            cell.count = cell.count + 1
+            return true
+        end
+        return false
+    end
+
+    function World:remove_obj_from_cell_v2(obj, cx, cy)
+        -- local row = self.grid[cy]
+        -- if not row or not row[cx] or not row[cx].items[obj] then return end
+        local index = cy * MAX_COLUMN + cx
+        ---@type JM.Physics.Cell
+        local cell = self.grid[index]
+        if not cell then return end
+
+        cell.items[obj] = nil
+        cell.count = cell.count - 1
+
+        if cell.count == 0 then
+            clear_table(cell.items)
+            self.grid[index] = nil
+            -- push_items_table(cell.items)
+            -- self.non_empty_cells[cell] = nil
+        end
+        return true
+    end
+
+    function World:get_items_in_cell_obj_v2(x, y, w, h, empty_tab)
+        local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
+        local items
+
+        for cy = ct, (ct + ch - 1) do
+            for cx = cl, (cl + cw - 1) do
+                ---@type JM.Physics.Cell
+                local cell = self.grid[cy * MAX_COLUMN + cx]
+
+                if cell and cell.count > 0 then
+                    items = items or empty_tab or {}
+
+                    -- for item, _ in pairs(cell.items) do
+                    for item, _ in next, cell.items do
+                        items[item] = true
+                    end
+                end
+            end -- End For Columns
+        end     -- End for rows
 
         return items
     end
