@@ -975,7 +975,7 @@ function M:get_shader(shader, state, conf)
                 local shader = table.concat(code)
                 return love.graphics.newShader(shader)
             end
-            blur = build_shader(3, 1, 'weighted', -1)
+            blur = build_shader(conf.taps or 8, conf.offset or 1, conf.offset_type or 'weighted', conf.sigma or -1)
             shaders[shader] = blur
         end
         return blur
