@@ -154,6 +154,8 @@ function Layer:draw(cam, canvas1, canvas2)
     local scix, sciy, sciw, scih = lgx.getScissor()
     lgx.setScissor()
 
+    cam:detach()
+
     -- local last_canvas = lgx.getCanvas()
     local shader = self.shader
 
@@ -165,6 +167,7 @@ function Layer:draw(cam, canvas1, canvas2)
     local state = self.gamestate
     local cx, cy = cam.x, cam.y
     local scale = cam.scale
+    -- local fx, fy = cam.focus_x, cam.focus_y
     -- local ox, oy = cam.ox, cam.oy
 
     -- if self.keep_proportions then
@@ -177,8 +180,8 @@ function Layer:draw(cam, canvas1, canvas2)
 
     local vx, vy, vw, vh = cam:get_drawing_viewport()
 
-    local qx = ceil(vw / self.width) + 1
-    local qy = ceil(vh / self.height) + 1
+    local qx = ceil(math.max(vw, cam.viewport_w) / self.width) + 1
+    local qy = ceil(math.max(vh, cam.viewport_h) / self.height) + 1
 
     do
         local rx = (cx * self.factor_x) - self.px
@@ -209,7 +212,7 @@ function Layer:draw(cam, canvas1, canvas2)
     --     local diff = 1 - scale
     --     if diff > 0 then                 -- zoom out
     --         self.scale = 1 - diff * 1.05 --0.05
-    --         cam.y = cam.y - 100 * diff
+    --         -- cam.focus_y = cam.viewport_h
     --     elseif diff < 0 then             -- zoom in
     --         self.scale = 1 - diff * 1.01
     --         -- cam.y = cam.y - 100 * diff
@@ -224,8 +227,8 @@ function Layer:draw(cam, canvas1, canvas2)
 
     lgx.push()
 
-    lgx.replaceTransform(tr)
-    lgx.scale(subpixel, subpixel)
+    -- lgx.replaceTransform(tr)
+    -- lgx.scale(subpixel, subpixel)
 
     cam:attach(self.lock_shake, subpixel,
         self.lock_shake and -1.0 or 1.0,
@@ -329,7 +332,9 @@ function Layer:draw(cam, canvas1, canvas2)
     cam.x, cam.y = cx, cy
     cam.scale = scale
     cam.angle = angle
+    -- cam.focus_x, cam.focus_y = fx, fy
     -- cam.ox, cam.oy = ox, oy
+    return cam:attach(nil, subpixel)
 end
 
 return Layer
