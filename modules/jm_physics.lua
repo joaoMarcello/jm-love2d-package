@@ -982,8 +982,8 @@ do
 
 
         if cond_push_left then
-            self.speed_x = 0.0
-            self.acc_x = 0.0
+            -- self.speed_x = 0.0
+            -- self.acc_x = 0.0
             self:refresh(most_bottom.x - self.w - 0.5, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
             return true
@@ -991,8 +991,8 @@ do
         elseif cond_push_right
         -- and (self.speed_x <= 0)
         then
-            self.speed_x = 0.0
-            self.acc_x = 0.0
+            -- self.speed_x = 0.0
+            -- self.acc_x = 0.0
             self:refresh(most_bottom:right() + 0.5, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
             return true
