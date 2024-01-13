@@ -2055,6 +2055,19 @@ do
         return count
     end
 
+    -- local ItemsRecycler = setmetatable({}, metatable_mode_k)
+    -- local push_items_table = function(t)
+    --     ItemsRecycler[t] = true
+    --     return clear_table(t)
+    -- end
+
+    -- local pop_items_table = function()
+    --     for t, _ in next, ItemsRecycler do
+    --         ItemsRecycler[t] = nil
+    --         return t
+    --     end
+    -- end
+
     function World:rect_to_cell(x, y, w, h)
         local cleft, ctop = self:to_cell(x, y)
         local cright = mceil((x + w) / self.cellsize)
@@ -2067,7 +2080,12 @@ do
         self.grid[cy] = self.grid[cy] or setmetatable({}, metatable_mode_v)
         local row = self.grid[cy]
 
-        row[cx] = row[cx] or { count = 0, x = cx, y = cy, items = setmetatable({}, metatable_mode_k) }
+        row[cx] = row[cx] or {
+            count = 0,
+            x = cx,
+            y = cy,
+            items = setmetatable({}, metatable_mode_k)
+        }
 
         local cell = row[cx]
         self.non_empty_cells[cell] = true
@@ -2091,6 +2109,8 @@ do
 
         if cell.count == 0 then
             clear_table(cell.items)
+            row[cx] = nil
+            -- push_items_table(cell.items)
             self.non_empty_cells[cell] = nil
         end
         return true
