@@ -13,19 +13,39 @@ end
 local metatable_mode_v = { __mode = 'v' }
 local metatable_mode_k = { __mode = 'k' }
 
+---@type function
+local clear_table
+do
+    local sucess, result = pcall(function()
+        require "table.clear"
+        return true
+    end)
+
+    ---@diagnostic disable-next-line: undefined-field
+    if sucess and table.clear then
+        ---@diagnostic disable-next-line: undefined-field
+        clear_table = table.clear
+    else
+        clear_table = function(t)
+            for k, _ in next, t do
+                rawset(t, k, nil)
+            end
+        end
+    end
+end
+
+
 local reuse_tab = setmetatable({}, metatable_mode_k)
 local function empty_table()
-    for index, _ in next, reuse_tab do
-        reuse_tab[index] = nil
-    end
+    -- for index, _ in next, reuse_tab do
+    --     reuse_tab[index] = nil
+    -- end
+    clear_table(reuse_tab)
     return reuse_tab
 end
 
 local reuse_tab2 = setmetatable({}, metatable_mode_v)
 local function empty_table_for_coll()
-    -- for index, _ in pairs(reuse_tab2) do
-    --     reuse_tab2[index] = nil
-    -- end
     local N = #reuse_tab2
     for i = N, 1, -1 do
         reuse_tab2[i] = nil
@@ -37,6 +57,7 @@ local BodyRecycler = setmetatable({}, metatable_mode_k)
 
 local function push_body(b)
     BodyRecycler[b] = true
+    return clear_table(b)
 end
 
 local function pop_body()
@@ -2067,6 +2088,7 @@ do
         cell.count = cell.count - 1
 
         if cell.count == 0 then
+            clear_table(cell.items)
             self.non_empty_cells[cell] = nil
         end
         return true
@@ -2120,6 +2142,7 @@ do
             end
         else
             table_insert(self.bodies_static, obj)
+            -- rawset(self.bodies_static, #self.bodies_static + 1, obj)
         end
 
         local cl, ct, cw, ch = self:rect_to_cell(obj.x, obj.y, obj.w, obj.h)
