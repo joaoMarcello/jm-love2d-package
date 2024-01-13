@@ -1,5 +1,3 @@
--- ---@type GameObject
--- local GC = require(_G.JM_Path .. "modules.gamestate.game_object")
 local GC = _G.JM_Package.GameObject
 
 --========================================================================
@@ -98,7 +96,7 @@ end
 function Emitter:pop_anima(id)
     local rec = Emitter.AnimaRecycler[id]
     if rec then
-        for obj, _ in pairs(rec) do
+        for obj, _ in next, rec do
             rec[obj] = nil
             obj:reset()
             return obj
@@ -119,14 +117,36 @@ function Emitter:push_anima(anima, id)
     return true
 end
 
+---@type function
+local clear_table
+do
+    local success, result = pcall(function()
+        require "table.clear"
+        return true
+    end)
+
+    ---@diagnostic disable-next-line: undefined-field
+    if success and table.clear then
+        ---@diagnostic disable-next-line: undefined-field
+        clear_table = table.clear
+    else
+        clear_table = function(t)
+            for k, _ in next, t do
+                rawset(t, k, nil)
+            end
+        end
+    end
+end
+
 ---@param p JM.Particle
 function Emitter:push_particle(p)
-    p.prop = false
+    -- p.prop = false
     Emitter.ParticleRecycler[p] = true
+    return clear_table(p)
 end
 
 function Emitter:pop_particle_reuse_table()
-    for tab, _ in pairs(Emitter.ParticleRecycler) do
+    for tab, _ in next, Emitter.ParticleRecycler do
         Emitter.ParticleRecycler[tab] = nil
         return tab
     end
