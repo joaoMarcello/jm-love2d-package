@@ -1698,6 +1698,13 @@ function Map.load_map(dir)
     map:init(d)
     map:build_world()
     map:auto_tile()
+
+    -- for i = 1, #map.layers do
+    --     ---@type JM.MapLayer
+    --     local layer = map.layers[i]
+    --     layer.tilemap = nil
+    -- end
+
     return map
 end
 
