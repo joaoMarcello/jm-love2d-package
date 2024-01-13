@@ -898,7 +898,7 @@ do
         return collisions
     end
 
-    local temp_t = setmetatable({}, { __mode = 'v' })
+    local temp_t = setmetatable({}, metatable_mode_v)
 
     ---@return JM.Physics.Collisions
     function Body:check2(goal_x, goal_y, filter, x, y, w, h)
@@ -2692,6 +2692,7 @@ do
         end
     end
 
+    -- TODO
     function World:remove_unused()
         local N = #self.bodies_static
 
