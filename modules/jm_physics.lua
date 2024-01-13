@@ -255,13 +255,16 @@ local filter_stuck_y = function(obj, item)
     return tp == BodyTypes.static or tp == BodyTypes.kinematic
 end
 
+local tab_for_coll_x = setmetatable({}, metatable_mode_k)
+
 ---@param self JM.Physics.Body
 local function kinematic_moves_dynamic_x(self, goalx)
     goalx = goalx or (self.x + ((self.speed_x * love.timer.getDelta())
         + (self.acc_x * (love.timer.getDelta() ^ 2)) * 0.5))
 
-    local list = self.world:get_items_in_cell_obj(self.x - 2, self.y - 1, self.w + 4, self.h + 2,
-        self.empty_table())
+    clear_table(tab_for_coll_x)
+
+    local list = self.world:get_items_in_cell_obj(self.x - 6, self.y - 1, self.w + 12, self.h + 2, tab_for_coll_x)
 
     local diff = (goalx - self.x)
 
@@ -288,14 +291,14 @@ local function kinematic_moves_dynamic_x(self, goalx)
                             or true
                         -- or item.speed_x <= 0
                         then
-                            item:refresh(goalx + self.w + 0.5)
+                            item:refresh(goalx + self.w + 0.1)
                         end
                     else
                         if diff < 0
                             or true
                         -- or item.speed_x >= 0
                         then
-                            item:refresh(goalx - item.w - 0.5)
+                            item:refresh(goalx - item.w - 0.1)
                         end
                     end
 
@@ -342,8 +345,7 @@ end
 local function kinematic_moves_dynamic_y(self, goaly)
     local diff = (goaly - self.y)
 
-    local list = self.world:get_items_in_cell_obj(self.x - 1, self.y - 2, self.w + 2, self.h + 4,
-        self.empty_table())
+    local list = self.world:get_items_in_cell_obj(self.x - 1, self.y - 2, self.w + 2, self.h + 4, empty_table())
 
     if list then
         for item, _ in next, list do
@@ -867,7 +869,7 @@ do
         collisions.diff_x = diff_x
         collisions.diff_y = diff_y
 
-        local offset = abs(diff_y) > 0 and 0.1 or 0.5 --0.1
+        local offset = 0.1 -- abs(diff_y) > 0 and 0.1 or 0.5 --0.1
 
         collisions.end_x = (diff_x >= 0 and most_left
                 and most_left.x - self.w - offset)
