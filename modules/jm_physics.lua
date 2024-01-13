@@ -2055,18 +2055,20 @@ do
         return count
     end
 
-    -- local ItemsRecycler = setmetatable({}, metatable_mode_k)
-    -- local push_items_table = function(t)
-    --     ItemsRecycler[t] = true
-    --     return clear_table(t)
-    -- end
+    local CellRecycler = setmetatable({}, metatable_mode_k)
+    ---@param t JM.Physics.Cell
+    local push_cell = function(t)
+        CellRecycler[t] = true
+        t.count = 0
+        return clear_table(t.items)
+    end
 
-    -- local pop_items_table = function()
-    --     for t, _ in next, ItemsRecycler do
-    --         ItemsRecycler[t] = nil
-    --         return t
-    --     end
-    -- end
+    local pop_cell = function()
+        for t, _ in next, CellRecycler do
+            CellRecycler[t] = nil
+            return t
+        end
+    end
 
     function World:rect_to_cell(x, y, w, h)
         local cleft, ctop = self:to_cell(x, y)
@@ -2163,7 +2165,7 @@ do
     local MAX_COLUMN = 9999
     function World:add_obj_to_cell_v2(obj, cx, cy)
         local index = cy * MAX_COLUMN + cx
-        self.grid[index] = self.grid[index] or {
+        self.grid[index] = self.grid[index] or pop_cell() or {
             count = 0,
             -- x = cx,
             -- y = cy,
@@ -2188,15 +2190,16 @@ do
         local index = cy * MAX_COLUMN + cx
         ---@type JM.Physics.Cell
         local cell = self.grid[index]
-        if not cell then return end
+        if not cell or not cell.items[obj] then return end
 
         cell.items[obj] = nil
         cell.count = cell.count - 1
 
         if cell.count == 0 then
-            clear_table(cell.items)
-            self.grid[index] = nil
+            -- clear_table(cell.items)
             -- push_items_table(cell.items)
+            self.grid[index] = nil
+            push_cell(cell)
             -- self.non_empty_cells[cell] = nil
         end
         return true
