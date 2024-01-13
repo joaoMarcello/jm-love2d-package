@@ -156,8 +156,9 @@ function Layer:draw(cam, canvas1, canvas2)
 
     cam:detach()
 
-    -- local last_canvas = lgx.getCanvas()
     local shader = self.shader
+    canvas1 = canvas1
+        or ((self.skip_draw or self.shader) and self.gamestate.canvas_layer)
 
     if canvas1 then
         lgx.setCanvas(canvas1)
@@ -169,10 +170,6 @@ function Layer:draw(cam, canvas1, canvas2)
     local scale = cam.scale
     -- local fx, fy = cam.focus_x, cam.focus_y
     -- local ox, oy = cam.ox, cam.oy
-
-    -- if self.keep_proportions then
-    --     self.scale = 1 / scale
-    -- end
 
     local angle = cam.angle
     local subpixel = state.subpixel
@@ -188,12 +185,6 @@ function Layer:draw(cam, canvas1, canvas2)
         local ry = (cy * self.factor_y) - self.py
 
         if self.infinity_scroll_y then
-            -- cam:set_position(
-            --     self.infinity_scroll_x
-            --     and (rx % (self.width * self.scale) - vx * 0 + cam.viewport_x * 0)
-            --     or (rx - cx * 0),
-            --     ry % (self.height * self.scale) - vy * 0 + cam.viewport_y * 0
-            -- )
             cam:set_position(
                 self.infinity_scroll_x
                 and (rx % self.width)
@@ -232,7 +223,7 @@ function Layer:draw(cam, canvas1, canvas2)
 
     cam:attach(self.lock_shake, subpixel,
         self.lock_shake and -1.0 or 1.0,
-        canvas1 or self.shader
+        canvas1
     )
 
     -- not using canvas
