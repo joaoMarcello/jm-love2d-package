@@ -143,7 +143,7 @@ local function draw(self, cam, qx, qy)
     end
 end
 
-local tr = love.math.newTransform()
+-- local tr = love.math.newTransform()
 
 ---@param cam JM.Camera.Camera
 ---@param canvas1 love.Canvas|any
@@ -325,6 +325,7 @@ function Layer:draw(cam, canvas1, canvas2)
     cam.angle = angle
     -- cam.focus_x, cam.focus_y = fx, fy
     -- cam.ox, cam.oy = ox, oy
+
     return cam:attach(nil, subpixel)
 end
 
