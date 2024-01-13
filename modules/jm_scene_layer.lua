@@ -168,6 +168,7 @@ function Layer:draw(cam, canvas1, canvas2)
     local state = self.gamestate
     local cx, cy = cam.x, cam.y
     local scale = cam.scale
+    local bl, bt, br, bb = cam.bounds_left, cam.bounds_top, cam.bounds_right, cam.bounds_bottom
     -- local fx, fy = cam.focus_x, cam.focus_y
     -- local ox, oy = cam.ox, cam.oy
 
@@ -198,6 +199,9 @@ function Layer:draw(cam, canvas1, canvas2)
             cam:set_position(rx, ry)
         end
     end
+
+    cam.bounds_bottom = 288
+    cam:keep_on_bounds()
 
     -- do
     --     local diff = 1 - scale
@@ -323,6 +327,7 @@ function Layer:draw(cam, canvas1, canvas2)
     cam.x, cam.y = cx, cy
     cam.scale = scale
     cam.angle = angle
+    cam.bounds_left, cam.bounds_right, cam.bounds_top, cam.bounds_bottom = bl, br, bt, bb
     -- cam.focus_x, cam.focus_y = fx, fy
     -- cam.ox, cam.oy = ox, oy
 
