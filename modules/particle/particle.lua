@@ -228,13 +228,15 @@ end
 function Particle:copy()
     local p = Particle:new()
     for k, v in next, self do
-        p[k] = v
+        -- p[k] = v
+        rawset(p, k, v)
     end
 
     if self.prop then
         local prop = {}
         for k, v in next, self.prop do
-            prop[k] = v
+            -- prop[k] = v
+            rawset(prop, k, v)
         end
         p.prop = prop
     end
