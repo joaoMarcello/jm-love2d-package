@@ -474,6 +474,62 @@ function Utils:smoothstep(edge0, edge1, x)
     return t * t * (3.0 - 2.0 * t);
 end
 
+--=========================================================================
+---@class JM.TableRecycler
+---@field list table
+local TableRecycler = {}
+TableRecycler.__index = TableRecycler
+do
+    ---@type function
+    local clear_table
+    local next, rawset = next, rawset
+    do
+        local sucess, _ = pcall(function()
+            require "table.clear"
+            return true
+        end)
+
+        ---@diagnostic disable-next-line: undefined-field
+        if sucess then
+            ---@diagnostic disable-next-line: undefined-field
+            clear_table = table.clear
+        else
+            clear_table = function(t)
+                for k, _ in next, t do
+                    rawset(t, k, nil)
+                end
+            end
+        end
+    end
+    Utils.clear_table = clear_table
+
+    local metatable_mode_k = { __mode = 'k' }
+    function TableRecycler:new()
+        local obj = setmetatable(
+            {
+                list = setmetatable({}, metatable_mode_k)
+            },
+            TableRecycler
+        )
+        return obj
+    end
+
+    function TableRecycler:push_table(t)
+        self.list[t] = true
+        return clear_table(t)
+    end
+
+    function TableRecycler:pop_table()
+        for t, _ in next, self.list do
+            self.list[t] = nil
+            return t
+        end
+        return {}
+    end
+
+    Utils.TableRecycler = TableRecycler
+end
+
 Utils.E = E
 Utils.tanh = tanh
 Utils.sigmoid = sigmoid
