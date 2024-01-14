@@ -1,3 +1,8 @@
+do
+    local jit = require "jit"
+    jit.off(true, true)
+end
+
 local abs, mfloor, mceil, sqrt, min, max, pow = math.abs, math.floor, math.ceil, math.sqrt, math.min, math.max, math.pow
 
 local table_insert, table_remove, table_sort = table.insert, table.remove, table.sort
@@ -22,15 +27,15 @@ do
     end)
 
     ---@diagnostic disable-next-line: undefined-field
-    if sucess and table.clear then
+    if sucess then
         ---@diagnostic disable-next-line: undefined-field
         clear_table = table.clear
     else
-        clear_table = function(t)
-            for k, _ in next, t do
-                rawset(t, k, nil)
-            end
-        end
+        -- clear_table = function(t)
+        --     for k, _ in next, t do
+        --         rawset(t, k, nil)
+        --     end
+        -- end
     end
 end
 
@@ -2067,16 +2072,16 @@ do
     local CellRecycler = setmetatable({}, metatable_mode_k)
     ---@param t JM.Physics.Cell
     local push_cell = function(t)
-        -- CellRecycler[t] = true
-        rawset(CellRecycler, t, true)
+        CellRecycler[t] = true
+        -- rawset(CellRecycler, t, true)
         t.count = 0
         return clear_table(t.items)
     end
 
     local pop_cell = function()
         for t, _ in next, CellRecycler do
-            -- CellRecycler[t] = nil
-            rawset(CellRecycler, t, nil)
+            CellRecycler[t] = nil
+            -- rawset(CellRecycler, t, nil)
             return t
         end
     end
@@ -2089,92 +2094,92 @@ do
         return cleft, ctop, cright - cleft + 1, cbottom - ctop + 1
     end
 
-    function World:add_obj_to_cell(obj, cx, cy)
-        do
-            return self:add_obj_to_cell_v2(obj, cx, cy)
-        end
+    -- function World:add_obj_to_cell(obj, cx, cy)
+    --     do
+    --         return self:add_obj_to_cell_v2(obj, cx, cy)
+    --     end
 
-        self.grid[cy] = self.grid[cy] or setmetatable({}, metatable_mode_v)
-        local row = self.grid[cy]
+    --     self.grid[cy] = self.grid[cy] or setmetatable({}, metatable_mode_v)
+    --     local row = self.grid[cy]
 
-        row[cx] = row[cx] or {
-            count = 0,
-            x = cx,
-            y = cy,
-            items = setmetatable({}, metatable_mode_k)
-        }
+    --     row[cx] = row[cx] or {
+    --         count = 0,
+    --         x = cx,
+    --         y = cy,
+    --         items = setmetatable({}, metatable_mode_k)
+    --     }
 
-        local cell = row[cx]
-        self.non_empty_cells[cell] = true
+    --     local cell = row[cx]
+    --     self.non_empty_cells[cell] = true
 
-        if not cell.items[obj] then
-            cell.items[obj] = true
-            cell.count = cell.count + 1
-            return true
-        end
-        return false
-    end
+    --     if not cell.items[obj] then
+    --         cell.items[obj] = true
+    --         cell.count = cell.count + 1
+    --         return true
+    --     end
+    --     return false
+    -- end
 
-    function World:remove_obj_from_cell(obj, cx, cy)
-        do
-            return self:remove_obj_from_cell_v2(obj, cx, cy)
-        end
+    -- function World:remove_obj_from_cell(obj, cx, cy)
+    --     do
+    --         return self:remove_obj_from_cell_v2(obj, cx, cy)
+    --     end
 
-        local row = self.grid[cy]
-        if not row or not row[cx] or not row[cx].items[obj] then return end
+    --     local row = self.grid[cy]
+    --     if not row or not row[cx] or not row[cx].items[obj] then return end
 
-        ---@type JM.Physics.Cell
-        local cell = row[cx]
-        cell.items[obj] = nil
-        cell.count = cell.count - 1
+    --     ---@type JM.Physics.Cell
+    --     local cell = row[cx]
+    --     cell.items[obj] = nil
+    --     cell.count = cell.count - 1
 
-        if cell.count == 0 then
-            clear_table(cell.items)
-            row[cx] = nil
-            -- push_items_table(cell.items)
-            self.non_empty_cells[cell] = nil
-        end
-        return true
-    end
+    --     if cell.count == 0 then
+    --         clear_table(cell.items)
+    --         row[cx] = nil
+    --         -- push_items_table(cell.items)
+    --         self.non_empty_cells[cell] = nil
+    --     end
+    --     return true
+    -- end
 
-    ---@param x number
-    ---@param y number
-    ---@param w number
-    ---@param h number
-    ---@return table|nil
-    function World:get_items_in_cell_obj(x, y, w, h, empty_tab)
-        do
-            return self:get_items_in_cell_obj_v2(x, y, w, h, empty_tab)
-        end
+    -- ---@param x number
+    -- ---@param y number
+    -- ---@param w number
+    -- ---@param h number
+    -- ---@return table|nil
+    -- function World:get_items_in_cell_obj(x, y, w, h, empty_tab)
+    --     do
+    --         return self:get_items_in_cell_obj_v2(x, y, w, h, empty_tab)
+    --     end
 
-        local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
-        local items
+    --     local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
+    --     local items
 
-        for cy = ct, (ct + ch - 1) do
-            local row = self.grid[cy]
+    --     for cy = ct, (ct + ch - 1) do
+    --         local row = self.grid[cy]
 
-            if row then
-                for cx = cl, (cl + cw - 1) do
-                    ---@type JM.Physics.Cell
-                    local cell = row[cx]
+    --         if row then
+    --             for cx = cl, (cl + cw - 1) do
+    --                 ---@type JM.Physics.Cell
+    --                 local cell = row[cx]
 
-                    if cell and cell.count > 0 then
-                        items = items or empty_tab or {}
+    --                 if cell and cell.count > 0 then
+    --                     items = items or empty_tab or {}
 
-                        -- for item, _ in pairs(cell.items) do
-                        for item, _ in next, cell.items do
-                            items[item] = true
-                        end
-                    end
-                end -- End For Columns
-            end
-        end         -- End for rows
+    --                     -- for item, _ in pairs(cell.items) do
+    --                     for item, _ in next, cell.items do
+    --                         items[item] = true
+    --                     end
+    --                 end
+    --             end -- End For Columns
+    --         end
+    --     end         -- End for rows
 
-        return items
-    end
+    --     return items
+    -- end
 
     local MAX_COLUMN = 9999
-    function World:add_obj_to_cell_v2(obj, cx, cy)
+    function World:add_obj_to_cell(obj, cx, cy)
         local index = cy * MAX_COLUMN + cx
         self.grid[index] = self.grid[index] or pop_cell() or {
             count = 0,
@@ -2195,7 +2200,7 @@ do
         return false
     end
 
-    function World:remove_obj_from_cell_v2(obj, cx, cy)
+    function World:remove_obj_from_cell(obj, cx, cy)
         -- local row = self.grid[cy]
         -- if not row or not row[cx] or not row[cx].items[obj] then return end
         local index = cy * MAX_COLUMN + cx
@@ -2216,7 +2221,7 @@ do
         return true
     end
 
-    function World:get_items_in_cell_obj_v2(x, y, w, h, empty_tab)
+    function World:get_items_in_cell_obj(x, y, w, h, empty_tab)
         local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
         local items
 
@@ -2238,6 +2243,12 @@ do
 
         return items
     end
+
+    -- jit.off(World.add_obj_to_cell, true)
+    -- jit.off(World.remove_obj_from_cell, true)
+    -- jit.off(World.get_items_in_cell_obj, true)
+    -- jit.off(Body.check, true)
+    -- jit.off(Body.check2, true)
 
     ---@param obj JM.Physics.Body
     function World:add(obj)
@@ -2799,6 +2810,16 @@ do
                     bd:refresh(nil, nil, nil, self.tile)
                 end
                 --
+            end
+        end
+
+        for i = #self.bodies_static, 1, -1 do
+            ---@type JM.Physics.Collide
+            local bd = self.bodies_static[i]
+
+            if bd.w <= 0 or bd.h <= 0 then
+                self:remove_by_obj(bd, self.bodies_static)
+                self:remove_by_obj(bd, self.bodies)
             end
         end
     end
