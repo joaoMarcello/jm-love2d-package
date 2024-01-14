@@ -1699,12 +1699,13 @@ function Map.load_map(dir)
     map:build_world()
     map:auto_tile()
 
-    -- for i = 1, #map.layers do
-    --     ---@type JM.MapLayer
-    --     local layer = map.layers[i]
-    --     layer.tilemap = nil
-    -- end
-
+    for i = 1, #map.layers do
+        ---@type JM.MapLayer
+        local layer = map.layers[i]
+        -- layer.out_tilemap = layer.tilemap
+        layer.tilemap = nil
+    end
+    collectgarbage("collect")
     return map
 end
 
