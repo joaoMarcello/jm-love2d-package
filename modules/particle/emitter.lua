@@ -1,3 +1,8 @@
+do
+    local jit = require "jit"
+    jit.off(true, true)
+end
+
 local GC = _G.JM_Package.GameObject
 
 --========================================================================
