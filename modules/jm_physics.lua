@@ -1,6 +1,6 @@
 do
-    local jit = require "jit"
-    jit.off(true, true)
+    -- local jit = require "jit"
+    -- jit.off(true, true)
 end
 
 local abs, mfloor, mceil, sqrt, min, max, pow = math.abs, math.floor, math.ceil, math.sqrt, math.min, math.max, math.pow
