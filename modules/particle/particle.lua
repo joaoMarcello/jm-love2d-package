@@ -168,13 +168,13 @@ function Particle:new(
 
         reuse_table.prop = false
 
-        reuse_table.var1 = false
-        reuse_table.var2 = false
-        reuse_table.var3 = false
-        reuse_table.var4 = false
-        reuse_table.var5 = false
+        reuse_table.var1 = 0
+        reuse_table.var2 = 0
+        reuse_table.var3 = 0
+        reuse_table.var4 = 0
+        reuse_table.var5 = 0
 
-        reuse_table.__custom_update__ = false
+        reuse_table.__custom_update__ = generic
     end
 
     local obj = setmetatable(reuse_table or {
