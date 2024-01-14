@@ -1,7 +1,8 @@
-do
-    local jit = require "jit"
-    jit.off(true, true)
-end
+-- do
+--     local jit = require "jit"
+--     jit.off(true, true)
+-- end
+
 ---@type JM.Physics
 local Phys = require(_G.JM_Path .. "modules.jm_physics")
 local Utils = _G.JM_Utils

@@ -1,7 +1,7 @@
-do
-    local jit = require "jit"
-    jit.off(true, true)
-end
+-- do
+--     local jit = require "jit"
+--     jit.off(true, true)
+-- end
 
 local GC = _G.JM_Package.GameObject
 
@@ -131,7 +131,7 @@ do
     end)
 
     ---@diagnostic disable-next-line: undefined-field
-    if success and table.clear then
+    if success then
         ---@diagnostic disable-next-line: undefined-field
         clear_table = table.clear
     else
