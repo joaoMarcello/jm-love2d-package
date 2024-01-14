@@ -200,8 +200,8 @@ function Layer:draw(cam, canvas1, canvas2)
         end
     end
 
-    cam.bounds_bottom = 288
-    cam:keep_on_bounds()
+    -- cam.bounds_bottom = (288 + 128) / scale
+    -- cam:keep_on_bounds()
 
     -- do
     --     local diff = 1 - scale
