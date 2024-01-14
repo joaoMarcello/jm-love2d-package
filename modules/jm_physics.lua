@@ -986,7 +986,12 @@ do
         if cond_push_left then
             -- self.speed_x = 0.0
             -- self.acc_x = 0.0
-            self:refresh(most_bottom.x - self.w - 0.5, col.goal_y)
+            local px = most_bottom.x - self.w - 0.5
+
+            local colls = self:check2(px, nil, collision_x_filter)
+            if colls.n > 0 then return false end
+
+            self:refresh(px, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
             return true
             ---
@@ -995,7 +1000,11 @@ do
         then
             -- self.speed_x = 0.0
             -- self.acc_x = 0.0
-            self:refresh(most_bottom:right() + 0.5, col.goal_y)
+            local px = most_bottom:right() + 0.5
+            local colls = self:check2(px, nil, collision_x_filter)
+            if colls.n > 0 then return false end
+
+            self:refresh(px, col.goal_y)
             dispatch_event(self, BodyEvents.pushed_off_ledge)
             return true
         end
@@ -2058,14 +2067,16 @@ do
     local CellRecycler = setmetatable({}, metatable_mode_k)
     ---@param t JM.Physics.Cell
     local push_cell = function(t)
-        CellRecycler[t] = true
+        -- CellRecycler[t] = true
+        rawset(CellRecycler, t, true)
         t.count = 0
         return clear_table(t.items)
     end
 
     local pop_cell = function()
         for t, _ in next, CellRecycler do
-            CellRecycler[t] = nil
+            -- CellRecycler[t] = nil
+            rawset(CellRecycler, t, nil)
             return t
         end
     end
