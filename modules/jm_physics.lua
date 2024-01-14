@@ -31,11 +31,11 @@ do
         ---@diagnostic disable-next-line: undefined-field
         clear_table = table.clear
     else
-        -- clear_table = function(t)
-        --     for k, _ in next, t do
-        --         rawset(t, k, nil)
-        --     end
-        -- end
+        clear_table = function(t)
+            for k, _ in next, t do
+                rawset(t, k, nil)
+            end
+        end
     end
 end
 
