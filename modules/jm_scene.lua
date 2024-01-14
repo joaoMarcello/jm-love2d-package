@@ -1994,23 +1994,45 @@ end
 
 local sort_update = function(a, b) return a.update_order > b.update_order end
 local sort_draw = function(a, b) return a.draw_order < b.draw_order end
-local pairs = pairs
+local pairs, next, rawset = pairs, next, rawset
+
+---@type function
+local clear_table
+do
+    local sucess, _ = pcall(function()
+        require "table.clear"
+        return true
+    end)
+
+    ---@diagnostic disable-next-line: undefined-field
+    if sucess then
+        ---@diagnostic disable-next-line: undefined-field
+        clear_table = table.clear
+    else
+        clear_table = function(t)
+            for k, _ in next, t do
+                rawset(t, k, nil)
+            end
+        end
+    end
+end
 
 local ObjectRecycler = setmetatable({}, { __mode = 'k' })
 
 local function push_object(obj)
     ObjectRecycler[obj] = true
+    return clear_table(obj)
 end
 
 local function pop_object(skip_clear)
-    for obj, _ in pairs(ObjectRecycler) do
+    for obj, _ in next, ObjectRecycler do
         ObjectRecycler[obj] = nil
 
-        if not skip_clear then
-            for key, v in pairs(obj) do
-                obj[key] = nil
-            end
-        end
+        -- if not skip_clear then
+        --     for key, v in pairs(obj) do
+        --         obj[key] = nil
+        --     end
+        -- end
 
         return obj
     end
