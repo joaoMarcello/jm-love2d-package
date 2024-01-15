@@ -1640,6 +1640,7 @@ do
                 then
                     obj.speed_x = 0.0
                     obj.acc_x = 0.0
+                    goalx = self.x
                     dispatch_event(obj, BodyEvents.speed_x_change_direction)
                 end
 
