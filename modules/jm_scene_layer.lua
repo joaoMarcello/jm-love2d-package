@@ -129,7 +129,7 @@ function Layer:set_shader(shader, action)
             local params = shader_param[self] or {}
 
             for i = 1, #list do
-                params[list[i]] = { is_enabled = true, pass = false }
+                params[list[i]] = params[list[i]] or { is_enabled = true, pass = false }
             end
 
             shader_param[self] = params
