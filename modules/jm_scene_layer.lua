@@ -115,6 +115,8 @@ local function draw_scroll_y(self, cam, qy, qx, qix, qiy)
     end
 end
 
+local shader_param = {}
+
 ---@param shader love.Shader|table
 ---@param action function|any
 ---@return love.Shader|table
@@ -122,8 +124,36 @@ function Layer:set_shader(shader, action)
     self.shader = shader
     if shader then
         self.shader_action = action
+        if type(shader) == "table" then
+            local list = shader
+            local params = shader_param[self] or {}
+
+            for i = 1, #list do
+                params[list[i]] = { is_enabled = true, pass = false }
+            end
+
+            shader_param[self] = params
+        end
+    else
+        shader_param[self] = nil
     end
+
     return shader
+end
+
+function Layer:get_shader_params()
+    return shader_param[self]
+end
+
+function Layer:set_shader_params(shader, enabled, pass)
+    local params = shader_param[self]
+    if not params then return end
+
+    local args = params[shader]
+    if args then
+        args.is_enabled = enabled
+        args.pass = pass
+    end
 end
 
 local function draw(self, cam, qx, qy)
@@ -148,7 +178,7 @@ end
 ---@param cam JM.Camera.Camera
 ---@param canvas1 love.Canvas|any
 ---@param canvas2 love.Canvas|any
-function Layer:draw(cam, canvas1, canvas2)
+function Layer:draw(cam, canvas1, canvas2, result)
     if not self.is_visible then return end
 
     local scix, sciy, sciw, scih = lgx.getScissor()
@@ -232,9 +262,9 @@ function Layer:draw(cam, canvas1, canvas2)
 
     -- not using canvas
     if not canvas1 then
-        lgx.setShader(self.shader)
+        -- lgx.setShader(self.shader)
         draw(self, cam, qx, qy)
-        lgx.setShader()
+        -- lgx.setShader()
     else
         draw(self, cam, qx, qy)
     end
@@ -258,7 +288,7 @@ function Layer:draw(cam, canvas1, canvas2)
         if not shader or type(shader) ~= "table" then
             lgx.setScissor(scix, sciy, sciw, scih)
 
-            lgx.setCanvas(self.gamestate.canvas)
+            lgx.setCanvas(result or self.gamestate.canvas)
             lgx.setColor(1, 1, 1)
             -- lgx.setBlendMode("alpha", "premultiplied")
 
@@ -276,6 +306,7 @@ function Layer:draw(cam, canvas1, canvas2)
             local list = shader
             local n = #list
             local filter = self.gamestate.canvas_filter
+            local params = self:get_shader_params()
 
             lgx.setColor(1, 1, 1)
 
@@ -284,34 +315,47 @@ function Layer:draw(cam, canvas1, canvas2)
             for i = 1, n - 1 do
                 local cur_shader = list[i]
 
-                canvas1:setFilter(filter, filter)
-                canvas2:setFilter("nearest", "nearest")
+                if params[cur_shader].is_enabled then
+                    canvas1:setFilter("nearest", "nearest")
+                    canvas2:setFilter("nearest", "nearest")
 
-                lgx.setCanvas(canvas2)
-                lgx.clear()
+                    lgx.setCanvas(canvas2)
+                    lgx.clear()
 
-                do
-                    lgx.setShader(cur_shader)
-                    local action = self.shader_action
-                    if action then action(cur_shader, n) end
-                end
+                    do
+                        lgx.setShader(cur_shader)
+                        local action = self.shader_action
+                        if action then action(cur_shader, n) end
+                    end
 
-                lgx.draw(canvas1, 0, 0, 0, sc, sc)
+                    lgx.draw(canvas1, 0, 0, 0, sc, sc)
 
-                canvas1, canvas2 = canvas2, canvas1
-            end
+                    do
+                        local next = list[i + 1]
+                        if next and params[cur_shader].pass then
+                            next:send(params[cur_shader].pass, canvas2)
+                        end
+                    end
+
+                    canvas1, canvas2 = canvas2, canvas1
+                end -- end if
+                ---
+            end     -- end for
 
             canvas1:setFilter(filter, filter)
             canvas2:setFilter(filter, filter)
 
             lgx.setShader()
 
-            lgx.setCanvas(self.gamestate.canvas)
+            lgx.setCanvas(result or self.gamestate.canvas)
             do
                 local cur_shader = list[n]
-                lgx.setShader(cur_shader)
-                local action = self.shader_action
-                if action then action(cur_shader, n) end
+
+                if cur_shader and params[cur_shader].is_enabled then
+                    lgx.setShader(cur_shader)
+                    local action = self.shader_action
+                    if action then action(cur_shader, n) end
+                end
             end
 
             lgx.setScissor(scix, sciy, sciw, scih)
