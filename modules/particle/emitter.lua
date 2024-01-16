@@ -188,7 +188,9 @@ function Emitter:update(dt)
 
     if self.duration ~= 0.0 then
         self.duration = self.duration - dt
-        if self.duration < 0.0 then self.duration = 0.0 end
+        if self.duration < 0.0 then
+            self.duration = 0.0
+        end
     end
 
     if self.lifetime <= 0.0 then
@@ -244,7 +246,7 @@ function Emitter:draw(cam)
     local list = self.particles
 
     for i = 1, self.N do
-        if i == 1 then
+        if i == 1 and self.shader then
             setShader(self.shader)
         end
         ---@type JM.Particle
