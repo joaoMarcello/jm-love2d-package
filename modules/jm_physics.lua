@@ -547,6 +547,10 @@ do
             self.events = self.events or {}
             self.colls = self.colls or {}
             self.colls2 = self.colls2 or {}
+
+            self.lock_resistance_x = false
+            self.lock_resistance_y = false
+            self.lock_friction_x = false
         else
             self.events = nil
             self.colls = nil
@@ -1244,6 +1248,8 @@ do
     end
 
     function Body:resistance_y()
+        if self.lock_resistance_y then return 0.0 end
+
         local speed_y = self.speed_y
         if speed_y == 0.0 then return 0.0 end
 
@@ -1304,6 +1310,10 @@ do
     end
 
     function Body:resistance_x()
+        if self.lock_resistance_x then
+            return 0.0
+        end
+
         local speed_x = self.speed_x
         if speed_x == 0 then return 0.0 end
 
@@ -1333,6 +1343,7 @@ do
     end
 
     function Body:friction_x()
+        if self.lock_friction_x then return 0.0 end
         if self.speed_x == 0.0 then return 0.0 end
 
         local ground = self.ground
