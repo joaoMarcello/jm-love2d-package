@@ -1,4 +1,4 @@
-local m_sin, m_cos, m_min, m_max, PI = math.sin, math.cos, math.min, math.max, math.pi
+local Utils = JM.Utils
 
 local MSG_using_effect_with_no_associated_affectable =
 "\nError: Trying to use a 'Effect' object without associate him to a 'Affectable' object.\n\nTip: Try use the ':apply' method from the 'Effect' object."
@@ -71,6 +71,7 @@ local TYPE_ = {
     pendulum = 38,
     earthquake = 39,        --***
     ghostShader = 40,       --***
+    stretchSquash = 41,
 }
 
 ---
@@ -90,12 +91,8 @@ Effect.TYPE = TYPE_
 ---@return JM.Effect effect
 function Effect:new(object, args)
     -- ---@type JM.Effect
-    local effect = {}
-    setmetatable(effect, self)
-
-    Effect.__constructor__(effect, object, args)
-
-    return effect
+    local effect = setmetatable({}, Effect)
+    return Effect.__constructor__(effect, object, args)
 end
 
 ---
@@ -105,7 +102,7 @@ end
 ---@param object JM.Template.Affectable
 function Effect:__constructor__(object, args)
     self.__id = Effect.TYPE.generic
-    self.__color = { 1, 1, 1, 1 }
+    self.__color = Utils:get_rgba(1, 1, 1, 1)
     self.__scale = { x = 1, y = 1 }
     self.__is_enabled = true
     self.__prior = 1
@@ -127,8 +124,9 @@ function Effect:__constructor__(object, args)
     self.ox = nil
     self.oy = nil
 
-    self.__obj_initial_color = { 1, 1, 1, 1 }
+    self.__obj_initial_color = Utils:get_rgba(1, 1, 1, 1)
     self:set_object(object)
+    return self
 end
 
 --
@@ -234,38 +232,42 @@ function Effect:__update__(dt)
 
     if self.__remove then
         if self.__final_action then
-            self:restaure_object()
             self.__final_action(self.__args_final_action)
         end
+        self:restaure_object()
     end
 end
 
 function Effect:restaure_object()
-    assert(self.__object, MSG_using_effect_with_no_associated_affectable)
+    local obj = self.__object
+    assert(obj, MSG_using_effect_with_no_associated_affectable)
 
-    if self.__id == Effect.TYPE.flash
-        or self.__id == Effect.TYPE.fadein
-        or self.__id == Effect.TYPE.fadeout
-        or self.__id == Effect.TYPE.ghost
-        or self.__id == Effect.TYPE.flickering
+    local id = self.__id
+    local Type = Effect.TYPE
+
+    if id == Type.flash
+        or id == Type.fadein
+        or id == Type.fadeout
+        or id == Type.ghost
+        or id == Type.flickering
     then
-        self.__object:set_color(self.__obj_initial_color)
+        obj:set_color(self.__obj_initial_color)
     end
 
-    if self.__id == Effect.TYPE.flickering
-        or self.__id == Effect.TYPE.popout
+    if id == Type.flickering
+        or id == Type.popout
     then
-        self.__object:set_visible(true)
+        obj:set_visible(true)
     end
-    -- self.__object:set_visible(true)
 
-    self.__object:set_effect_transform("rot", self.__type_transform.rot and 0)
-    self.__object:set_effect_transform("sx", self.__type_transform.sx and 1)
-    self.__object:set_effect_transform("sy", self.__type_transform.sy and 1)
-    self.__object:set_effect_transform("ox", self.__type_transform.ox and 0)
-    self.__object:set_effect_transform("oy", self.__type_transform.oy and 0)
-    self.__object:set_effect_transform("kx", self.__type_transform.kx and 0)
-    self.__object:set_effect_transform("ky", self.__type_transform.ky and 0)
+    local type_transform = self.__type_transform
+    obj:set_effect_transform("rot", type_transform.rot and 0)
+    obj:set_effect_transform("sx", type_transform.sx and 1)
+    obj:set_effect_transform("sy", type_transform.sy and 1)
+    obj:set_effect_transform("ox", type_transform.ox and 0)
+    obj:set_effect_transform("oy", type_transform.oy and 0)
+    obj:set_effect_transform("kx", type_transform.kx and 0)
+    obj:set_effect_transform("ky", type_transform.ky and 0)
 end
 
 function Effect:draw(...)
