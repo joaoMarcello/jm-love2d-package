@@ -32,26 +32,28 @@ function Component:init()
     self.__remove = false
 end
 
----@param eff_type JM.Effect.id_string
----@param eff_args any
----@return JM.Effect|any
-function Component:apply_effect(eff_type, eff_args, force)
-    if not self.eff_actives then self.eff_actives = {} end
+-- ---@param eff_type JM.Effect.id_string
+-- ---@param eff_args any
+-- ---@return JM.Effect|any
+-- function Component:apply_effect(eff_type, eff_args, force)
+--     if not self.eff_actives then self.eff_actives = {} end
 
-    if not force
-        and self.eff_actives[eff_type]
-        and not self.eff_actives[eff_type].__remove
-    then
-        return nil
-    end
+--     local cur_eff = self.eff_actives[eff_type]
 
-    if self.eff_actives[eff_type] then
-        self.eff_actives[eff_type].__remove = true
-    end
+--     if not force
+--         and cur_eff
+--         and not cur_eff.__remove
+--     then
+--         return nil
+--     end
 
-    self.eff_actives[eff_type] = Affectable.apply_effect(self, eff_type, eff_args)
-    return self.eff_actives[eff_type]
-end
+--     if cur_eff then
+--         cur_eff.__remove = true
+--     end
+
+--     self.eff_actives[eff_type] = Affectable.apply_effect(self, eff_type, eff_args)
+--     return self.eff_actives[eff_type]
+-- end
 
 function Component:get_cx()
     return self.body.x + self.body.w * 0.5
