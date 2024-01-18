@@ -283,7 +283,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     --     self.canvas_filter,
     --     self.subpixel
     -- )
-    self.use_canvas_layer = conf.use_canvas_layer or nil
+    self.using_canvas_layer = conf.use_canvas_layer or nil
     self.canvas_layer = nil
 
     self:restaure_canvas()
