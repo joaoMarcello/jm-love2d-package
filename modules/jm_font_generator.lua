@@ -1929,6 +1929,8 @@ function Font:printf(text, x, y, align, limit_right)
             or (align == "center" and x + limit_right * 0.5 - lw * 0.5)
             or x
 
+        pos_to_draw = math.floor(pos_to_draw + .5)
+
         print(self, line, pos_to_draw, ty, actions, ex_sp, current_color, N_line, cur_fontsize)
 
         ty = ty + (self.__ref_height + self.__line_space) * init_scale
