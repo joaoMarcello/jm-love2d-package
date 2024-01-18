@@ -9,7 +9,6 @@ Fadein.__index = Fadein
 ---@param args any|nil
 ---@return JM.Effect|JM.Effect.Fadein
 function Fadein:new(object, args)
-
     local obj = Effect:new(object, args)
     setmetatable(obj, self)
 
