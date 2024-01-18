@@ -15,7 +15,7 @@ function Stretch:__constructor__(args)
     self.__id = Effect.TYPE.stretchSquash
 
     self.vx = args.vx or 0.0
-    self.range_x = args.range_x or 0.2
+    self.range_x = args.range_x or 0.15
     self.init_range_x = self.range_x
     self.speed_x = args.speed_x or 0.5
     self.decay_speed_x = args.decay_speed_x or 1
@@ -23,7 +23,7 @@ function Stretch:__constructor__(args)
     self.lim_x = args.lim_x
 
     self.vy = args.vy or 0.0
-    self.range_y = args.range_y or 0.2
+    self.range_y = args.range_y or 0.1
     self.init_range_y = self.range_y
     self.speed_y = args.speed_y or 0.5
     self.decay_speed_y = args.decay_speed_y or 1
