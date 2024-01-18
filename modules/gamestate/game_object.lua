@@ -78,19 +78,31 @@ end
 function GC:apply_effect(eff_type, eff_args, force)
     if not self.eff_actives then self.eff_actives = {} end
 
+    local cur_eff = self.eff_actives[eff_type]
+
     if not force
-        and self.eff_actives[eff_type]
-        and not self.eff_actives[eff_type].__remove
+        and cur_eff
+        and not cur_eff.__remove
     then
         return nil
     end
 
-    if self.eff_actives[eff_type] then
-        self.eff_actives[eff_type].__remove = true
+    if cur_eff then
+        cur_eff.__remove = true
     end
 
     self.eff_actives[eff_type] = Affectable.apply_effect(self, eff_type, eff_args)
     return self.eff_actives[eff_type]
+end
+
+function GC:remove_effect(eff_type)
+    local actives = self.eff_actives
+    if not actives then return false end
+
+    local eff = actives[eff_type]
+    if eff then
+        eff.__remove = true
+    end
 end
 
 function GC:update(dt)
