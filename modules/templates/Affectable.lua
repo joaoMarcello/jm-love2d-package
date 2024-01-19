@@ -35,7 +35,7 @@ function Affectable:__constructor__(obj_draw)
 
     self.__effect_transform = nil --{ ox = 0, oy = 0, rot = 0, sx = 1, sy = 1, kx = 0, ky = 0 }
 
-    self.__transform = nil        --love.math.newTransform()
+    -- self.__transform = nil        --love.math.newTransform()
 
     self.x = 0
     self.y = 0
@@ -117,6 +117,8 @@ function Affectable.__get_effect_transform(object)
     return object.__effect_transform
 end
 
+local tr = love.math.newTransform()
+
 ---
 ---@param self JM.Template.Affectable
 local function apply_transform(self, x, y)
@@ -128,10 +130,10 @@ local function apply_transform(self, x, y)
     if eff_transf then
         local ox, oy = self.ox, self.oy
 
-        self.__transform = self.__transform
-            or love.math.newTransform()
+        -- self.__transform = self.__transform
+        --     or love.math.newTransform()
 
-        self.__transform:setTransformation(
+        tr:setTransformation(
             (x + ox + eff_transf.ox),
             (y + oy + eff_transf.oy),
             eff_transf.rot,
@@ -143,7 +145,7 @@ local function apply_transform(self, x, y)
             eff_transf.ky
         )
 
-        lgx_applyTransform(self.__transform)
+        lgx_applyTransform(tr)
     end
 end
 
@@ -195,9 +197,9 @@ function Affectable:generate_effect(eff_type, eff_args)
     return self.__effect_manager:generate_effect(eff_type, eff_args)
 end
 
----@param obj JM.Template.Affectable
-function Affectable:transfer_effects(obj)
-    self.__effect_manager:transfer(obj)
-end
+-- ---@param obj JM.Template.Affectable
+-- function Affectable:transfer_effects(obj)
+--     self.__effect_manager:transfer(obj)
+-- end
 
 return Affectable
