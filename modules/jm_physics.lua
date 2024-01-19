@@ -58,20 +58,25 @@ local function empty_table_for_coll()
     return reuse_tab2
 end
 
-local BodyRecycler = setmetatable({}, metatable_mode_k)
+local BodyRecycler = {} --setmetatable({}, metatable_mode_v)
 
 ---@param b JM.Physics.Body
 local function push_body(b)
+    -- clear_table(b.events)
+    -- BodyRecycler[b] = true
+    -- -- return clear_table(b)
+
     clear_table(b.events)
-    BodyRecycler[b] = true
-    -- return clear_table(b)
+    table_insert(BodyRecycler, b)
 end
 
 local function pop_body()
-    for bd, _ in next, BodyRecycler do
-        BodyRecycler[bd] = nil
-        return bd
-    end
+    -- for bd, _ in next, BodyRecycler do
+    --     BodyRecycler[bd] = nil
+    --     return bd
+    -- end
+
+    return table_remove(BodyRecycler, #BodyRecycler)
 end
 
 ---@enum JM.Physics.BodyTypes
@@ -2899,12 +2904,13 @@ do
     local dt_lim = 1 / 30
     function World:update(dt)
         dt = dt > dt_lim and dt_lim or dt
+        local list = self.bodies
 
-        table.sort(self.bodies, sort_update)
+        table.sort(list, sort_update)
 
         for i = self.bodies_number, 1, -1 do
             ---@type JM.Physics.Body|any
-            local obj = self.bodies[i]
+            local obj = list[i]
 
             if obj.__remove then
                 self:remove(obj, i)
