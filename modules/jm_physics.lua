@@ -60,9 +60,11 @@ end
 
 local BodyRecycler = setmetatable({}, metatable_mode_k)
 
+---@param b JM.Physics.Body
 local function push_body(b)
+    clear_table(b.events)
     BodyRecycler[b] = true
-    return clear_table(b)
+    -- return clear_table(b)
 end
 
 local function pop_body()
@@ -446,14 +448,19 @@ do
         ---@type JM.Physics.Body
         local body_reuse_table = pop_body()
         if body_reuse_table then
-            local t = body_reuse_table.events
-            if t then
-                for key, _ in next, t do
-                    t[key] = nil
-                end
-            end
+            -- local t = body_reuse_table.events
+            -- if t then
+            --     clear_table(t)
+            -- end
+
             ---@type JM.Physics.Collisions
-            t = body_reuse_table.colls
+            local t = body_reuse_table.colls
+            if t then
+                t.items = nil
+                t.n = 0
+            end
+
+            t = body_reuse_table.colls2
             if t then
                 t.items = nil
                 t.n = 0
