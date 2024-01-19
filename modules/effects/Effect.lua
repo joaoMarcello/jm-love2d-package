@@ -21,8 +21,8 @@ local function checks_implementation(object)
     assert(object.__get_effect_transform,
         "\nError: The class do not implements the required '__get_effect_transform' method.")
 
-    assert(object.__set_effect_transform,
-        "\nError: The class do not implements the required '__set_effect_transform' method.")
+    -- assert(object.__set_effect_transform,
+    --     "\nError: The class do not implements the required '__set_effect_transform' method.")
 end
 
 ---
