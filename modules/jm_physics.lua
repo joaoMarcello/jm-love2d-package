@@ -40,7 +40,7 @@ do
 end
 
 
-local reuse_tab = setmetatable({}, metatable_mode_k)
+local reuse_tab = {} --setmetatable({}, metatable_mode_k)
 local function empty_table()
     -- for index, _ in next, reuse_tab do
     --     reuse_tab[index] = nil
@@ -49,7 +49,7 @@ local function empty_table()
     return reuse_tab
 end
 
-local reuse_tab2 = setmetatable({}, metatable_mode_v)
+local reuse_tab2 = {} -- setmetatable({}, metatable_mode_v)
 local function empty_table_for_coll()
     local N = #reuse_tab2
     for i = N, 1, -1 do
@@ -2093,21 +2093,24 @@ do
     --     return count
     -- end
 
-    local CellRecycler = setmetatable({}, metatable_mode_k)
+    local CellRecycler = {} --setmetatable({}, metatable_mode_k)
     ---@param t JM.Physics.Cell
     local push_cell = function(t)
-        CellRecycler[t] = true
-        -- rawset(CellRecycler, t, true)
+        -- CellRecycler[t] = true
+        -- t[1] = 0
+        -- return clear_table(t[2])
+
+        table_insert(CellRecycler, t)
         t[1] = 0
         return clear_table(t[2])
     end
 
     local pop_cell = function()
-        for t, _ in next, CellRecycler do
-            CellRecycler[t] = nil
-            -- rawset(CellRecycler, t, nil)
-            return t
-        end
+        -- for t, _ in next, CellRecycler do
+        --     CellRecycler[t] = nil
+        --     return t
+        -- end
+        return table_remove(CellRecycler, #CellRecycler)
     end
 
     function World:rect_to_cell(x, y, w, h)
@@ -2190,9 +2193,7 @@ do
         local index = cy * MAX_COLUMN + cx
         self.grid[index] = self.grid[index] or pop_cell() or {
             [1] = 0, -- count
-            -- x = cx,
-            -- y = cy,
-            [2] = setmetatable({}, metatable_mode_k) -- items
+            [2] = {} --setmetatable({}, metatable_mode_k) -- items
         }
 
         ---@type JM.Physics.Cell
@@ -2930,6 +2931,9 @@ do
                 obj:update(dt)
             end
         end
+
+        empty_table()
+        empty_table_for_coll()
     end
 
     ---@param cam JM.Camera.Camera|nil
