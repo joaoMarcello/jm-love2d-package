@@ -104,19 +104,19 @@ function EffectManager:update(dt)
             end -- END if remove effect
         end     -- END FOR i in effects list
 
-        if self.__sort__ then
-            table.sort(self.__effects_list,
-                ---@param a JM.Effect
-                ---@param b JM.Effect
-                ---@return boolean
-                function(a, b)
-                    return a.__prior > b.__prior;
-                end
-            )
+        -- if self.__sort__ then
+        --     table.sort(self.__effects_list,
+        --         ---@param a JM.Effect
+        --         ---@param b JM.Effect
+        --         ---@return boolean
+        --         function(a, b)
+        --             return a.__prior > b.__prior;
+        --         end
+        --     )
 
-            self.__sort__ = false
-        end -- END IF sort.
-    end     -- END effect list is not nil.
+        --     self.__sort__ = false
+        -- end -- END IF sort.
+    end -- END effect list is not nil.
 end
 
 ---
@@ -448,21 +448,21 @@ function EffectManager:__insert_effect(effect)
     self.__sort__ = true
 end
 
----@param obj JM.Template.Affectable
-function EffectManager:transfer(obj)
-    if #self.__effects_list <= 0 then return end
+-- ---@param obj JM.Template.Affectable
+-- function EffectManager:transfer(obj)
+--     if #self.__effects_list <= 0 then return end
 
-    obj:__set_effect_transform(self.object.__effect_transform)
+--     obj:__set_effect_transform(self.object.__effect_transform)
 
-    for i = 1, #(self.__effects_list) do
-        ---@type JM.Effect
-        local eff = self.__effects_list[i]
+--     for i = 1, #(self.__effects_list) do
+--         ---@type JM.Effect
+--         local eff = self.__effects_list[i]
 
-        eff:apply(obj)
-    end
+--         eff:apply(obj)
+--     end
 
 
-    self.__effects_list = {}
-end
+--     self.__effects_list = {}
+-- end
 
 return EffectManager
