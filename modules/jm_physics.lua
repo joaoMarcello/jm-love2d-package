@@ -2071,15 +2071,15 @@ do
         return mfloor(x / self.cellsize) + 1, mfloor(y / self.cellsize) + 1
     end
 
-    function World:count_Cells()
-        local count = 0
-        for _, row in pairs(self.grid) do
-            for _, _ in pairs(row) do
-                count = count + 1
-            end
-        end
-        return count
-    end
+    -- function World:count_Cells()
+    --     local count = 0
+    --     for _, row in pairs(self.grid) do
+    --         for _, _ in pairs(row) do
+    --             count = count + 1
+    --         end
+    --     end
+    --     return count
+    -- end
 
     local CellRecycler = setmetatable({}, metatable_mode_k)
     ---@param t JM.Physics.Cell
