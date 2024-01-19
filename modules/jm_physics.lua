@@ -2094,6 +2094,8 @@ do
     -- end
 
     local CellRecycler = {} --setmetatable({}, metatable_mode_k)
+    World.CellRecycler = CellRecycler
+
     ---@param t JM.Physics.Cell
     local push_cell = function(t)
         -- CellRecycler[t] = true
@@ -2209,8 +2211,6 @@ do
     end
 
     function World:remove_obj_from_cell(obj, cx, cy)
-        -- local row = self.grid[cy]
-        -- if not row or not row[cx] or not row[cx].items[obj] then return end
         local index = cy * MAX_COLUMN + cx
         ---@type JM.Physics.Cell
         local cell = self.grid[index]
@@ -2220,11 +2220,8 @@ do
         cell[1] = cell[1] - 1
 
         if cell[1] == 0 then
-            -- clear_table(cell.items)
-            -- push_items_table(cell.items)
             self.grid[index] = nil
             push_cell(cell)
-            -- self.non_empty_cells[cell] = nil
         end
         return true
     end
