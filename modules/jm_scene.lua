@@ -2017,26 +2017,24 @@ do
     end
 end
 
-local ObjectRecycler = setmetatable({}, { __mode = 'k' })
+local ObjectRecycler = {} --setmetatable({}, { __mode = 'v' })
 
 local function push_object(obj)
-    ObjectRecycler[obj] = true
-    return clear_table(obj)
+    -- ObjectRecycler[obj] = true
+    -- return clear_table(obj)
+
+    clear_table(obj)
+    tab_insert(ObjectRecycler, obj)
 end
 
-local function pop_object(skip_clear)
-    for obj, _ in next, ObjectRecycler do
-        ObjectRecycler[obj] = nil
+local function pop_object()
+    -- for obj, _ in next, ObjectRecycler do
+    --     ObjectRecycler[obj] = nil
+    --     return obj
+    -- end
+    -- return nil
 
-        -- if not skip_clear then
-        --     for key, v in pairs(obj) do
-        --         obj[key] = nil
-        --     end
-        -- end
-
-        return obj
-    end
-    return nil
+    return tab_remove(ObjectRecycler, #ObjectRecycler)
 end
 
 Scene.ObjectRecycler = ObjectRecycler
