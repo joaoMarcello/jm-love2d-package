@@ -2086,8 +2086,8 @@ do
     local push_cell = function(t)
         CellRecycler[t] = true
         -- rawset(CellRecycler, t, true)
-        t.count = 0
-        return clear_table(t.items)
+        t[1] = 0
+        return clear_table(t[2])
     end
 
     local pop_cell = function()
@@ -2177,19 +2177,19 @@ do
     function World:add_obj_to_cell(obj, cx, cy)
         local index = cy * MAX_COLUMN + cx
         self.grid[index] = self.grid[index] or pop_cell() or {
-            count = 0,
+            [1] = 0, -- count
             -- x = cx,
             -- y = cy,
-            items = setmetatable({}, metatable_mode_k)
+            [2] = setmetatable({}, metatable_mode_k) -- items
         }
 
         ---@type JM.Physics.Cell
         local cell = self.grid[index]
         -- self.non_empty_cells[cell] = true
 
-        if not cell.items[obj] then
-            cell.items[obj] = true
-            cell.count = cell.count + 1
+        if not cell[2][obj] then
+            cell[2][obj] = true
+            cell[1] = cell[1] + 1
             return true
         end
         return false
@@ -2201,12 +2201,12 @@ do
         local index = cy * MAX_COLUMN + cx
         ---@type JM.Physics.Cell
         local cell = self.grid[index]
-        if not cell or not cell.items[obj] then return end
+        if not cell or not cell[2][obj] then return end
 
-        cell.items[obj] = nil
-        cell.count = cell.count - 1
+        cell[2][obj] = nil
+        cell[1] = cell[1] - 1
 
-        if cell.count == 0 then
+        if cell[1] == 0 then
             -- clear_table(cell.items)
             -- push_items_table(cell.items)
             self.grid[index] = nil
@@ -2225,11 +2225,11 @@ do
                 ---@type JM.Physics.Cell
                 local cell = self.grid[cy * MAX_COLUMN + cx]
 
-                if cell and cell.count > 0 then
+                if cell and cell[1] > 0 then
                     items = items or empty_tab or {}
 
                     -- for item, _ in pairs(cell.items) do
-                    for item, _ in next, cell.items do
+                    for item, _ in next, cell[2] do
                         items[item] = true
                     end
                 end
