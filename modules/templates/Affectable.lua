@@ -77,25 +77,25 @@ function Affectable.get_color(object)
     return object.color
 end
 
----@param self JM.Template.Affectable
----@param arg JM.Effect.TransformObject
-function Affectable:__set_effect_transform(arg)
-    if not arg then return end
-    -- if not self.__effect_transform then self.__effect_transform = {} end
-    self.__effect_transform = self.__effect_transform or {
-        x = 0, y = 0, rot = 0, sx = 1, sy = 1, ox = 0, oy = 0, kx = 0, ky = 0
-    }
+-- ---@param self JM.Template.Affectable
+-- ---@param arg JM.Effect.TransformObject
+-- function Affectable:__set_effect_transform(arg)
+--     if not arg then return end
+--     -- if not self.__effect_transform then self.__effect_transform = {} end
+--     self.__effect_transform = self.__effect_transform or {
+--         x = 0, y = 0, rot = 0, sx = 1, sy = 1, ox = 0, oy = 0, kx = 0, ky = 0
+--     }
 
-    self.__effect_transform.x = arg.x or self.__effect_transform.x or 0
-    self.__effect_transform.y = arg.y or self.__effect_transform.y or 0
-    self.__effect_transform.rot = arg.rot or self.__effect_transform.rot or 0
-    self.__effect_transform.sx = arg.sx or self.__effect_transform.sx or 1
-    self.__effect_transform.sy = arg.sy or self.__effect_transform.sy or 1
-    self.__effect_transform.ox = arg.ox or self.__effect_transform.ox or 0
-    self.__effect_transform.oy = arg.oy or self.__effect_transform.oy or 0
-    self.__effect_transform.kx = arg.kx or self.__effect_transform.kx or 0
-    self.__effect_transform.ky = arg.ky or self.__effect_transform.ky or 0
-end
+--     self.__effect_transform.x = arg.x or self.__effect_transform.x or 0
+--     self.__effect_transform.y = arg.y or self.__effect_transform.y or 0
+--     self.__effect_transform.rot = arg.rot or self.__effect_transform.rot or 0
+--     self.__effect_transform.sx = arg.sx or self.__effect_transform.sx or 1
+--     self.__effect_transform.sy = arg.sy or self.__effect_transform.sy or 1
+--     self.__effect_transform.ox = arg.ox or self.__effect_transform.ox or 0
+--     self.__effect_transform.oy = arg.oy or self.__effect_transform.oy or 0
+--     self.__effect_transform.kx = arg.kx or self.__effect_transform.kx or 0
+--     self.__effect_transform.ky = arg.ky or self.__effect_transform.ky or 0
+-- end
 
 function Affectable:set_effect_transform(index, value)
     self.__effect_transform = self.__effect_transform or {
