@@ -1031,19 +1031,6 @@ local update = function(self, dt)
         end
     end
 
-    if self.time_pause then
-        self.time_pause = self.time_pause - dt
-
-        if self.time_pause <= 0 then
-            self.time_pause = nil
-            self.pause_action = nil
-            self.pause_draw = nil
-        else
-            local r = self.pause_action and self.pause_action(dt)
-            return
-        end
-    end
-
     if self.transition then
         local dt = dt > (1 / 15) and (1 / 15) or dt
         self.transition:__update__(dt)
@@ -1063,6 +1050,19 @@ local update = function(self, dt)
             self.trans_action = nil
             r = self.trans_end_action and self.trans_end_action(dt)
             self.trans_end_action = nil
+            return
+        end
+    end
+
+    if self.time_pause then
+        self.time_pause = self.time_pause - dt
+
+        if self.time_pause <= 0 then
+            self.time_pause = nil
+            self.pause_action = nil
+            self.pause_draw = nil
+        else
+            local r = self.pause_action and self.pause_action(dt)
             return
         end
     end
