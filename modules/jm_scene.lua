@@ -87,15 +87,31 @@ local function draw_tile(self)
     end
 end
 
+---@overload fun(scene:JM.Scene)
+---@param width number
+---@param height number
+---@param filter string
+---@param subpixel number
 local function create_canvas(width, height, filter, subpixel)
+    if type(width) == "table" then
+        ---@type JM.Scene
+        local scene = width
+
+        width, height = scene.screen_w, scene.screen_h
+        filter = scene.canvas_filter
+        subpixel = scene.subpixel
+    end
+
     local canvas = love.graphics.newCanvas(width * subpixel, height * subpixel, { dpiscale = 1 })
     canvas:setFilter(filter, filter)
     -- canvas:setWrap("clampzero", "clampzero", "clampzero")
     return canvas
 end
+
 --===========================================================================
 
 ---@class JM.Scene
+---@field prev_state JM.Scene
 ---@field load function
 ---@field init function
 ---@field keypressed function
@@ -123,6 +139,8 @@ local Scene = {
     default_config = function(...) end,
     ---
     ScaleType = ScaleType,
+    ---
+    create_canvas = create_canvas,
 }
 Scene.__index = Scene
 
