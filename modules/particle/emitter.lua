@@ -146,18 +146,17 @@ end
 ---@param p JM.Particle
 function Emitter:push_particle(p)
     -- p.prop = false
-    Emitter.ParticleRecycler[p] = true
-    return clear_table(p)
-
-    -- tab_insert(Emitter.ParticleRecycler, p)
+    -- Emitter.ParticleRecycler[p] = true
     -- return clear_table(p)
+    p.prop = nil
+    tab_insert(Emitter.ParticleRecycler, p)
 end
 
 function Emitter:pop_particle_reuse_table()
-    for tab, _ in next, Emitter.ParticleRecycler do
-        Emitter.ParticleRecycler[tab] = nil
-        return tab
-    end
+    -- for tab, _ in next, Emitter.ParticleRecycler do
+    --     Emitter.ParticleRecycler[tab] = nil
+    --     return tab
+    -- end
 
     -- local list = Emitter.ParticleRecycler
     -- local n = #list
@@ -165,6 +164,8 @@ function Emitter:pop_particle_reuse_table()
     --     local t = tab_remove(list, n)
     --     return t
     -- end
+
+    return tab_remove(Emitter.ParticleRecycler, #Emitter.ParticleRecycler)
 end
 
 ---@param p JM.Particle
