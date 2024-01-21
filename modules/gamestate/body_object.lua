@@ -32,6 +32,12 @@ function Component:init()
     self.__remove = false
 end
 
+function Component:remove()
+    self.__remove = true
+    self.body.__remove = true
+    self.body = nil
+end
+
 -- ---@param eff_type JM.Effect.id_string
 -- ---@param eff_args any
 -- ---@return JM.Effect|any
