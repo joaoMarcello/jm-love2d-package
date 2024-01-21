@@ -578,7 +578,7 @@ function Scene:main_camera()
     return self.camera
 end
 
-function Scene:pause(time, action, draw)
+function Scene:pause(time, action, action_args, draw)
     if not self:is_current_active() then
         return
     end
@@ -589,6 +589,7 @@ function Scene:pause(time, action, draw)
     self.time_pause = time
     self.pause_action = action or nil
     self.pause_draw = draw or nil
+    self.pause_args = action_args or nil
     collectgarbage("step")
 end
 
@@ -1061,8 +1062,9 @@ local update = function(self, dt)
             self.time_pause = nil
             self.pause_action = nil
             self.pause_draw = nil
+            self.pause_args = nil
         else
-            local r = self.pause_action and self.pause_action(dt)
+            local r = self.pause_action and self.pause_action(dt, self.pause_args)
             return
         end
     end
