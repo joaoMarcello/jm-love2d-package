@@ -80,7 +80,7 @@ TextBox.AlignY = AlignY
 TextBox.AlignX = AlignX
 TextBox.__index = TextBox
 
----@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes}
+---@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes, time_wait:number, allow_cycle:boolean, show_border:boolean}
 
 ---
 ---@overload fun(self: any, args:JM.TextBox.ArgsConstructor)
@@ -167,6 +167,10 @@ function TextBox:__constructor__(args)
 
     self.amount_lines = args.n_lines
     self.amount_screens = math.ceil(#self.lines / self.amount_lines) --3
+
+    self.time_wait_to_next = args.time_wait or 0.9
+    self.allow_cycle = args.allow_cycle
+    self.show_border = args.show_border
 
     local N = #self.lines
 
@@ -297,8 +301,32 @@ function TextBox:refresh()
 end
 
 function TextBox:go_to_next_screen()
-    if self:screen_is_finished() and self.cur_screen < self.amount_screens then
+    if self:screen_is_finished()
+        and (self.cur_screen < self.amount_screens or self.allow_cycle)
+    then
         self.cur_screen = self.cur_screen + 1
+
+        if self.cur_screen > self.amount_screens then
+            self.cur_screen = 1
+        end
+
+        self.waiting = false
+        self:refresh()
+        dispatch_event(self, Event.changeScreen)
+        return true
+    end
+    return false
+end
+
+function TextBox:go_to_prev_screen()
+    if self:screen_is_finished()
+        and (self.cur_screen > 1
+            or self.allow_cycle)
+    then
+        self.cur_screen = self.cur_screen - 1
+
+        if self.cur_screen < 1 then self.cur_screen = self.amount_screens end
+
         self.waiting = false
         self:refresh()
         dispatch_event(self, Event.changeScreen)
@@ -309,6 +337,7 @@ end
 
 --- Go back to first screen
 function TextBox:restart()
+    self:reset()
     self.cur_screen = 1
     self.used_tags = nil
     self.waiting = false
@@ -335,7 +364,7 @@ end
 
 function TextBox:screen_is_finished()
     if self.update_mode == UpdateMode.by_screen then
-        return self.__finish and self.waiting and self.waiting >= 0.9
+        return self.__finish and self.waiting and self.waiting >= self.time_wait_to_next
     end
     return self.__finish
 end
@@ -475,8 +504,10 @@ end
 function TextBox:__draw()
     if not self.is_visible then return end
 
-    lgx.setColor(1, 1, 1, 1)
-    lgx.rectangle("line", self:rect())
+    if self.show_border then
+        lgx.setColor(1, 1, 1, 1)
+        lgx.rectangle("line", self:rect())
+    end
 
     local screen = self.screens[self.cur_screen]
     local font = self.font
