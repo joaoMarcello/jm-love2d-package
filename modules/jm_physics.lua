@@ -2048,6 +2048,9 @@ end
 ---@class JM.Physics.World
 local World = {}
 World.__index = World
+
+local CellRecycler = {} --setmetatable({}, metatable_mode_k)
+World.CellRecycler = CellRecycler
 do
     function World:new(args)
         local obj = setmetatable({}, self)
@@ -2093,8 +2096,7 @@ do
     --     return count
     -- end
 
-    local CellRecycler = {} --setmetatable({}, metatable_mode_k)
-    World.CellRecycler = CellRecycler
+
 
     ---@param t JM.Physics.Cell
     local push_cell = function(t)
@@ -3243,6 +3245,13 @@ function Phys:newSlope(world, x, y, w, h, slope_type, direction, bd_type)
     end
 
     return slope
+end
+
+function Phys:flush()
+    clear_table(BodyRecycler)
+    clear_table(CellRecycler)
+    clear_table(reuse_tab)
+    clear_table(reuse_tab2)
 end
 
 Phys.collision_rect = collision_rect
