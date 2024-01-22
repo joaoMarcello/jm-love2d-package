@@ -60,14 +60,14 @@ function JM:get_font(font)
         local pix5 = JM.FontGenerator:new {
             name = "pix5",
             dir = "jm-love2d-package/data/font/font_pix5-Sheet.png",
-            glyphs = [[aàáãâäbcçdeèéêëfghiìíîïjklmnoòóõôöpqrstuùúûüvwxyz0123456789-_.:dots::+:square::blk_bar::heart:()[]{}:arw_fr::arw_bk::arw_up::arw_dw::dash:|,;!?\/*~^:arw2_fr::arw2_bk:º°¬'":div:%#¢@]],
+            glyphs = "aàáãâäbcçdeèéêëfghiìíîïjklmnoòóõôöpqrstuùúûüvwxyz0123456789-_.:dots::+:square::blk_bar::heart:():col:]{}:arw_fr::arw_bk::arw_up::arw_dw::dash:|,;!?\\/*~^:arw2_fr::arw2_bk:º°¬'\":div:%#¢@",
             min_filter = 'linear',
             max_filter = 'nearest',
             character_space = 0,
             word_space = 4,
             line_space = 1,
         }
-        pix5:set_color(JM.Utils:get_rgba())
+        pix5:set_color(JM.Utils:get_rgba(0, 0, 0))
         pix5:set_font_size(pix5.__ref_height)
         fonts[font] = pix5
         return pix5
@@ -233,6 +233,8 @@ end
 
 function JM:flush()
     JM.FontGenerator.flush()
+    JM.ParticleSystem:flush()
+    JM.Physics:flush()
     collectgarbage()
 end
 
@@ -372,8 +374,8 @@ function Play_sfx(name, force)
     return Sound:play_sfx(name, force)
 end
 
-function Play_song(name)
-    return Sound:play_song(name)
+function Play_song(name, reset)
+    return Sound:play_song(name, reset)
 end
 
 return JM
