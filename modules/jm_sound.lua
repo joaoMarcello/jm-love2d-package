@@ -67,8 +67,17 @@ local Sound = {
     __fade_in = false,
     __fade_out = false,
     fade_out_speed = 1.5,
-    fade_in_speed = 0.5
+    fade_in_speed = 0.5,
+    lock__ = false,
 }
+
+function Sound:lock()
+    Sound.lock__ = true
+end
+
+function Sound:unlock()
+    Sound.lock__ = false
+end
 
 function Sound:init()
     self.__fade_in = false
@@ -118,6 +127,17 @@ function Sound:add_song(path, name, volume)
     local audio = Audio:new(path, name, volume, song_mode, true)
     audio.source:setLooping(true)
     audio.source:setVolume(audio.volume * volume_song)
+end
+
+function Sound:remove_sfx(name)
+    ---@type JM.Sound.Audio
+    local audio = list_sfx[name]
+    if not audio then return end
+
+    audio.source:stop()
+    audio.source:release()
+    list_sfx[name] = nil
+    return true
 end
 
 function Sound:set_volume_sfx(value)
@@ -171,6 +191,8 @@ function Sound:get_current_song()
 end
 
 function Sound:play_song(name, reset)
+    if Sound.lock__ then return end
+
     ---@type JM.Sound.Audio|nil
     local audio = list_song[name]
     if not audio then return false end
@@ -191,6 +213,8 @@ function Sound:play_song(name, reset)
 end
 
 function Sound:play_sfx(name, force)
+    if Sound.lock__ then return end
+
     ---@type JM.Sound.Audio|nil
     local audio = list_sfx[name]
     if not audio then return end
