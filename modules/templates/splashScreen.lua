@@ -8,8 +8,8 @@ local State = JM.Scene:new {
     w = nil,
     y = nil,
     h = nil,
-    canvas_w = 1366,          --SCREEN_WIDTH,
-    canvas_h = 768,           --SCREEN_HEIGHT,
+    canvas_w = 1900,          --SCREEN_WIDTH,
+    canvas_h = 1080,          --SCREEN_HEIGHT,
     subpixel = 1.0,           --SUBPIXEL,
     canvas_filter = 'linear', --CANVAS_FILTER,
     tile = TILE,
@@ -496,6 +496,9 @@ local jm_update = function(dt)
 end
 
 local function update(dt)
+    if State.shader then
+        State:set_shader()
+    end
     dt = dt > 1 / 30 and 1 / 60 or dt
 
     if data.state == States.love then
