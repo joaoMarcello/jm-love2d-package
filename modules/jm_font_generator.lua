@@ -63,51 +63,51 @@ end
 
 local findNicksResult = setmetatable({}, metatable_mode_v)
 
----@param t table
-local function find_nicks(t)
-    local result = findNicksResult[t]
-    if result then return result end
+-- ---@param t table
+-- local function find_nicks(t)
+--     local result = findNicksResult[t]
+--     if result then return result end
 
-    local next_ = function(init)
-        local i = init
-        local n = #t
-        while (i <= n) do
-            if t[i] == '-' and t[i + 1] and t[i + 1] == '-' then
-                return (i + 1)
-            end
-            i = i + 1
-        end
-        return false
-    end
+--     local next_ = function(init)
+--         local i = init
+--         local n = #t
+--         while (i <= n) do
+--             if t[i] == '-' and t[i + 1] and t[i + 1] == '-' then
+--                 return (i + 1)
+--             end
+--             i = i + 1
+--         end
+--         return false
+--     end
 
-    local i = 1
-    local N = #t
-    local new_table = {}
+--     local i = 1
+--     local N = #t
+--     local new_table = {}
 
-    while (i <= N) do
-        if t[i] == '-' and t[i + 1] and t[i + 1] == '-' then
-            local next = next_(i + 2)
-            if next then
-                local s = ''
-                for k = i, next do
-                    s = s .. t[k]
-                end
+--     while (i <= N) do
+--         if t[i] == '-' and t[i + 1] and t[i + 1] == '-' then
+--             local next = next_(i + 2)
+--             if next then
+--                 local s = ''
+--                 for k = i, next do
+--                     s = s .. t[k]
+--                 end
 
-                if is_valid_nickname(s) then
-                    tab_insert(new_table, s)
-                    i = next
-                end
-            end
-        else
-            tab_insert(new_table, t[i])
-        end
+--                 if is_valid_nickname(s) then
+--                     tab_insert(new_table, s)
+--                     i = next
+--                 end
+--             end
+--         else
+--             tab_insert(new_table, t[i])
+--         end
 
-        i = i + 1
-    end
+--         i = i + 1
+--     end
 
-    findNicksResult[t] = new_table
-    return new_table
-end
+--     findNicksResult[t] = new_table
+--     return new_table
+-- end
 
 local function find_nicks2(t)
     local result = findNicksResult[t]
@@ -1028,7 +1028,8 @@ function Font:separate_string(s, list)
 
     while (current_init <= N) do
         -- while (current_init <= utf8.len(s)) do
-        local regex = str_format("[^[ ]]*.-[%s]", sep)
+        -- local regex = str_format("[^[ ]]*.-[%s]", sep)
+        local regex = str_format(".-[%s]", sep)
 
         local tag = s:match(tag_regex, current_init)
         local find = not tag and s:match(regex, current_init)
