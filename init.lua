@@ -60,7 +60,7 @@ function JM:get_font(font)
         local pix5 = JM.FontGenerator:new {
             name = "pix5",
             dir = "jm-love2d-package/data/font/font_pix5-Sheet.png",
-            glyphs = "aàáãâäbcçdeèéêëfghiìíîïjklmnoòóõôöpqrstuùúûüvwxyz0123456789-_.:dots::+:square::blk_bar::heart:():col:]{}:arw_fr::arw_bk::arw_up::arw_dw::dash:|,;!?\\/*~^:arw2_fr::arw2_bk:º°¬'\":div:%#¢@",
+            glyphs = "aàáãâäbcçdeèéêëfghiìíîïjklmnoòóõôöpqrstuùúûüvwxyz0123456789-_.:dots::+:square::blk_bar::heart:()[]{}:arw_fr::arw_bk::arw_up::arw_dw::dash:|,;!?\\/*~^:arw2_fr::arw2_bk:º°¬'\":div:%#¢@",
             min_filter = 'linear',
             max_filter = 'nearest',
             character_space = 0,
