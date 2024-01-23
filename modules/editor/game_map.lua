@@ -194,7 +194,7 @@ function Map:set_camera(camera)
     self.camera = camera
 end
 
-function Map:init(data)
+function Map:init(data, world_config)
     self.name = data.name or string.format("level_%03d", map_count)
     map_count = map_count + 1
 
@@ -217,7 +217,8 @@ function Map:init(data)
     self.list_world = {}
 
     for i = 1, (data.n_worlds or 1) do
-        self.list_world[i] = Phys:newWorld { tile = tile_size }
+        local config = world_config and world_config[i] or { tile = tile_size }
+        self.list_world[i] = Phys:newWorld(config)
     end
 
     ---@type JM.Physics.World
@@ -1692,10 +1693,10 @@ end
 --     -- love.graphics.rectangle("line", cam:get_viewport())
 -- end
 
-function Map.load_map(dir)
+function Map.load_map(dir, world_config)
     local map = Map:new(GC.gamestate)
     local d = JM.Ldr.load(dir)
-    map:init(d)
+    map:init(d, world_config)
     map:build_world()
     map:auto_tile()
 
