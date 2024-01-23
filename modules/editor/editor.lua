@@ -70,7 +70,9 @@ function data:load(dir)
 end
 
 --============================================================================
-local play_state = require "lib.gamestate.gamemap_test"
+local play_state = pcall(function(...)
+    return require "lib.gamestate.gamemap_test"
+end)
 --============================================================================
 function State:__get_data__()
     return data
@@ -130,6 +132,11 @@ local function keypressed(key)
 
     if key == 'f5' then
         return State:change_gamestate(play_state, { skip_transition = true })
+    end
+
+    if key == 'f3' then
+        local x, y = love.mouse:getPosition()
+        return State:mousepressed(x, y, 3)
     end
 
     if love.keyboard.isDown('lshift') then
