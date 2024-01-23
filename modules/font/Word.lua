@@ -6,6 +6,7 @@ local Word = {
     eff_wave_range = 2,
     eff_scream_range_x = 1,
     eff_scream_range_y = 2,
+    eff_spooky_range_y = 0.6,
 }
 Word.__index = Word
 
@@ -115,7 +116,7 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
 
         if effect_type == "spooky" then
             eff = EffectManager:generate_effect("float", {
-                range = 0.6,
+                range = Word.eff_spooky_range_y,
                 speed = 0.15,
                 rad = math.pi * (i % 4) + offset
             })
