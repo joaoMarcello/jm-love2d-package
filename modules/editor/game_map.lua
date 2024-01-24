@@ -1111,7 +1111,9 @@ function Map:apply_autotile_rules(id, i, j, layer)
     end
 end
 
-function Map:auto_tile()
+function Map:auto_tile(tile_rules)
+    tile_rules = tile_rules or self.apply_autotile_rules
+
     for k = 1, #self.layers do
         ---@type JM.MapLayer
         local layer = self.layers[k]
@@ -1128,7 +1130,8 @@ function Map:auto_tile()
                 local id = tilemap.cells_by_pos[tilemap:get_index(i, j)]
 
                 if id then
-                    self:apply_autotile_rules(id, i, j, layer)
+                    -- self:apply_autotile_rules(id, i, j, layer)
+                    tile_rules(self, id, i, j, layer)
                 end
                 --
             end
@@ -1693,12 +1696,12 @@ end
 --     -- love.graphics.rectangle("line", cam:get_viewport())
 -- end
 
-function Map.load_map(dir, world_config)
+function Map.load_map(dir, world_config, tile_rules)
     local map = Map:new(GC.gamestate)
     local d = JM.Ldr.load(dir)
     map:init(d, world_config)
     map:build_world()
-    map:auto_tile()
+    map:auto_tile(tile_rules)
 
     for i = 1, #map.layers do
         ---@type JM.MapLayer
