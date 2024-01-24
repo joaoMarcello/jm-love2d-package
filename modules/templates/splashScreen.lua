@@ -8,7 +8,7 @@ local State = JM.Scene:new {
     w = nil,
     y = nil,
     h = nil,
-    canvas_w = 1900,          --SCREEN_WIDTH,
+    canvas_w = 1920,          --SCREEN_WIDTH,
     canvas_h = 1080,          --SCREEN_HEIGHT,
     subpixel = 1.0,           --SUBPIXEL,
     canvas_filter = 'linear', --CANVAS_FILTER,
@@ -69,9 +69,9 @@ local data = {
 
                         State:change_gamestate(require(self.next_state), {
                             unload = path,
-                            skip_transition = true,
+                            -- skip_transition = true,
                             transition = "fade",
-                            transition_conf = { delay = 0.2, duration = 0.25 },
+                            transition_conf = { duration = 0.25 },
                         })
 
                         if self.sound then
@@ -460,9 +460,9 @@ local function love_logo_update(dt)
 
                 State:change_gamestate(require(data.next_state), {
                     unload = path,
-                    skip_transition = true,
+                    -- skip_transition = true,
                     transition = "fade",
-                    transition_conf = { delay = 0.2, duration = 0.25 },
+                    transition_conf = { duration = 0.25 },
                 })
 
                 if data.sound then
