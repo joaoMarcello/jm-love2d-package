@@ -86,7 +86,11 @@ function Emitter:__constructor__(lifetime, update_action, action_args)
     self.shader = nil
     self.time = 0.0
     self.duration = 0.0
-    self.fr = 0.2
+
+    self.fr = 0.2      -- frequency
+    self.delay = 0.0
+    self.__obj__ = nil -- track object
+
     self.__custom_update__ = update_action
     self.update_args = action_args
 
@@ -96,6 +100,31 @@ end
 
 function Emitter:set_shader(shader)
     self.shader = shader
+end
+
+---@param obj GameObject|BodyObject
+function Emitter:set_track_obj(obj)
+    self.__obj__ = obj
+end
+
+function Emitter:track_obj()
+    local obj = self.__obj__
+    if not obj then return end
+
+    if obj.__remove or not obj.w or not obj.h then
+        self.__obj__ = nil
+        return
+    end
+
+    local bd = obj.body
+
+    if bd then
+        self.x, self.y = bd.x, bd.y
+        self.w, self.h = bd.w, bd.h
+    else
+        self.x, self.y = obj.x, obj.y
+        self.w, self.h = obj.w, obj.h
+    end
 end
 
 function Emitter:pop_anima(id)
@@ -177,6 +206,7 @@ end
 
 function Emitter:destroy()
     self.lifetime = -10000
+    self.__obj__ = nil
 end
 
 function Emitter:update(dt)
@@ -193,6 +223,8 @@ function Emitter:update(dt)
             self.duration = 0.0
         end
     end
+
+    self:track_obj()
 
     if self.lifetime <= 0.0 then
         if N <= 0 then
