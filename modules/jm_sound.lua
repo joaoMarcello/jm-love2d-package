@@ -41,6 +41,7 @@ do
         self.source = love.audio.newSource(path, type)
         self.name = name:lower()
         self.volume = volume
+        self.init_volume = volume
 
         if type == "static" and not is_song then
             list_sfx[name] = self
@@ -50,6 +51,7 @@ do
     end
 
     function Audio:set_volume(value)
+        value = value or self.init_volume
         value = clamp(value, 0, 1)
         local type_ = self.source:getType()
 
