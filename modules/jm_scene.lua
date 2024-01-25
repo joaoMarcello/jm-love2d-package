@@ -708,7 +708,7 @@ end
 
 ---@param scene JM.Scene
 ---@param camera JM.Camera.Camera
-function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
+function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky, shader)
     local last_canvas = get_canvas()
     x = x or 0
     y = y or 0
@@ -754,7 +754,12 @@ function Scene:draw_capture(scene, camera, x, y, rot, sx, sy, ox, oy, kx, ky)
 
 
     setScissor(0, 0, camera.viewport_w * subpix, camera.viewport_h * subpix)
+    local last_shader = love.graphics.getShader()
+    if shader then
+        love.graphics.setShader(shader)
+    end
     love_draw(self.canvas, x, y, rot, sx, sy, ox, oy, kx, ky)
+    love.graphics.setShader(last_shader)
 
     setBlendMode("alpha")
     pop()
