@@ -187,8 +187,6 @@ function Scene:new2(args)
     args.y = args.y or 0
     args.w = args.w and (args.x + args.w) or love.graphics.getWidth()
     args.h = args.h and (args.y + args.h) or love.graphics.getHeight()
-    -- args.w = args.w - args.x
-    -- args.h = args.h - args.y
 
     return self:new(args.x, args.y, args.w, args.h, args.canvas_w or args.canvas_width,
         args.canvas_h or args.canvas_height, bounds, args)
@@ -220,9 +218,6 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     -- the scene dimensions
     self.w = w or dispositive_w
     self.h = h or dispositive_h
-
-    -- self.h = self.h - self.y
-    -- self.w = self.w - self.x
 
     -- the game's screen dimensions
     self.screen_w = canvas_w or self.w
@@ -304,12 +299,6 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.canvas_scale_y = 1
     self:set_scale_type(conf.scale_type or ScaleType.keepProportions)
 
-    -- self.canvas = create_canvas(
-    --     self.screen_w,
-    --     self.screen_h,
-    --     self.canvas_filter,
-    --     self.subpixel
-    -- )
     self.using_canvas_layer = conf.use_canvas_layer or nil
     self.canvas_layer = nil
 
@@ -450,9 +439,6 @@ function Scene:add_camera(config)
     )
 
     if self.camera then
-        -- config.device_width = self.camera.device_width
-        -- config.device_height = self.camera.device_height
-
         config.desired_canvas_w = self.screen_w
         config.desired_canvas_h = self.screen_h
 
@@ -464,8 +450,6 @@ function Scene:add_camera(config)
         }
 
         config.tile_size = self.camera.tile_size
-
-        -- config.x = config.x + self.offset_x / self.camera.desired_scale
     end
 
     local camera = Camera:new(config)
@@ -473,11 +457,6 @@ function Scene:add_camera(config)
 
     self.amount_cameras = self.amount_cameras + 1
 
-    -- local w = (self.w - self.x - camera.viewport_w) / 2
-    -- if name ~= "main" then w = 0 end
-
-    -- camera.viewport_x = camera.viewport_x + (self.x + w)
-    -- camera.viewport_y = camera.viewport_y + (self.y)
     camera:set_bounds()
 
     self.cameras_list[self.amount_cameras] = camera
@@ -931,7 +910,7 @@ local function generic(callback)
     result =
     ---@param scene JM.Scene
         (function(scene, ...)
-            if scene.time_pause --or scene.fadeout_time
+            if scene.time_pause
                 or (scene.transition and scene.transition.pause_scene)
             then
                 return
@@ -1153,8 +1132,6 @@ local draw = function(self)
                 --
                 ---@type JM.Scene.Layer
                 local layer = param.layers[i]
-
-                -- local last_canvas_2 = self.canvas
 
                 if layer.use_canvas then
                     set_canvas(self.canvas_layer)
@@ -1408,20 +1385,6 @@ local draw = function(self)
     if self.use_vpad and self:is_current_active() then
         VPad:draw()
     end
-
-    -- love.graphics.setScissor(self.x,
-    --     math_abs(self.h - self.dispositive_h),
-    --     self.w, self.h
-    -- )
-    -- set_canvas()
-    -- set_color_draw(1, 1, 1, 1)
-    -- -- set_shader(self.shader)
-    -- set_blend_mode("alpha", "premultiplied")
-    -- self.canvas:setFilter("nearest", "nearest")
-    -- love_draw(self.canvas)
-    -- -- set_shader()
-    -- set_blend_mode("alpha")
-    -- love.graphics.setScissor()
 
     do
         local draw_foreground = self.draw_foreground
@@ -1892,11 +1855,6 @@ function Scene:implements(param)
                 self.using_canvas_layer = true
 
                 self:restaure_canvas()
-                -- self.canvas_layer = self.canvas_layer
-                --     or love.graphics.newCanvas(self.canvas:getDimensions())
-
-                -- self.canvas_layer:setFilter(self.canvas_filter,
-                --     self.canvas_filter)
             end
 
             if not layer.name then
@@ -1942,8 +1900,6 @@ function Scene:implements(param)
 
     self.joystickremoved = joystickremoved
 
-    -- self.joystickreleased = joystickreleased
-
     self.gamepadpressed = gamepadpressed
 
     self.gamepadreleased = gamepadreleased
@@ -1975,7 +1931,6 @@ function Scene:set_shader(shader, action)
     if type(shader) == "table" then
         self.using_canvas_layer = true
         self:restaure_canvas()
-        -- self.shader.n = #self.shader
 
         local list = shader
         local params = shader_param[self] or {}
@@ -2028,7 +1983,7 @@ end
 
 local sort_update = function(a, b) return a.update_order > b.update_order end
 local sort_draw = function(a, b) return a.draw_order < b.draw_order end
-local pairs, next, rawset = pairs, next, rawset
+local next, rawset = next, rawset
 
 ---@type function
 local clear_table
@@ -2054,20 +2009,11 @@ end
 local ObjectRecycler = {} --setmetatable({}, { __mode = 'v' })
 
 local function push_object(obj)
-    -- ObjectRecycler[obj] = true
-    -- return clear_table(obj)
-
     clear_table(obj)
     tab_insert(ObjectRecycler, obj)
 end
 
 local function pop_object()
-    -- for obj, _ in next, ObjectRecycler do
-    --     ObjectRecycler[obj] = nil
-    --     return obj
-    -- end
-    -- return nil
-
     return tab_remove(ObjectRecycler, #ObjectRecycler)
 end
 
@@ -2112,13 +2058,6 @@ function Scene:update_game_objects(dt)
             end
             --
         end
-        -- if gc.is_enable and not gc.__remove then
-        --     gc:update(dt)
-        -- end
-
-        -- if gc.__remove then
-        --     self:remove_object(i)
-        -- end
     end
 end
 
