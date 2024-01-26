@@ -39,6 +39,8 @@ function GC:__constructor__(x, y, w, h, draw_order, update_order)
 
     self.__remove = false
 
+    self.eff_actives = nil
+
     self.draw_order = draw_order or 0
     self.update_order = update_order or 0
 
