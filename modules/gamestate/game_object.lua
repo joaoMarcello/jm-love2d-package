@@ -105,8 +105,10 @@ function GC:remove_effect(eff_type)
     local actives = self.eff_actives
     if not actives then return false end
 
+    ---@type JM.Effect
     local eff = actives[eff_type]
     if eff then
+        eff:restaure_object()
         eff.__remove = true
     end
 end
