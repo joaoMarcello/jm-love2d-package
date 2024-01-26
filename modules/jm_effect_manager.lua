@@ -406,6 +406,9 @@ function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
         eff = StretchSquash:new(object, effect_args)
     end
 
+    default_args.__id__ = nil
+    default_args.__counter__ = nil
+
     if eff then
         -- eff:set_unique_id(JM_current_id_for_effect_manager__)
         -- JM_current_id_for_effect_manager__ = JM_current_id_for_effect_manager__ + 1
