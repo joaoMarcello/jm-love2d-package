@@ -450,7 +450,7 @@ do
     ---@return JM.Physics.Body
     function Body:new(x, y, w, h, type_, world, id)
         --
-        ---@type JM.Physics.Body
+        ---@type JM.Physics.Body|any
         local body_reuse_table = pop_body()
         if body_reuse_table then
             -- local t = body_reuse_table.events
