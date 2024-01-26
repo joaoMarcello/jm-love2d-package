@@ -205,6 +205,7 @@ function Layer:draw(cam, canvas1, canvas2, result)
     local angle = cam.angle
     local subpixel = state.subpixel
 
+    cam.angle = self.angle or angle
 
     local vx, vy, vw, vh = cam:get_drawing_viewport()
 
