@@ -238,13 +238,124 @@ function JM:flush()
     collectgarbage()
 end
 
+local capture = false
+local cap_time = 0.0
+local cap_interval = 0.017 * 2
+local cap_duration = 0
+local cap_frameskip = 1
+local capture_id = ""
+local identity = love.window.getTitle()
+
+---@type love.Channel|any
+local channel_push_img
+
+---@type love.Thread|nil
+local thread_save_shot
+
+---@overload fun(self:any, args:{id:string, interval:number, frameskip:number})
+---@param interval number|nil
+---@param id string|nil
+function JM:toggle_capture_mode(id, interval, frameskip, duration)
+    if thread_save_shot then
+        return
+    end
+
+    if type(id) == "table" then
+        interval = id.interval
+        frameskip = id.frameskip
+        duration = id.duration
+        id = id.id
+    end
+
+    capture = not capture
+
+    if capture then
+        cap_time = 0.0
+        cap_frameskip = frameskip or 1
+        cap_duration = duration or 20
+        capture_id = id and tostring(id) or "gif"
+        cap_interval = interval or (0.017 * 2) --- 0.0333
+        love.filesystem.createDirectory(capture_id)
+
+        channel_push_img = channel_push_img
+            or love.thread.getChannel('item')
+
+        ---@type love.Thread
+        thread_save_shot = thread_save_shot or love.thread.newThread("/jm-love2d-package/save_shots.lua")
+
+        if not thread_save_shot:isRunning() then
+            thread_save_shot:start(capture_id)
+        end
+        ---
+    else
+        if channel_push_img then
+            channel_push_img:release()
+            channel_push_img = nil
+        end
+    end
+    return true
+end
+
+function JM:is_in_capture_mode()
+    return capture
+end
+
 function JM:update(dt)
+    if thread_save_shot then
+        local error_msg = thread_save_shot:getError()
+        assert(not error_msg, error_msg)
+    end
+
+    if capture then
+        cap_duration = cap_duration - dt
+
+        if cap_duration <= 0 then
+            cap_duration = 0.0
+
+            if channel_push_img:getCount() <= 0 then
+                local channel = love.thread.getChannel('finish')
+                channel:push(true)
+            end
+
+            if thread_save_shot and not thread_save_shot:isRunning() then
+                thread_save_shot:release()
+                thread_save_shot = nil
+                self:toggle_capture_mode()
+                collectgarbage()
+            end
+        else
+            cap_time = cap_time + dt
+
+            local interval = cap_interval
+                + (cap_interval * cap_frameskip)
+
+            if cap_time >= interval then
+                cap_time = cap_time - interval
+                if cap_time > interval then
+                    cap_time = 0.0
+                end
+
+                love.graphics.captureScreenshot(channel_push_img)
+            end
+        end
+    end
+
     SceneManager.scene:update(dt)
 
     JM:get_font():update(dt)
 
     Sound:update(dt)
-    return self.ParticleSystem:update(dt)
+    self.ParticleSystem:update(dt)
+
+    local s = ""
+    if capture then
+        if thread_save_shot and thread_save_shot:isRunning() then
+            s = string.format("capturing... %d", channel_push_img:getCount())
+        end
+
+        s = string.format("%s - %.2f", s, cap_duration)
+    end
+    love.window.setTitle(string.format("%s %s", identity, s))
 end
 
 function JM:draw()
