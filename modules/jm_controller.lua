@@ -470,6 +470,7 @@ function Controller:set_state(state)
     end
 
     if state == States.keyboard then
+        self.is_keyboard_owner = true
         self.pressing = pressing_key
         self.pressed = pressed_key
         self.released = pressed_key
