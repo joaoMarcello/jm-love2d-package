@@ -233,12 +233,18 @@ local function load()
     data.img["heart"] = data.img["heart"]
         or lgx.newImage("jm-love2d-package/data/img/love-heart.png")
 
+    data.img["heart"]:setFilter("nearest", "nearest")
+
     data.img["made-with"] = data.img["made-with"]
         or lgx.newImage("jm-love2d-package/data/img/made-with.png")
+
+    data.img["made-with"]:setFilter("nearest", "nearest")
 
     data.img["love-text"] = data.img["love-text"]
         -- or lgx.newImage("/data/img/love-logo-512x256.png")
         or lgx.newImage("jm-love2d-package/data/img/love-text.png")
+
+    data.img["love-text"]:setFilter("nearest", "nearest")
 
     data.img["jm-logo"] = data.img["jm-logo"]
         or lgx.newImage("/jm-love2d-package/data/img/jm_icone_game.png")
@@ -306,14 +312,14 @@ local function init(state)
         data.heart:set_visible(false)
 
         data.made_with = JM.Anima:new { img = data.img["made-with"],
-            min_filter = 'nearest', max_filter = 'nearest'
+            min_filter = 'linear', max_filter = 'nearest'
         }
-        data.made_with:set_size(data.logo_w * 0.5)
+        data.made_with:set_size(data.logo_w * 0.6)
         data.made_with:set_visible(false)
         data.made_with:apply_effect("fadein", { speed = 0.8, delay = 0.1 })
 
         data.love_text = JM.Anima:new { img = data.img["love-text"],
-            min_filter = 'linear', max_filter = 'linear'
+            min_filter = 'linear', max_filter = 'nearest'
         }
         data.love_text:set_size(data.logo_w * 1.2)
         data.love_text:set_visible(false)
