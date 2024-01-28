@@ -252,6 +252,9 @@ local function load()
     data.sound = data.sound
         or (love.filesystem.getInfo('/data/sfx/simple-clean-logo.ogg')
             and love.audio.newSource('data/sfx/simple-clean-logo.ogg', 'static'))
+    if data.sound then
+        data.sound:setVolume(0.4)
+    end
 end
 
 ---@param sound love.Source
