@@ -18,6 +18,8 @@ local State = JM.Scene:new {
     -- use_stencil = true,
 }
 
+State.is_splash_screen = true
+
 ---@enum JM.Splash.States
 local States = {
     love = 1,
@@ -496,9 +498,6 @@ local jm_update = function(dt)
 end
 
 local function update(dt)
-    if State.shader then
-        State:set_shader()
-    end
     dt = dt > 1 / 30 and 1 / 60 or dt
 
     if data.state == States.love then
