@@ -35,9 +35,10 @@ local Transitions = {
     pass = require(string.gsub(path, "jm_scene", "transitions.pass")),
     stripe = require(string.gsub(path, "jm_scene", "transitions.stripe")),
     tile = require(string.gsub(path, "jm_scene", "transitions.tile")),
+    sawtooth = require(string.gsub(path, "jm_scene", "transitions.sawtooth")),
 }
 
----@alias JM.Transitions.TypeNames "cartoon"|"curtain"|"diamond"|"door"|"fade"|"masker"|"pass"|"stripe"|"tile"
+---@alias JM.Transitions.TypeNames "cartoon"|"curtain"|"diamond"|"door"|"fade"|"masker"|"pass"|"stripe"|"tile"|"sawtooth"
 
 ---@enum JM.Scene.ScaleType
 local ScaleType = {
@@ -146,6 +147,8 @@ local Scene = {
     create_canvas = create_canvas,
     ---
     Layer = SceneLayer,
+    ---
+    Transitions = Transitions,
     ---
     newLayer = function(self, args)
         return SceneLayer:new(self, args)
