@@ -1029,20 +1029,22 @@ local update = function(self, dt)
     end
 
     if self.transition then
+        local transition = self.transition
+
         local dt = dt > (1 / 15) and (1 / 15) or dt
-        self.transition:__update__(dt)
+        transition:__update__(dt)
         local r = self.trans_action and self.trans_action(dt)
 
-        r = not self.transition:is_paused()
-            and self.transition:update(dt)
+        r = not transition:is_paused()
+            and transition:update(dt)
 
-        if self.transition and self.transition.pause_scene
-            and not self.transition:finished()
+        if transition and transition.pause_scene
+            and not transition:finished()
         then
             return
         end
 
-        if self.transition:finished() then
+        if transition:finished() and not transition.post_delay then
             self.transition = nil
             self.trans_action = nil
             r = self.trans_end_action and self.trans_end_action(dt)
