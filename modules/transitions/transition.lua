@@ -40,6 +40,7 @@ function Transition:__constructor__(args, x, y, w, h)
     self.h = h or love.graphics.getHeight()
 
     self.delay = args.delay or 0
+    self.post_delay = args.post_delay
 
     self.is_enabled = true
 
@@ -51,7 +52,8 @@ function Transition:finished()
 end
 
 function Transition:is_paused()
-    return not self.is_enabled or (self.delay and self.delay > 0)
+    return not self.is_enabled
+        or (self.delay and self.delay > 0)
 end
 
 function Transition:is_mode_in()
@@ -62,6 +64,13 @@ function Transition:__update__(dt)
     if self.delay then
         self.delay = self.delay - dt
         self.delay = self.delay < 0 and 0 or self.delay
+    end
+
+    if self:finished() and self.post_delay then
+        self.post_delay = self.post_delay - dt
+        if self.post_delay < 0 then
+            self.post_delay = nil
+        end
     end
 end
 
