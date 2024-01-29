@@ -13,12 +13,16 @@ end
 
 function Saw:__constructor__(args)
     local Utils = JM.Utils
-    self.move_type = Utils.MoveTypes.fast_smooth
+    self.move_type = (args.move_type and Utils.MoveTypes[args.move_type])
+        or Utils.MoveTypes.fast_smooth
+
     self.domain = Utils.Domain[self.move_type]
     self.action = Utils.Behavior[self.move_type]
     self.speed = args.speed or args.duration or 1
+    self.axis = args.axis or "x"
 
     if self.mode_out then
+        -- covering the scene
         self.value = 0
         self.time = 0.0
     else
@@ -27,9 +31,8 @@ function Saw:__constructor__(args)
         self.time = 0.0
     end
 
-    self.segments = 4
-    self.len = 32
-    self.px = nil
+    self.segments = args.segments or 4
+    self.len = args.len or 32
 
     return self
 end
@@ -69,8 +72,8 @@ end
 
 function Saw:draw()
     local lgx = love.graphics
-    -- lgx.setColor(0, 0, 1)
-    lgx.setColor(JM_Utils:hex_to_rgba_float("d96c21"))
+    lgx.setColor(0, 0, 0)
+    -- lgx.setColor(JM_Utils:hex_to_rgba_float("d96c21"))
 
     local len = self.len
 
