@@ -68,10 +68,15 @@ end
 local Sound = {
     __fade_in = false,
     __fade_out = false,
-    fade_out_speed = 1.5,
+    fade_out_speed = 0.5,
     fade_in_speed = 0.5,
     lock__ = false,
 }
+
+function Sound:config(args)
+    self.fade_in_speed = args.fade_in_speed or self.fade_in_speed
+    self.fade_out_speed = args.fade_out_speed or self.fade_out_speed
+end
 
 function Sound:lock()
     Sound.lock__ = true
@@ -85,7 +90,7 @@ function Sound:init()
     self.__fade_in = false
     self.__fade_out = false
     love_set_volume(1)
-    self:stop_all()
+    -- self:stop_all()
 end
 
 function Sound:update(dt)
@@ -108,13 +113,18 @@ function Sound:update(dt)
     end
 end
 
-function Sound:fade_out()
-    self.__fade_out = true
+function Sound:fade_out(duration)
+    if not self.__fade_out then
+        self.fade_out_speed = duration or 0.5
+        self.__fade_out = true
+        self.__fade_in = false
+    end
 end
 
-function Sound:fade_in()
+function Sound:fade_in(duration)
     if not self.__fade_in then
         self.__fade_in = true
+        self.fade_in_speed = duration or 0.5
         love_set_volume(0)
     end
 end
