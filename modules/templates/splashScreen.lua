@@ -57,7 +57,7 @@ local data = {
     --
     skip_state = function(self)
         if not State.transition then
-            State:add_transition("fade", "out", { duration = 0.8 }, nil,
+            State:add_transition("fade", "out", { duration = 1.1 }, nil,
                 function()
                     if self.state == States.jm then
                         State:change_gamestate(require(self.next_state), {
@@ -73,7 +73,7 @@ local data = {
                             unload = path,
                             -- skip_transition = true,
                             transition = "fade",
-                            transition_conf = { duration = 0.25 },
+                            transition_conf = { duration = 0.5 },
                         })
 
                         if self.sound then
@@ -473,7 +473,7 @@ local function love_logo_update(dt)
                     unload = path,
                     -- skip_transition = true,
                     transition = "fade",
-                    transition_conf = { duration = 0.25 },
+                    transition_conf = { duration = 0.5, color = { 1, 1, 1, 1 } },
                 })
 
                 if data.sound then
