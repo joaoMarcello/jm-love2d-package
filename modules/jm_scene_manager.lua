@@ -16,6 +16,7 @@ local Manager = {}
 ---@param conf JM.GameState.Config|any
 function Manager:change_gamestate(new_state, conf)
     local scene = self.scene
+    JM.Sound:init()
 
     conf = conf or {}
     conf.transition = conf.transition or (not conf.skip_transition and "fade")
