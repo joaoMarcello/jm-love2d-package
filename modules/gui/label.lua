@@ -117,7 +117,7 @@ function Label:set_text(text)
     self.locked = locked
 end
 
-function Label:key_pressed(key)
+function Label:keypressed(key)
     if not self.on_focus or self.locked then return end
 
     if key == "backspace" and self.count > 0 then
@@ -141,7 +141,7 @@ function Label:key_pressed(key)
     end
 end
 
-function Label:mouse_pressed(x, y, button, istouch, presses)
+function Label:mousepressed(x, y, button, istouch, presses)
     if self.locked then return end
 
     if self.on_focus and not self:check_collision(x, y, 0, 0) then
@@ -155,7 +155,7 @@ function Label:mouse_pressed(x, y, button, istouch, presses)
     end
 end
 
-function Label:touch_pressed(id, x, y, dx, dy, pressure)
+function Label:touchpressed(id, x, y, dx, dy, pressure)
     if self.locked then return end
 
     if not self.on_focus and self:check_collision(x, y, 0, 0) then
@@ -215,30 +215,33 @@ function Label:__custom_draw__()
         end
     end
 
+    local py = self.y + self.h * 0.5
+        - font.__line_space * 0.5 - (font.__font_size * 0.5)
+
+    py = math.floor(py + 0.5)
+
     if self.align == "center" then
         px = self.x + self.w * 0.5 - self.width * 0.5
-        font:print(self.text, px, self.y, huge)
-
-
+        font:print(self.text, px, py, huge)
         --
     elseif self.align == "right" then
         px = self.x + self.w - self.width
-        font:print(self.text, px, self.y, huge)
+        font:print(self.text, px, py, huge)
         --
     else
-        font:print(self.text, self.x, self.y, huge)
+        font:print(self.text, self.x, py, huge)
     end
 
 
     if self.text_help and not self.on_focus and self.count <= 0 then
-        font:print(self.text_help, self.x, self.y, huge)
+        font:print(self.text_help, self.x, py, huge)
         --
     elseif self.show_line and self.on_focus then
         local px2 = px + self.width + 2
 
         lgx.setColor(font.__default_color)
         -- lgx.setLineWidth(1)
-        lgx.line(px2, self.y + 1, px2, self.y + self.h - 1)
+        lgx.line(px2, py + font.__line_space, px2, py + font.__font_size)
         -- lgx.setLineWidth(1)
     end
 
