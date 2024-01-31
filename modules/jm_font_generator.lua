@@ -2073,5 +2073,6 @@ local Generator = {
 
 Generator.load_by_img = Generator.new
 Generator.load_by_fontfile = Generator.new_by_ttf
+Generator.get_glyphs = get_glyphs
 
 return Generator
