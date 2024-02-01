@@ -64,7 +64,7 @@ end
 local function dispatch_event(gc, type_)
     ---@type JM.GUI.Event|nil
     local evt = gc.events[type_]
-    local r = evt and evt.action(evt.args)
+    local r = evt and evt.action(gc, evt.args)
     evt = nil
 end
 
@@ -84,16 +84,14 @@ Component.__index = Component
 Component.MODES = MODES
 Component.collision = collision
 
----@return table
+---@return JM.GUI.Component
 function Component:new(args)
     args = args or {}
 
     local obj = Affectable:new()
     setmetatable(obj, self)
 
-    Component.__constructor__(obj, args)
-
-    return obj
+    return Component.__constructor__(obj, args)
 end
 
 function Component:__constructor__(args)
@@ -117,7 +115,8 @@ function Component:__constructor__(args)
     self.events = {}
     self:init()
 
-    self.__custom_draw__ = args.__custom_draw__
+    self.__custom_draw__ = args.__custom_draw__ or args.draw
+    return self
 end
 
 ---@param type_ JM.GUI.EventOptions
