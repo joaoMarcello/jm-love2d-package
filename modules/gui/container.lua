@@ -24,6 +24,7 @@ Container.INSERT_MODE = INSERT_MODE
 
 ---@return JM.GUI.Container
 function Container:new(args)
+    ---@class JM.GUI.Container
     local obj = Component:new(args)
     self.__index = self
     setmetatable(obj, self)

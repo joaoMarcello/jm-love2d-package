@@ -10,6 +10,7 @@ Button.__index = Button
 
 ---@return JM.GUI.Component
 function Button:new(args)
+    ---@class JM.GUI.Button
     local obj = Component:new(args)
     setmetatable(obj, self)
 

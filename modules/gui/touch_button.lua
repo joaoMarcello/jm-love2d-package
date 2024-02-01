@@ -14,6 +14,7 @@ Button.__index = Button
 ---@return JM.GUI.TouchButton
 function Button:new(args)
     args = args or {}
+    ---@class JM.GUI.TouchButton
     local obj = Component:new(args)
     setmetatable(obj, self)
     Button.__constructor__(obj, args)

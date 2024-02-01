@@ -36,6 +36,7 @@ Label.__index = Label
 function Label:new(args)
     args.h = args.h or (font_config.font_size + 4)
 
+    ---@class JM.GUI.Label
     local obj = Component:new(args)
     setmetatable(obj, self)
     Label.__constructor__(obj, args)

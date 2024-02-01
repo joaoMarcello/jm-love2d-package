@@ -19,6 +19,7 @@ function Stick:new(args)
     args.w = args.w or (96 * 1.3)
     args.h = args.h or args.w or (96 * 1.3)
 
+    ---@class JM.GUI.VirtualStick
     local obj = Component:new(args)
     setmetatable(obj, self)
     Stick.__constructor__(obj, args)
