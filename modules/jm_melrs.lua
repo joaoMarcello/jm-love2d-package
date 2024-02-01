@@ -51,6 +51,10 @@ function Module:init(args)
     MAX = args[3] or 10
 end
 
+function Module:set_max(value)
+    MAX = value or MAX
+end
+
 function Module:str_env(name, score, time, text)
     if not name then return false end
     score = score and tostring(score) or ""
