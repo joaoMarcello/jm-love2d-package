@@ -1397,8 +1397,7 @@ function Font:print(text, x, y, w, h, __i__, __color__, __x_origin__, __format__
     end
 
     self:pop()
-
-    _G[text] = nil
+    -- _G[text] = nil
 
     return tx, ty
 end
@@ -1667,7 +1666,7 @@ do
 
             tab_insert(list, characters)
 
-            _G[cur_word] = nil
+            -- _G[cur_word] = nil
 
             i = i + 1
         end
@@ -1937,7 +1936,7 @@ function Font:printf(text, x, y, align, limit_right)
         ty = ty + (self.__ref_height + self.__line_space) * init_scale
     end
 
-    _G[text] = nil
+    -- _G[text] = nil
 
     lgx.pop()
 
