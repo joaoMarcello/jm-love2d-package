@@ -493,6 +493,10 @@ function Controller:set_state(state)
     return true
 end
 
+function Controller:switch_to_keyboard()
+    return self:set_state(States.keyboard)
+end
+
 ---@param vpad JM.GUI.VPad
 function Controller:set_vpad(vpad)
     self.vpad = vpad
