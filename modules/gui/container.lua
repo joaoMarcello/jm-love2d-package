@@ -46,6 +46,10 @@ function Container:__constructor__(args)
     ---@type JM.GUI.Component
     self.cur_gc = nil
     self.num = 0
+
+    self.show_bounds = args.show_bounds
+    self.skip_scissor = args.skip_scissor
+
     self:set_type(args.type or "", args.mode or "center", args.grid_x, args.grid_y)
     return self
 end
@@ -184,7 +188,7 @@ end
 function Container:draw(camera)
     local sx, sy, sw, sh = love_get_scissor()
 
-    if camera and camera.scene then
+    if not self.skip_scissor and camera and camera.scene then
         local sx1, sy1, sw1, sh1 = camera:scissor_transform(self.x, self.y, self.w, self.h, camera.scene.subpixel)
 
         love_set_scissor(sx1, sy1, sw1, sh1)
@@ -206,14 +210,14 @@ function Container:draw(camera)
 
     love_set_scissor(sx, sy, sw, sh)
 
-    -- do
-    --     love_set_color(1, 0, 0, 1)
-    --     love_rectangle("line", self:rect())
+    if self.show_bounds then
+        love_set_color(1, 0, 0, 1)
+        love_rectangle("line", self:rect())
 
-    --     love_set_color(0, 1, 1, 1)
-    --     love_rectangle("line", self.x + self.border_x, self.y + self.border_y, self.w - self.border_x * 2,
-    --         self.h - self.border_y * 2)
-    -- end
+        love_set_color(0, 1, 1, 1)
+        love_rectangle("line", self.x + self.border_x, self.y + self.border_y, self.w - self.border_x * 2,
+            self.h - self.border_y * 2)
+    end
 end
 
 ---@param obj JM.GUI.Component
