@@ -368,20 +368,31 @@ function JM:textinput(t)
     return SceneManager.scene:textinput(t)
 end
 
+function JM:exit_game()
+    JM.Sound:stop_all()
+    JM.Shader:finish()
+    local scene = SceneManager.scene
+    scene:finish()
+    scene = nil
+    collectgarbage()
+    return love.event.quit()
+end
+
+JM.esc_to_quit = true
+
 function JM:keypressed(key, scancode, isrepeat)
     local scene = SceneManager.scene
     key = scancode
 
-    if key == "escape" then
-        JM.Shader:finish()
-        scene:finish()
-        scene = nil
-        collectgarbage()
-        return love.event.quit()
-    elseif key == "f11" or (key == 'f' and love.keyboard.isDown("lctrl")) then
+    if JM.esc_to_quit and key == "escape" then
+        return JM:exit_game()
+        ---
+    elseif key == "f11"
+    -- or (key == 'f' and love.keyboard.isDown("lctrl"))
+    then
         fullscreen = not fullscreen
         love.window.setFullscreen(fullscreen, 'desktop')
-        scene:resize(love.graphics.getDimensions())
+        return scene:resize(love.graphics.getDimensions())
     end
 
     return scene:keypressed(key, scancode, isrepeat)
