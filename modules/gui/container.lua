@@ -29,29 +29,30 @@ function Container:new(args)
     self.__index = self
     setmetatable(obj, self)
 
-    obj:__constructor__(args)
-
-    return obj
+    return obj:__constructor__(args)
 end
 
----@param args {scene: JM.Scene, type: string, mode: string, grid_x:number, grid_y: number}
+-- ---@param args {scene: JM.Scene, type: string, mode: string, grid_x:number, grid_y: number}
 function Container:__constructor__(args)
     args = args or {}
     -- self.scene = args.scene
     self.components = {}
     self.N = 0
-    self.space_vertical = 15
-    self.space_horizontal = 15
-    self.border_x = 15
-    self.border_y = 15
+    self.space_vertical = args.space_vertical     -- or 15
+    self.space_horizontal = args.space_horizontal -- or 15
+    self.border_x = args.border_x or 0            --15
+    self.border_y = args.border_y or 0            --15
     self.type = self.TYPE.container
+    ---@type JM.GUI.Component
+    self.cur_gc = nil
+    self.num = 0
     self:set_type(args.type or "", args.mode or "center", args.grid_x, args.grid_y)
+    return self
 end
 
 function Container:set_position(x, y)
     x = x or self.x
     y = y or self.y
-
 
     local diff_x, diff_y = x - self.x, y - self.y
 
@@ -75,6 +76,54 @@ function Container:shift_objects(dx, dy)
 
         gc:set_position(gc.x + dx, gc.y + dy)
     end
+end
+
+function Container:switch(index)
+    ---@type JM.GUI.Component
+    local last = self.cur_gc
+
+    self.num = index or 1
+    self.cur_gc = self.components[self.num]
+    if last then
+        last:set_focus(false)
+    end
+    if self.cur_gc then
+        self.cur_gc:set_focus(true)
+    end
+end
+
+function Container:switch_up()
+    self.num = self.num - 1
+    if self.num <= 0 then
+        self.num = self.N
+    end
+    return self:switch(self.num)
+end
+
+function Container:switch_down()
+    self.num = self.num + 1
+    if self.num > self.N then
+        self.num = 1
+    end
+    return self:switch(self.num)
+end
+
+function Container:switch_left()
+    return self:switch_up()
+end
+
+function Container:switch_right()
+    return self:switch_down()
+end
+
+---@return JM.GUI.Component|any
+function Container:get_obj_at(index)
+    return self.components[index]
+end
+
+---@return JM.GUI.Component|any
+function Container:get_cur_obj()
+    return self.components[self.num]
 end
 
 function Container:update(dt)
@@ -135,7 +184,7 @@ end
 function Container:draw(camera)
     local sx, sy, sw, sh = love_get_scissor()
 
-    if camera then
+    if camera and camera.scene then
         local sx1, sy1, sw1, sh1 = camera:scissor_transform(self.x, self.y, self.w, self.h, camera.scene.subpixel)
 
         love_set_scissor(sx1, sy1, sw1, sh1)
@@ -179,10 +228,14 @@ function Container:add(obj)
     obj:set_holder(self)
 
     table.insert(self.components, obj)
+    self.N = self.N + 1
 
     self:__add_behavior__()
 
-    self.N = self.N + 1
+    if not self.cur_gc then
+        self:switch(1)
+    end
+
     return obj
 end
 
@@ -221,7 +274,8 @@ function Container:refresh_positions_y(mode)
     local y = self.y + self.border_y
     local w = self.w - self.border_x * 2
     local h = self.h - self.border_y * 2
-    local space = (h - self.total_height) / (N - 1)
+    local space = self.space_vertical
+        or ((h - self.total_height) / (N - 1))
 
     for i = 1, N do
         ---@type JM.GUI.Component|nil
