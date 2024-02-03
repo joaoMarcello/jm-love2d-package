@@ -136,9 +136,11 @@ function Sound:add_sfx(path, name, volume)
 end
 
 function Sound:add_song(path, name, volume)
+    if self:get_song(name) then return false end
     local audio = Audio:new(path, name, volume, song_mode, true)
     audio.source:setLooping(true)
     audio.source:setVolume(audio.volume * volume_song)
+    return true
 end
 
 function Sound:remove_sfx(name)
