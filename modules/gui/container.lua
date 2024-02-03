@@ -96,6 +96,16 @@ function Container:switch(index)
     end
 end
 
+---@param obj JM.GUI.Component
+function Container:switch_to_obj(obj)
+    local list = self.components
+    for i = 1, self.N do
+        if list[i] == obj then
+            return self:switch(i)
+        end
+    end
+end
+
 function Container:switch_up()
     self.num = self.num - 1
     if self.num <= 0 then
