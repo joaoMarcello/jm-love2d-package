@@ -130,9 +130,11 @@ function Sound:fade_in(duration)
 end
 
 function Sound:add_sfx(path, name, volume)
+    if self:get_sfx(name) then return false end
     local audio = Audio:new(path, name, volume, "static")
     audio.source:setLooping(false)
     audio.source:setVolume(audio.volume * volume_sfx)
+    return true
 end
 
 function Sound:add_song(path, name, volume)
