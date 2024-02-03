@@ -305,15 +305,13 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.using_canvas_layer = conf.use_canvas_layer or nil
     self.canvas_layer = nil
 
-    self:restaure_canvas()
-
+    -- self:restaure_canvas()
 
     self:implements {}
 
-    self:calc_canvas_scale()
+    -- self:calc_canvas_scale()
 
     self.capture_mode = false
-
 
     self.use_vpad = conf.use_vpad or false
 
@@ -323,7 +321,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     self.show_info = conf.debug or nil
 
-    self.game_objects = {}
+    ---@type table|any
+    self.game_objects = nil --{}
 end
 
 function Scene:get_vpad()
@@ -629,6 +628,8 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
 end
 
 function Scene:calc_canvas_scale()
+    if not self.canvas then return end
+
     local scale_type = self.scale_type
 
     if scale_type == ScaleType.keepProportions then
@@ -1047,7 +1048,7 @@ local update = function(self, dt)
         if transition:finished() and not transition.post_delay then
             self.transition = nil
             self.trans_action = nil
-            r = self.trans_end_action and self.trans_end_action(dt)
+            r = self.trans_end_action and self.trans_end_action(self)
             self.trans_end_action = nil
             return
         end
@@ -1435,6 +1436,7 @@ end
 ---@param self JM.Scene
 local init = function(self, ...)
     Scene.default_config(self)
+    self:restaure_canvas()
 
     for i = 1, self.amount_cameras do
         ---@type JM.Camera.Camera
@@ -1455,6 +1457,21 @@ local init = function(self, ...)
 
     local param = self.__param__
     local r = param.init and param.init(unpack { ... })
+end
+
+---@param self JM.Scene
+local finish = function(self)
+    if self.canvas then
+        self.canvas:release()
+        self.canvas = nil
+    end
+    if self.canvas_layer then
+        self.canvas_layer:release()
+        self.canvas_layer = nil
+    end
+
+    local param = self.__param__
+    local r = param.finish and param.finish()
 end
 
 ---@param self JM.Scene
@@ -1764,7 +1781,7 @@ local resize = function(self, w, h)
 end
 
 ---
----@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function, mousefocus:function, focus:function, visible:function}
+---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function, mousefocus:function, focus:function, visible:function, finish:function}
 ---
 function Scene:implements(param)
     assert(param, "\n>> Error: No parameter passed to method.")
@@ -1775,11 +1792,11 @@ function Scene:implements(param)
         -- "draw",
         "errorhandler",
         "filedropped",
-        "finish",
+        -- "finish",
         -- "gamepadaxis",
         -- "gamepadpressed",
         -- "gamepadreleased",
-        "init",
+        -- "init",
         -- "joystickadded",
         "joystickaxis",
         "joystickhat",
@@ -1875,6 +1892,8 @@ function Scene:implements(param)
 
     self.init = init
 
+    self.finish = finish
+
     self.mousepressed = mousepressed
 
     self.mousereleased = mousereleased
@@ -1935,7 +1954,7 @@ function Scene:set_shader(shader, action)
 
     if type(shader) == "table" then
         self.using_canvas_layer = true
-        self:restaure_canvas()
+        -- self:restaure_canvas()
 
         local list = shader
         local params = shader_param[self] or {}
