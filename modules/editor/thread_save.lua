@@ -1,5 +1,5 @@
-local lfs             = require "love.filesystem"
-local Loader          = require "jm-love2d-package.modules.jm_loader"
+local lfs = require "love.filesystem"
+local Loader = require "jm-love2d-package.modules.jm_loader"
 
 local data, name, dir = ...
 
