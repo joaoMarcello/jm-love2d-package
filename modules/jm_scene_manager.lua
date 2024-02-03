@@ -1,4 +1,4 @@
----@alias JM.GameState.Config {skip_finish:boolean, skip_load:boolean, save_prev:boolean, skip_collect:boolean, skip_init:boolean, skip_transition:boolean, transition:string, transition_conf:table, unload:string}
+---@alias JM.GameState.Config {skip_finish:boolean, skip_load:boolean, save_prev:boolean, skip_collect:boolean, skip_init:boolean, skip_transition:boolean, transition:string, transition_conf:table, unload:string, skip_prev_state_finish:boolean}
 
 -- ---@type JM.Scene
 -- local scene
@@ -27,14 +27,28 @@ function Manager:change_gamestate(new_state, conf)
     local r = scene and not conf.skip_finish and scene:finish()
 
     if not conf.keep_canvas and scene then
-        scene.canvas:release()
-        scene.canvas = nil
+        if scene.canvas then
+            scene.canvas:release()
+            scene.canvas = nil
+        end
 
         if scene.canvas_layer then
             scene.canvas_layer:release()
             scene.canvas_layer = nil
         end
     end
+
+    if scene and scene.prev_state and not conf.skip_prev_state_finish
+        and new_state ~= scene.prev_state
+    then
+        scene.prev_state:finish()
+        scene.prev_state = nil
+    end
+
+    -- if scene then
+    --     scene.trans_action = nil
+    --     scene.trans_end_action = nil
+    -- end
 
     new_state.prev_state = conf.save_prev and scene or nil
 
