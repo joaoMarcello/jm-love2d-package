@@ -111,6 +111,8 @@ function Component:__constructor__(args)
     -- self.Utils = Utils
     self.mode = MODES.mouse
 
+    self.text = args.text
+
     self:refresh_corners()
     self.events = {}
     self:init()
