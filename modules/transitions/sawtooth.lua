@@ -48,8 +48,9 @@ function Saw:__constructor__(args)
         self.time = 0.0
     end
 
-    self.segments = args.segments or 5
-    self.len = args.len or 32
+
+    self.segments = args.segments or (self.axis == "x" and 5 or 10)
+    self.len = args.len or (self.axis == "x" and 32 or 24)
 
     return self
 end
