@@ -88,6 +88,9 @@ local function gamepadreleased(joystick, button)
 
 end
 
+local function gamepadaxis(joystick, axis, value)
+end
+
 local function update(dt)
 
 end
@@ -120,6 +123,7 @@ State:implements {
     touchreleased = touchreleased,
     gamepadpressed = gamepadpressed,
     gamepadreleased = gamepadreleased,
+    gamepadaxis = gamepadaxis,
     update = update,
     layers = layers,
 }
