@@ -162,7 +162,7 @@ end
 
 local draw_main = {
     [States.love] = function(self, camera)
-        State:draw_game_object(camera)
+        -- State:draw_game_object(camera)
 
         data.affect:draw(draw_rects)
 
