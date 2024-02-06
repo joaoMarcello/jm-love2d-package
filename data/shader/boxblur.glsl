@@ -1,5 +1,5 @@
-extern vec2 direction;
-extern number radius;
+uniform vec2 direction;
+uniform float radius;
 vec4 effect(vec4 color, Image tex, vec2 tc, vec2 _) {
     vec4 c = vec4(0.0);
 
