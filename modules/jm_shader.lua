@@ -951,7 +951,7 @@ function M:get_shader(shader, state, conf)
                 end
 
                 local code = { [[
-                  extern vec2 direction;
+                  uniform vec2 direction;
                   vec4 effect(vec4 color, Image tex, vec2 tc, vec2 sc) {]] }
 
                 local norm = 0
@@ -960,10 +960,10 @@ function M:get_shader(shader, state, conf)
                 else
                     local weight = g_weights[1]
                     norm = norm + weight
-                    code[#code + 1] = ('vec4 c = %f * texture2D(tex, tc);'):format(weight)
+                    code[#code + 1] = ('vec4 c = %f * Texel(tex, tc);'):format(weight)
                 end
 
-                local tmpl = 'c += %f * ( texture2D(tex, tc + %f * direction)+ texture2D(tex, tc - %f * direction));\n'
+                local tmpl = 'c += %f * ( Texel(tex, tc + %f * direction)+ Texel(tex, tc - %f * direction));\n'
                 for i = 1, #offsets, 1 do
                     local offset = offsets[i]
                     local weight = weights[i]
