@@ -772,7 +772,15 @@ function Scene:show_black_bar()
     black_bar_param[self] = black_bar
 end
 
-function Scene:remove_black_bar()
+function Scene:is_showing_black_bar()
+    return black_bar_param[self]
+end
+
+function Scene:remove_black_bar(immediately)
+    if immediately then
+        black_bar_param[self] = nil
+        return
+    end
     local Utils = JM.Utils
 
     ---@type JM.Scene.BlackBar
