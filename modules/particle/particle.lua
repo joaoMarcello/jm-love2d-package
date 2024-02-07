@@ -278,12 +278,12 @@ function Particle:set_color(r, g, b, a)
 end
 
 function Particle:update(dt)
-    if self.__custom_update__ then
-        self:__custom_update__(dt)
-    end
-
     if self.anima then
         self.anima:update(dt)
+    end
+
+    if self.__custom_update__ then
+        self:__custom_update__(dt)
     end
 
     local bd = self.body
