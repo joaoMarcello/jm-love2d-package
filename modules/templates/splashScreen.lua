@@ -358,6 +358,8 @@ local function init(state)
     State.__layers[1].draw = draw_main[data.state]
     State.__layers[2].draw = draw_mask[data.state]
     State.__layers[3].draw = draw_text[data.state]
+
+    data.total_time = 0.0
 end
 
 local function finish()
@@ -380,6 +382,7 @@ local function finish()
 end
 
 local function keypressed(key)
+    if data.total_time <= 1 then return end
     if key == "o" then
         State.camera:toggle_grid()
         State.camera:toggle_debug()
@@ -400,12 +403,12 @@ local function keyreleased(key)
 end
 
 local function mousepressed(x, y, bt, istouch)
-    data:skip_state()
+    return State:keypressed('return')
 end
 
 local function gamepadpressed(joy, bt)
-    if bt == 'a' or bt == 'start' then
-        data:skip_state()
+    if bt == 'a' or bt == 'start' or bt == 'b' then
+        return State:keypressed('return')
     end
 end
 
@@ -508,7 +511,7 @@ end
 
 local function update(dt)
     dt = dt > 1 / 30 and 1 / 60 or dt
-
+    data.total_time = data.total_time + dt
     if data.state == States.love then
         love_logo_update(dt)
     else
