@@ -58,7 +58,7 @@ end
 function Module:str_env(name, score, time, text)
     if not name then return false end
     score = score and tostring(score) or ""
-    time = time and tostring(time) or ""
+    time = time and string.format("%d", time) or ""
     text = text or ""
     return str_format(self.sdsc, dat[14], name, score, time, text)
 end
