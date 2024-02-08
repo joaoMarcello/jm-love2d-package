@@ -213,7 +213,7 @@ local fullscreen = love.window.getFullscreen()
 ---@param use_splash boolean|nil if should use splash screen
 function JM:load_initial_state(s, use_splash, use_fullscreen)
     if use_fullscreen then
-        love.window.setFullscreen(true, 'desktop')
+        love.window.setFullscreen(true, _G.FULLSCREEN_TYPE or 'desktop')
     end
     fullscreen = love.window.getFullscreen()
 
@@ -391,7 +391,7 @@ function JM:keypressed(key, scancode, isrepeat)
     -- or (key == 'f' and love.keyboard.isDown("lctrl"))
     then
         fullscreen = not fullscreen
-        love.window.setFullscreen(fullscreen, 'desktop')
+        love.window.setFullscreen(fullscreen, _G.FULLSCREEN_TYPE or 'desktop')
         return scene:resize(love.graphics.getDimensions())
     end
 
