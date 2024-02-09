@@ -30,6 +30,8 @@ end
 ---@param args {text: string, font: JM.Font.Font, x:any, y:any}
 function Phrase:__constructor__(args)
     self.text = args.text
+    self.text = self.text:gsub("<next>", "\n<next>\n")
+
     self.__font = args.font
 
     self.__font_config = self.__font:__get_configuration()
