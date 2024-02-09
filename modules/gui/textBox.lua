@@ -80,7 +80,7 @@ TextBox.AlignY = AlignY
 TextBox.AlignX = AlignX
 TextBox.__index = TextBox
 
----@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes, time_wait:number, allow_cycle:boolean, show_border:boolean}
+---@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes, time_wait:number, allow_cycle:boolean, show_border:boolean, remove_empty_lines:boolean}
 
 ---
 ---@overload fun(self: any, args:JM.TextBox.ArgsConstructor)
@@ -174,6 +174,25 @@ function TextBox:__constructor__(args)
 
     local N = #self.lines
 
+    -- do
+    --     local loc = {}
+
+    --     for i = 1, N do
+    --         if self.lines[i][1].text:match("<next>") then
+    --             table.insert(loc, i)
+    --         end
+    --     end
+
+    --     local empty = {}
+    --     local NL = #loc
+    --     for i = 1, NL do
+    --         self.lines[loc[1]] = empty
+    --         for k = 1, self.amount_lines - 2 do
+    --             table.insert(self.lines, loc[1], empty)
+    --         end
+    --     end
+    -- end
+
     self.screens = {}
     local j = 1
     while j <= N do
@@ -192,7 +211,8 @@ function TextBox:__constructor__(args)
             local line = screen[k]
             local N_line = #line
 
-            if (N_line == 1 and line[1].text == "\n")
+            if (N_line == 1 and line[1].text:match("\n")
+                    and (args.remove_empty_lines or true))
                 or (N_line <= 0)
             then
                 table.remove(screen, k)
@@ -209,6 +229,9 @@ function TextBox:__constructor__(args)
 
         j = j + self.amount_lines
     end
+
+    -- local Word = require "jm-love2d-package.modules.font.Word"
+    -- table.insert(self.screens[1], { Word:new { text = "\noi", font = self.sentence.__font } })
 
     self.cur_screen = 1
     self:set_mode()
