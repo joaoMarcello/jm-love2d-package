@@ -70,7 +70,7 @@ function data:load(dir)
 end
 
 --============================================================================
-local play_state = pcall(function(...)
+local sucess, play_state = pcall(function(...)
     return require "lib.gamestate.gamemap_test"
 end)
 --============================================================================
