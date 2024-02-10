@@ -114,6 +114,7 @@ function TextBox:new(text, font, x, y, w)
     -- TextBox.__constructor__(obj, { text = text, x = x, y = y, font = font }, w)
 
     TextBox.__constructor__(obj, args)
+    args = nil
     return obj
 end
 
@@ -539,7 +540,8 @@ end
 
 -- local Font = _G.JM_Font
 
-function TextBox:__draw()
+---@param self JM.GUI.TextBox
+local function _draw_(self)
     if not self.is_visible then return end
 
     if self.show_border then
@@ -589,7 +591,7 @@ function TextBox:__draw()
 end
 
 function TextBox:draw()
-    Affectable.draw(self, self.__draw)
+    Affectable.draw(self, _draw_)
 end
 
 return TextBox
