@@ -149,7 +149,7 @@ function TextBox:__constructor__(args)
     self.align = args.align
     self.text_align = args.text_align
     self.w = args.w or max_width
-    self.h = -math.huge
+    self.h = 0 -- -math.huge
     self.is_visible = true
 
     self.cur_glyph = 0
@@ -194,62 +194,77 @@ function TextBox:__constructor__(args)
     -- end
 
     self.screens = {}
-    local j = 1
-    while j <= N do
-        table.insert(self.screens,
-            { unpack(self.lines, j, j + self.amount_lines - 1) })
+    -- local j = 1
+    -- while j <= N do
+    --     table.insert(self.screens,
+    --         { unpack(self.lines, j, j + self.amount_lines - 1) })
 
-        -- defining the textBox height
-        local h = self.sentence:text_height(self.screens[#self.screens])
-        self.h = h > self.h and h or self.h
+    --     -- defining the textBox height
+    --     local h = self.sentence:text_height(self.screens[#self.screens])
+    --     self.h = h > self.h and h or self.h
 
-        local screen = self.screens[#self.screens]
+    --     local screen = self.screens[#self.screens]
 
-        -- removing empty lines
-        local k = 1
-        while k <= #screen do
-            local line = screen[k]
-            local N_line = #line
+    --     -- removing empty lines
+    --     local k = 1
+    --     while k <= #screen do
+    --         local line = screen[k]
+    --         local N_line = #line
 
-            if (N_line == 1 and line[1].text:match("\n")
-                    and (args.remove_empty_lines or true))
-                or (N_line <= 0)
-            then
-                table.remove(screen, k)
-                k = k - 1
-            end
-            k = k + 1
-        end --end removing empty lines
+    --         if (N_line == 1 and line[1].text:match("\n")
+    --                 and (args.remove_empty_lines or true))
+    --             or (N_line <= 0)
+    --         then
+    --             table.remove(screen, k)
+    --             k = k - 1
+    --         end
+    --         k = k + 1
+    --     end --end removing empty lines
 
-        -- removing empty screens
-        if #screen <= 0 then
-            table.remove(self.screens, #self.screens)
-            self.amount_screens = self.amount_screens - 1
+    --     -- removing empty screens
+    --     if #screen <= 0 then
+    --         table.remove(self.screens, #self.screens)
+    --         self.amount_screens = self.amount_screens - 1
+    --     end
+
+    --     j = j + self.amount_lines
+    -- end
+
+    local cur_screen = {}
+    local count = 1
+    for i = 1, N do
+        local line = self.lines[i]
+        local n_line = #line
+        -- local cond = (n_line == 1 and line[1].text == "\n" and false)
+        --     or (n_line <= 0)
+
+        local to_next = n_line >= 1 and line[1].text:match("<next>")
+
+        if not to_next then
+            table.insert(cur_screen, line)
         end
 
-        j = j + self.amount_lines
+        if count < self.amount_lines and i ~= N
+            and not to_next
+        then
+            count = count + 1
+        elseif (#cur_screen) ~= 0 then
+            table.insert(self.screens, cur_screen)
+            cur_screen = {}
+            count = 1
+
+            -- defining the textBox height
+            local h = self.sentence:text_height(self.screens[#self.screens])
+            self.h = h > self.h and h or self.h
+        end
     end
+    self.amount_screens = #self.screens
 
     -- local Word = require "jm-love2d-package.modules.font.Word"
     -- table.insert(self.screens[1], { Word:new { text = "\noi", font = self.sentence.__font } })
 
     self.cur_screen = 1
     self:set_mode()
-
-    -- self.screen_width = {}
-    -- for _, screen in ipairs(self.screens) do
-    --     local max_len = -math.huge
-
-    --     for _, line in ipairs(screen) do
-    --         local len = lines_width[line] --self.sentence:__line_length(line)
-    --         if len > max_len then
-    --             max_len = len
-    --         end
-    --     end
-
-    --     self.screen_width[screen] = max_len
-    --     --self.screen_width[screen] = max_len > self.w and max_len or self.w
-    -- end
 
     self.ox = self.w * 0.5
     self.oy = self.h * 0.5
