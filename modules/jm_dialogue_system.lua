@@ -111,9 +111,6 @@ do
                     str = str .. line
                 end
             else
-                -- if str ~= "" and str ~= "\n" and str ~= " "
-                --     and str ~= "<next>"
-                -- then
                 do
                     -- print(i)
                     table.insert(boxes,
