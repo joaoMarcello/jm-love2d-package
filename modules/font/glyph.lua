@@ -176,6 +176,7 @@ function Glyph:is_animated()
 end
 
 function Glyph:draw(x, y)
+    x, y = math.floor(x + 0.5), math.floor(y + 0.5)
     self.x, self.y = x, y
 
     Affectable.draw(self, self.__glyph_draw__)
