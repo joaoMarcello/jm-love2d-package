@@ -134,6 +134,15 @@ do
         file:release()
         file = nil
 
+        local w, h = 0, 0
+        for i = 1, #boxes do
+            ---@type JM.GUI.TextBox
+            local box = boxes[i]
+            local _, _, bw, bh = box:rect()
+            if bw > w then w = bw end
+            if bh > h then h = bh end
+        end
+
         ---@class JM.DialogueSystem.Dialogue
         local obj = setmetatable({
             boxes = boxes,
@@ -141,6 +150,8 @@ do
             cur = 1,
             n_boxes = #boxes,
             is_visible = true,
+            w = w,
+            h = h,
         }, Dialogue)
 
         boxes = nil
@@ -195,6 +206,11 @@ do
 
     function Dialogue:set_visible(v)
         self.is_visible = v
+    end
+
+    function Dialogue:rect()
+        local box = self:get_cur_box()
+        return box.x, box.y, self.w, self.h
     end
 
     function Dialogue:update(dt)
