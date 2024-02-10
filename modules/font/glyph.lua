@@ -14,7 +14,8 @@ Glyph.__index = Glyph
 
 ---@return JM.Font.Glyph
 function Glyph:new(img, args)
-    local obj = Affectable:new(self.__glyph_draw__)
+    -- local obj = Affectable:new(self.__glyph_draw__)
+    local obj = Affectable:new()
     setmetatable(obj, self)
 
     Glyph.__constructor__(obj, img, args)
@@ -95,7 +96,7 @@ function Glyph:__constructor__(img, args)
     self.set_color = Glyph.set_color
     self.set_color2 = Glyph.set_color2
     self.set_scale = Glyph.set_scale
-    self.__glyph_draw__ = Glyph.__glyph_draw__
+    -- self.__glyph_draw__ = Glyph.__glyph_draw__
 end
 
 function Glyph:update(dt)
@@ -175,27 +176,8 @@ function Glyph:is_animated()
     return self.__anima and true or false
 end
 
-function Glyph:draw(x, y)
-    x, y = math.floor(x + 0.5), math.floor(y + 0.5)
-    self.x, self.y = x, y
-
-    Affectable.draw(self, self.__glyph_draw__)
-end
-
--- function Glyph:draw_rec(x, y, w, h)
---     --local eff_t = self:__get_effect_transform()
-
---     x = x + w / 2
---     y = y + h
---         - self.h * self.sy  --* (eff_t and eff_t.sy or 1)
---         + self.oy * self.sy -- * (eff_t and eff_t.sy or 1)
-
---     self:draw(x, y)
-
---     return x, y
--- end
-
-function Glyph:__glyph_draw__()
+---@param self JM.Font.Glyph
+local function __glyph_draw__(self)
     -- if self.__id == "__nule__" then return end
 
     if not self.is_visible then return end
@@ -231,6 +213,27 @@ function Glyph:__glyph_draw__()
     --     self.h * self.sy
     -- )
 end
+
+local floor = math.floor
+function Glyph:draw(x, y)
+    self.x, self.y = floor(x + 0.5), floor(y + 0.5)
+    return Affectable.draw(self, __glyph_draw__)
+end
+
+-- function Glyph:draw_rec(x, y, w, h)
+--     --local eff_t = self:__get_effect_transform()
+
+--     x = x + w / 2
+--     y = y + h
+--         - self.h * self.sy  --* (eff_t and eff_t.sy or 1)
+--         + self.oy * self.sy -- * (eff_t and eff_t.sy or 1)
+
+--     self:draw(x, y)
+
+--     return x, y
+-- end
+
+
 
 -- function Glyph:get_pos_draw_rec(x, y, w, h)
 --     x = x + w / 2
