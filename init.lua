@@ -1,4 +1,6 @@
 local path = (...)
+_G.FULLSCREEN_TYPE = _G.FULLSCREEN_TYPE or "desktop"
+
 _G.JM_Path = string.gsub(path, "init", "")
 
 local JM = {}
@@ -199,6 +201,9 @@ JM.GameMap = require(string.gsub(path, "init", "modules.editor.game_map"))
 
 ---@type JM.ShaderManager
 JM.Shader = require(string.gsub(path, "init", "modules.jm_shader"))
+
+---@type JM.DialogueSystem
+JM.DialogueSystem = require(string.gsub(path, "init", "modules.jm_dialogue_system"))
 
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
