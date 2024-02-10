@@ -54,11 +54,12 @@ function Iterator:__constructor__(text, font)
 
     while i <= N do
         local current_char, glyph
+        local pos = utf8.offset(text, i)
 
-        local is_nick = font:__is_a_nickname(text, i)
+        local is_nick, len = font:__is_a_nickname(text, pos)
         if is_nick then
             current_char = is_nick
-            i = i + #(is_nick) - 1
+            i = i + len - 1
         else
             current_char = codes[i]
         end
