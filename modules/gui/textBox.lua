@@ -506,6 +506,8 @@ function TextBox:update(dt)
             else
                 self.extra_time = 0.0
             end
+        else
+            self.extra_time = 0.0
         end
         --===================================================
         if word then
