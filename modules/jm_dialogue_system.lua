@@ -4,29 +4,50 @@ local Textbox = JM.GUI.TextBox
 local Dialogue = {}
 Dialogue.__index = Dialogue
 
+local default = {
+    x = (24 + 16),
+    y = (16 * 7.25),
+    w = (16 * 14),
+    align = Textbox.AlignX.left,
+    text_align = Textbox.AlignY.top,
+    update_mode = Textbox.UpdateMode.by_glyph,
+    speed = 0.05,
+    n_lines = 4,
+    time_wait = 0.5,
+    allow_cycle = false,
+    show_border = false,
+    -- simulate_speak = false,
+}
+
 ---@param text string
 ---@param font JM.Font.Font
-local create_box = function(text, font, config)
+local create_box = function(text, font, header, conf)
     text = text:gsub("<next>\n", "<next>")
     text = text:gsub("<tab>", "\t")
     -- text = text:gsub("<emphasis>", "<color>")
     -- text = text:gsub("</emphasis>", "</color>")
 
+    if not header then
+        header = conf
+    end
+
     return Textbox:new {
         text = text,
         font = font,
-        x = config and config.x or (24 + 16),
-        y = config and config.y or (16 * 7.25),
-        w = config and config.w or (16 * 14),
-        align = config and config.align or Textbox.AlignX.left,
-        text_align = config and config.text_align or Textbox.AlignY.top,
-        update_mode = config and config.update_mode
-            or Textbox.UpdateMode.by_glyph,
-        speed = config and config.speed or 0.05,
-        n_lines = config and config.n_lines or 4,
-        time_wait = 0.5,
-        allow_cycle = false,
-        show_border = true,
+        x = header.x or conf.x or default.x,
+        y = header.y or conf.y or default.y,
+        w = header.w or conf.w or default.w,
+        align = header.align or conf.align or default.align,
+        text_align = header.text_align or conf.text_align
+            or default.text_align,
+        update_mode = header.update_mode or conf.update_mode
+            or default.update_mode,
+        speed = header.speed or conf.speed or default.speed,
+        n_lines = header.n_lines or conf.n_lines or default.n_lines,
+        time_wait = header.time_wait or conf.time_wait or default.time_wait,
+        allow_cycle = header.allow_cycle or conf.allow_cycle,
+        show_border = header.show_border or conf.show_border,
+        simulate_speak = header.simulate_speak,
     }
 end
 
@@ -63,10 +84,11 @@ end
 
 do
     ---@param dir string
-    ---@param font JM.Font.Font
     ---@return JM.DialogueSystem.Dialogue
-    function Dialogue:new(dir, font)
+    function Dialogue:new(dir, font, conf)
         font = font or JM:get_font("pix8")
+        conf = conf or default
+        conf = setmetatable(conf, default)
 
         ---@type love.File|any
         local file = love.filesystem.newFile(dir)
@@ -114,7 +136,7 @@ do
                 do
                     -- print(i)
                     table.insert(boxes,
-                        create_box(str, font, headers[cur_init]))
+                        create_box(str, font, headers[cur_init], conf))
                     table.insert(ids_, id)
                 end
                 str = line
@@ -122,7 +144,7 @@ do
 
                 if i == N and line ~= "" then
                     table.insert(boxes, create_box(str, font,
-                        headers[cur_init]))
+                        headers[cur_init], conf))
                     table.insert(ids_, ids[i])
                 end
             end
@@ -231,8 +253,8 @@ end
 ---@class JM.DialogueSystem
 local Module = {}
 
-function Module:newDialogue(dir, font)
-    return Dialogue:new(dir, font)
+function Module:newDialogue(dir, font, conf)
+    return Dialogue:new(dir, font, conf)
 end
 
 return Module
