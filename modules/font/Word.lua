@@ -1,6 +1,9 @@
 ---@type JM.EffectManager
 local EffectManager = require((...):gsub("font.Word", "jm_effect_manager"))
 
+---@type JM.Font.Glyph
+local Glyph = require((...):gsub("Word", "glyph"))
+
 ---@class JM.Font.Word
 local Word = {
     eff_wave_range = 2,
@@ -270,6 +273,10 @@ end
 
 ---@alias JM.Font.CharacterPosition {x: number, y:number, char: JM.Font.Glyph}
 
+local glyph_setcolor = Glyph.set_color
+local glyph_setscale = Glyph.set_scale
+local glyph_draw = Glyph.draw
+
 ---@param x number
 function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
     -- love.graphics.setColor(0.9, 0, 0, 0.15)
@@ -287,8 +294,8 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
         ---@type JM.Font.Glyph
         glyph = list_glyphs[i]
 
-        glyph:set_color(glyph.color)
-        glyph:set_scale(font.__scale)
+        glyph_setcolor(glyph, glyph.color)
+        glyph_setscale(glyph, font.__scale)
 
         if font:is_glyph_xp(glyph) then
             local prop = font.nick_to_glyph_xp[glyph.id]
@@ -321,7 +328,8 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
 
             py = bottom - glyph.h * glyph.sy
             px = tx
-            glyph:draw(px, py)
+            -- glyph:draw(px, py)
+            glyph_draw(glyph, px, py)
         else
             glyph.__anima:set_size(
                 nil, self.__font.__font_size * 1.4,
@@ -332,7 +340,8 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
 
             local pos_x = tx + glyph.w * 0.5 * glyph.sx
 
-            glyph:draw(pos_x, pos_y)
+            -- glyph:draw(pos_x, pos_y)
+            glyph_draw(glyph, pos_x, pos_y)
         end
 
         tx = tx + (glyph.w + font.__character_space) * glyph.sx
