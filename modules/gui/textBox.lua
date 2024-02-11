@@ -103,7 +103,7 @@ function TextBox:new(text, font, x, y, w)
         t.align = t.align or "left"
         t.text_align = t.text_align or AlignY.center
         t.speed = t.speed or 0.05
-        t.simulate_speak = t.simulate_speak == nil
+        t.simulate_speak = t.simulate_speak == nil or t.simulate_speak
         t.n_lines = t.n_lines or 4
         t.mode = t.mode or "normal"
         t.update_mode = t.update_mode or UpdateMode.by_glyph
@@ -291,7 +291,7 @@ function TextBox:reset()
     self.is_visible = true
     self.max_time_glyph = args.speed
     self.update_mode = args.update_mode
-    self.simulate_speak = args.simulate_speak
+    -- self.simulate_speak = args.simulate_speak
     return self:set_mode(args.mode)
 end
 
@@ -300,8 +300,8 @@ function TextBox:do_the_thing(index, args)
     local field = self[index]
     if type(field) == "function" then
         return field(self, args)
-    elseif field then
-        self[index] = args or self[index]
+    else                   --if type(field) ~= "nil" then
+        self[index] = args -- or self[index]
     end
 end
 
@@ -526,6 +526,7 @@ function TextBox:update(dt)
                             self.time_pause = tag["pause"]
                             return false
                         elseif name == "<text-box>" then
+                            print(tag['action'], tag['value'])
                             self:do_the_thing(tag['action'], tag['value'])
                             self.time_pause = 0.5
                         end
