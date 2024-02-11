@@ -204,6 +204,10 @@ do
         return self.cur == self.n_boxes and self:get_cur_box():finished()
     end
 
+    function Dialogue:screen_is_finished()
+        return self:get_cur_box():screen_is_finished()
+    end
+
     function Dialogue:set_visible(v)
         self.is_visible = v
     end
