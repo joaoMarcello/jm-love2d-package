@@ -468,7 +468,7 @@ function TextBox:script(args)
     enviroment["_G"] = _G
     enviroment.box = self
     enviroment.textbox = self
-    enviroment.scene = JM.BodyObject.gamestate
+    enviroment.scene = JM.GameObject.gamestate or JM.SceneManager.scene
 
     local env = setfenv(script, enviroment)
     return env()
