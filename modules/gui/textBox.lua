@@ -437,13 +437,14 @@ function TextBox:skip_screen()
 end
 
 function TextBox:play_sfx(args)
-    local sfx
     if type(args) == "table" then
-        sfx = args.sfx
-        _G.Play_sfx(sfx, true)
+        return _G.Play_sfx(args.sfx, true)
+    else
+        return _G.Play_sfx(args, true)
     end
 end
 
+-- used to call a function which is in global space
 function TextBox:code(args)
     if type(args) == "table" then
         local action = _G[args.action]
@@ -457,9 +458,20 @@ function TextBox:code(args)
     end
 end
 
+local enviroment = {}
+
+-- used to run scripts using the textbox tag
 function TextBox:script(args)
     -- print(args)
-    return assert(loadstring(args))()
+    local script = assert(loadstring(args))
+
+    enviroment["_G"] = _G
+    enviroment.box = self
+    enviroment.textbox = self
+    enviroment.scene = JM.BodyObject.gamestate
+
+    local env = setfenv(script, enviroment)
+    return env()
 end
 
 function TextBox:update(dt)
