@@ -62,7 +62,7 @@ local function fix_text(str, font)
         s = s:gsub("< */ *code *>", "")
         -- print(s)
         local header = "return " .. s
-        code = loadstring(header)()
+        code = assert(loadstring(header))()
 
         str = str:gsub("< *code *>.*< */ *code *>", "")
     end
