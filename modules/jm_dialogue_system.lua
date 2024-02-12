@@ -24,6 +24,23 @@ local default = {
 local create_box = function(text, font, header, conf)
     text = text:gsub("<next>\n", "<next>")
     text = text:gsub("<tab>", "\t")
+    do
+        -- using the <play> tag
+        -- fix to the command accepted by Textbox class
+        local regex = "< *play *= *[%w_%- ]*>"
+        local i = 1
+        local starp, endp = text:find(regex, i)
+
+        while starp do
+            local init, _ = text:find("=", starp)
+            local right = text:sub(init + 1, endp - 1)
+            local new = string.format("<textbox,action=play_sfx,value=%s>", right)
+            text = text:gsub(regex, new, 1)
+
+            i = starp + #new
+            starp, endp = text:find(regex, i)
+        end
+    end
     -- text = text:gsub("<emphasis>", "<color>")
     -- text = text:gsub("</emphasis>", "</color>")
 
@@ -113,6 +130,7 @@ do
         local ids_ = { speaker }
         local N = #texts
         local cur_init = 1
+        local cur_header = headers[1]
 
         for i = 1, N do
             local id = ids[i]
@@ -120,7 +138,9 @@ do
             ---@type string
             local line = texts[i]
 
-            if id == speaker and i ~= N then
+            if id == speaker and i ~= N
+                and (headers[i] == cur_header or headers[i] == false)
+            then
                 if str ~= "" then
                     if line == "" then
                         if ids[i + 1] == id and texts[i + 1] ~= "" then
@@ -141,6 +161,7 @@ do
                 end
                 str = line
                 cur_init = i
+                cur_header = headers[i]
 
                 if i == N and line ~= "" then
                     table.insert(boxes, create_box(str, font,
