@@ -43,14 +43,14 @@ local create_box = function(text, font, header, conf)
     end
 
     do
-        local regex = "[\n]*< *script *>.*< */ *script *>"
+        local regex = "[\n]*< *script *>.*< */ *script *>[\n]*"
         local i = 1
         local startp, endp = text:find(regex, i)
 
         while startp do
             local script = text:sub(startp, endp)
             script = script:gsub("[\n]*< *script *>", "")
-            script = script:gsub("< */script *>", "")
+            script = script:gsub("< */script *>[\n]*", "")
             script = script:gsub("\n", "")
             -- print(script)
 
