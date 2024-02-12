@@ -429,10 +429,35 @@ function TextBox:on_event(name, action, args)
 end
 
 function TextBox:skip_screen()
+    -- self.cur_glyph = nil
+    while not self:screen_is_finished() do
+        self:update(self.max_time_glyph, true)
+    end
     self.cur_glyph = nil
 end
 
-function TextBox:update(dt)
+function TextBox:play_sfx(args)
+    local sfx
+    if type(args) == "table" then
+        sfx = args.sfx
+        _G.Play_sfx(sfx, true)
+    end
+end
+
+function TextBox:code(args)
+    if type(args) == "table" then
+        local action = _G[args.action]
+        if action then
+            if args.unpack then
+                return action(unpack(args.args))
+            else
+                return action(args.args)
+            end
+        end
+    end
+end
+
+function TextBox:update(dt, skip_mode)
     self.sentence:update(dt)
 
     self.__effect_manager:update(dt)
@@ -527,10 +552,10 @@ function TextBox:update(dt)
                         if name == "<pause>" then
                             self.time_pause = tag["pause"]
                             return false
-                        elseif name == "<text-box>" then
+                        elseif name == "<textbox>" then
                             print(tag['action'], tag['value'])
                             self:do_the_thing(tag['action'], tag['value'])
-                            self.time_pause = 0.5
+                            -- self.time_pause = 0.15
                         end
                     end
                 end
@@ -594,7 +619,7 @@ local function _draw_(self)
 end
 
 function TextBox:draw()
-    Affectable.draw(self, _draw_)
+    return Affectable.draw(self, _draw_)
 end
 
 return TextBox
