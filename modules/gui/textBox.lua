@@ -457,6 +457,11 @@ function TextBox:code(args)
     end
 end
 
+function TextBox:script(args)
+    -- print(args)
+    return assert(loadstring(args))()
+end
+
 function TextBox:update(dt)
     self.sentence:update(dt)
 
@@ -553,7 +558,7 @@ function TextBox:update(dt)
                             self.time_pause = tag["pause"]
                             return false
                         elseif name == "<textbox>" then
-                            print(tag['action'], tag['value'])
+                            -- print(tag['action'], tag['value'])
                             self:do_the_thing(tag['action'], tag['value'])
                             -- self.time_pause = 0.15
                         end
