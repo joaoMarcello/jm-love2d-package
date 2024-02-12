@@ -1024,7 +1024,7 @@ function Font:separate_string(s, list)
 
     -- local N = utf8.len(s) -- #s
     local N = #s
-    local tag_regex = "< *[%d, =._%w/%-%#]*>"
+    local tag_regex = "< *[%d, =._%w/%-%#%{%}\'\";]*>"
 
     while (current_init <= N) do
         -- while (current_init <= utf8.len(s)) do
@@ -1123,7 +1123,7 @@ function Font:__is_a_command_tag(s)
         -- or (s:match("< *font%-size *=[ %d%.]*[, %w%-]*>") and "<font-size>")
         -- or (s:match("< */ *font%-size *[, %w%-]*>") and "</font-size>")
 
-        or (s:match("< *text%-box[ ,=%w%._]*>") and "<text-box>")
+        or (s:match("< *textbox[ ,=%w%._%-%{%}\'\";]*>") and "<textbox>")
         or (s:match("< *sep[ %w,%-]*>") and "<sep>")
         or false
 end
@@ -1171,6 +1171,10 @@ function Font:get_tag_args(s)
                     right = false -- true
                 elseif tonumber(right) then
                     right = tonumber(right)
+                elseif right:match("{.*}") then
+                    i = i + #right
+                    right = assert(loadstring("return " .. right))()
+                    ---
                 elseif right:match("true") then
                     right = true
                 elseif right:match("false") then
