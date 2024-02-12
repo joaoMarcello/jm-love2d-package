@@ -431,7 +431,7 @@ end
 function TextBox:skip_screen()
     -- self.cur_glyph = nil
     while not self:screen_is_finished() do
-        self:update(self.max_time_glyph, true)
+        self:update(self.max_time_glyph)
     end
     self.cur_glyph = nil
 end
@@ -457,7 +457,7 @@ function TextBox:code(args)
     end
 end
 
-function TextBox:update(dt, skip_mode)
+function TextBox:update(dt)
     self.sentence:update(dt)
 
     self.__effect_manager:update(dt)
