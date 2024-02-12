@@ -41,6 +41,28 @@ local create_box = function(text, font, header, conf)
             starp, endp = text:find(regex, i)
         end
     end
+
+    do
+        local regex = "[\n]*< *script *>.*< */ *script *>"
+        local i = 1
+        local startp, endp = text:find(regex, i)
+
+        while startp do
+            local script = text:sub(startp, endp)
+            script = script:gsub("[\n]*< *script *>", "")
+            script = script:gsub("< */script *>", "")
+            script = script:gsub("\n", "")
+            -- print(script)
+
+            local new = string.format("<textbox,action=script,value=%s>", script)
+
+            text = text:gsub(regex, new, 1)
+            i = startp + #new
+            startp, endp = text:find(regex, i)
+        end
+    end
+
+
     -- text = text:gsub("<emphasis>", "<color>")
     -- text = text:gsub("</emphasis>", "</color>")
 
