@@ -1024,7 +1024,7 @@ function Font:separate_string(s, list)
 
     -- local N = utf8.len(s) -- #s
     local N = #s
-    local tag_regex = "< *[%d, =%._%w/%-%#%{%}\'\";():\\]*>"
+    local tag_regex = "< *[%d, =._%w/%-%#%{%}\'\";():\\]*>"
 
     while (current_init <= N) do
         -- while (current_init <= utf8.len(s)) do
