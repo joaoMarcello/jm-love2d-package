@@ -101,7 +101,9 @@ end
 ---@param s string
 local function get_tag_args(s)
     if not s or s == "" then return {} end
-    s = s:sub(2, #s - 1)
+    -- s = s:sub(2, #s - 1)
+    s = s:gsub("<", "")
+    s = s:gsub(">", "")
     if not s or s == "" then return {} end
 
     local N = #s
@@ -131,6 +133,11 @@ local function get_tag_args(s)
                     right = true
                 elseif tonumber(right) then
                     right = tonumber(right)
+                elseif right:match("{.*}") then
+                    -- print(left, right)
+                    i = i + #right
+                    right = assert(loadstring("return " .. right))()
+                    ---
                 elseif right:match("true") then
                     right = true
                 elseif right:match("false") then
