@@ -291,8 +291,10 @@ function Phrase:get_lines()
 
         local cur_is_tag = self.__font:__is_a_command_tag(current_word.text)
 
-        local r = current_word:get_width()
-            + word_char:get_width()
+        local is_void = current_word.text == "<void>"
+
+        local r = (current_word:get_width())
+            + (not is_void and word_char:get_width() or 0)
 
         if cur_is_tag then
             if current_word.text:match("no%-space") then
@@ -389,6 +391,8 @@ function Phrase:get_lines()
                 and current_word.text ~= "\t"
                 and current_word.text ~= "\n"
                 and next_word and next_word.text ~= "\t"
+                and current_word.text ~= "<void>"
+            -- and next_word and next_word.text ~= "<void>"
             -- and not next_word.text:match("\n ?")
             then
                 table_insert(lines[cur_line], word_char)
@@ -519,7 +523,7 @@ function Phrase:get_glyph(n, lines)
             if is_command_tag(self.__font, word.text) then
                 -- goto next_word
             else
-                local N = #(word.__characters)
+                local N = word.__N_characters -- #(word.__characters)
                 count = count + N
 
                 if count >= n then
