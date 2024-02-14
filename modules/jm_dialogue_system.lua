@@ -49,12 +49,14 @@ local create_box = function(text, font, header, conf)
 
         while startp do
             local script = text:sub(startp, endp)
-            script = script:gsub("[\n]*< *script *>", "")
-            script = script:gsub("< */script *>[\n]*", "")
+            script = script:gsub("[\n]*< *script *>[\n]*", "")
+            script = script:gsub("[\n]*< */script *>[\n]*", "")
             script = script:gsub("\n", "")
-            -- print(script)
+            print(script)
 
-            local new = string.format("<textbox,action=script,value=%s>", script)
+            local index = Textbox.add_script(script)
+
+            local new = string.format("<textbox,action=script,value=%s>", index)
 
             text = text:gsub(regex, new, 1)
             i = startp + #new
@@ -92,7 +94,7 @@ end
 
 ---@param str string
 ---@param font JM.Font.Font
-local function fix_text(str, font)
+local function fix_text(str, font, on_script)
     local startp, endp = str:find("< *code *>.*< */ *code *>")
     local code
     if startp then
@@ -106,7 +108,10 @@ local function fix_text(str, font)
         str = str:gsub("< *code *>.*< */ *code *>", "")
     end
 
-    local startp, endp = str:find("[%w_%-%(%) ]-:")
+    local startp, endp
+    if not on_script then
+        startp, endp = str:find("[%w_%-%(%) ]-:")
+    end
     local id
 
     if startp and startp == 1 then
@@ -136,8 +141,17 @@ do
         local texts = {}
         local headers = {}
 
+        local on_script = false
         for line in file:lines() do
-            local id, text, header = fix_text(line, font)
+            if not on_script then
+                on_script = line:match("< *script *>")
+            end
+            if on_script then
+                if line:match("< */ *script *>") then
+                    on_script = false
+                end
+            end
+            local id, text, header = fix_text(line, font, on_script)
             if id then id = id:gsub(":", "") end
             table.insert(texts, text)
             table.insert(ids, id or ids[#ids] or "")
