@@ -42,7 +42,10 @@ function Word:__constructor__(args)
 
     self:__load_characters(self.font_format, args.skip_copy)
 
-    self.__N_characters = self.__characters and #(self.__characters) or 0
+    self.__N_characters = self.__characters
+        -- and self.text ~= "<void>"
+        and #(self.__characters)
+        or 0
 
     -- self.last_x, self.last_y = math.huge, math.huge
 
@@ -54,10 +57,18 @@ end
 
 ---@param mode JM.Font.FormatOptions
 function Word:__load_characters(mode, skip_copy)
-    if self.__font:__is_a_command_tag(self.text) then
+    if self.__font:__is_a_command_tag(self.text)
+    -- or self.text == "<void>"
+    then
         return
     end
     local last_font_format = self.__font:get_format_mode()
+
+    if self.text == "<void>" then
+        self.__characters = { self.__font:__get_char_equals(" ") }
+        -- self.__characters[1].w = -self.__characters[1].w
+        return
+    end
 
     self.__font:set_format_mode(mode)
     self.__characters = {}
@@ -233,7 +244,7 @@ local mt_mode_k = { __mode = 'k' }
 Word.WIDTHS = setmetatable({}, mt_mode_k)
 ---
 function Word:get_width()
-    if self.__N_characters <= 0 then return 0 end
+    if self.__N_characters <= 0 or self.text == "<void>" then return 0 end
 
     local font = self.__font
     -- self.widths = self.widths or {}
