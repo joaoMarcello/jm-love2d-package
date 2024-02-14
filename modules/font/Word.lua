@@ -13,7 +13,7 @@ local Word = {
 }
 Word.__index = Word
 
----@param args {text: string, font: JM.Font.Font, format: JM.Font.FormatOptions}
+---@param args {text: string, font: JM.Font.Font, format: JM.Font.FormatOptions, skip_copy:boolean}
 ---@return JM.Font.Word phrase
 function Word:new(args)
     local obj = {}
@@ -25,7 +25,7 @@ function Word:new(args)
     return obj
 end
 
----@param args {text: string, font: JM.Font.Font, format: JM.Font.FormatOptions}
+---@param args {text: string, font: JM.Font.Font, format: JM.Font.FormatOptions, skip_copy:boolean}
 function Word:__constructor__(args)
     --assert(EffectManager, "\n>Class EffectManager not loaded!")
 
@@ -35,14 +35,14 @@ function Word:__constructor__(args)
 
     self.__font_config = self.__font:__get_configuration()
 
-    self.__characters = {}
+    -- self.__characters = {}
 
     -- local format = args.format or self.__font.format_options.normal
     self.font_format = args.format or self.__font.format_options.normal
 
-    self:__load_characters(self.font_format)
+    self:__load_characters(self.font_format, args.skip_copy)
 
-    self.__N_characters = #(self.__characters)
+    self.__N_characters = self.__characters and #(self.__characters) or 0
 
     -- self.last_x, self.last_y = math.huge, math.huge
 
@@ -53,7 +53,10 @@ function Word:__constructor__(args)
 end
 
 ---@param mode JM.Font.FormatOptions
-function Word:__load_characters(mode)
+function Word:__load_characters(mode, skip_copy)
+    if self.__font:__is_a_command_tag(self.text) then
+        return
+    end
     local last_font_format = self.__font:get_format_mode()
 
     self.__font:set_format_mode(mode)
@@ -64,7 +67,9 @@ function Word:__load_characters(mode)
     while (iterator:has_next()) do
         local glyph = iterator:next()
 
-        glyph = glyph:copy()
+        if not skip_copy then
+            glyph = glyph:copy()
+        end
         glyph:set_color(self.__font.__default_color)
 
         -- if not glyph.__anima then
@@ -108,7 +113,7 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
     if not startp then startp = 1 end
     if not endp then endp = #self.__characters end
     if not offset then offset = 0 end
-
+    if self.__N_characters <= 0 then return end
 
     for i = startp, endp, 1 do
         local skip = false
@@ -195,6 +200,7 @@ end
 function Word:set_color(color, startp, endp)
     if not startp then startp = 1 end
     if not endp then endp = self.__N_characters end
+    if self.__N_characters <= 0 then return end
 
     local i = startp
     while (i <= endp) do
