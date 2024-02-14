@@ -71,10 +71,9 @@ function Manager:change_gamestate(new_state, conf)
     r = conf.transition and scene:add_transition(conf.transition, "in", conf.transition_conf, nil, conf.trans_end_action) or
         nil
 
+    self.scene = scene
     scene:resize(love.graphics.getDimensions())
     scene:update(love.timer.getDelta())
-
-    self.scene = scene
 
     return r
 end
