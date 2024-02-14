@@ -51,11 +51,34 @@ function Phrase:__constructor__(args)
 
     local font = self.__font
 
-    local word_arg = { font = font }
+    local word_arg = { font = font, skip_copy = true }
+    local stack = 0
 
     for i = 1, #self.__separated_string do
         word_arg.text = self.__separated_string[i]
         word_arg.format = font:get_format_mode()
+
+        local is_command_tag = font:__is_a_command_tag(word_arg.text)
+        if is_command_tag then
+            if is_command_tag == "<effect>"
+                or is_command_tag == "<color>"
+                or is_command_tag == "<color-hex>"
+            then
+                stack = stack + 1
+                word_arg.skip_copy = false
+                ---
+            elseif is_command_tag == "</effect>"
+                or is_command_tag == "</color>"
+            then
+                local N = stack
+                if N > 0 then
+                    stack = stack - 1
+                    if N == 1 then
+                        word_arg.skip_copy = true
+                    end
+                end
+            end
+        end
 
         local w = Word:new(word_arg)
 
@@ -66,7 +89,7 @@ function Phrase:__constructor__(args)
                 w:set_color(font.__default_color)
             end
 
-            local is_command_tag = font:__is_a_command_tag(w.text)
+            -- local is_command_tag = font:__is_a_command_tag(w.text)
 
             if is_command_tag then
                 prev_tags = prev_tags or {}
