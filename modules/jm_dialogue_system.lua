@@ -47,7 +47,7 @@ end
 ---@param font JM.Font.Font
 local create_box = function(text, font, header, conf)
     text = text:gsub("<next>\n", "<next>")
-    text = text:gsub("<tab>", "\t")
+    -- text = text:gsub("<tab>", "\t")
     do
         -- using the <play> tag
         -- fix to the command accepted by Textbox class
