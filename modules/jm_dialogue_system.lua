@@ -106,17 +106,16 @@ end
 ---@param str string
 ---@param font JM.Font.Font
 local function fix_text(str, font, on_script)
-    local startp, endp = str:find("< *code *>.*< */ *code *>")
     local code
-    if startp then
-        local s = str:sub(startp, endp)
-        s = s:gsub("< *code *>", "")
-        s = s:gsub("< */ *code *>", "")
-        -- print(s)
-        local header = "return " .. s
-        code = assert(loadstring(header))()
 
-        str = str:gsub("< *code *>.*< */ *code *>", "")
+    do
+        local init, final = str:find(" *{.*} *")
+        if init then
+            local header = string.format("return %s", str:sub(init, final))
+            code = assert(loadstring(header))()
+
+            str = str:gsub(" *{.*} *", "")
+        end
     end
 
     local startp, endp
@@ -171,6 +170,10 @@ do
             table.insert(headers, header or false)
             -- print(header)
         end
+        file:close()
+        file:release()
+        file = nil
+
         table.insert(texts, "")
         table.insert(ids, "")
 
@@ -222,9 +225,7 @@ do
             speaker = ids[i]
         end
 
-        file:close()
-        file:release()
-        file = nil
+
 
         local w, h = 0, 0
         for i = 1, #boxes do
@@ -264,7 +265,7 @@ do
     function Dialogue:get_id()
         ---@type string
         local id = self.ids[self.cur]
-        local startp, endp = id:find("%( *[%w]* *%)")
+        local startp, endp = id:find(" *%( *[%w]* *%) *")
         if startp then
             return id:sub(1, startp - 1)
         end
