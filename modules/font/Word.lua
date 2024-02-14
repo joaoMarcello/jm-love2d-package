@@ -233,6 +233,8 @@ local mt_mode_k = { __mode = 'k' }
 Word.WIDTHS = setmetatable({}, mt_mode_k)
 ---
 function Word:get_width()
+    if self.__N_characters <= 0 then return 0 end
+
     local font = self.__font
     -- self.widths = self.widths or {}
 
