@@ -459,11 +459,32 @@ function TextBox:code(args)
 end
 
 local enviroment = {}
+local scripts = {}
+local id = 1
+
+---@param value string
+---@return string index
+function TextBox.add_script(value)
+    local index = string.format("SCRIPT%04d", id)
+    scripts[index] = assert(loadstring(value:gsub("<next>", "\n")))
+    id = id + 1
+    return index
+end
+
+function TextBox.flush()
+    for k, v in next, scripts do
+        scripts[k] = nil
+    end
+    id = 1
+end
 
 -- used to run scripts using the textbox tag
 function TextBox:script(args)
+    local script = scripts[args]
+    if not script then
+        script = assert(loadstring(args))
+    end
     -- print(args)
-    local script = assert(loadstring(args))
 
     enviroment["_G"] = _G
     enviroment.box = self
@@ -471,7 +492,12 @@ function TextBox:script(args)
     enviroment.scene = JM.GameObject.gamestate or JM.SceneManager.scene
 
     local env = setfenv(script, enviroment)
-    return env()
+    env()
+
+    enviroment["_G"] = nil
+    enviroment.box = nil
+    enviroment.textbox = nil
+    enviroment.scene = nil
 end
 
 function TextBox:update(dt)
