@@ -1023,6 +1023,14 @@ function Font:separate_string(s, list)
     local words = list or {}
 
     -- local N = utf8.len(s) -- #s
+
+    do
+        s = s:gsub("`#`", "</color>")
+        for m in string.gmatch(s, "`#[abcdef%d]*`") do
+            s = s:gsub(m, string.format("<color-hex=%s>", m:sub(2, #m - 1)), 1)
+        end
+    end
+
     local N = #s
     local tag_regex = "< *[%d, =._%w/%-%#%{%}\'\";():\\]*>"
 
