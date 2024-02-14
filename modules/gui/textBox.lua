@@ -101,12 +101,18 @@ function TextBox:new(text, font, x, y, w)
         t.w = t.w or math.huge
         t.font = t.font or JM:get_font()
         t.align = t.align or "left"
-        t.text_align = t.text_align or AlignY.center
         t.speed = t.speed or 0.05
         t.simulate_speak = t.simulate_speak == nil or t.simulate_speak
         t.n_lines = t.n_lines or 4
         t.mode = t.mode or "normal"
-        t.update_mode = t.update_mode or UpdateMode.by_glyph
+
+        t.text_align = t.text_align
+            or AlignY.center
+
+        t.update_mode = (type(t.update_mode) == "string"
+                and TextBox.UpdateMode[t.update_mode])
+            or (type(t.update_mode) == "number" and math.floor(t.update_mode))
+            or UpdateMode.by_glyph
         args = t
     else
         return TextBox:new { text = text, font = font, x = x, y = y, w = w }
@@ -493,6 +499,7 @@ function TextBox:script(args)
     enviroment.box = self
     enviroment.textbox = self
     enviroment.scene = JM.GameObject.gamestate or JM.SceneManager.scene
+    enviroment.JM = JM
 
     local env = setfenv(script, enviroment)
     env()
@@ -501,6 +508,7 @@ function TextBox:script(args)
     enviroment.box = nil
     enviroment.textbox = nil
     enviroment.scene = nil
+    enviroment.JM = nil
 end
 
 function TextBox:update(dt)
