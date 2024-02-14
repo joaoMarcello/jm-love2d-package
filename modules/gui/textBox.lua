@@ -291,7 +291,7 @@ function TextBox:reset()
     self.is_visible = true
     self.max_time_glyph = args.speed
     self.update_mode = args.update_mode
-    -- self.simulate_speak = args.simulate_speak
+    self.simulate_speak = args.simulate_speak
     return self:set_mode(args.mode)
 end
 
@@ -466,7 +466,10 @@ local id = 1
 ---@return string index
 function TextBox.add_script(value)
     local index = string.format("SCRIPT%04d", id)
-    scripts[index] = assert(loadstring(value:gsub("<next>", "\n")))
+    value = value:gsub("<next>", " ")
+    -- print("--========================")
+    -- print(value)
+    scripts[index] = assert(loadstring(value))
     id = id + 1
     return index
 end
@@ -565,11 +568,11 @@ function TextBox:update(dt)
         if self.simulate_speak then
             local id = glyph.id
 
-            if id:match("[%.;?]") then
+            if id:match("[%.;?!]") then
                 self.extra_time = 0.8
                 --
-            elseif id:match("[,!]") then
-                self.extra_time = 0.3
+            elseif id:match("[,]") then
+                self.extra_time = 0.2
                 --
             else
                 self.extra_time = 0.0
