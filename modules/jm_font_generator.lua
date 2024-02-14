@@ -1036,8 +1036,15 @@ function Font:separate_string(s, list)
 
     do
         for m in string.gmatch(s, "%*%*.-%*%*") do
-            local new = string.gsub(m, "**", "")
+            local new = string.gsub(m, "%*%*", "")
             s = string.gsub(s, "%*%*.-%*%*", string.format("<bold>%s</bold>", new), 1)
+        end
+    end
+
+    do
+        for m in string.gmatch(s, "%*.-%*") do
+            local new = string.sub(m, 2, #m - 1)
+            s = string.gsub(s, "%*.-%*", string.format("<italic>%s</italic>", new))
         end
     end
 
