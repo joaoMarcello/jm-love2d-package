@@ -20,6 +20,30 @@ local default = {
 }
 
 ---@param text string
+local function find_scripts(text)
+    local regex2 = "< */ *script *>[\n]*"
+    local init2, final2 = text:find(regex2)
+    local regex1 = "[\n]*< *script *>"
+    local init1, final1 = text:find(regex1)
+
+    if init1 and init2 then
+        local script = text:sub(init1, final2)
+        script = script:gsub("[\n]*< *script *>[\n]*", "")
+        script = script:gsub("[\n]*< */ *script *>[\n]*", "")
+        script = script:gsub("\n", "")
+        -- print(script)
+
+        local index = Textbox.add_script(script)
+        local new = string.format("<textbox,action=script,value=%s>", index)
+        text = text:sub(1, init1 - 1) .. new .. text:sub(final2 + 1, #text)
+        -- print(text)
+        return true, text
+    else
+        return false
+    end
+end
+
+---@param text string
 ---@param font JM.Font.Font
 local create_box = function(text, font, header, conf)
     text = text:gsub("<next>\n", "<next>")
@@ -42,25 +66,12 @@ local create_box = function(text, font, header, conf)
         end
     end
 
-    do
-        local regex = "[\n]*< *script *>.*< */ *script *>[\n]*"
-        local i = 1
-        local startp, endp = text:find(regex, i)
-
-        while startp do
-            local script = text:sub(startp, endp)
-            script = script:gsub("[\n]*< *script *>[\n]*", "")
-            script = script:gsub("[\n]*< */script *>[\n]*", "")
-            script = script:gsub("\n", "")
-            print(script)
-
-            local index = Textbox.add_script(script)
-
-            local new = string.format("<textbox,action=script,value=%s>", index)
-
-            text = text:gsub(regex, new, 1)
-            i = startp + #new
-            startp, endp = text:find(regex, i)
+    while true do
+        local success, result = find_scripts(text)
+        if success and result then
+            text = result
+        else
+            break
         end
     end
 
@@ -122,6 +133,8 @@ local function fix_text(str, font, on_script)
             str = str:sub(endp + 1)
         end
     end
+
+    str = str:gsub("\\:", ":")
 
     return id, str, code
 end
