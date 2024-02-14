@@ -1031,6 +1031,13 @@ function Font:separate_string(s, list)
         end
     end
 
+    do
+        for m in string.gmatch(s, "%*%*.-%*%*") do
+            local new = string.gsub(m, "**", "")
+            s = string.gsub(s, "%*%*.-%*%*", string.format("<bold>%s</bold>", new), 1)
+        end
+    end
+
     local N = #s
     local tag_regex = "< *[%d, =._%w/%-%#%{%}\'\";():\\]*>"
 
