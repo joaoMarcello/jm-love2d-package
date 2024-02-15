@@ -31,13 +31,9 @@ function Word:__constructor__(args)
 
     self.text = args.text
     self.__font = args.font
-    -- self.__args = args
 
-    self.__font_config = self.__font:__get_configuration()
+    -- self.__font_config = self.__font:__get_configuration()
 
-    -- self.__characters = {}
-
-    -- local format = args.format or self.__font.format_options.normal
     self.font_format = args.format or self.__font.format_options.normal
 
     self:__load_characters(self.font_format, args.skip_copy)
@@ -46,8 +42,6 @@ function Word:__constructor__(args)
         -- and self.text ~= "<void>"
         and #(self.__characters)
         or 0
-
-    -- self.last_x, self.last_y = math.huge, math.huge
 
     self.update = Word.update
     self.draw = Word.draw
@@ -74,6 +68,10 @@ function Word:__load_characters(mode, skip_copy)
     self.__characters = {}
 
     local iterator = self.__font:get_text_iterator(self.text)
+
+    if not skip_copy then
+        self.is_copy = true
+    end
 
     while (iterator:has_next()) do
         local glyph = iterator:next()
