@@ -1016,16 +1016,9 @@ function Font:separate_string(s, list)
     s = s .. " "
     local result = not list and result_sep_text[s]
     if result then return result end
-    local init_s = s
+    local init_s = not list and s or nil
 
-    local sep = "\n "
-    ---@type any
-    local current_init = 1
-    local words = list or {}
-
-    -- local N = utf8.len(s) -- #s
-
-    do
+    if not list then
         s = s:gsub("`#`", "</color>")
         s = s:gsub("`#%-`", "</color no-space>")
         s = s:gsub("<br>", "\n<void>")
@@ -1036,19 +1029,24 @@ function Font:separate_string(s, list)
         end
     end
 
-    do
+    if not list then
         for m in string.gmatch(s, "%*%*.-%*%*") do
             local new = string.gsub(m, "%*%*", "")
             s = string.gsub(s, "%*%*.-%*%*", string.format("<bold>%s</bold>", new), 1)
         end
     end
 
-    do
+    if not list then
         for m in string.gmatch(s, "%*.-%*") do
             local new = string.sub(m, 2, #m - 1)
             s = string.gsub(s, "%*.-%*", string.format("<italic>%s</italic>", new))
         end
     end
+
+    local sep = "\n "
+    ---@type any
+    local current_init = 1
+    local words = list or {}
 
     local N = #s
     local tag_regex = "< *[%d, =._%w/%-%#%{%}\'\";():\\]*>"
@@ -1118,7 +1116,9 @@ function Font:separate_string(s, list)
     end
 
     -- result_sep_text[s] = words
-    result_sep_text[init_s] = words
+    if init_s then
+        result_sep_text[init_s] = words
+    end
 
     return words
 end
