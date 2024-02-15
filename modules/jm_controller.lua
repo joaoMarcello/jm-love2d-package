@@ -497,6 +497,10 @@ function Controller:switch_to_keyboard()
     return self:set_state(States.keyboard)
 end
 
+function Controller:switch_to_joystick()
+    return self:set_state(States.joystick)
+end
+
 ---@param vpad JM.GUI.VPad
 function Controller:set_vpad(vpad)
     self.vpad = vpad
