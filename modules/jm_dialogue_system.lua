@@ -293,10 +293,14 @@ do
         self:get_cur_box():restart()
     end
 
+    --- Return true if current screen is the last and has showed all his text.
+    ---@return boolean finished
     function Dialogue:finished()
         return self.cur == self.n_boxes and self:get_cur_box():finished()
     end
 
+    -- Return true if current screen showed all his text.
+    ---@return boolean screen_is_finished
     function Dialogue:screen_is_finished()
         return self:get_cur_box():screen_is_finished()
     end
