@@ -1695,7 +1695,9 @@ do
             local characters = self:get_text_iterator(cur_word)
             characters = characters:get_characters_list()
 
-            tab_insert(list, characters)
+            if cur_word ~= "<void>" then
+                tab_insert(list, characters)
+            end
 
             -- _G[cur_word] = nil
 
@@ -1888,10 +1890,17 @@ function Font:printf(text, x, y, align, limit_right)
                         and separated[next_index] == "\n"
 
                     if m ~= N and not next_is_broken_line then
-                        tab_insert(
-                            line,
-                            space_glyph
-                        )
+                        local next = separated[m + 1]
+                        local skip_add_space = next
+                            and self:__is_a_command_tag(next)
+                            and next:match("no%-space")
+
+                        if not skip_add_space then
+                            tab_insert(
+                                line,
+                                space_glyph
+                            )
+                        end
                     elseif m ~= N then
                         total_width = total_width - (self.__word_space + self.__character_space) * self.__scale
                     end
