@@ -314,9 +314,12 @@ do
         return self:get_cur_box():update(dt)
     end
 
+    ---@param cam JM.Camera.Camera
     function Dialogue:draw(cam)
         if not self.is_visible then return end
-        return self:get_cur_box():draw()
+        local box = self:get_cur_box()
+        if cam and not cam:rect_is_on_view(box:rect()) then return end
+        return box:draw(cam)
     end
 end
 --==========================================================================
