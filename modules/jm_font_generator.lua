@@ -1031,7 +1031,7 @@ function Font:separate_string(s, list)
         s = s:gsub("<tab>", "\t")
 
         for m in string.gmatch(s, "`#[abcdef%d]*`") do
-            s = s:gsub(m, string.format("<color-hex=%s>", m:sub(3, #m - 1)), 1)
+            s = s:gsub(m, string.format("<color-hex=%s>", m:sub(2, #m - 1)), 1)
         end
     end
 
