@@ -640,7 +640,7 @@ local function _draw_(self)
 
     local height = sentence:text_height(screen)
 
-    love.graphics.push()
+    -- love.graphics.push()
     local py = self.y
 
     if self.text_align == AlignY.center then
@@ -651,18 +651,18 @@ local function _draw_(self)
         --
     end
 
-    love.graphics.translate(math.floor(self.x + 0.5), math.floor(py + 0.5))
+    -- love.graphics.translate(math.floor(self.x + 0.5), math.floor(py + 0.5))
 
     local tx, ty, glyph = sentence:draw_lines(
         screen,
-        -- self.x, py,
-        0, 0,
+        self.x, py,
+        -- 0, 0,
 
         ---@diagnostic disable-next-line: param-type-mismatch
         self.align, self.w,
         self.cur_glyph
     )
-    love.graphics.pop()
+    -- love.graphics.pop()
 
     return font:pop()
     --==========================================================
