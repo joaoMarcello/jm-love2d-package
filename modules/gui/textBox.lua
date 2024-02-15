@@ -672,7 +672,11 @@ local function _draw_(self)
     -- end
 end
 
-function TextBox:draw()
+---@param cam JM.Camera.Camera
+function TextBox:draw(cam)
+    if cam and not cam:rect_is_on_view(self:rect()) then
+        return
+    end
     return Affectable.draw(self, _draw_)
 end
 
