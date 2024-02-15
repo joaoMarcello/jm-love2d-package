@@ -81,7 +81,6 @@ function Phrase:__constructor__(args)
         end
 
         local w = Word:new(word_arg)
-
         local tag_values = self:__verify_commands(w.text)
 
         if w.text ~= "" then
@@ -668,6 +667,9 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
             --     (i == 1 and j == 1 and "__first__")
             --     or nil, init_font_size)
 
+            if not current_word.is_copy then
+                current_word:set_color(self.__font_config.color)
+            end
             apply_commands(self, current_word, init_font_size, false)
 
             local r = current_word:get_width() + space
