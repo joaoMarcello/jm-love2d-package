@@ -310,6 +310,18 @@ do
         return box.x, box.y, self.w, self.h
     end
 
+    function Dialogue:pressed()
+        local box = self:get_cur_box()
+        if not box:screen_is_finished() then
+            return box:skip_screen()
+        else
+            local r = box:go_to_next_screen()
+            if not r and box:screen_is_finished() then
+                return self:go_to_next()
+            end
+        end
+    end
+
     function Dialogue:update(dt)
         return self:get_cur_box():update(dt)
     end
