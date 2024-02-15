@@ -1016,6 +1016,7 @@ function Font:separate_string(s, list)
     s = s .. " "
     local result = not list and result_sep_text[s]
     if result then return result end
+    local init_s = s
 
     local sep = "\n "
     ---@type any
@@ -1116,7 +1117,8 @@ function Font:separate_string(s, list)
         tab_insert(words, s:sub(current_init, #s))
     end
 
-    result_sep_text[s] = words
+    -- result_sep_text[s] = words
+    result_sep_text[init_s] = words
 
     return words
 end
@@ -1975,8 +1977,6 @@ function Font:printf(text, x, y, align, limit_right)
 
         ty = ty + (self.__ref_height + self.__line_space) * init_scale
     end
-
-    -- _G[text] = nil
 
     lgx.pop()
 
