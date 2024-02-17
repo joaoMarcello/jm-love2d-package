@@ -1453,14 +1453,17 @@ do
             else
                 obj:apply_force(nil, -self:resistance_y())
 
-                if obj.dacc_y then
-                    if obj.speed_y > 0 and obj.acc_y < 0 then
-                        obj.acc_y = -abs(obj.dacc_y)
-                    elseif obj.speed_y < 0 and obj.acc_y > 0 then
-                        obj.acc_y = abs(obj.dacc_y)
-                    end
-                end
+                -- if obj.dacc_y then
+                --     if obj.speed_y > 0 and obj.acc_y < 0 then
+                --         obj.acc_y = -abs(obj.dacc_y)
+                --     elseif obj.speed_y < 0 and obj.acc_y > 0 then
+                --         obj.acc_y = abs(obj.dacc_y)
+                --     end
+                -- end
             end
+
+            self.amount_y = self.y
+            self.amount_x = self.x
 
             -- falling
             if (obj.acc_y ~= 0.0) or (obj.speed_y ~= 0.0) then
@@ -1505,6 +1508,7 @@ do
                     if not obj.allowed_gravity and obj.dacc_y then
                         obj.speed_y = 0.0
                         obj.acc_y = 0.0
+                        goaly = self.y
                     end
                     dispatch_event(obj, BodyEvents.speed_y_change_direction)
                 end
@@ -1756,6 +1760,9 @@ do
                 self.holder.x = obj.x
                 self.holder.y = obj.y
             end
+
+            self.amount_x = self.x - self.amount_x
+            self.amount_y = self.y - self.amount_y
         end --end if body is dynamic
         ---
     end
