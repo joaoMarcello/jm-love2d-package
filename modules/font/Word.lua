@@ -350,8 +350,19 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
 
             py = bottom - glyph.h * glyph.sy
             px = tx
-            -- glyph:draw(px, py)
-            glyph_draw(glyph, px, py)
+
+            if self.is_copy then
+                glyph_draw(glyph, px, py)
+                ---
+            else
+                local quad = glyph.quad
+                if quad then
+                    local batches = self.__font.batches
+                    batches[glyph.format]:setColor(unpack(glyph.color))
+                    batches[glyph.format]:add(quad, px, py, 0, glyph.sx, glyph.sy, 0, 0)
+                end
+            end
+            ---
         else
             glyph.__anima:set_size(
                 nil, self.__font.__font_size * 1.4,
