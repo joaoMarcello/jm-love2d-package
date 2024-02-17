@@ -355,28 +355,28 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
             -- py = math.floor(py + 0.5)
 
             if self.is_copy then
-                -- glyph_draw(glyph, px, py)
+                glyph_draw(glyph, px, py)
 
-                local quad = glyph.quad
-                local tr = glyph.__effect_transform
-                if quad and glyph.is_visible then
-                    local batches = self.__font.batches
-                    batches[glyph.format]:setColor(unpack(glyph.color))
+                -- local quad = glyph.quad
+                -- local tr = glyph.__effect_transform
+                -- if quad and glyph.is_visible then
+                --     local batches = self.__font.batches
+                --     batches[glyph.format]:setColor(unpack(glyph.color))
 
-                    if tr then
-                        local ox = glyph.w * 0.5
-                        local oy = glyph.h * 0.5
-                        batches[glyph.format]:add(quad,
-                            (px + tr.ox + ox),
-                            (py + tr.oy + oy),
-                            tr.rot, glyph.sx * tr.sx, glyph.sy * tr.sy,
-                            ox,
-                            oy
-                        )
-                    else
-                        batches[glyph.format]:add(quad, px, py, 0, glyph.sx, glyph.sy, 0, 0)
-                    end
-                end
+                --     if tr then
+                --         local ox = glyph.w * 1 * glyph.sx
+                --         local oy = glyph.h * 1 * glyph.sy
+                --         batches[glyph.format]:add(quad,
+                --             math.floor(px + tr.ox + ox * 0.5),
+                --             math.floor(py + tr.oy + oy * 0.5),
+                --             tr.rot, glyph.sx * tr.sx, glyph.sy * tr.sy,
+                --             ox,
+                --             oy
+                --         )
+                --     else
+                --         batches[glyph.format]:add(quad, px, py, 0, glyph.sx, glyph.sy, 0, 0)
+                --     end
+                -- end
                 ---
             else
                 local quad = glyph.quad
