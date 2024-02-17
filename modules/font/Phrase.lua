@@ -615,6 +615,10 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
     local N = #lines
 
+    for i = 1, self.__font.__n_batches do
+        self.__font.__batches[i]:clear()
+    end
+
     for i = 1, N do
         apply_commands(self, prev_word, init_font_size, false)
 
@@ -684,7 +688,17 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
             prev_word = current_word
 
             if result_tx then
+                lgx.setColor(1, 1, 1, 1)
+                for i = 1, self.__font.__n_batches do
+                    local batch = self.__font.__batches[i]
+                    if batch:getCount() > 0 then
+                        batch:flush()
+                        lgx.draw(batch)
+                    end
+                end
+
                 self.__font:pop()
+
                 return result_tx, ty, result_char
             end
         end
@@ -694,6 +708,15 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
         if i >= threshold then
             break
+        end
+    end
+
+    lgx.setColor(1, 1, 1, 1)
+    for i = 1, self.__font.__n_batches do
+        local batch = self.__font.__batches[i]
+        if batch:getCount() > 0 then
+            batch:flush()
+            lgx.draw(batch)
         end
     end
 

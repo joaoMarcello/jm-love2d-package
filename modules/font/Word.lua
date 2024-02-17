@@ -65,7 +65,6 @@ function Word:__load_characters(mode, skip_copy)
     end
 
     self.__font:set_format_mode(mode)
-    self.__characters = {}
 
     local iterator = self.__font:get_text_iterator(self.text)
 
@@ -73,22 +72,27 @@ function Word:__load_characters(mode, skip_copy)
         self.is_copy = true
     end
 
-    while (iterator:has_next()) do
-        local glyph = iterator:next()
+    if not skip_copy then
+        self.__characters = {}
+        while (iterator:has_next()) do
+            local glyph = iterator:next()
 
-        if not skip_copy then
-            glyph = glyph:copy()
+            if not skip_copy then
+                glyph = glyph:copy()
+            end
+            glyph:set_color(self.__font.__default_color)
+
+            -- if not glyph.__anima then
+            table.insert(self.__characters, glyph)
+            -- end
+
+            if glyph:is_animated() then
+                glyph:set_color2(1, 1, 1, 1)
+                glyph.__anima:set_size(nil, self.__font.__font_size * 1.1, nil, nil)
+            end
         end
-        glyph:set_color(self.__font.__default_color)
-
-        -- if not glyph.__anima then
-        table.insert(self.__characters, glyph)
-        -- end
-
-        if glyph:is_animated() then
-            glyph:set_color2(1, 1, 1, 1)
-            glyph.__anima:set_size(nil, self.__font.__font_size * 1.1, nil, nil)
-        end
+    else
+        self.__characters = iterator.__list_obj
     end
 
     self.__font:set_format_mode(last_font_format)
@@ -308,6 +312,7 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
     local list_glyphs = self.__characters
 
     for i = 1, N do
+        -- if not self.is_copy then break end
         ---@type JM.Font.Glyph
         glyph = list_glyphs[i]
 
