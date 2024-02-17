@@ -356,7 +356,7 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
 
                 local quad = glyph.quad
                 local tr = glyph.__effect_transform
-                if quad then
+                if quad and glyph.is_visible then
                     local batches = self.__font.batches
                     batches[glyph.format]:setColor(unpack(glyph.color))
 
