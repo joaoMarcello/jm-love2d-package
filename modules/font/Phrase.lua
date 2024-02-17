@@ -603,7 +603,8 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
     local result_tx, result_char
 
-    self.__font:push()
+    local font = self.__font
+    font:push()
 
     local init_font_size = self.__font.__font_size
     local init_scale = self.__font.__scale
@@ -615,8 +616,8 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
     local N = #lines
 
-    for i = 1, self.__font.__n_batches do
-        self.__font.__batches[i]:clear()
+    for i = 1, font.__n_batches do
+        font.__batches[i]:clear()
     end
 
     for i = 1, N do
@@ -689,15 +690,15 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
             if result_tx then
                 lgx.setColor(1, 1, 1, 1)
-                for i = 1, self.__font.__n_batches do
-                    local batch = self.__font.__batches[i]
+                for i = 1, font.__n_batches do
+                    local batch = font.__batches[i]
                     if batch:getCount() > 0 then
                         batch:flush()
                         lgx.draw(batch)
                     end
                 end
 
-                self.__font:pop()
+                font:pop()
 
                 return result_tx, ty, result_char
             end
@@ -712,15 +713,15 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
     end
 
     lgx.setColor(1, 1, 1, 1)
-    for i = 1, self.__font.__n_batches do
-        local batch = self.__font.__batches[i]
+    for i = 1, font.__n_batches do
+        local batch = font.__batches[i]
         if batch:getCount() > 0 then
             batch:flush()
             lgx.draw(batch)
         end
     end
 
-    self.__font:pop()
+    font:pop()
 
     return nil, ty, nil
 end
