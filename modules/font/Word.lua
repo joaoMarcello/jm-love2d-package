@@ -351,6 +351,9 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
             py = bottom - glyph.h * glyph.sy
             px = tx
 
+            -- px = math.floor(px + 0.5)
+            -- py = math.floor(py + 0.5)
+
             if self.is_copy then
                 -- glyph_draw(glyph, px, py)
 
@@ -364,8 +367,8 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
                         local ox = glyph.w * 0.5
                         local oy = glyph.h * 0.5
                         batches[glyph.format]:add(quad,
-                            px + tr.ox + ox,
-                            py + tr.oy + oy,
+                            (px + tr.ox + ox),
+                            (py + tr.oy + oy),
                             tr.rot, glyph.sx * tr.sx, glyph.sy * tr.sy,
                             ox,
                             oy
