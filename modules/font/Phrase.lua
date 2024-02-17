@@ -693,7 +693,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
                 for i = 1, font.__n_batches do
                     local batch = font.__batches[i]
                     if batch:getCount() > 0 then
-                        batch:flush()
+                        -- batch:flush()
                         lgx.draw(batch)
                     end
                 end
@@ -716,7 +716,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
     for i = 1, font.__n_batches do
         local batch = font.__batches[i]
         if batch:getCount() > 0 then
-            batch:flush()
+            -- batch:flush()
             lgx.draw(batch)
         end
     end
