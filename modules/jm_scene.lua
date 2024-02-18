@@ -2099,9 +2099,9 @@ function Scene:update_game_objects(dt)
 end
 
 ---@param camera JM.Camera.Camera | any
-function Scene:draw_game_object(camera, sort_by_y)
+function Scene:draw_game_object(camera, sort_by_y, custom_sort)
     local list = self.game_objects
-    tab_sort(list, sort_by_y and sort_draw_by_y or sort_draw)
+    tab_sort(list, custom_sort or (sort_by_y and sort_draw_by_y or sort_draw))
 
     for i = 1, #list do
         ---@type GameObject
