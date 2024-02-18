@@ -2015,6 +2015,11 @@ end
 
 local sort_update = function(a, b) return a.update_order > b.update_order end
 local sort_draw = function(a, b) return a.draw_order < b.draw_order end
+
+local sort_draw_by_y = function(a, b)
+    return a.y < b.y
+end
+
 local next, rawset = next, rawset
 
 ---@type function
@@ -2094,9 +2099,9 @@ function Scene:update_game_objects(dt)
 end
 
 ---@param camera JM.Camera.Camera | any
-function Scene:draw_game_object(camera)
+function Scene:draw_game_object(camera, sort_by_y)
     local list = self.game_objects
-    tab_sort(list, sort_draw)
+    tab_sort(list, sort_by_y and sort_draw_by_y or sort_draw)
 
     for i = 1, #list do
         ---@type GameObject
