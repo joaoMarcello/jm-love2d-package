@@ -754,9 +754,9 @@ end
 --==========================================================================
 
 local black_bar_param = {} --setmetatable({}, { __mode = "k" })
----@alias JM.Scene.BlackBar {action:function, domain:number, time:number, direction:integer, speed:number, factor:number, type_move:integer}
+---@alias JM.Scene.BlackBar {action:function, domain:number, time:number, direction:integer, speed:number, factor:number, type_move:integer, height:number}
 
-function Scene:show_black_bar()
+function Scene:show_black_bar(height)
     local Utils = JM.Utils
     local type_move = Utils.MoveTypes.smooth_dash
 
@@ -767,6 +767,7 @@ function Scene:show_black_bar()
     black_bar.time = 0.0
     black_bar.direction = 1
     black_bar.speed = 0.75
+    black_bar.height = height or (self.tile_size_y * 1.5)
     black_bar.factor = black_bar.action(black_bar.time)
 
     black_bar_param[self] = black_bar
@@ -812,7 +813,7 @@ end
 ---@param self JM.Scene
 ---@param bar JM.Scene.BlackBar
 local function draw_black_bar(self, bar)
-    local height = (self.tile_size_y * 1.5) * bar.factor
+    local height = bar.height * bar.factor
     height = round(height)
 
     setColor(0, 0, 0)
