@@ -52,7 +52,7 @@ function Manager:change_gamestate(new_state, conf)
 
     new_state.prev_state = conf.save_prev and scene or nil
 
-    self.scene = scene
+    self.scene = new_state
 
     r = (not conf.skip_load) and new_state:load()
     r = (not conf.skip_init) and new_state:init()
