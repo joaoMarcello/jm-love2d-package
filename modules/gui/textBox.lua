@@ -652,7 +652,7 @@ local function _draw_(self)
     end
 
     -- love.graphics.translate(math.floor(self.x + 0.5), math.floor(py + 0.5))
-
+    sentence.__bounds.right = self.x + self.w
     local tx, ty, glyph = sentence:draw_lines(
         screen,
         self.x, py,
