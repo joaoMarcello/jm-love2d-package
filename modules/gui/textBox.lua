@@ -576,11 +576,14 @@ function TextBox:update(dt)
         if self.simulate_speak then
             local id = glyph.id
 
-            if id:match("[%.;?!]") then
+            if id:match("[%.;!]") then
                 self.extra_time = 0.8
                 --
+            elseif id:match("?") then
+                self.extra_time = 0.3
+                ---
             elseif id:match("[,]") then
-                self.extra_time = 0.2
+                self.extra_time = 0.07
                 --
             else
                 self.extra_time = 0.0
