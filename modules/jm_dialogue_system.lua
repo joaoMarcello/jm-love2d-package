@@ -326,6 +326,10 @@ do
         end
     end
 
+    function Dialogue.flush()
+        Textbox.flush()
+    end
+
     function Dialogue:update(dt)
         return self:get_cur_box():update(dt)
     end
