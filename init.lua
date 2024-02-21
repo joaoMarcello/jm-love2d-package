@@ -393,7 +393,8 @@ function JM:keypressed(key, scancode, isrepeat)
         return JM:exit_game()
         ---
     elseif key == "f11"
-    -- or (key == 'f' and love.keyboard.isDown("lctrl"))
+        -- or (key == 'f' and love.keyboard.isDown("lctrl"))
+        or (key == "return") and love.keyboard.isDown('lalt')
     then
         fullscreen = not fullscreen
         love.window.setFullscreen(fullscreen, _G.FULLSCREEN_TYPE or 'desktop')
