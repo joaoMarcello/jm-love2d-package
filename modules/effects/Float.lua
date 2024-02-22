@@ -9,7 +9,6 @@ Float__.__index = Float__
 ---@param args any|nil
 ---@return JM.Effect|JM.Effect.Float
 function Float__:new(object, args)
-
     local obj = Effect:new(object, args)
     setmetatable(obj, self)
 
@@ -50,6 +49,7 @@ function Float__:__constructor__(args)
     self.__threshold = args and args.threshold or math.pi * 2
     self.__direction = 1
 
+    self.pixel_mode = args and (args.pixel_mode or args.pixelmode)
 end
 
 function Float__:update(dt)
@@ -85,18 +85,19 @@ function Float__:__not_circle_update(dt)
 
     local ty = self.__floatY and (math.sin(self.__rad * self.__adjustY) * self.__range) * self.__direction or 0
 
+    if self.pixel_mode then
+        tx = math.floor(tx + 0.5)
+        ty = math.floor(ty + 0.5)
+    end
+
     if tx ~= 0 and ty ~= 0 then
         self.__object:set_effect_transform("ox", tx)
         self.__object:set_effect_transform("oy", ty)
-
     elseif tx ~= 0 then
         self.__object:set_effect_transform("ox", tx)
-
     else
         self.__object:set_effect_transform("oy", ty)
-
     end
-
 end
 
 return Float__
