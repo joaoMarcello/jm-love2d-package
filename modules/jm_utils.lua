@@ -204,6 +204,11 @@ function Utils:get_rgba2(r, g, b, a)
     return self:get_rgba(r, g, b, a)
 end
 
+---@param hex string
+function Utils:get_rgba3(hex)
+    return self:get_rgba(self:hex_to_rgba_float(hex))
+end
+
 ---@param color JM.Color
 function Utils:unpack_color(color)
     return color[1], color[2], color[3], color[4]
