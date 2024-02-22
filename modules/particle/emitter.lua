@@ -20,6 +20,7 @@ local mode_k = { __mode = 'k' }
 ---@field __custom_update__ function
 local Emitter = setmetatable({}, GC)
 Emitter.__index = Emitter
+Emitter.__is_emitter = true
 
 Emitter.Animas = {}
 Emitter.AnimaRecycler = {}    --setmetatable({}, mode_k)
