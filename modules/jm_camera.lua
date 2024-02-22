@@ -550,7 +550,14 @@ end
 
 function Camera:init()
     self.controller_shake_x.amplitude = 0
+    self.controller_shake_x.time = 0.0
+    self.controller_shake_x.value = 0.0
+
     self.controller_shake_y.amplitude = 0
+    self.controller_shake_y.time = 0.0
+    self.controller_shake_y.value = 0.0
+
+
     self.controller_x:reset()
     self.controller_y:reset()
     if self.__state then self.__state = "capture" end
