@@ -1454,11 +1454,11 @@ local init = function(self, ...)
         cam:set_type(cam.type)
     end
 
-    if self.time_pause
-        or (self.transition and self.transition.pause_scene)
-    then
-        return
-    end
+    -- if self.time_pause
+    --     or (self.transition and self.transition.pause_scene)
+    -- then
+    --     return
+    -- end
 
     if self.use_vpad then
         Controllers.P1:set_vpad(self:get_vpad())
