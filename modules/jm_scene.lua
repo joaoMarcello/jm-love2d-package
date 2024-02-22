@@ -1952,7 +1952,7 @@ function Scene:set_foreground_draw(action)
     self.draw_foreground = action
 end
 
-local shader_param = {}
+local shader_param = setmetatable({}, { __mode = 'k' })
 
 ---@param shader love.Shader|table|any
 ---@param action function|nil
