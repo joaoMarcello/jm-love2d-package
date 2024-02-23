@@ -36,6 +36,7 @@ function Earthquake:__constructor__(args)
     self.speed_y = args.speed_y or (self.is_random and 0 or 0.4)
     self.rad_y = args.rad_y or PI * 0.4
 
+    self.pixel_mode = args.pixel_mode or args.pixelmode
 
     self.__type_transform.ox = true
     self.__type_transform.oy = true
@@ -56,13 +57,14 @@ local function do_the_thing(self, dt, rad, speed, amplitude, max_ampli, duration
 
     self[amplitude] = clamp(self[amplitude], 0, self[max_ampli])
 
+
+    local value = m_sin(self[rad]) * self[amplitude]
     self.__object:set_effect_transform(transf,
-        m_sin(self[rad]) * self[amplitude]
+        not self.pixel_mode and value or math.floor(value)
     )
 end
 
 local function random_earthquake(self, dt, rad, speed, amplitude, max_ampli, duration, transf)
-
     self[speed] = self[speed] + dt
     if self[speed] >= 0.05 then
         self[speed] = self[speed] - 0.05
