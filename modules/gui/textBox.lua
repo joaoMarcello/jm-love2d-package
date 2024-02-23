@@ -500,6 +500,7 @@ function TextBox:script(args)
     enviroment.textbox = self
     enviroment.scene = JM.GameObject.gamestate or JM.SceneManager.scene
     enviroment.JM = JM
+    enviroment.data = enviroment.scene:__get_data__()
 
     local env = setfenv(script, enviroment)
     env()
@@ -509,6 +510,7 @@ function TextBox:script(args)
     enviroment.textbox = nil
     enviroment.scene = nil
     enviroment.JM = nil
+    enviroment.data = nil
 end
 
 function TextBox:update(dt)
