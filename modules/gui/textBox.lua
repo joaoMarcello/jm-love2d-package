@@ -446,7 +446,7 @@ function TextBox:skip_screen()
     -- JM.Sound:lock()
 
     while not self:screen_is_finished() do
-        self:update(self.max_time_glyph)
+        self:update(self.max_time_glyph + self.extra_time)
     end
 
     -- if not was_locked then
