@@ -80,7 +80,7 @@ TextBox.AlignY = AlignY
 TextBox.AlignX = AlignX
 TextBox.__index = TextBox
 
----@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes, time_wait:number, allow_cycle:boolean, show_border:boolean, remove_empty_lines:boolean}
+---@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes, time_wait:number, allow_cycle:boolean, show_border:boolean, remove_empty_lines:boolean, glyph_sfx:string, finish_sfx:string}
 
 ---
 ---@overload fun(self: any, args:JM.TextBox.ArgsConstructor)
@@ -178,6 +178,9 @@ function TextBox:__constructor__(args)
     self.time_wait_to_next = args.time_wait or 0.9
     self.allow_cycle = args.allow_cycle
     self.show_border = args.show_border
+
+    self.glyph_sfx = args.glyph_sfx
+    self.finish_sfx = args.finish_sfx
 
     local N = #self.lines
 
@@ -396,6 +399,10 @@ function TextBox:set_finish(value)
 
             dispatch_event(self, Event.finishScreen)
 
+            if self.update_mode ~= UpdateMode.by_screen then
+                Play_sfx(self.finish_sfx, true)
+            end
+
             if self:finished() then
                 dispatch_event(self, Event.finishAll)
             end
@@ -435,10 +442,17 @@ function TextBox:on_event(name, action, args)
 end
 
 function TextBox:skip_screen()
-    -- self.cur_glyph = nil
+    -- local was_locked = JM.Sound.lock__
+    -- JM.Sound:lock()
+
     while not self:screen_is_finished() do
         self:update(self.max_time_glyph)
     end
+
+    -- if not was_locked then
+    --     JM.Sound:unlock()
+    -- end
+
     self.cur_glyph = nil
 end
 
@@ -554,6 +568,19 @@ function TextBox:update(dt)
             dispatch_event(self, Event.glyphChange)
 
             local g, w = self:get_current_glyph()
+
+            do
+                local sfx = self.glyph_sfx
+
+                if sfx and not self:screen_is_finished()
+                    and self.update_mode ~= UpdateMode.by_screen
+                    and self.cur_glyph ~= 0
+                    and g and g ~= " " and g ~= "\n"
+                    and (w and (w.text ~= " " and w.text ~= "\n" and w.text ~= "<void>") or not w)
+                then
+                    Play_sfx(sfx)
+                end
+            end
 
             if self.update_mode == UpdateMode.by_glyph then
                 local r = g and self.glyph_change_action
