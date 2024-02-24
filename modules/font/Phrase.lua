@@ -506,7 +506,7 @@ end
 ---@param lines table|nil
 ---@return JM.Font.Glyph|nil
 ---@return JM.Font.Word|nil
----@return boolean|nil
+---@return boolean|nil # is last glyph from word
 function Phrase:get_glyph(n, lines)
     if not n then return end
     lines = lines or self:get_lines()
@@ -514,8 +514,10 @@ function Phrase:get_glyph(n, lines)
 
     local is_command_tag = self.__font.__is_a_command_tag
 
-    for i = 1, #lines do
-        for j = 1, #lines[i] do
+    local n_lines = #lines
+    for i = 1, n_lines do
+        local n_words = #lines[i]
+        for j = 1, n_words do
             ---@type JM.Font.Word
             local word = lines[i][j]
 
