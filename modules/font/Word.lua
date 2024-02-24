@@ -149,7 +149,15 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
             if glyph.id == " " then
                 skip = true
             else
-                eff = EffectManager:generate_effect("float", { range = Word.eff_wave_range, rad = rad_wave, speed = 0.5 })
+                eff = EffectManager:generate_effect("float",
+                    {
+                        range = (eff_args and eff_args.range)
+                            or Word.eff_wave_range,
+                        rad = rad_wave,
+                        speed = (eff_args and eff_args.speed) or 0.5,
+                        pixel_mode = eff_args and
+                            (eff_args.pixelmode or eff_args.pixel_mode)
+                    })
                 -- goto continue
             end
         elseif effect_type == "goddess" then
