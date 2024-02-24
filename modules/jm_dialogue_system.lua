@@ -100,6 +100,8 @@ local create_box = function(text, font, header, conf)
         allow_cycle = header.allow_cycle or conf.allow_cycle,
         show_border = header.show_border or conf.show_border,
         simulate_speak = header.simulate_speak,
+        glyph_sfx = header.glyph_sfx or conf.glyph_sfx,
+        finish_sfx = header.finish_sfx or conf.finish_sfx
     }
 end
 
