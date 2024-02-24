@@ -71,8 +71,9 @@ local function random_earthquake(self, dt, rad, speed, amplitude, max_ampli, dur
         self[amplitude] = self[max_ampli] * math.random()
     end
 
+    local value = self[amplitude]
     self.__object:set_effect_transform(transf,
-        self[amplitude]
+        self.pixel_mode and math.floor(value) or value
     )
 end
 
