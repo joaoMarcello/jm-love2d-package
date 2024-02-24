@@ -176,13 +176,17 @@ function Word:apply_effect(startp, endp, effect_type, offset, eff_args)
 
             eff = EffectManager:generate_effect("earthquake",
                 {
-                    speed_x = speed_x,
-                    speed_y = speed_x,
-                    range_x = Word.eff_scream_range_x,
-                    range_y = Word.eff_scream_range_y,
+                    speed_x = (eff_args and eff_args.speedx) or speed_x,
+                    speed_y = (eff_args and eff_args.speedy) or speed_x,
+                    range_x = (eff_args and eff_args.rangex)
+                        or Word.eff_scream_range_x,
+                    range_y = (eff_args and eff_args.rangey)
+                        or Word.eff_scream_range_y,
                     rad_x = math.random() * math.pi * 2,
                     rad_y = math.random() * math.pi * 2,
-                    random = true
+                    random = true,
+                    pixel_mode = eff_args
+                        and (eff_args.pixelmode or eff_args.pixel_mode),
                 })
         elseif effect_type ~= "pause" then
             eff = EffectManager:generate_effect(effect_type, eff_args)
