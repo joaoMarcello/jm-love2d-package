@@ -68,6 +68,10 @@ local function random_earthquake(self, dt, rad, speed, amplitude, max_ampli, dur
     self[speed] = self[speed] + dt
     if self[speed] >= 0.05 then
         self[speed] = self[speed] - 0.05
+        if self[speed] >= 0.05 then
+            self[speed] = 0.0
+        end
+
         self[amplitude] = self[max_ampli] * math.random()
     end
 
