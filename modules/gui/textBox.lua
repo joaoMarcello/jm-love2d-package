@@ -649,6 +649,11 @@ function TextBox:update(dt)
         end     --End if Word
     end         -- End if Glyph
 
+    if glyph and word then
+        local g = self.sentence:get_glyph(self.cur_glyph + 1, self.screens[self.cur_screen])
+        if not g then self.extra_time = 0.3 end
+    end
+
     self:set_finish(not glyph and self.cur_glyph ~= 0)
 end
 
