@@ -446,7 +446,7 @@ function TextBox:skip_screen()
     -- JM.Sound:lock()
 
     while not self:screen_is_finished() do
-        self:update(self.max_time_glyph + self.extra_time)
+        self:update(self.max_time_glyph + self.extra_time, true)
     end
 
     -- if not was_locked then
@@ -527,7 +527,7 @@ function TextBox:script(args)
     enviroment.data = nil
 end
 
-function TextBox:update(dt)
+function TextBox:update(dt, skip_mode)
     self.sentence:update(dt)
 
     self.__effect_manager:update(dt)
@@ -559,8 +559,8 @@ function TextBox:update(dt)
         self.time_glyph = self.time_glyph - self.max_time_glyph
             - self.extra_time
 
-        if self.time_glyph > self.max_time_glyph + self.extra_time then
-            self.time_glyph = 0
+        if self.time_glyph >= self.max_time_glyph + self.extra_time then
+            self.time_glyph = 0.0
         end
 
         if self.cur_glyph then
@@ -636,8 +636,10 @@ function TextBox:update(dt)
                         self.used_tags[tag] = true
 
                         if name == "<pause>" then
-                            self.time_pause = tag["pause"]
-                            return false
+                            if not skip_mode then
+                                self.time_pause = tag["pause"]
+                                return false
+                            end
                         elseif name == "<textbox>" then
                             -- print(tag['action'], tag['value'])
                             self:do_the_thing(tag['action'], tag['value'])
