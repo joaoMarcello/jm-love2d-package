@@ -280,7 +280,7 @@ do
         return id:match("%(.*%)") or ""
     end
 
-    function Dialogue:go_to_next()
+    function Dialogue:go_to_next_box()
         self.cur = self.cur + 1
         if self.cur > self.n_boxes then
             self.cur = self.n_boxes
@@ -323,9 +323,13 @@ do
         else
             local r = box:go_to_next_screen()
             if not r and box:screen_is_finished() then
-                return self:go_to_next()
+                return self:go_to_next_box()
             end
         end
+    end
+
+    function Dialogue:next()
+        return self:pressed()
     end
 
     function Dialogue.flush()
