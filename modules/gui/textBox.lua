@@ -326,6 +326,11 @@ function TextBox:get_current_glyph()
     return self.sentence:get_glyph(self.cur_glyph, self.screens[self.cur_screen])
 end
 
+function TextBox:set_speed_glyph(value)
+    value = value or self.max_time_glyph
+    self.max_time_glyph = value
+end
+
 function TextBox:rect()
     return self.x, self.y, self.w, self.h
 end
