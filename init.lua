@@ -111,7 +111,7 @@ function JM:get_font(font)
             dir = "content/OpenSans-Regular.ttf",
             dir_bold = "content/OpenSans-SemiBold.ttf",
             ---
-            dpi = 36,
+            dpi = 48,
             name = "open sans",
             font_size = 12,
             character_space = 2,
