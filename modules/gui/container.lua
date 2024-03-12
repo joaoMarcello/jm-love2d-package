@@ -140,6 +140,25 @@ function Container:get_cur_obj()
     return self.components[self.num]
 end
 
+---@param mx number
+---@param my number
+function Container:verify_mouse_collision(mx, my)
+    for i = 1, self.N do
+        local obj = self:get_obj_at(i)
+
+        if not obj.on_focus
+            and (obj.is_enable and obj.is_visible)
+            and obj:check_collision(mx, my, 0, 0)
+        then
+            self:switch(i)
+            ---
+        elseif obj.on_focus and not obj:check_collision(mx, my, 0, 0) then
+            obj:set_focus(false)
+            ---
+        end
+    end
+end
+
 function Container:update(dt)
     for i = self.N, 1, -1 do
         ---@type JM.GUI.Component
