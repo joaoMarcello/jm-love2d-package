@@ -26,6 +26,10 @@ function Button:set_font(new_font)
     font = new_font
 end
 
+function Button:get_font()
+    return font
+end
+
 function Button:__constructor__(args)
     self.x = args.x or 0
     self.y = args.y or 0
@@ -34,7 +38,7 @@ function Button:__constructor__(args)
 
     self.font_size = math.floor(self.h * 0.5)
 
-    self.radius = args.radius or (self.w / 2)
+    self.radius = args.radius or (self.w * 0.5)
     self.use_radius = args.use_radius
 
     self.opacity = args.opacity or 1
@@ -46,6 +50,19 @@ function Button:__constructor__(args)
         self.font_obj = font:generate_phrase(args.text, self.x, self.y, self.x + self.w, "center")
         font:pop()
     end
+end
+
+function Button:init()
+    return Button.__constructor__(self, {
+        x = self.x,
+        y = self.y,
+        w = self.w,
+        h = self.h,
+        -- radius = self.radius,
+        use_radius = self.use_radius,
+        opacity = self.opacity,
+        text = self.text,
+    })
 end
 
 function Button:set_opacity(opacity)
@@ -170,11 +187,12 @@ end
 
 function Button:__custom_draw__()
     love_setColor(self.color)
+    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
     if not self.use_radius then
         love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
     else
-        local px, py = self.x + self.w / 2, self.y + self.h / 2
+        local px, py = (self.x + self.w * 0.5), (self.y + self.h * 0.5)
         love_setColor(0, 0, 0, 0.4 * self.opacity)
         love_circle("fill", px, py, self.radius)
 
@@ -182,11 +200,17 @@ function Button:__custom_draw__()
         love_circle("line", px, py, self.radius)
     end
 
+
     if self.font_obj then
         font:push()
         font:set_font_size(self.font_size)
-        self.font_obj.__bounds.right = self.w
-        self.font_obj:draw(self.x, self.y + self.h / 2 - (font.__font_size + 2) / 2, "center")
+        font:set_color(self.color)
+        self.font_obj.__bounds.right = self.w + 40
+        self.font_obj:draw(self.x - 20, self.y + self.h * 0.5 - (font.__font_size + 2) * 0.5, "center")
+
+        -- font:printf(self.text, self.x, self.y + self.h * 0.5 - (font.__font_size) * 0.5, self.w, "center")
+
+        -- font:printx(self.text, self.x - 20, self.y, self.w + 40, "center")
         font:pop()
     end
 end
