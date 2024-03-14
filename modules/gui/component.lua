@@ -95,20 +95,19 @@ function Component:new(args)
 end
 
 function Component:__constructor__(args)
-    self.x = args.x or self.x
-    self.y = args.y or self.y
-    self.w = args.w or self.w
-    self.h = args.h or self.h
+    self.x = args.x or self.x or 0
+    self.y = args.y or self.y or 0
+    self.w = args.w or self.w or 32
+    self.h = args.h or self.h or 32
 
-    self.ox = self.w / 2
-    self.oy = self.h / 2
+    self.ox = self.w * 0.5
+    self.oy = self.h * 0.5
 
     self.is_visible = true
     self.is_enable = true
     self.on_focus = args.on_focus
     self.type_obj = TYPES_.generic
-    -- self.TYPE = TYPES_
-    -- self.Utils = Utils
+
     self.mode = MODES.mouse
 
     self.text = args.text
