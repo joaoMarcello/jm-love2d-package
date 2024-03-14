@@ -1,13 +1,10 @@
 ---@type JM.GUI
 local GUI = require(string.gsub(..., "jm_virtual_pad", "jm_gui"))
---_G.JM_Love2D_Package.GUI
 local TouchButton = GUI.TouchButton
 local VirtualStick = GUI.VirtualStick
 
-local width, height = love.graphics.getDimensions()
-
-local size = math.floor(height * 0.2)
-
+-- local width, height = love.graphics.getDimensions()
+-- local size = math.floor(height * 0.2)
 --==========================================================================
 local Bt_A = TouchButton:new {
     x = 32,
@@ -72,14 +69,14 @@ local Bt_Select = TouchButton:new {
 --==========================================================================
 local stick = VirtualStick:new {
     on_focus = true,
-    w = height / 4,
+    w = 128,
     is_mobile = true,
-    bound_top = height * 0.25,
-    bound_width = width / 4,
-    bound_height = height * 0.75,
+    bound_top = 32,
+    bound_width = 128,
+    bound_height = 128,
     opacity = 0.5,
 }
-stick:set_position(stick.max_dist, height - stick.h - 130, true)
+-- stick:set_position(stick.max_dist, height - stick.h - 130, true)
 --==========================================================================
 
 
@@ -136,7 +133,7 @@ function Pad:fix_positions()
     local border_w = w * 0.03
     local space = 20
 
-    Bt_A:set_position(w - border_w - Bt_A.w, h - border_w - Bt_A.h)
+    Bt_A:set_position(w - border_w - Bt_A.w, h - (border_w * 2) - Bt_A.h)
     Bt_B:set_position(Bt_A.x - Bt_B.w - space, Bt_A.y - Bt_B.h * 0.5)
 
     do
@@ -154,11 +151,25 @@ function Pad:fix_positions()
 
         Bt_Select:set_position(w * 0.5 + space, Bt_Start.y)
     end
+
+    do
+        stick:set_dimensions(min * 0.25, min * 0.25)
+        stick:init()
+        stick:set_position(stick.max_dist, stick.bounds_top + stick.bounds_height * 0.4, true)
+    end
 end
 
-function Pad:resize()
-    self:set_button_size()
+function Pad:resize(w, h)
+    self:set_button_size((math.min(w, h) * 0.2))
     self:fix_positions()
+end
+
+function Pad:set_opacity(value)
+    value = value or 0.5
+    for i = 1, self.N do
+        local gc = self[i]
+        gc:set_opacity(value)
+    end
 end
 
 function Pad:update(dt)
@@ -175,5 +186,6 @@ end
 
 Pad:set_button_size()
 Pad:fix_positions()
+Pad:set_opacity(0.5)
 
 return Pad
