@@ -257,13 +257,31 @@ local function pressing_vpad(self, button)
     --         or button == Buttons.dpad_right)
     --     and self.vpad.Stick
 
-    ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
-    local pad_button = button >= 11 and button <= 14 and self.vpad.Stick
+    local vpad = self.vpad
 
-    pad_button = not pad_button and button == Buttons.A and self.vpad.A or pad_button
+    ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
+    local pad_button = nil
+
+    if not vpad.Dpad_left.on_focus and not vpad.Dpad_right.on_focus then
+        ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
+        pad_button = button >= 11 and button <= 14 and vpad.Stick
+        ---
+    elseif button == Buttons.left_stick_x
+        or button == Buttons.left_stick_y
+    then
+        pad_button = vpad.Stick
+    end
+
+    pad_button = not pad_button and button == Buttons.A and vpad.A or pad_button
+
+    if not pad_button then
+        pad_button = button == Buttons.dpad_left and vpad.Dpad_left
+        pad_button = not pad_button and button == Buttons.dpad_right and self.vpad.Dpad_right or pad_button
+    end
+
     if not pad_button then return button_is_axis and 0 or false end
 
-    if pad_button == self.vpad.Stick then
+    if pad_button == vpad.Stick then
         ---
         if button == Buttons.dpad_left then
             return pad_button:is_pressing("left")
@@ -277,9 +295,32 @@ local function pressing_vpad(self, button)
         elseif button == Buttons.dpad_down then
             return pad_button:is_pressing("down")
             ---
+        elseif button == Buttons.left_stick_x then
+            local r = pad_button:is_pressing("left")
+            r = not r and pad_button:is_pressing("right") or r
+
+            if r then
+                local dx = pad_button:get_direction()
+                return dx
+            else
+                return 0
+            end
+            ---
+        elseif button == Buttons.left_stick_y then
+            local r = pad_button:is_pressing("up")
+            r = not r and pad_button:is_pressing("down") or r
+
+            if r then
+                local _, dy = pad_button:get_direction()
+                return dy
+            else
+                return 0
+            end
         end
         ---
-    elseif pad_button == self.vpad.A or pad_button == self.vpad.B then
+    elseif pad_button == vpad.A or pad_button == vpad.B
+        or pad_button == vpad.Dpad_left or pad_button == vpad.Dpad_right
+    then
         return pad_button:is_pressing()
         ---
     end
