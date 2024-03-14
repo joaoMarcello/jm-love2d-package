@@ -49,6 +49,18 @@ function Stick:__constructor__(args)
     self.opacity = args.opacity or 1
 end
 
+function Stick:init()
+    local w, h = love.graphics.getDimensions()
+    return self:__constructor__ {
+        is_mobile = self.is_mobile,
+        bound_left = 0,
+        bound_top = h * 0.25,
+        bound_width = w * 0.25,
+        bound_height = h * 0.75,
+        opacity = self.opacity,
+    }
+end
+
 function Stick:set_position(x, y, capture)
     Component.set_position(self, x, y)
     self.cx = self.x + self.w * 0.5
@@ -238,6 +250,10 @@ end
 --     self.angle = angle
 --     self.dist = dist
 -- end
+
+function Stick:set_opacity(value)
+    self.opacity = value or self.opacity
+end
 
 function Stick:update(dt)
     Component.update(self, dt)
