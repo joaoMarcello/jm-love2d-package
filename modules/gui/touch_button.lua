@@ -133,6 +133,10 @@ function Button:is_pressed()
     return self.__mouse_pressed or self.__touch_pressed
 end
 
+function Button:is_pressing()
+    return self.__mouse_pressed or self.__touch_pressed
+end
+
 function Button:is_released()
     return self.__mouse_released or self.__touch_released
 end
@@ -176,22 +180,15 @@ function Button:__custom_draw__()
 
         love_setColor(self.color)
         love_circle("line", px, py, self.radius)
-        -- love_circle("line", px, py, self.radius + 1)
-        -- love.graphics.circle("line", px, py, self.radius + 2)
     end
 
     if self.font_obj then
         font:push()
         font:set_font_size(self.font_size)
-        -- self.font_obj.__bounds.right = self.x + self.w
         self.font_obj.__bounds.right = self.w
         self.font_obj:draw(self.x, self.y + self.h / 2 - (font.__font_size + 2) / 2, "center")
         font:pop()
     end
 end
-
--- function Button:draw()
---     Component.draw(self)
--- end
 
 return Button
