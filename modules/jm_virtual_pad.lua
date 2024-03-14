@@ -27,6 +27,18 @@ local Bt_B = TouchButton:new {
     opacity = 0.5,
     on_focus = true,
 }
+
+local Bt_X = TouchButton:new {
+    use_radius = true,
+    text = "X",
+    on_focus = true,
+}
+
+local Bt_Y = TouchButton:new {
+    use_radius = true,
+    text = "Y",
+    on_focus = true,
+}
 --==========================================================================
 local rect_rx = 20
 
@@ -92,7 +104,11 @@ local Pad = {
     [4] = Bt_Start,
     Select = Bt_Select,
     [5] = Bt_Select,
-    N = 5
+    X = Bt_X,
+    [6] = Bt_X,
+    Y = Bt_Y,
+    [7] = Bt_Y,
+    N = 7
 }
 
 function Pad:mousepressed(x, y, button, istouch, presses)
@@ -125,16 +141,85 @@ function Pad:set_button_size(value)
     Bt_A:init()
     Bt_B:set_dimensions(value, value)
     Bt_B:init()
+    Bt_X:set_dimensions(value, value)
+    Bt_X:init()
+    Bt_Y:set_dimensions(value, value)
+    Bt_Y:init()
+end
+
+---@alias JM.GUI.VPad.ButtonNames "X"|"Y"|"A"|"B"
+
+---@param button JM.GUI.VPad.ButtonNames
+function Pad:get_button_by_str(button)
+    local bt = nil
+    if button == "A" then
+        bt = Bt_A
+    elseif button == "B" then
+        bt = Bt_B
+    elseif button == "X" then
+        bt = Bt_X
+    elseif button == "Y" then
+        bt = Bt_Y
+    end
+    return bt
+end
+
+function Pad:toggle_button(button)
+    local bt = self:get_button_by_str(button)
+
+    if bt then
+        bt:set_visible(not bt.is_visible)
+        bt:set_focus(not bt.on_focus)
+    end
+end
+
+---@param button JM.GUI.VPad.ButtonNames
+function Pad:turn_off_button(button)
+    local bt = self:get_button_by_str(button)
+
+    if bt then
+        bt:set_visible(false)
+        bt:set_focus(false)
+    end
+end
+
+---@param button JM.GUI.VPad.ButtonNames
+function Pad:turn_on_button(button)
+    local bt = self:get_button_by_str(button)
+
+    if bt then
+        bt:set_visible(true)
+        bt:set_focus(true)
+    end
+end
+
+function Pad:use_all_buttons(value)
+    if value then
+        self:turn_on_button("X")
+        self:turn_on_button("Y")
+        ---
+        Bt_B.text = "X"
+        Bt_X.text = "B"
+    else
+        self:turn_off_button("X")
+        self:turn_off_button("Y")
+
+        Bt_B.text = "B"
+        Bt_X.text = "X"
+    end
 end
 
 function Pad:fix_positions()
     local w, h = love.graphics.getDimensions()
     local min, max = math.min(w, h), math.max(w, h)
     local border_w = w * 0.03
-    local space = 20
+    local space = 15
 
     Bt_A:set_position(w - border_w - Bt_A.w, h - (border_w * 2) - Bt_A.h)
     Bt_B:set_position(Bt_A.x - Bt_B.w - space, Bt_A.y - Bt_B.h * 0.5)
+
+    Bt_X:set_position(Bt_A.x, Bt_A.y - (space * 2) - Bt_X.h)
+    Bt_Y:set_position(Bt_B.x, Bt_B.y - (space * 2) - Bt_Y.h)
 
     do
         local size = w * 0.1
@@ -155,7 +240,7 @@ function Pad:fix_positions()
     do
         stick:set_dimensions(min * 0.25, min * 0.25)
         stick:init()
-        stick:set_position(stick.max_dist, stick.bounds_top + stick.bounds_height * 0.4, true)
+        stick:set_position(stick.bounds_width * 0.6 - stick.w * 0.5, stick.bounds_top + stick.bounds_height * 0.4, true)
     end
 end
 
@@ -187,5 +272,7 @@ end
 Pad:set_button_size()
 Pad:fix_positions()
 Pad:set_opacity(0.5)
+
+Pad:use_all_buttons(false)
 
 return Pad
