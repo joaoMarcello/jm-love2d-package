@@ -79,6 +79,33 @@ local Bt_Select = TouchButton:new {
     draw = bt_draw,
 }
 --==========================================================================
+---@param self JM.GUI.TouchButton
+local dpad_draw = function(self)
+    local lgx = love.graphics
+    lgx.setColor(self.color)
+    lgx.rectangle("line", self.x, self.y, self.w, self.h)
+
+    local font = self:get_font()
+    font:push()
+    font:set_color(JM.Utils:get_rgba(1, 1, 1, self.opacity))
+    font:set_font_size(self.h * 0.75)
+    font:printf(self.text, self.x - 20, self.y + self.h * 0.5 - font.__font_size * 0.5, self.w + 40, "center")
+    font:pop()
+end
+
+local dpad_left = TouchButton:new {
+    text = "<",
+    on_focus = true,
+    draw = dpad_draw,
+}
+
+local dpad_right = TouchButton:new {
+    text = ">",
+    on_focus = true,
+    draw = dpad_draw,
+}
+
+--==========================================================================
 local stick = VirtualStick:new {
     on_focus = true,
     w = 128,
@@ -108,7 +135,11 @@ local Pad = {
     [6] = Bt_X,
     Y = Bt_Y,
     [7] = Bt_Y,
-    N = 7
+    Dpad_left = dpad_left,
+    [8] = dpad_left,
+    Dpad_right = dpad_right,
+    [9] = dpad_right,
+    N = 9
 }
 
 function Pad:mousepressed(x, y, button, istouch, presses)
@@ -241,6 +272,14 @@ function Pad:fix_positions()
         stick:set_dimensions(min * 0.25, min * 0.25)
         stick:init()
         stick:set_position(stick.bounds_width * 0.6 - stick.w * 0.5, stick.bounds_top + stick.bounds_height * 0.4, true)
+    end
+
+    do
+        local size = min * 0.2
+        dpad_left:set_dimensions(size, size)
+        dpad_right:set_dimensions(size, size)
+
+        dpad_right:set_position(dpad_left.right + (space * 2), dpad_left.y)
     end
 end
 
