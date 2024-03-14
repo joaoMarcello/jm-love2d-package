@@ -44,12 +44,12 @@ function Button:__constructor__(args)
     self.opacity = args.opacity or 1
     self:set_color2(nil, nil, nil, self.opacity)
 
-    if args.text then
-        font:push()
-        font:set_color(self.color)
-        self.font_obj = font:generate_phrase(args.text, self.x, self.y, self.x + self.w, "center")
-        font:pop()
-    end
+    -- if args.text then
+    --     font:push()
+    --     font:set_color(self.color)
+    --     self.font_obj = font:generate_phrase(args.text, self.x, self.y, self.x + self.w, "center")
+    --     font:pop()
+    -- end
 end
 
 function Button:init()
@@ -68,12 +68,13 @@ end
 function Button:set_opacity(opacity)
     self.opacity = opacity or 1
     self:set_color2(nil, nil, nil, self.opacity)
-    if self.font_obj then
-        font:push()
-        font:set_color(self.color)
-        self.font_obj = font:generate_phrase(self.font_obj.text, self.x, self.y, self.x + self.w, "center")
-        font:pop()
-    end
+
+    -- if self.font_obj then
+    --     font:push()
+    --     font:set_color(self.color)
+    --     self.font_obj = font:generate_phrase(self.font_obj.text, self.x, self.y, self.x + self.w, "center")
+    --     font:pop()
+    -- end
 end
 
 function Button:mousepressed(x, y, button, istouch, presses)
@@ -187,7 +188,7 @@ end
 
 function Button:__custom_draw__()
     love_setColor(self.color)
-    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+    -- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
     if not self.use_radius then
         love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
@@ -201,14 +202,16 @@ function Button:__custom_draw__()
     end
 
 
-    if self.font_obj then
+    -- if self.font_obj then
+    do
         font:push()
         font:set_font_size(self.font_size)
         font:set_color(self.color)
-        self.font_obj.__bounds.right = self.w + 40
-        self.font_obj:draw(self.x - 20, self.y + self.h * 0.5 - (font.__font_size + 2) * 0.5, "center")
 
-        -- font:printf(self.text, self.x, self.y + self.h * 0.5 - (font.__font_size) * 0.5, self.w, "center")
+        -- self.font_obj.__bounds.right = self.w + 40
+        -- self.font_obj:draw(self.x - 20, self.y + self.h * 0.5 - (font.__font_size + 2) * 0.5, "center")
+
+        font:printf(self.text, self.x, self.y + self.h * 0.5 - (font.__font_size) * 0.5, self.w, "center")
 
         -- font:printx(self.text, self.x - 20, self.y, self.w + 40, "center")
         font:pop()
