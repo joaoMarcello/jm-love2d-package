@@ -27,14 +27,14 @@ function Stick:new(args)
 end
 
 function Stick:__constructor__(args)
-    self.radius = self.w / 2
+    self.radius = self.w * 0.5
     self.max_dist = self.radius * 1.2
 
-    self.cx = self.x + self.w / 2
-    self.cy = self.y + self.h / 2
+    self.cx = self.x + self.w * 0.5
+    self.cy = self.y + self.h * 0.5
 
-    self.half_x = self.x + self.w / 2
-    self.half_y = self.y + self.h / 2
+    self.half_x = self.x + self.w * 0.5
+    self.half_y = self.y + self.h * 0.5
 
     self.is_mobile = args.is_mobile
 
@@ -292,8 +292,8 @@ function Stick:draw()
     lgx.circle("fill", self.cx + rm + 3, self.cy, 4)
     lgx.circle("fill", self.cx, self.cy + rm + 3, 4)
 
-    -- love.graphics.setColor(1, 1, 0)
-    -- love.graphics.rectangle("line", self.bounds_left, self.bounds_top, self.bounds_width, self.bounds_height)
+    love.graphics.setColor(1, 1, 0)
+    love.graphics.rectangle("line", self.bounds_left, self.bounds_top, self.bounds_width, self.bounds_height)
 
     -- font:push()
     -- font:set_font_size(32)
