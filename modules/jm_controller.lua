@@ -252,18 +252,36 @@ local function pressing_vpad(self, button)
         return button_is_axis and 0 or false
     end
 
+    -- ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
+    -- local pad_button = (button == Buttons.dpad_left
+    --         or button == Buttons.dpad_right)
+    --     and self.vpad.Stick
+
     ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
-    local pad_button = (button == Buttons.dpad_left
-            or button == Buttons.dpad_right)
-        and self.vpad.Stick
+    local pad_button = button >= 11 and button <= 14 and self.vpad.Stick
 
     pad_button = not pad_button and button == Buttons.A and self.vpad.A or pad_button
     if not pad_button then return button_is_axis and 0 or false end
 
     if pad_button == self.vpad.Stick then
-        return pad_button:is_pressing(button == Buttons.dpad_left and "left" or "right")
-    elseif pad_button == self.vpad.A then
-
+        ---
+        if button == Buttons.dpad_left then
+            return pad_button:is_pressing("left")
+            ---
+        elseif button == Buttons.dpad_right then
+            return pad_button:is_pressing("right")
+            ---
+        elseif button == Buttons.dpad_up then
+            return pad_button:is_pressing("up")
+            ---
+        elseif button == Buttons.dpad_down then
+            return pad_button:is_pressing("down")
+            ---
+        end
+        ---
+    elseif pad_button == self.vpad.A or pad_button == self.vpad.B then
+        return pad_button:is_pressing()
+        ---
     end
 end
 
