@@ -1789,7 +1789,7 @@ local resize = function(self, w, h)
     local r = param.resize and param.resize(w, h)
 
     if self.use_vpad then
-        VPad:resize()
+        VPad:resize(w, h)
     end
 end
 
