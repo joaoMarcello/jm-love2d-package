@@ -574,6 +574,10 @@ function Controller:is_on_joystick_mode()
     return self.state == States.joystick
 end
 
+function Controller:is_on_vpad_mode()
+    return self.state == States.vpad
+end
+
 ---@param vpad JM.GUI.VPad
 function Controller:set_vpad(vpad)
     self.vpad = vpad
