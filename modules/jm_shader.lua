@@ -159,7 +159,7 @@ function M:get_shader(shader, state, conf)
 
             local radius_x = conf.radius or 3
             local direction = { 1.0 / (conf.width or (state and state.screen_w)
-                or lgx.getWidth()), 0 }
+                or lgx.getWidth()), 0.0 }
 
             boxblur:send('direction', direction)
             boxblur:send('radius', math.floor(radius_x + .5))
