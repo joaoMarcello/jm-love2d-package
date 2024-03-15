@@ -34,14 +34,19 @@ local rect_rx = 20
 local bt_draw = function(self)
     local lgx = love.graphics
     local color = self.color
+    local x, y, w, h = self.x, self.y, self.w, self.h
+
+    lgx.setColor(0, 0, 0, 0.4 * self.opacity)
+    lgx.rectangle("fill", x, y, w, h, rect_rx, rect_rx)
     lgx.setColor(color)
-    lgx.rectangle("line", self.x, self.y, self.w, self.h, rect_rx, rect_rx)
+    lgx.rectangle("line", x, y, w, h, rect_rx, rect_rx)
+
 
     local font = self:get_font()
     font:push()
     font:set_color(color)
     font:set_font_size(self.h * 0.4)
-    font:printf((self.text):upper(), self.x - 20, self.y + self.h * 0.5 - font.__font_size * 0.5, self.w + 40, "center")
+    font:printf((self.text):upper(), x - 20, y + h * 0.5 - font.__font_size * 0.5, w + 40, "center")
     font:pop()
 end
 
