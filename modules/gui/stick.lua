@@ -294,6 +294,7 @@ function Stick:__custom_draw__()
 end
 
 function Stick:draw()
+    if not self.is_visible then return end
     Component.draw(self)
 
     lgx.setColor(1, 1, 1, self.opacity)
