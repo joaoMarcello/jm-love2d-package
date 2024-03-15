@@ -205,6 +205,9 @@ JM.Shader = require(string.gsub(path, "init", "modules.jm_shader"))
 ---@type JM.DialogueSystem
 JM.DialogueSystem = require(string.gsub(path, "init", "modules.jm_dialogue_system"))
 
+---@type JM.GUI.VPad
+JM.Vpad = require(string.gsub(path, "init", "modules.jm_virtual_pad"))
+
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 --===========================================================================
