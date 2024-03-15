@@ -343,8 +343,8 @@ Pad:fix_positions()
 Pad:set_opacity(0.5)
 
 Pad:use_all_buttons(false)
--- Pad:turn_off_button("Stick")
 Pad:turn_off_dpad()
+-- Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
 
