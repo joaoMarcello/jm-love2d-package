@@ -276,7 +276,12 @@ local function pressing_vpad(self, button)
 
     if not pad_button then
         pad_button = button == Buttons.dpad_left and vpad.Dpad_left
-        pad_button = not pad_button and button == Buttons.dpad_right and self.vpad.Dpad_right or pad_button
+        pad_button = not pad_button and button == Buttons.dpad_right and vpad.Dpad_right or pad_button
+    end
+
+    if not pad_button then
+        pad_button = button == Buttons.dpad_up and vpad.Dpad_up
+        pad_button = not pad_button and button == Buttons.dpad_down and vpad.Dpad_down or pad_button
     end
 
     if not pad_button then return button_is_axis and 0 or false end
@@ -320,6 +325,7 @@ local function pressing_vpad(self, button)
         ---
     elseif pad_button == vpad.A or pad_button == vpad.B
         or pad_button == vpad.Dpad_left or pad_button == vpad.Dpad_right
+        or pad_button == vpad.Dpad_up or pad_button == vpad.Dpad_down
     then
         return pad_button:is_pressing()
         ---
