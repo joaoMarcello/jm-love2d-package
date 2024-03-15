@@ -1,4 +1,4 @@
-uniform vec4 c = vec4(242.0/255.0, 133.0/255.0, 197.0/255.0, 1.0);
+extern vec4 c;//vec4(242.0/255.0, 133.0/255.0, 197.0/255.0, 1.0);
 
 float less_than(float x, float y) {
     return max(sign(y - x), 0.0);

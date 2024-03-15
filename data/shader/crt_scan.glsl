@@ -1,19 +1,19 @@
 // crt
-uniform vec2 distortionFactor;
-uniform vec2 scaleFactor;
-uniform float feather;
+extern vec2 distortionFactor;
+extern vec2 scaleFactor;
+extern float feather;
 
 // scanline
-uniform float width = 1.0;
-uniform float phase = 1.0;
-uniform float thickness = 1.0;
-uniform float opacity = 0.15;
-uniform vec3 scan_color = vec3(0.0, 0.0, 0.0);
-uniform float screen_h;
+extern float width;
+extern float phase;
+extern float thickness;
+extern float opacity;
+extern vec3 scan_color;
+extern float screen_h;
 
 // noise
-uniform vec2 uNoise = vec2(0.2, 1.0);
-uniform float uSeed = 0.0;
+extern vec2 uNoise;
+extern float uSeed;
 
 vec4 scanln(vec4 c, vec2 tc){
     number v = 0.5 * (sin(tc.y * 3.14159 / width * screen_h + phase) + 1.0);
