@@ -3,28 +3,16 @@ local GUI = require(string.gsub(..., "jm_virtual_pad", "jm_gui"))
 local TouchButton = GUI.TouchButton
 local VirtualStick = GUI.VirtualStick
 
--- local width, height = love.graphics.getDimensions()
--- local size = math.floor(height * 0.2)
 --==========================================================================
 local Bt_A = TouchButton:new {
-    x = 32,
-    y = 32,
-    w = 128,
-    h = 128,
     use_radius = true,
     text = "A",
-    opacity = 0.5,
     on_focus = true,
 }
 --==========================================================================
 local Bt_B = TouchButton:new {
-    x = 32,
-    y = 32,
-    w = 128,
-    h = 128,
     use_radius = true,
     text = "B",
-    opacity = 0.5,
     on_focus = true,
 }
 
@@ -58,27 +46,20 @@ local bt_draw = function(self)
 end
 
 local Bt_Start = TouchButton:new {
-    x = 32,
-    y = 32,
-    w = 128,
-    h = 128,
     text = "start",
-    opacity = 0.5,
     on_focus = true,
     draw = bt_draw,
 }
 
 local Bt_Select = TouchButton:new {
-    x = 32,
-    y = 32,
-    w = 128,
-    h = 128,
     text = "select",
-    opacity = 0.5,
     on_focus = true,
     draw = bt_draw,
 }
 --==========================================================================
+local dpad_pos_x = 0.05
+local dpad_pos_y = 0.7 --0.95
+
 ---@param self JM.GUI.TouchButton
 local dpad_draw = function(self)
     local lgx = love.graphics
@@ -105,15 +86,23 @@ local dpad_right = TouchButton:new {
     draw = dpad_draw,
 }
 
+local dpad_up = TouchButton:new {
+    text = ">",
+    on_focus = true,
+    draw = dpad_draw,
+}
+-- dpad_up:set_effect_transform("rot", math.pi)
+
+local dpad_down = TouchButton:new {
+    text = ">",
+    on_focus = true,
+    draw = dpad_draw,
+}
+
 --==========================================================================
 local stick = VirtualStick:new {
     on_focus = true,
-    w = 128,
     is_mobile = true,
-    bound_top = 32,
-    bound_width = 128,
-    bound_height = 128,
-    opacity = 0.5,
 }
 -- stick:set_position(stick.max_dist, height - stick.h - 130, true)
 --==========================================================================
@@ -139,7 +128,11 @@ local Pad = {
     [8] = dpad_left,
     Dpad_right = dpad_right,
     [9] = dpad_right,
-    N = 9
+    Dpad_up = dpad_up,
+    [10] = dpad_up,
+    Dpad_down = dpad_down,
+    [11] = dpad_down,
+    N = 11
 }
 
 function Pad:mousepressed(x, y, button, istouch, presses)
@@ -178,7 +171,7 @@ function Pad:set_button_size(value)
     Bt_Y:init()
 end
 
----@alias JM.GUI.VPad.ButtonNames "X"|"Y"|"A"|"B"
+---@alias JM.GUI.VPad.ButtonNames "X"|"Y"|"A"|"B"|"Dpad-left"|"Dpad-right"|"Dpad-up"|"Dpad-down"|"Stick"
 
 ---@param button JM.GUI.VPad.ButtonNames
 function Pad:get_button_by_str(button)
@@ -191,6 +184,16 @@ function Pad:get_button_by_str(button)
         bt = Bt_X
     elseif button == "Y" then
         bt = Bt_Y
+    elseif button == "Dpad-left" then
+        bt = dpad_left
+    elseif button == "Dpad-right" then
+        bt = dpad_right
+    elseif button == "Dpad-up" then
+        bt = dpad_up
+    elseif button == "Dpad-down" then
+        bt = dpad_down
+    elseif button == "Stick" then
+        bt = stick
     end
     return bt
 end
@@ -222,6 +225,18 @@ function Pad:turn_on_button(button)
         bt:set_visible(true)
         bt:set_focus(true)
     end
+end
+
+function Pad:turn_off_dpad()
+    self:turn_off_button("Dpad-left")
+    self:turn_off_button("Dpad-right")
+    self:turn_off_button("Dpad-up")
+    self:turn_off_button("Dpad-down")
+end
+
+function Pad:set_dpad_position(x, y)
+    dpad_pos_x = x or dpad_pos_x
+    dpad_pos_y = y or dpad_pos_y
 end
 
 function Pad:use_all_buttons(value)
@@ -265,7 +280,7 @@ function Pad:fix_positions()
             h - (space * 2) - Bt_Start.h
         )
 
-        Bt_Select:set_position(w * 0.5 + space, Bt_Start.y)
+        Bt_Select:set_position(w * 0.5 + space * 2, Bt_Start.y)
     end
 
     do
@@ -278,8 +293,23 @@ function Pad:fix_positions()
         local size = min * 0.2
         dpad_left:set_dimensions(size, size)
         dpad_right:set_dimensions(size, size)
+        dpad_up:set_dimensions(size, size)
+        dpad_up.ox, dpad_up.oy = size * 0.5, size * 0.5
+        dpad_up:set_effect_transform("rot", -math.pi * 0.5)
+        dpad_down:set_dimensions(size, size)
+        dpad_down.ox, dpad_down.oy = size * 0.5, size * 0.5
+        dpad_down:set_effect_transform("rot", math.pi * 0.5)
 
-        dpad_right:set_position(dpad_left.right + (space * 2), dpad_left.y)
+        local anchor_x = w * dpad_pos_x + size
+        local anchor_y = h * dpad_pos_y - size
+        local space_x = not stick.is_visible and (space * 4) or (space * 2)
+
+        dpad_left:set_position(anchor_x - size, anchor_y - size * 0.5)
+        dpad_right:set_position(dpad_left.right + space_x, dpad_left.y)
+
+        dpad_up:set_position(
+            dpad_left.x + (dpad_right.right - dpad_left.x) * 0.5 - size * 0.5, dpad_left.y - space - dpad_up.h)
+        dpad_down:set_position(dpad_up.x, dpad_left.bottom + space)
     end
 end
 
@@ -313,5 +343,9 @@ Pad:fix_positions()
 Pad:set_opacity(0.5)
 
 Pad:use_all_buttons(false)
+-- Pad:turn_off_button("Stick")
+Pad:turn_off_dpad()
+-- Pad:turn_on_button("Dpad-left")
+-- Pad:turn_on_button("Dpad-right")
 
 return Pad
