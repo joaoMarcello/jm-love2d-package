@@ -289,9 +289,9 @@ function Pad:fix_positions()
     end
 
     do
-        stick:set_dimensions(min * 0.25, min * 0.25)
+        stick:set_dimensions(min * 0.2, min * 0.2)
         stick:init()
-        stick:set_position(stick.bounds_width * 0.6 - stick.w * 0.5, stick.bounds_top + stick.bounds_height * 0.4, true)
+        stick:set_position(stick.bounds_width * 0.5 - stick.w * 0.5, stick.bounds_top + stick.bounds_height * 0.4, true)
     end
 
     do
