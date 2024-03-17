@@ -174,7 +174,7 @@ end
 ---@param direction "left"|"right"|"up"|"down"
 function Stick:is_pressing(direction, constraint, angle_limit)
     constraint = constraint or 0.1  --0.2
-    angle_limit = angle_limit or 60 --50
+    angle_limit = angle_limit or 55 --50
 
     local dx, dy = self:get_direction()
 
