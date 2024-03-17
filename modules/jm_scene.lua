@@ -508,6 +508,28 @@ function Scene:get_mouse_position(camera)
 end
 
 ---@param camera JM.Camera.Camera|nil
+function Scene:real_to_screen(x, y, camera)
+    camera = camera or self.camera
+
+    local sub = self.subpixel
+    local scx = self.canvas_scale_x * sub
+    local scy = self.canvas_scale_y * sub
+
+    x = x / scx
+    y = y / scy
+
+    x = x - (self.x + self.offset_x) / scx
+    y = y - (self.y + self.offset_y) / scy
+
+    x = x - camera.viewport_x
+    y = y - camera.viewport_y
+
+    x, y = camera:screen_to_world(x, y)
+
+    return x, y
+end
+
+---@param camera JM.Camera.Camera|nil
 function Scene:point_monitor_to_world(x, y, camera)
     camera = camera or self.camera
     x = x or 0
