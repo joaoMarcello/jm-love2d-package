@@ -3,30 +3,40 @@ local GUI = require(string.gsub(..., "jm_virtual_pad", "jm_gui"))
 local TouchButton = GUI.TouchButton
 local VirtualStick = GUI.VirtualStick
 
+local push, pop = love.graphics.push, love.graphics.pop
+local setLineWidth = love.graphics.setLineWidth
+local setLineStyle = love.graphics.setLineStyle
+
 --==========================================================================
 local Bt_A = TouchButton:new {
     use_radius = true,
     text = "A",
     on_focus = true,
 }
+Bt_A:set_color2(JM_Utils:hex_to_rgba_float("21d940"))
 --==========================================================================
 local Bt_B = TouchButton:new {
     use_radius = true,
     text = "B",
     on_focus = true,
 }
+Bt_B:set_color2(JM_Utils:hex_to_rgba_float("bf3526"))
+
 
 local Bt_X = TouchButton:new {
     use_radius = true,
     text = "X",
     on_focus = true,
 }
+Bt_X:set_color2(JM_Utils:hex_to_rgba_float("213ad9"))
+
 
 local Bt_Y = TouchButton:new {
     use_radius = true,
     text = "Y",
     on_focus = true,
 }
+Bt_Y:set_color2(JM_Utils:hex_to_rgba_float("d9ab21"))
 --==========================================================================
 local rect_rx = 20
 
@@ -244,6 +254,10 @@ function Pad:set_dpad_position(x, y)
     dpad_pos_y = y or dpad_pos_y
 end
 
+local color_blue = Bt_X.color
+local color_red = Bt_B.color
+local color_green = Bt_A.color
+
 function Pad:use_all_buttons(value)
     if value then
         self:turn_on_button("X")
@@ -251,12 +265,19 @@ function Pad:use_all_buttons(value)
         ---
         Bt_B.text = "X"
         Bt_X.text = "B"
+
+        Bt_B.color, Bt_X.color = color_blue, color_red
+        Bt_A.color = color_green
+        ---
     else
         self:turn_off_button("X")
         self:turn_off_button("Y")
 
         Bt_B.text = "B"
         Bt_X.text = "X"
+
+        Bt_B.color = color_red
+        Bt_A.color = color_blue
     end
 end
 
@@ -265,12 +286,13 @@ function Pad:fix_positions()
     local min, max = math.min(w, h), math.max(w, h)
     local border_w = w * 0.03
     local space = 15
+    local space_bt_y = 10
 
     Bt_A:set_position(w - border_w - Bt_A.w, h - (border_w * 2) - Bt_A.h)
-    Bt_B:set_position(Bt_A.x - Bt_B.w - space, Bt_A.y - Bt_B.h * 0.5)
+    Bt_B:set_position(Bt_A.x - Bt_B.w - 0, Bt_A.y - Bt_B.h * 0.5)
 
-    Bt_X:set_position(Bt_A.x, Bt_A.y - (space * 2) - Bt_X.h)
-    Bt_Y:set_position(Bt_B.x, Bt_B.y - (space * 2) - Bt_Y.h)
+    Bt_X:set_position(Bt_A.x, Bt_A.y - (space_bt_y) - Bt_X.h)
+    Bt_Y:set_position(Bt_B.x, Bt_B.y - (space_bt_y) - Bt_Y.h)
 
     do
         local size = w * 0.1
@@ -291,7 +313,12 @@ function Pad:fix_positions()
     do
         stick:set_dimensions(min * 0.2, min * 0.2)
         stick:init()
-        stick:set_position(stick.bounds_width * 0.5 - stick.w * 0.5, stick.bounds_top + stick.bounds_height * 0.4, true)
+        stick:set_position(
+        -- stick.bounds_width * 0.5 - stick.w * 0.5,
+            stick.max_dist + w * 0.015,
+            stick.bounds_top + stick.bounds_height * 0.4,
+            true
+        )
     end
 
     do
@@ -318,6 +345,11 @@ function Pad:fix_positions()
     end
 end
 
+---@param font JM.Font.Font
+function Pad:set_font(font)
+    TouchButton:set_font(font)
+end
+
 function Pad:resize(w, h)
     self:set_button_size((math.min(w, h) * 0.2))
     self:fix_positions()
@@ -338,14 +370,20 @@ function Pad:update(dt)
 end
 
 function Pad:draw()
+    push("all")
+    setLineWidth(2)
+    setLineStyle("smooth")
+
     for i = 1, self.N do
         self[i]:draw()
     end
+
+    pop()
 end
 
 Pad:set_button_size()
 Pad:fix_positions()
-Pad:set_opacity(0.5)
+Pad:set_opacity(0.45)
 
 Pad:use_all_buttons(false)
 Pad:turn_off_dpad()
