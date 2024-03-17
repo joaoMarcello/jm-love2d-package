@@ -184,7 +184,7 @@ local Home = TouchButton:new {
             local line_width = lgx.getLineWidth()
             lgx.setLineWidth(3)
 
-            local w = pw * 0.75
+            local w = pw * 0.6
             local y = py + ph * 0.3
             local x = (px + (pw - w)) - (pw - w) * 0.5
             for i = 0, 2 do
