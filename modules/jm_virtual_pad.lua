@@ -78,15 +78,29 @@ local dpad_pos_y = 0.7 --0.95
 ---@param self JM.GUI.TouchButton
 local dpad_draw = function(self)
     local lgx = love.graphics
+
+    lgx.setColor(0, 0, 0, 0.4 * self.opacity)
+    lgx.rectangle("fill", self.x, self.y, self.w, self.h)
+
     lgx.setColor(self.color)
     lgx.rectangle("line", self.x, self.y, self.w, self.h)
 
-    local font = self:get_font()
-    font:push()
-    font:set_color(JM.Utils:get_rgba(1, 1, 1, self.opacity))
-    font:set_font_size(self.h * 0.75)
-    font:printf(self.text, self.x - 20, self.y + self.h * 0.5 - font.__font_size * 0.5, self.w + 40, "center")
-    font:pop()
+    -- local font = self:get_font()
+    -- font:push()
+    -- font:set_color(JM.Utils:get_rgba(1, 1, 1, self.opacity))
+    -- font:set_font_size(self.h * 0.75)
+    -- font:printf(self.text, self.x - 20, self.y + self.h * 0.5 - font.__font_size * 0.5, self.w + 40, "center")
+    -- font:pop()
+
+    local w = self.h * 0.5
+    local x = self.x + self.w * 0.5 * 0.5
+    local y = x - self.x + self.y
+
+    lgx.polygon("fill",
+        x, y,
+        x + w, y + w * 0.5,
+        x, y + w
+    )
 end
 
 local dpad_left = TouchButton:new {
@@ -113,6 +127,74 @@ local dpad_down = TouchButton:new {
     on_focus = true,
     draw = dpad_draw,
 }
+--==========================================================================
+---@param self JM.GUI.TouchButton
+local trigger_draw = function(self)
+    local lgx = love.graphics
+    local color = self.color
+    local x, y, w, h = self.x, self.y, self.w, self.h
+
+    lgx.setColor(0, 0, 0, 0.4 * self.opacity)
+    lgx.rectangle("fill", x, y, w, h, rect_rx, rect_rx)
+    lgx.setColor(color)
+    lgx.rectangle("line", x, y, w, h, rect_rx, rect_rx)
+
+    local font = self:get_font()
+
+    font:push()
+    font:set_color(self.color)
+    font:set_font_size(self.h * 0.5)
+
+    if self.text == "L" then
+        font:printf(self.text, self.x + self.w * 0.25, self.y + self.h * 0.5 - font.__font_size * 0.5, self.w, "left")
+    else
+        font:printf(self.text, self.x + self.w * 0.75 - self.w, self.y + self.h * 0.5 - font.__font_size * 0.5, self.w,
+            "right")
+    end
+    font:pop()
+end
+
+local Bt_L = TouchButton:new {
+    text = "L",
+    on_focus = true,
+    draw = trigger_draw,
+}
+
+local Bt_R = TouchButton:new {
+    text = "R",
+    on_focus = true,
+    draw = trigger_draw,
+}
+--==========================================================================
+local Home = TouchButton:new {
+    text = "",
+    on_focus = true,
+    draw =
+    ---@param self JM.GUI.TouchButton
+        function(self)
+            local lgx = love.graphics
+            local px, py, pw, ph = self.x, self.y, self.w, self.h
+            local rx = rect_rx
+
+            lgx.setColor(0, 0, 0, 0.4 * self.opacity)
+            lgx.rectangle("fill", px, py, pw, ph, rx, rx)
+            lgx.setColor(self.color)
+            lgx.rectangle("line", px, py, pw, ph, rx, rx)
+
+            local line_width = lgx.getLineWidth()
+            lgx.setLineWidth(3)
+
+            local w = pw * 0.75
+            local y = py + ph * 0.3
+            local x = (px + (pw - w)) - (pw - w) * 0.5
+            for i = 0, 2 do
+                lgx.line(x, y, x + w, y)
+                y = y + (ph * 0.7) * 0.333333
+            end
+
+            lgx.setLineWidth(line_width)
+        end,
+}
 
 --==========================================================================
 local stick = VirtualStick:new {
@@ -122,6 +204,7 @@ local stick = VirtualStick:new {
 -- stick:set_position(stick.max_dist, height - stick.h - 130, true)
 --==========================================================================
 
+local allow_dpad_diagonal = true
 
 ---@class JM.GUI.VPad
 local Pad = {
@@ -147,13 +230,77 @@ local Pad = {
     [10] = dpad_up,
     Dpad_down = dpad_down,
     [11] = dpad_down,
-    N = 11
+    L = Bt_L,
+    [12] = Bt_L,
+    R = Bt_R,
+    [13] = Bt_R,
+    Home = Home,
+    [14] = Home,
+    N = 14
 }
+
+local function dpad_is_pressed()
+    local r = dpad_down:is_pressed() and dpad_up:is_pressed()
+        and dpad_left:is_pressed() and dpad_right:is_pressed()
+    return r
+end
+
+local function check_collision(x1, y1, w1, h1, x2, y2, w2, h2)
+    return x1 + w1 > x2
+        and x1 < x2 + w2
+        and y1 + h1 > y2
+        and y1 < y2 + h2
+end
 
 function Pad:mousepressed(x, y, button, istouch, presses)
     for i = 1, self.N do
         self[i]:mousepressed(x, y, button, istouch, presses)
     end
+
+    if allow_dpad_diagonal and dpad_up.on_focus and dpad_up.is_visible
+    then
+        if not dpad_is_pressed() then
+            local w = dpad_down.w * 0.75
+
+            if check_collision(x, y, 0, 0,
+                    dpad_right.x, dpad_down.y, w, w
+                )
+            then
+                dpad_down:mousepressed(dpad_down.x + 1, dpad_down.y + 1, 1, false)
+                dpad_right:mousepressed(dpad_right.x + 1, dpad_right.y + 1, 1, false)
+                dpad_down.back_to_normal = false
+                dpad_right.back_to_normal = false
+                ---
+            elseif check_collision(x, y, 0, 0,
+                    dpad_down.x - w, dpad_down.y, w, w)
+            then
+                dpad_left:mousepressed(dpad_left.x + 1, dpad_left.y + 1, 1, false)
+                dpad_down:mousepressed(dpad_down.x + 1, dpad_down.y + 1, 1, false)
+                dpad_left.back_to_normal = false
+                dpad_down.back_to_normal = false
+                ---
+            elseif check_collision(x, y, 0, 0,
+                    dpad_right.x, dpad_right.y - w, w, w
+                )
+            then
+                dpad_right:mousepressed(dpad_right.x + 1, dpad_right.y + 1, 1, false)
+                dpad_up:mousepressed(dpad_up.x + 1, dpad_up.y + 1, 1, false)
+                dpad_right.back_to_normal = false
+                dpad_up.back_to_normal = false
+                ---
+            elseif check_collision(x, y, 0, 0,
+                    dpad_left.right - w, dpad_left.y - w, w, w
+                )
+            then
+                dpad_left:mousepressed(dpad_left.x + 1, dpad_left.y + 1, 1, false)
+                dpad_up:mousepressed(dpad_up.x + 1, dpad_up.y + 1, 1, false)
+                dpad_left.back_to_normal = false
+                dpad_up.back_to_normal = false
+                ---
+            end
+        end
+    end -- END diagonal dpad checks
+    ---
 end
 
 function Pad:mousereleased(x, y, button, istouch, presses)
@@ -249,6 +396,10 @@ function Pad:turn_off_dpad()
     self:turn_off_button("Dpad-down")
 end
 
+function Pad:allow_dpad_diagonal(value)
+    allow_dpad_diagonal = value
+end
+
 function Pad:set_dpad_position(x, y)
     dpad_pos_x = x or dpad_pos_x
     dpad_pos_y = y or dpad_pos_y
@@ -287,9 +438,10 @@ function Pad:fix_positions()
     local border_w = w * 0.03
     local space = 15
     local space_bt_y = 10
+    local space_bt_x = 5
 
     Bt_A:set_position(w - border_w - Bt_A.w, h - (border_w * 2) - Bt_A.h)
-    Bt_B:set_position(Bt_A.x - Bt_B.w - 0, Bt_A.y - Bt_B.h * 0.5)
+    Bt_B:set_position(Bt_A.x - Bt_B.w - space_bt_x, Bt_A.y - Bt_B.h * 0.5)
 
     Bt_X:set_position(Bt_A.x, Bt_A.y - (space_bt_y) - Bt_X.h)
     Bt_Y:set_position(Bt_B.x, Bt_B.y - (space_bt_y) - Bt_Y.h)
@@ -311,6 +463,22 @@ function Pad:fix_positions()
     end
 
     do
+        local size = min * 0.15
+        Home:set_dimensions(size, size)
+        Home:set_position(w * 0.5 - size * 0.5, 0)
+    end
+
+    do
+        local size = w * 0.17
+        local border = 15
+        Bt_L:set_dimensions(size, size * 0.3)
+        Bt_L:set_position(border, border)
+
+        Bt_R:set_dimensions(size, size * 0.3)
+        Bt_R:set_position(w - border - Bt_R.w, border)
+    end
+
+    do
         stick:set_dimensions(min * 0.2, min * 0.2)
         stick:init()
         stick:set_position(
@@ -322,26 +490,32 @@ function Pad:fix_positions()
     end
 
     do
-        local size = min * 0.2
+        local size = min * 0.15
         dpad_left:set_dimensions(size, size)
         dpad_right:set_dimensions(size, size)
         dpad_up:set_dimensions(size, size)
-        dpad_up.ox, dpad_up.oy = size * 0.5, size * 0.5
-        dpad_up:set_effect_transform("rot", -math.pi * 0.5)
         dpad_down:set_dimensions(size, size)
-        dpad_down.ox, dpad_down.oy = size * 0.5, size * 0.5
-        dpad_down:set_effect_transform("rot", math.pi * 0.5)
 
-        local anchor_x = w * dpad_pos_x + size
+        local ox = dpad_left.w * 0.5
+        dpad_up.ox, dpad_up.oy = ox, ox
+        dpad_up:set_effect_transform("rot", -math.pi * 0.5)
+        dpad_down.ox, dpad_down.oy = ox, ox
+        dpad_down:set_effect_transform("rot", math.pi * 0.5)
+        dpad_left.ox, dpad_left.oy = ox, ox
+        dpad_left:set_effect_transform("rot", math.pi)
+
+        local anchor_x = 10 -- w * dpad_pos_x + size
         local anchor_y = h * dpad_pos_y - size
         local space_x = not stick.is_visible and (space * 4) or (space * 2)
 
-        dpad_left:set_position(anchor_x - size, anchor_y - size * 0.5)
-        dpad_right:set_position(dpad_left.right + space_x, dpad_left.y)
+        dpad_left:set_position(anchor_x, anchor_y - size * 0.5)
+        dpad_right:set_position(dpad_left.right + size, dpad_left.y)
 
         dpad_up:set_position(
-            dpad_left.x + (dpad_right.right - dpad_left.x) * 0.5 - size * 0.5, dpad_left.y - space - dpad_up.h)
-        dpad_down:set_position(dpad_up.x, dpad_left.bottom + space)
+            dpad_left.right,
+            dpad_left.y - dpad_up.h
+        )
+        dpad_down:set_position(dpad_up.x, dpad_left.bottom)
     end
 end
 
@@ -385,9 +559,9 @@ Pad:set_button_size()
 Pad:fix_positions()
 Pad:set_opacity(0.45)
 
-Pad:use_all_buttons(false)
-Pad:turn_off_dpad()
--- Pad:turn_off_button("Stick")
+Pad:use_all_buttons(true)
+-- Pad:turn_off_dpad()
+Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
 
