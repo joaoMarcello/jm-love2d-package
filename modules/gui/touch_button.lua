@@ -1,6 +1,7 @@
 ---@type JM.GUI.Component
 local Component = require(string.gsub(..., "touch_button", "component"))
 
+---@type JM.Font.Font
 local font -- = JM:get_font() --_G.JM_Font.current
 
 local mouse_get_position = love.mouse.getPosition
@@ -43,6 +44,8 @@ function Button:__constructor__(args)
 
     self.opacity = args.opacity or 1
     self:set_color2(1, 1, 1, self.opacity)
+
+    self.back_to_normal = true
 
     self:shrink()
 end
@@ -97,6 +100,7 @@ function Button:mousereleased(x, y, button, istouch, presses)
     end
 
     self.__mouse_pressed = false
+    self.back_to_normal = true
 end
 
 function Button:touchpressed(id, x, y, dx, dy, pressure)
@@ -128,6 +132,7 @@ function Button:touchreleased(id, x, y, dx, dy, pressure)
     end
 
     self.__touch_pressed = false
+    self.back_to_normal = true
 end
 
 function Button:grow()
@@ -155,7 +160,9 @@ end
 function Button:update(dt)
     Component.update(self, dt)
 
-    if self.__mouse_pressed then
+    local back_to_normal = self.back_to_normal
+
+    if self.__mouse_pressed and back_to_normal then
         local mx, my = mouse_get_position()
 
         if not self:check_collision(mx, my, 0, 0) then
@@ -164,7 +171,7 @@ function Button:update(dt)
         end
     end
 
-    if self.__touch_pressed then
+    if self.__touch_pressed and back_to_normal then
         if not self:touch_is_active() then
             self.__touch_pressed = false
             self:shrink()
