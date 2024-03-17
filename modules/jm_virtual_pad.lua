@@ -490,7 +490,7 @@ function Pad:fix_positions()
     end
 
     do
-        local size = min * 0.15
+        local size = min * 0.125
         dpad_left:set_dimensions(size, size)
         dpad_right:set_dimensions(size, size)
         dpad_up:set_dimensions(size, size)
