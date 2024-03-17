@@ -319,6 +319,10 @@ function JM:is_in_capture_mode()
     return capture
 end
 
+function JM:has_default_font()
+    return fonts["default"]
+end
+
 function JM:update(dt)
     if thread_save_shot then
         local error_msg = thread_save_shot:getError()
@@ -361,7 +365,9 @@ function JM:update(dt)
 
     SceneManager.scene:update(dt)
 
-    JM:get_font():update(dt)
+    if self:has_default_font() then
+        JM:get_font():update(dt)
+    end
 
     Sound:update(dt)
     self.ParticleSystem:update(dt)
