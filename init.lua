@@ -219,10 +219,20 @@ local fullscreen = love.window.getFullscreen()
 --- Loads the first game scene.
 ---@param s string the directory for the first game scene.
 ---@param use_splash boolean|nil if should use splash screen
-function JM:load_initial_state(s, use_splash, use_fullscreen)
+function JM:load_initial_state(
+    s, use_splash,
+    skip_load_default_font,
+    use_fullscreen
+)
     if use_fullscreen then
         love.window.setFullscreen(true, _G.FULLSCREEN_TYPE or 'desktop')
     end
+
+    if not skip_load_default_font then
+        local font = JM:get_font()
+        JM.Vpad:set_font(font)
+    end
+
     fullscreen = love.window.getFullscreen()
 
     local state
@@ -234,6 +244,7 @@ function JM:load_initial_state(s, use_splash, use_fullscreen)
     else
         state = require(s)
     end
+
     SceneManager:change_gamestate(state, { skip_transition = true })
 
     return SceneManager.scene:resize(love.graphics.getDimensions())
@@ -498,8 +509,6 @@ function JM:resize(w, h)
 end
 
 --===========================================================================
-
-JM:get_font()
 
 function Play_sfx(name, force)
     return Sound:play_sfx(name, force)
