@@ -1,7 +1,7 @@
 ---@type JM.GUI.Component
 local Component = require(string.gsub(..., "touch_button", "component"))
 
-local font = JM:get_font() --_G.JM_Font.current
+local font -- = JM:get_font() --_G.JM_Font.current
 
 local mouse_get_position = love.mouse.getPosition
 local touch_getPosition = love.touch.getPosition
@@ -42,18 +42,14 @@ function Button:__constructor__(args)
     self.use_radius = args.use_radius
 
     self.opacity = args.opacity or 1
-    self:set_color2(nil, nil, nil, self.opacity)
+    self:set_color2(1, 1, 1, self.opacity)
 
-    -- if args.text then
-    --     font:push()
-    --     font:set_color(self.color)
-    --     self.font_obj = font:generate_phrase(args.text, self.x, self.y, self.x + self.w, "center")
-    --     font:pop()
-    -- end
+    self:shrink()
 end
 
 function Button:init()
-    return Button.__constructor__(self, {
+    local color = self.color
+    Button.__constructor__(self, {
         x = self.x,
         y = self.y,
         w = self.w,
@@ -63,18 +59,15 @@ function Button:init()
         opacity = self.opacity,
         text = self.text,
     })
+    self.color = color
+    return self
 end
 
 function Button:set_opacity(opacity)
     self.opacity = opacity or 1
-    self:set_color2(nil, nil, nil, self.opacity)
 
-    -- if self.font_obj then
-    --     font:push()
-    --     font:set_color(self.color)
-    --     self.font_obj = font:generate_phrase(self.font_obj.text, self.x, self.y, self.x + self.w, "center")
-    --     font:pop()
-    -- end
+    local r, g, b, _ = unpack(self.color)
+    self:set_color2(r, g, b, self.opacity)
 end
 
 function Button:mousepressed(x, y, button, istouch, presses)
@@ -138,13 +131,13 @@ function Button:touchreleased(id, x, y, dx, dy, pressure)
 end
 
 function Button:grow()
-    self:set_effect_transform("sx", 1.25)
-    self:set_effect_transform("sy", 1.25)
+    self:set_effect_transform("sx", 1.15) --1.25
+    self:set_effect_transform("sy", 1.15)
 end
 
 function Button:shrink()
-    self:set_effect_transform("sx", 1)
-    self:set_effect_transform("sy", 1)
+    self:set_effect_transform("sx", 0.8)
+    self:set_effect_transform("sy", 0.8)
 end
 
 function Button:is_pressed()
@@ -186,7 +179,17 @@ function Button:update(dt)
     end -- End touch pressed
 end
 
+-- function Button:__pos_draw__()
+--     if not self.is_visible then return end
+--     love_setColor(1, 1, 1, self.opacity)
+--     love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+-- end
+
+local white = { 1, 1, 1, 1 }
+
 function Button:__custom_draw__()
+    white[4] = self.opacity
+
     love_setColor(self.color)
     -- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
@@ -194,10 +197,14 @@ function Button:__custom_draw__()
         love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
     else
         local px, py = (self.x + self.w * 0.5), (self.y + self.h * 0.5)
-        love_setColor(0, 0, 0, 0.4 * self.opacity)
-        love_circle("fill", px, py, self.radius)
 
-        love_setColor(self.color)
+        do
+            local r, g, b = unpack(self.color)
+            love_setColor(r, g, b, self.opacity) --0.4
+            love_circle("fill", px, py, self.radius)
+        end
+
+        love_setColor(white)
         love_circle("line", px, py, self.radius)
     end
 
@@ -206,7 +213,7 @@ function Button:__custom_draw__()
     do
         font:push()
         font:set_font_size(self.font_size)
-        font:set_color(self.color)
+        font:set_color(white)
 
         -- self.font_obj.__bounds.right = self.w + 40
         -- self.font_obj:draw(self.x - 20, self.y + self.h * 0.5 - (font.__font_size + 2) * 0.5, "center")
