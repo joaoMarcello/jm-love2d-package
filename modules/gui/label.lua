@@ -7,8 +7,8 @@ local huge = math.huge
 ---@type JM.GUI.Component
 local Component = require((...):gsub("label", "component"))
 
-local font = JM:get_font() --_G.JM_Font.current
-local font_config = font:__get_configuration()
+local font        --_G.JM_Font.current
+local font_config -- = font:__get_configuration()
 
 -- love.keyboard.setKeyRepeat(true)
 
@@ -34,6 +34,10 @@ Label.__index = Label
 
 ---@return JM.GUI.Label
 function Label:new(args)
+    if not font then
+        self:set_font(JM:get_font())
+    end
+
     args.h = args.h or (font_config.font_size + 4)
 
     ---@class JM.GUI.Label
