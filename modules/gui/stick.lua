@@ -55,7 +55,7 @@ function Stick:init()
         is_mobile = self.is_mobile,
         bound_left = 0,
         bound_top = h * 0.25,
-        bound_width = w * 0.25,
+        bound_width = w * 0.35,
         bound_height = h * 0.75,
         opacity = self.opacity,
     }
@@ -173,8 +173,8 @@ end
 
 ---@param direction "left"|"right"|"up"|"down"
 function Stick:is_pressing(direction, constraint, angle_limit)
-    constraint = constraint or 0.1 --0.2
-    angle_limit = angle_limit or 50
+    constraint = constraint or 0.1  --0.2
+    angle_limit = angle_limit or 60 --50
 
     local dx, dy = self:get_direction()
 
@@ -286,28 +286,35 @@ function Stick:update(dt)
 end
 
 function Stick:__custom_draw__()
-    lgx.setColor(0, 0, 0, 0.4 * self.opacity)
-    lgx.circle("fill", self.x + self.w / 2, self.y + self.h / 2, self.radius)
+    local opacity = self.opacity
+    local radius = self.radius
+    local x, y, w, h = self.x, self.y, self.w, self.h
 
-    lgx.setColor(1, 1, 1, self.opacity)
-    lgx.circle("line", self.x + self.w / 2, self.y + self.h / 2, self.radius)
+    lgx.setColor(0, 0, 0, 0.4 * opacity)
+    lgx.circle("fill", x + w * 0.5, y + h * 0.5, radius)
+    lgx.setColor(1, 1, 1, opacity)
+    lgx.circle("line", x + w * 0.5, y + h * 0.5, radius)
 end
 
 function Stick:draw()
     if not self.is_visible then return end
     Component.draw(self)
 
-    lgx.setColor(1, 1, 1, self.opacity)
-    lgx.circle("fill", self.cx, self.cy, self.radius * 0.7)
-    lgx.setColor(.3, .3, .3, .2)
-    local rm = self.radius * 0.7 * 0.6
-    lgx.circle("fill", self.cx, self.cy, rm)
+    local cx, cy = self.cx, self.cy
+    local opacity = self.opacity
+    local radius = self.radius
 
-    lgx.setColor(0, 0, 0, 0.4 * self.opacity)
-    lgx.circle("fill", self.cx - rm - 3, self.cy, 4)
-    lgx.circle("fill", self.cx, self.cy - rm - 3, 4)
-    lgx.circle("fill", self.cx + rm + 3, self.cy, 4)
-    lgx.circle("fill", self.cx, self.cy + rm + 3, 4)
+    lgx.setColor(1, 1, 1, opacity)
+    lgx.circle("fill", cx, cy, radius * 0.7)
+    lgx.setColor(.3, .3, .3, .2)
+    local rm = radius * 0.7 * 0.6
+    lgx.circle("fill", cx, cy, rm)
+
+    lgx.setColor(0, 0, 0, 0.4 * opacity)
+    lgx.circle("fill", cx - rm - 3, cy, 4)
+    lgx.circle("fill", cx, cy - rm - 3, 4)
+    lgx.circle("fill", cx + rm + 3, cy, 4)
+    lgx.circle("fill", cx, cy + rm + 3, 4)
 
     -- love.graphics.setColor(1, 1, 0)
     -- love.graphics.rectangle("line", self.bounds_left, self.bounds_top, self.bounds_width, self.bounds_height)
