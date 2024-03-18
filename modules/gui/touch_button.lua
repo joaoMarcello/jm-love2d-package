@@ -74,8 +74,8 @@ function Button:set_opacity(opacity)
 end
 
 function Button:mousepressed(x, y, button, istouch, presses)
-    local dx = x - (self.x + self.w / 2)
-    local dy = y - (self.y + self.h / 2)
+    local dx = x - (self.x + self.w * 0.5)
+    local dy = y - (self.y + self.h * 0.5)
     local dist = math.sqrt(dx ^ 2 + dy ^ 2)
 
     if self.use_radius and dist <= self.radius or not self.use_radius then
@@ -87,8 +87,8 @@ function Button:mousepressed(x, y, button, istouch, presses)
 end
 
 function Button:mousereleased(x, y, button, istouch, presses)
-    local dx = x - (self.x + self.w / 2)
-    local dy = y - (self.y + self.h / 2)
+    local dx = x - (self.x + self.w * 0.5)
+    local dy = y - (self.y + self.h * 0.5)
     local dist = math.sqrt(dx ^ 2 + dy ^ 2)
 
     if self.__mouse_pressed then
@@ -104,8 +104,8 @@ function Button:mousereleased(x, y, button, istouch, presses)
 end
 
 function Button:touchpressed(id, x, y, dx, dy, pressure)
-    local distx = x - (self.x + self.w / 2)
-    local disty = y - (self.y + self.h / 2)
+    local distx = x - (self.x + self.w * 0.5)
+    local disty = y - (self.y + self.h * 0.5)
     local dist = math.sqrt(distx ^ 2 + disty ^ 2)
 
     if self.use_radius and dist <= self.radius or not self.use_radius then
@@ -119,8 +119,8 @@ end
 function Button:touchreleased(id, x, y, dx, dy, pressure)
     if id ~= self.__touch_pressed then return end
 
-    local distx = x - (self.x + self.w / 2)
-    local disty = y - (self.y + self.h / 2)
+    local distx = x - (self.x + self.w * 0.5)
+    local disty = y - (self.y + self.h * 0.5)
     local dist = math.sqrt(distx ^ 2 + disty ^ 2)
 
     if self.__touch_pressed then
