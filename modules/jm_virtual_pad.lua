@@ -770,8 +770,11 @@ function Pad:fix_positions()
     local space = 15
     local space_bt_y = 10
     local space_bt_x = 5
+    local sfx, sfy, sfw, sfh = love.window.getSafeArea()
 
-    Bt_A:set_position(w - border_w - Bt_A.w, h - (border_w * 2) - Bt_A.h)
+    Bt_A:set_position((sfx + sfw) - border_w - Bt_A.w,
+        h - (border_w * 2) - Bt_A.h
+    )
     Bt_B:set_position(Bt_A.x - Bt_B.w - space_bt_x, Bt_A.y - Bt_B.h * 0.5)
 
     Bt_X:set_position(Bt_A.x, Bt_A.y - (space_bt_y) - Bt_X.h)
@@ -795,20 +798,19 @@ function Pad:fix_positions()
 
     do
         local size = min * 0.15
-        local sx, sy, sw, sh = love.window.getSafeArea()
 
         Home:set_dimensions(size, size)
-        Home:set_position(w * 0.5 - size * 0.5, sy)
+        Home:set_position(w * 0.5 - size * 0.5, sfy)
     end
 
     do
-        local size = w * 0.17
+        local size = w * 0.2
         local border = 15
         Bt_L:set_dimensions(size, size * 0.3)
-        Bt_L:set_position(border, border)
+        Bt_L:set_position(sfx + border, sfy + border)
 
         Bt_R:set_dimensions(size, size * 0.3)
-        Bt_R:set_position(w - border - Bt_R.w, border)
+        Bt_R:set_position((sfx + sfw) - border - Bt_R.w, sfy + border)
     end
 
     do
@@ -837,9 +839,9 @@ function Pad:fix_positions()
         dpad_left.ox, dpad_left.oy = ox, ox
         dpad_left:set_effect_transform("rot", math.pi)
 
-        local sx, sy, sw, sh = love.window.getSafeArea()
+        -- local sx, sy, sw, sh = love.window.getSafeArea()
 
-        local anchor_x = sx + 10 -- w * dpad_pos_x + size
+        local anchor_x = sfx + 10 -- w * dpad_pos_x + size
         local anchor_y = h * dpad_pos_y - size
         -- local space_x = not stick.is_visible and (space * 4) or (space * 2)
 
