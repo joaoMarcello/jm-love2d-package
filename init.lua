@@ -230,7 +230,10 @@ function JM:load_initial_state(
 
     if not skip_load_default_font then
         local font = JM:get_font()
-        JM.Vpad:set_font(font)
+
+        if not self.Vpad:get_font() then
+            self.Vpad:set_font(font)
+        end
     end
 
     fullscreen = love.window.getFullscreen()
