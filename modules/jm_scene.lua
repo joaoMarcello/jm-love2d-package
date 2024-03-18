@@ -1549,6 +1549,12 @@ end
 
 ---@param self JM.Scene
 local mousemoved = function(self, x, y, dx, dy, istouch)
+    if self.use_vpad and not istouch then
+        Controllers.P1:set_state(Controllers.State.vpad)
+        -- local mx, my = mousePosition()
+        VPad:mousemoved(x, y, dx, dy, istouch)
+    end
+
     if self.time_pause
         or (self.transition and self.transition.pause_scene)
     then
@@ -1620,6 +1626,11 @@ end
 
 ---@param self JM.Scene
 local touchmoved = function(self, id, x, y, dx, dy, pressure)
+    if self.use_vpad then
+        Controllers.P1:set_state(Controllers.State.vpad)
+        VPad:touchmoved(id, x, y, dx, dy, pressure)
+    end
+
     if self.time_pause
         or (self.transition and self.transition.pause_scene)
     then
