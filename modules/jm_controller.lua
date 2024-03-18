@@ -252,11 +252,6 @@ local function pressing_vpad(self, button)
         return button_is_axis and 0 or false
     end
 
-    -- ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
-    -- local pad_button = (button == Buttons.dpad_left
-    --         or button == Buttons.dpad_right)
-    --     and self.vpad.Stick
-
     local vpad = self.vpad
 
     ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
@@ -272,7 +267,25 @@ local function pressing_vpad(self, button)
         pad_button = vpad.Stick
     end
 
-    pad_button = not pad_button and button == Buttons.A and vpad.A or pad_button
+    pad_button = (not pad_button and button == Buttons.A and vpad.A)
+        or pad_button
+
+    if not pad_button and button == Buttons.X then
+        local X = vpad.X
+        if X.on_focus and X.is_visible then
+            pad_button = X
+        end
+    end
+
+    if not pad_button and button == Buttons.Y then
+        local Y = vpad.Y
+        if Y.on_focus and Y.is_visible then
+            pad_button = Y
+        end
+    end
+
+    pad_button = (not pad_button and button == Buttons.B and vpad.B)
+        or pad_button
 
     if not pad_button then
         pad_button = button == Buttons.dpad_left and vpad.Dpad_left
