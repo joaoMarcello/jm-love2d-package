@@ -101,6 +101,7 @@ function Button:mousereleased(x, y, button, istouch, presses)
 
     self.__mouse_pressed = false
     self.back_to_normal = true
+    self.time_press = false
 end
 
 function Button:touchpressed(id, x, y, dx, dy, pressure)
@@ -132,6 +133,7 @@ function Button:touchreleased(id, x, y, dx, dy, pressure)
     end
 
     self.__touch_pressed = false
+    self.time_press = false
     self.back_to_normal = true
 end
 
@@ -146,7 +148,8 @@ function Button:shrink()
 end
 
 function Button:is_pressed()
-    return self.__mouse_pressed or self.__touch_pressed
+    return (self.__mouse_pressed or self.__touch_pressed)
+        and self.time_press == 0.0
 end
 
 function Button:is_pressing()
@@ -168,6 +171,7 @@ function Button:update(dt)
         if not self:check_collision(mx, my, 0, 0) then
             self.__mouse_pressed = false
             self:shrink()
+            self.time_press = false
         end
     end
 
@@ -181,6 +185,7 @@ function Button:update(dt)
             if not self:check_collision(tx, ty, 0, 0) then
                 self.__touch_pressed = false
                 self:shrink()
+                self.time_press = false
             end
         end
     end -- End touch pressed
