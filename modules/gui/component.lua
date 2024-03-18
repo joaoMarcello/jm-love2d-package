@@ -300,7 +300,9 @@ function Component:draw()
 
     -- if self.time_press then
     --     love.graphics.setColor(0, 0, 0)
-    --     love.graphics.print(string.format("%.2f", self.time_press), self.x, self.y - 12)
+    --     love.graphics.print(
+    --         string.format("%.2f", self.time_press), self.x, self.y - 12
+    --     )
     -- end
 end
 
