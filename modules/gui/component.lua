@@ -185,6 +185,7 @@ function Component:mousepressed(x, y, button, istouch, presses)
     local r = evt and evt.action(x, y, button, istouch, presses, evt.args)
 
     self.__mouse_pressed = true
+    self.time_press = 0.0
 end
 
 function Component:mousereleased(x, y, button, istouch, presses)
@@ -196,6 +197,7 @@ function Component:mousereleased(x, y, button, istouch, presses)
     local evt = self.events[EVENTS.mousereleased]
     local r = evt and evt.action(x, y, button, istouch, presses, evt.args)
 
+    self.time_press = false
     return self.__mouse_released
 end
 
@@ -221,6 +223,7 @@ function Component:touchpressed(id, x, y, dx, dy, pressure)
     local r = evt and evt.action(id, x, y, dx, dy, pressure)
 
     self.__touch_pressed = id
+    self.time_press = 0.0
 end
 
 function Component:touchreleased(id, x, y, dx, dy, pressure)
@@ -237,6 +240,8 @@ function Component:touchreleased(id, x, y, dx, dy, pressure)
 
     self.__touch_released = self.__touch_pressed and true or false
     self.__touch_pressed = false
+
+    self.time_press = false
 
     return self.__touch_released
 end
@@ -280,6 +285,9 @@ function Component:update(dt)
     -- if self.mode == MODES.mouse then
     --     mode_mouse_update(self, dt)
     -- end
+    if self.time_press then
+        self.time_press = self.time_press + dt
+    end
 
     if self.__touch_released then self.__touch_released = false end
     if self.__mouse_released then self.__mouse_released = false end
@@ -289,6 +297,11 @@ function Component:draw()
     Affectable.draw(self, self.__custom_draw__)
 
     self:__pos_draw__()
+
+    -- if self.time_press then
+    --     love.graphics.setColor(0, 0, 0)
+    --     love.graphics.print(string.format("%.2f", self.time_press), self.x, self.y - 12)
+    -- end
 end
 
 do
