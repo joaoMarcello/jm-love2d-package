@@ -48,6 +48,14 @@ function Button:__constructor__(args)
     self.back_to_normal = true
 
     self:shrink()
+
+    self.update = Button.update
+    self.draw = Component.draw
+    self.is_pressed = Button.is_pressed
+    self.is_pressing = Button.is_pressing
+    self.rect = Component.rect
+    self.touchpressed = Button.touchpressed
+    self.touchreleased = Button.touchreleased
 end
 
 function Button:init()
