@@ -267,7 +267,9 @@ local function check_dpad_diagonal_press(self, x, y, skip_press)
                     dpad_right.x, dpad_down.y, w, w
                 )
             then
-                if skip_press then return true end
+                if skip_press then
+                    return dpad_down, dpad_right
+                end
 
                 dpad_down:mousepressed(dpad_down.x + 1, dpad_down.y + 1, 1, false)
                 dpad_right:mousepressed(dpad_right.x + 1, dpad_right.y + 1, 1, false)
@@ -279,7 +281,9 @@ local function check_dpad_diagonal_press(self, x, y, skip_press)
             elseif check_collision(x, y, 0, 0,
                     dpad_down.x - w, dpad_down.y, w, w)
             then
-                if skip_press then return true end
+                if skip_press then
+                    return dpad_left, dpad_down
+                end
 
                 dpad_left:mousepressed(dpad_left.x + 1, dpad_left.y + 1, 1, false)
                 dpad_down:mousepressed(dpad_down.x + 1, dpad_down.y + 1, 1, false)
@@ -292,7 +296,9 @@ local function check_dpad_diagonal_press(self, x, y, skip_press)
                     dpad_right.x, dpad_right.y - w, w, w
                 )
             then
-                if skip_press then return true end
+                if skip_press then
+                    return dpad_right, dpad_up
+                end
 
                 dpad_right:mousepressed(dpad_right.x + 1, dpad_right.y + 1, 1, false)
                 dpad_up:mousepressed(dpad_up.x + 1, dpad_up.y + 1, 1, false)
@@ -305,7 +311,9 @@ local function check_dpad_diagonal_press(self, x, y, skip_press)
                     dpad_left.right - w, dpad_left.y - w, w, w
                 )
             then
-                if skip_press then return true end
+                if skip_press then
+                    return dpad_left, dpad_up
+                end
 
                 dpad_left:mousepressed(dpad_left.x + 1, dpad_left.y + 1, 1, false)
                 dpad_up:mousepressed(dpad_up.x + 1, dpad_up.y + 1, 1, false)
@@ -332,7 +340,9 @@ local function check_dpad_diagonal_press_touch(self, id, x, y, dx, dy, pressure,
                     dpad_right.x, dpad_down.y, w, w
                 )
             then
-                if skip_press then return true end
+                if skip_press then
+                    return dpad_down, dpad_right
+                end
 
                 dpad_down:touchpressed(id,
                     dpad_down.x + dpad_down.w * 0.5,
@@ -352,7 +362,9 @@ local function check_dpad_diagonal_press_touch(self, id, x, y, dx, dy, pressure,
             elseif check_collision(x, y, 0, 0,
                     dpad_down.x - w, dpad_down.y, w, w)
             then
-                if skip_press then return true end
+                if skip_press then
+                    return dpad_left, dpad_down
+                end
 
                 dpad_left:touchpressed(id,
                     dpad_left.x + dpad_left.w * 0.5,
@@ -373,7 +385,9 @@ local function check_dpad_diagonal_press_touch(self, id, x, y, dx, dy, pressure,
                     dpad_right.x, dpad_right.y - w, w, w
                 )
             then
-                if skip_press then return true end
+                if skip_press then
+                    return dpad_right, dpad_up
+                end
 
                 dpad_right:touchpressed(id,
                     dpad_right.x + dpad_right.w * 0.5,
@@ -394,7 +408,9 @@ local function check_dpad_diagonal_press_touch(self, id, x, y, dx, dy, pressure,
                     dpad_left.right - w, dpad_left.y - w, w, w
                 )
             then
-                if skip_press then return true end
+                if skip_press then
+                    return dpad_left, dpad_up
+                end
 
                 dpad_left:touchpressed(id,
                     dpad_left.x + dpad_left.w * 0.5,
@@ -494,11 +510,30 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
             self:unpress_dpad_mouse(x, y)
             obj:mousepressed(obj.x + 1, obj.y + 1, 1, false)
             obj.back_to_normal = false
+
+            if obj.time_press == 0 then
+                local scene = JM.SceneManager.scene
+                local mousepressed = scene and scene.__param__.mousepressed
+                if mousepressed then mousepressed(x, y, 1, false) end
+            end
             ---
         else
-            if check_dpad_diagonal_press(self, x, y, true) then
+            local b1, b2 = check_dpad_diagonal_press(self, x, y, true)
+
+            if b1 and b2 then
+                local t1, t2 = b1.time_press, b2.time_press
+
                 self:unpress_dpad_mouse(x, y)
                 check_dpad_diagonal_press(self, x, y)
+
+                b1.time_press = t1 or b1.time_press
+                b2.time_press = t2 or b2.time_press
+
+                if b1.time_press == 0 or b2.time_press == 0 then
+                    local scene = JM.SceneManager.scene
+                    local mousepressed = scene and scene.__param__.mousepressed
+                    if mousepressed then mousepressed(x, y, 1, false) end
+                end
                 ---
             elseif obj then
                 ---
@@ -536,13 +571,39 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
             self:unpress_dpad_touch(id, x, y, dx, dy, pressure)
             obj:touchpressed(id, obj.x + 1, obj.y + 1, dx, dy, pressure)
             obj.back_to_normal = false
+
+            if obj.time_press == 0.0 then
+                local scene = JM.SceneManager.scene
+                local touchpressed = scene and scene.__param__.touchpressed
+                if touchpressed then
+                    touchpressed(id, x, y, dx, dy, pressure)
+                end
+            end
             ---
         else
-            if check_dpad_diagonal_press_touch(
-                    self, id, x, y, dx, dy, pressure, true)
-            then
+            local b1, b2 = check_dpad_diagonal_press_touch(
+                self, id, x, y, dx, dy, pressure, true
+            )
+
+            if b1 and b2 then
+                local t1, t2 = b1.time_press, b2.time_press
+
                 self:unpress_dpad_touch(id, x, y, dx, dy, pressure)
-                check_dpad_diagonal_press_touch(self, id, x, y, dx, dy, pressure)
+
+                check_dpad_diagonal_press_touch(
+                    self, id, x, y, dx, dy, pressure
+                )
+
+                b1.time_press = t1 or b1.time_press
+                b2.time_press = t2 or b2.time_press
+
+                if b1.time_press == 0.0 or b2.time_press == 0.0 then
+                    local scene = JM.SceneManager.scene
+                    local touchpressed = scene and scene.__param__.touchpressed
+                    if touchpressed then
+                        touchpressed(id, x, y, dx, dy, pressure)
+                    end
+                end
                 ---
             elseif obj then
                 ---
@@ -791,6 +852,16 @@ function Pad:fix_positions()
         )
         dpad_down:set_position(dpad_up.x, dpad_left.bottom)
     end
+end
+
+function Pad:B_is_pressed()
+    local bt = (Bt_X.on_focus and Bt_X.is_visible and Bt_X) or Bt_B
+    return bt:is_pressed()
+end
+
+function Pad:X_is_pressed()
+    -- local bt = (Bt_X.on_focus and Bt_X.is_visible and Bt_X) or Bt_B
+    return Bt_B:is_pressed()
 end
 
 ---@param font JM.Font.Font
