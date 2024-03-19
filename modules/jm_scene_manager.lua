@@ -54,6 +54,8 @@ function Manager:change_gamestate(new_state, conf)
 
     self.scene = new_state
 
+    JM.Vpad:flush()
+
     r = (not conf.skip_load) and new_state:load()
     r = (not conf.skip_init) and new_state:init()
 
