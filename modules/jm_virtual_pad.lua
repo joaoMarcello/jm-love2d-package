@@ -772,7 +772,8 @@ function Pad:fix_positions()
     local space_bt_x = 5
     local sfx, sfy, sfw, sfh = love.window.getSafeArea()
 
-    Bt_A:set_position((sfx + sfw) - border_w - Bt_A.w,
+    Bt_A:set_position(
+        (sfx + sfw) - border_w - Bt_A.w,
         h - (border_w * 2) - Bt_A.h
     )
     Bt_B:set_position(Bt_A.x - Bt_B.w - space_bt_x, Bt_A.y - Bt_B.h * 0.5)
@@ -911,8 +912,8 @@ Pad:fix_positions()
 Pad:set_opacity(0.45)
 
 Pad:use_all_buttons(true)
--- Pad:turn_off_dpad()
-Pad:turn_off_button("Stick")
+Pad:turn_off_dpad()
+-- Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
 
