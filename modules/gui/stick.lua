@@ -47,6 +47,12 @@ function Stick:__constructor__(args)
     self.init_y = self.y
 
     self.opacity = args.opacity or 1
+
+    self.update = Stick.update
+    self.draw = Stick.draw
+    self.get_direction = Stick.get_direction
+    self.get_angle = Stick.get_angle
+    self.get_angle2 = Stick.get_angle2
 end
 
 function Stick:init()
