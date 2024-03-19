@@ -246,9 +246,14 @@ local Pad = {
 }
 
 local function dpad_is_pressed()
-    local r = dpad_down:is_pressing() and dpad_up:is_pressing()
-        and dpad_left:is_pressing() and dpad_right:is_pressing()
-    return r
+    -- local r = dpad_down:is_pressing() and dpad_up:is_pressing()
+    --     and dpad_left:is_pressing() and dpad_right:is_pressing()
+    -- return r
+    for i = 1, 4 do
+        local r = list_dpad[i]:is_pressing()
+        if r then return true end
+    end
+    return false
 end
 
 local function ABXY_button_is_pressed()
@@ -270,7 +275,8 @@ end
 local function check_dpad_diagonal_press(self, x, y, skip_press)
     if allow_dpad_diagonal and dpad_up.on_focus and dpad_up.is_visible
     then
-        if not dpad_is_pressed() then
+        -- if true or not dpad_is_pressed() then
+        do
             local w = dpad_down.w * 0.75
 
             if check_collision(x, y, 0, 0,
@@ -343,7 +349,8 @@ local function check_dpad_diagonal_press_touch(self, id, x, y, dx, dy, pressure,
         and dpad_up.on_focus
         and dpad_up.is_visible
     then
-        if not dpad_is_pressed() then
+        -- if not dpad_is_pressed() then
+        do
             local w = dpad_down.w * 0.75
 
             if check_collision(x, y, 0, 0,
@@ -579,6 +586,9 @@ end
 local touch_id_button = {}
 local n_touchs_button = 0
 
+local touch_id_dpad = {}
+local n_touchs_dpad = 0
+
 function Pad:touchmoved(id, x, y, dx, dy, pressure)
     local pressed = self:dpad_is_pressed()
 
@@ -610,6 +620,7 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
                 local touchpressed = scene and scene.__param__.touchpressed
                 if touchpressed then
                     touchpressed(id, x, y, dx, dy, pressure)
+                    love.system.vibrate(0.1)
                 end
             end
             ---
@@ -635,6 +646,7 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
                     local touchpressed = scene and scene.__param__.touchpressed
                     if touchpressed then
                         touchpressed(id, x, y, dx, dy, pressure)
+                        love.system.vibrate(0.1)
                     end
                 end
                 ---
@@ -666,9 +678,51 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
 
                 if touchpressed then
                     touchpressed(id, x, y, dx, dy, pressure)
+                    love.system.vibrate(0.1)
                 end
             end
         end
+        ---
+    end
+
+    if n_touchs_dpad > 0 and touch_id_dpad[id] then
+        ---@type JM.GUI.TouchButton|any
+        local obj1, obj2 = check_dpad_diagonal_press_touch(
+            self, id, x, y, dx, dy, pressure, true)
+
+        if obj1 and obj2 then
+            ---
+            if not obj1:is_pressing() and not obj2:is_pressing() then
+                ---
+                if check_dpad_diagonal_press_touch(
+                        self, id, x, y, dx, dy, pressure)
+                then
+                    local scene = JM.SceneManager.scene
+                    local touchpressed = scene and scene.__param__.touchpressed
+                    if touchpressed then
+                        touchpressed(id, x, y, dx, dy, pressure)
+                        love.system.vibrate(0.1)
+                    end
+                end
+            end
+            ---
+        else
+            ---@type JM.GUI.TouchButton|boolean|any
+            local obj = self:check_dpad_collision(x, y)
+
+            if obj and not obj:is_pressing() then
+                obj:touchpressed(id, x, y, dx, dy, pressure)
+                if obj:is_pressed() then
+                    local scene = JM.SceneManager.scene
+                    local touchpressed = scene and scene.__param__.touchpressed
+                    if touchpressed then
+                        touchpressed(id, x, y, dx, dy, pressure)
+                        love.system.vibrate(0.1)
+                    end
+                end
+            end
+        end
+
         ---
     end
     ---
@@ -713,6 +767,17 @@ function Pad:touchpressed(id, x, y, dx, dy, pressure)
         end
         ---
     end
+
+    if dpad_is_pressed() then
+        for i = 1, 4 do
+            local __id = list_dpad[i].__touch_pressed
+
+            if __id and id == __id and not touch_id_dpad[__id] then
+                touch_id_dpad[__id] = true
+                n_touchs_dpad = n_touchs_dpad + 1
+            end
+        end
+    end
     ---
 end
 
@@ -725,6 +790,13 @@ function Pad:touchreleased(id, x, y, dx, dy, pressure)
         if touch_id_button[id] then
             touch_id_button[id] = nil
             n_touchs_button = n_touchs_button - 1
+        end
+    end
+
+    if n_touchs_dpad > 0 then
+        if touch_id_dpad[id] then
+            touch_id_dpad[id] = nil
+            n_touchs_dpad = n_touchs_dpad - 1
         end
     end
 end
