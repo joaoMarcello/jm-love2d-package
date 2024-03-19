@@ -683,12 +683,15 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
 
             if obj:is_pressed() then
                 local scene = JM.SceneManager.scene
-                local touchpressed = scene and scene.__param__.touchpressed
+                self:verify_pressed(scene)
+                love.system.vibrate(0.1)
 
-                if touchpressed then
-                    touchpressed(id, x, y, dx, dy, pressure)
-                    love.system.vibrate(0.1)
-                end
+                -- local touchpressed = scene and scene.__param__.touchpressed
+
+                -- if touchpressed then
+                --     touchpressed(id, x, y, dx, dy, pressure)
+                --     love.system.vibrate(0.1)
+                -- end
             end
         end
         ---
@@ -707,11 +710,14 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
                         self, id, x, y, dx, dy, pressure)
                 then
                     local scene = JM.SceneManager.scene
-                    local touchpressed = scene and scene.__param__.touchpressed
-                    if touchpressed then
-                        touchpressed(id, x, y, dx, dy, pressure)
-                        love.system.vibrate(0.1)
-                    end
+                    self:verify_pressed(scene)
+                    love.system.vibrate(0.1)
+
+                    -- local touchpressed = scene and scene.__param__.touchpressed
+                    -- if touchpressed then
+                    --     touchpressed(id, x, y, dx, dy, pressure)
+                    --     love.system.vibrate(0.1)
+                    -- end
                 end
             end
             ---
@@ -723,11 +729,14 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
                 obj:touchpressed(id, x, y, dx, dy, pressure)
                 if obj:is_pressed() then
                     local scene = JM.SceneManager.scene
-                    local touchpressed = scene and scene.__param__.touchpressed
-                    if touchpressed then
-                        touchpressed(id, x, y, dx, dy, pressure)
-                        love.system.vibrate(0.1)
-                    end
+                    self:verify_pressed(scene)
+                    love.system.vibrate(0.1)
+
+                    -- local touchpressed = scene and scene.__param__.touchpressed
+                    -- if touchpressed then
+                    --     touchpressed(id, x, y, dx, dy, pressure)
+                    --     love.system.vibrate(0.1)
+                    -- end
                 end
             end
         end
