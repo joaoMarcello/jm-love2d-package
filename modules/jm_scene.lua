@@ -129,6 +129,9 @@ end
 ---@field touchmoved function
 ---@field joystickpressed function
 ---@field joystickreleased function
+---@field vpadpressed function
+---@field vpadreleased function
+---@field vpadaxis function
 local Scene = {
     ---@param config JM.GameState.Config
     change_gamestate = function(self, new_state, config)
@@ -1511,6 +1514,8 @@ local mousepressed = function(self, x, y, button, istouch, presses)
         Controllers.P1:set_state(Controllers.State.vpad)
         local mx, my = mousePosition()
         VPad:mousepressed(mx, my, button, istouch, presses)
+
+        VPad:verify_pressed(self)
     end
 
     if self.time_pause
@@ -1533,6 +1538,7 @@ local mousereleased = function(self, x, y, button, istouch, presses)
 
         local mx, my = mousePosition()
         VPad:mousereleased(mx, my, button, istouch, presses)
+        self:vpadreleased()
     end
 
     if self.time_pause
@@ -1591,6 +1597,7 @@ local touchpressed = function(self, id, x, y, dx, dy, pressure)
     if self.use_vpad then
         Controllers.P1:set_state(Controllers.State.vpad)
         VPad:touchpressed(id, x, y, dx, dy, pressure)
+        VPad:verify_pressed(self)
     end
 
     if self.time_pause
@@ -1610,6 +1617,7 @@ local touchreleased = function(self, id, x, y, dx, dy, pressure)
     if self.use_vpad then
         Controllers.P1:set_state(Controllers.State.vpad)
         VPad:touchreleased(id, x, y, dx, dy, pressure)
+        self:vpadreleased()
     end
 
     if self.time_pause
@@ -1641,6 +1649,24 @@ local touchmoved = function(self, id, x, y, dx, dy, pressure)
 
     local param = self.__param__
     local r = param.touchmoved and param.touchmoved(id, x, y, dx, dy, pressure)
+end
+
+---@param self JM.Scene
+local vpadpressed = function(self, button)
+    local vpadpressed = self.__param__.vpadpressed
+    if vpadpressed then return vpadpressed(button) end
+end
+
+---@param self JM.Scene
+local vpadreleased = function(self, button)
+    local vpadreleased = self.__param__.vpadreleased
+    if vpadreleased then return vpadpressed(button) end
+end
+
+---@param self JM.Scene
+local vpadaxis = function(self, axis, value)
+    local vpadaxis = self.__param__.vpadaxis
+    if vpadaxis then return vpadaxis(axis, value) end
 end
 
 ---@param self JM.Scene
@@ -1827,7 +1853,7 @@ local resize = function(self, w, h)
 end
 
 ---
----@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function, mousefocus:function, focus:function, visible:function, finish:function}
+---@param param {load:function, init:function, update:function, draw:function, unload:function, keypressed:function, keyreleased:function, mousepressed:function, mousereleased: function, mousemoved: function, layers:table, touchpressed:function, touchreleased:function, touchmoved:function, resize:function, mousefocus:function, focus:function, visible:function, finish:function, vpadpressed:function, vpadreleased:function, vpadaxis:function}
 ---
 function Scene:implements(param)
     assert(param, "\n>> Error: No parameter passed to method.")
@@ -1957,6 +1983,10 @@ function Scene:implements(param)
     self.touchreleased = touchreleased
 
     self.touchmoved = touchmoved
+
+    self.vpadpressed = vpadpressed
+    self.vpadreleased = vpadreleased
+    self.vpadaxis = vpadaxis
 
     self.keypressed = keypressed
 
