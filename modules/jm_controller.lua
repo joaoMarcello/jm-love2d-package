@@ -274,6 +274,8 @@ local function pressing_vpad(self, button)
         local X = vpad.X
         if X.on_focus and X.is_visible then
             pad_button = X
+        else
+            pad_button = vpad.B
         end
     end
 
@@ -350,14 +352,69 @@ end
 local function pressed_vpad(self, button)
     local button_is_axis = is_axis(button)
 
-    if not self.vpad or self.state ~= States.vpad then
+    local vpad = self.vpad
+
+    if not vpad or self.state ~= States.vpad then
         return button_is_axis and 0 or false
     end
 
-    local bt = button == Buttons.A and self.vpad.A
-    bt = not bt and button == Buttons.X and self.vpad.B or bt
+    ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
+    local bt = nil
+
+    if not vpad.Dpad_left.on_focus and not vpad.Dpad_right.on_focus then
+        bt = button >= 11 and button <= 14 and vpad.Stick
+        ---
+    elseif button == Buttons.left_stick_x
+        or button == Buttons.left_stick_y
+    then
+        bt = vpad.Stick
+    end
+
+    bt = not bt and button == Buttons.A and vpad.A or bt
+
+    if not bt and button == Buttons.X then
+        local X = vpad.X
+        if X.on_focus and X.is_visible then
+            bt = X
+        else
+            bt = vpad.B
+        end
+    end
+
+    if not bt and button == Buttons.Y then
+        local Y = vpad.Y
+        if Y.on_focus and Y.is_visible then
+            bt = Y
+        end
+    end
+
+    bt = not bt and button == Buttons.B and vpad.B or bt
 
     if not bt then
+        bt = button == Buttons.dpad_left and vpad.Dpad_left
+        bt = not bt and button == Buttons.dpad_right and vpad.Dpad_right or bt
+    end
+    if not bt then
+        bt = button == Buttons.dpad_up and vpad.Dpad_up
+        bt = not bt and button == Buttons.dpad_down and vpad.Dpad_down or bt
+    end
+
+    if not bt then
+        bt = button == Buttons.L and vpad.L
+        bt = not bt and button == Buttons.R and vpad.R or bt
+        bt = not bt and button == Buttons.home and vpad.Home or bt
+    end
+
+    if not bt then
+        bt = button == Buttons.start and vpad.Start
+        bt = not bt and button == Buttons.select and vpad.Select or bt
+    end
+
+    if not bt then
+        return button_is_axis and 0 or false
+    end
+
+    if bt == vpad.Stick then
         return button_is_axis and 0 or false
     end
 
