@@ -110,14 +110,14 @@ function Stick:mousepressed(x, y, button, istouch, presses)
 
     if dist <= self.radius then
         Component.mousepressed(self, x, y, button, istouch, presses)
-        if self:is_pressed() then
+        if self.__mouse_pressed then
             self:grow()
         end
     end
 end
 
 function Stick:mousereleased(x, y, button, istouch, presses)
-    if self:is_pressed() then
+    if self.__mouse_pressed then
         self:release()
     end
     Component.mousereleased(self, x, y, button, istouch, presses)
@@ -143,14 +143,14 @@ function Stick:touchpressed(id, x, y, dx, dy, pressure)
 
     if dist <= self.radius then
         Component.touchpressed(self, id, x, y, dx, dy, pressure)
-        if self:is_pressed() then self:grow() end
+        if self.__touch_pressed then self:grow() end
     end
 end
 
 function Stick:touchreleased(id, x, y, dx, dy, pressure)
     if id ~= self.__touch_pressed then return false end
 
-    if self:is_pressed() then
+    if self.__touch_pressed then
         self:release()
     end
     Component.touchreleased(self, id, x, y, dx, dy, pressure)
@@ -168,7 +168,8 @@ function Stick:release()
 end
 
 function Stick:is_pressed()
-    return self.__mouse_pressed or self.__touch_pressed
+    return (self.__mouse_pressed or self.__touch_pressed)
+    -- and self.time_press == 0.0
 end
 
 ---@param direction "left"|"right"|"up"|"down"
@@ -270,7 +271,7 @@ function Stick:update(dt)
         self:release()
     end
 
-    if self:is_pressed() then
+    if self.__mouse_pressed or self.__touch_pressed then
         local dx = mx - self.half_x
         local dy = my - self.half_y
         local angle = math_atan2(dy, dx)
@@ -330,6 +331,10 @@ function Stick:draw()
     -- font:print(angle, self.x, self.y - 100)
     -- -- font:print(tostring(self:is_pressing("left")), self.x, self.y + self.h + 30)
     -- font:pop()
+
+    local dx, dy = self:get_direction()
+    lgx.setColor(1, 1, 0)
+    lgx.print(string.format("%.2f %.2f", dx, dy), self.x, self.y - self.max_dist - 12)
 end
 
 return Stick
