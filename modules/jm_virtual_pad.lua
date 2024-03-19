@@ -37,6 +37,8 @@ local Bt_Y = TouchButton:new {
     on_focus = true,
 }
 Bt_Y:set_color2(JM_Utils:hex_to_rgba_float("d9ab21"))
+
+local list_buttons_ABXY = { Bt_A, Bt_B, Bt_X, Bt_Y }
 --==========================================================================
 local rect_rx = 20
 
@@ -247,6 +249,14 @@ local function dpad_is_pressed()
     local r = dpad_down:is_pressing() and dpad_up:is_pressing()
         and dpad_left:is_pressing() and dpad_right:is_pressing()
     return r
+end
+
+local function ABXY_button_is_pressed()
+    for i = 1, 4 do
+        local r = list_buttons_ABXY[i]:is_pressing()
+        if r then return true end
+    end
+    return false
 end
 
 local function check_collision(x1, y1, w1, h1, x2, y2, w2, h2)
@@ -478,6 +488,16 @@ function Pad:check_dpad_collision(x, y)
     end
 end
 
+---@return JM.GUI.TouchButton|nil
+function Pad:check_ABXY_collision(x, y)
+    for i = 1, 4 do
+        local obj = list_buttons_ABXY[i]
+        if obj:__check_collision__(x, y) then
+            return obj
+        end
+    end
+end
+
 function Pad:unpress_dpad_mouse(x, y)
     for i = 1, 4 do
         list_dpad[i]:mousereleased(x, y, 1, false)
@@ -499,11 +519,16 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
         ---
         local obj = self:check_dpad_collision(x, y)
 
-        -- if mouse is out of bounds
-        if (x < dpad_left.x or x > dpad_right.right
-                or y < dpad_up.y or y > dpad_down.bottom)
-        then
-            return self:unpress_dpad_mouse(x, y)
+        do
+            local off = dpad_left.w * 0.5
+            -- if mouse is out of bounds
+            if (x < dpad_left.x - off
+                    or x > dpad_right.right + off
+                    or y < dpad_up.y - off
+                    or y > dpad_down.bottom + off)
+            then
+                return self:unpress_dpad_mouse(x, y)
+            end
         end
 
         if obj and not obj:is_pressing() then
@@ -551,6 +576,9 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
     ---
 end
 
+local touch_id_button = {}
+local n_touchs_button = 0
+
 function Pad:touchmoved(id, x, y, dx, dy, pressure)
     local pressed = self:dpad_is_pressed()
 
@@ -560,11 +588,16 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
         ---
         local obj = self:check_dpad_collision(x, y)
 
-        -- if touch is out of bounds
-        if (x < dpad_left.x or x > dpad_right.right
-                or y < dpad_up.y or y > dpad_down.bottom)
-        then
-            return self:unpress_dpad_touch(id, x, y, dx, dy, pressure)
+        do
+            local off = dpad_left.w * 0.5
+            -- if touch is out of bounds
+            if (x < (dpad_left.x - off)
+                    or x > (dpad_right.right + off)
+                    or y < (dpad_up.y - off)
+                    or y > (dpad_down.bottom + off))
+            then
+                return self:unpress_dpad_touch(id, x, y, dx, dy, pressure)
+            end
         end
 
         if obj and not obj:is_pressing() then
@@ -618,6 +651,27 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
         end
     end
     ---
+
+    if n_touchs_button > 0
+        and touch_id_button[id]
+    then
+        local obj = self:check_ABXY_collision(x, y)
+
+        if obj and not obj:is_pressing() then
+            obj:touchpressed(id, x, y, dx, dy, pressure)
+
+            if obj:is_pressed() then
+                local scene = JM.SceneManager.scene
+                local touchpressed = scene and scene.__param__.touchpressed
+
+                if touchpressed then
+                    touchpressed(id, x, y, dx, dy, pressure)
+                end
+            end
+        end
+        ---
+    end
+    ---
 end
 
 function Pad:touchpressed(id, x, y, dx, dy, pressure)
@@ -644,11 +698,40 @@ function Pad:touchpressed(id, x, y, dx, dy, pressure)
     if r and not vibrate then
         love.system.vibrate(0.1)
     end
+
+    if ABXY_button_is_pressed() then
+        for i = 1, 4 do
+            local __id = list_buttons_ABXY[i].__touch_pressed
+
+            if __id
+                and id == __id
+                and not touch_id_button[__id]
+            then
+                touch_id_button[__id] = true
+                n_touchs_button = n_touchs_button + 1
+            end
+        end
+        ---
+    end
+    ---
 end
 
 function Pad:touchreleased(id, x, y, dx, dy, pressure)
     for i = 1, self.N do
         self[i]:touchreleased(id, x, y, dx, dy, pressure)
+    end
+
+    if n_touchs_button > 0 then
+        if touch_id_button[id] then
+            touch_id_button[id] = nil
+            n_touchs_button = n_touchs_button - 1
+        end
+    end
+end
+
+function Pad:flush()
+    for k, v in next, touch_id_button do
+        touch_id_button[k] = nil
     end
 end
 
@@ -766,7 +849,8 @@ end
 function Pad:fix_positions()
     local w, h = love.graphics.getDimensions()
     local min, max = math.min(w, h), math.max(w, h)
-    local border_w = w * 0.03
+    local border_w = (w * 0.5) * 0.1
+    local border_button_y = h * 0.2
     local space = 15
     local space_bt_y = 10
     local space_bt_x = 5
@@ -774,7 +858,7 @@ function Pad:fix_positions()
 
     Bt_A:set_position(
         (sfx + sfw) - border_w - Bt_A.w,
-        h - (border_w * 2) - Bt_A.h
+        (sfy + sfh) - border_button_y - Bt_A.h
     )
     Bt_B:set_position(Bt_A.x - Bt_B.w - space_bt_x, Bt_A.y - Bt_B.h * 0.5)
 
@@ -826,7 +910,7 @@ function Pad:fix_positions()
     end
 
     do
-        local size = min * 0.15
+        local size = min * 0.175
         dpad_left:set_dimensions(size, size)
         dpad_right:set_dimensions(size, size)
         dpad_up:set_dimensions(size, size)
@@ -912,8 +996,8 @@ Pad:fix_positions()
 Pad:set_opacity(0.45)
 
 Pad:use_all_buttons(true)
-Pad:turn_off_dpad()
--- Pad:turn_off_button("Stick")
+-- Pad:turn_off_dpad()
+Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
 
