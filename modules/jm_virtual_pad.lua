@@ -106,26 +106,26 @@ local dpad_draw = function(self)
 end
 
 local dpad_left = TouchButton:new {
-    text = "<",
+    text = "dpleft",
     on_focus = true,
     draw = dpad_draw,
 }
 
 local dpad_right = TouchButton:new {
-    text = ">",
+    text = "dpright",
     on_focus = true,
     draw = dpad_draw,
 }
 
 local dpad_up = TouchButton:new {
-    text = ">",
+    text = "dpup",
     on_focus = true,
     draw = dpad_draw,
 }
 -- dpad_up:set_effect_transform("rot", math.pi)
 
 local dpad_down = TouchButton:new {
-    text = ">",
+    text = "dpdown",
     on_focus = true,
     draw = dpad_draw,
 }
@@ -173,7 +173,7 @@ local Bt_R = TouchButton:new {
 }
 --==========================================================================
 local Home = TouchButton:new {
-    text = "",
+    text = "guide",
     on_focus = true,
     draw =
     ---@param self JM.GUI.TouchButton
@@ -545,8 +545,9 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
 
             if obj.time_press == 0 then
                 local scene = JM.SceneManager.scene
-                local mousepressed = scene and scene.__param__.mousepressed
-                if mousepressed then mousepressed(x, y, 1, false) end
+                self:verify_pressed(scene)
+                -- local mousepressed = scene and scene.__param__.mousepressed
+                -- if mousepressed then mousepressed(x, y, 1, false) end
             end
             ---
         else
@@ -563,8 +564,10 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
 
                 if b1.time_press == 0 or b2.time_press == 0 then
                     local scene = JM.SceneManager.scene
-                    local mousepressed = scene and scene.__param__.mousepressed
-                    if mousepressed then mousepressed(x, y, 1, false) end
+                    self:verify_pressed(scene)
+
+                    -- local mousepressed = scene and scene.__param__.mousepressed
+                    -- if mousepressed then mousepressed(x, y, 1, false) end
                 end
                 ---
             elseif obj then
@@ -617,11 +620,14 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
 
             if obj.time_press == 0.0 then
                 local scene = JM.SceneManager.scene
-                local touchpressed = scene and scene.__param__.touchpressed
-                if touchpressed then
-                    touchpressed(id, x, y, dx, dy, pressure)
-                    love.system.vibrate(0.1)
-                end
+                self:verify_pressed(scene)
+                love.system.vibrate(0.1)
+
+                -- local touchpressed = scene and scene.__param__.touchpressed
+                -- if touchpressed then
+                --     touchpressed(id, x, y, dx, dy, pressure)
+                --     love.system.vibrate(0.1)
+                -- end
             end
             ---
         else
@@ -643,11 +649,14 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
 
                 if b1.time_press == 0.0 or b2.time_press == 0.0 then
                     local scene = JM.SceneManager.scene
-                    local touchpressed = scene and scene.__param__.touchpressed
-                    if touchpressed then
-                        touchpressed(id, x, y, dx, dy, pressure)
-                        love.system.vibrate(0.1)
-                    end
+                    self:verify_pressed(scene)
+                    love.system.vibrate(0.1)
+
+                    -- local touchpressed = scene and scene.__param__.touchpressed
+                    -- if touchpressed then
+                    --     touchpressed(id, x, y, dx, dy, pressure)
+                    --     love.system.vibrate(0.1)
+                    -- end
                 end
                 ---
             elseif obj then
@@ -1030,6 +1039,78 @@ end
 
 function Pad:get_font()
     return TouchButton:get_font()
+end
+
+function Pad:get_ABXY_list()
+    return list_buttons_ABXY
+end
+
+function Pad:get_dpad_list()
+    return list_dpad
+end
+
+---@param obj JM.GUI.TouchButton
+function Pad:get_button_name(obj)
+    if self:is_dpad(obj) then
+        return obj.text
+    end
+
+    if obj == Bt_L then return "leftshoulder" end
+    if obj == Bt_R then return "rightshoulder" end
+    if obj == Bt_Start then return "start" end
+    if obj == Bt_Select then return "back" end
+    if obj == Home then return "guide" end
+
+    if obj == Bt_A then return "a" end
+    if obj == Bt_Y then return "y" end
+    if obj == Bt_B then
+        if Bt_X.on_focus then return "x" end
+        return "b"
+    end
+    if obj == Bt_X then return "b" end
+end
+
+---@param scene JM.Scene
+function Pad:verify_pressed(scene)
+    do
+        local list = self:get_ABXY_list()
+        for i = 1, 4 do
+            local obj = list[i]
+            if obj:is_pressed() then
+                scene:vpadpressed(self:get_button_name(obj))
+            end
+        end
+    end
+    ---
+    do
+        local list = self:get_dpad_list()
+        for i = 1, 4 do
+            local obj = list[i]
+            if obj:is_pressed() then
+                scene:vpadpressed(obj.text:lower())
+            end
+        end
+    end
+    ---
+    do
+        local L = Bt_L
+        if L:is_pressed() then scene:vpadpressed("leftshoulder") end
+
+        local R = Bt_R
+        if R:is_pressed() then scene:vpadpressed("rightshoulder") end
+    end
+    ---
+    do
+        local start = Bt_Start
+        if start:is_pressed() then scene:vpadpressed("start") end
+
+        local select = Bt_Select
+        if select:is_pressed() then scene:vpadpressed("back") end
+
+        local home = Home
+        if home:is_pressed() then scene:vpadpressed("guide") end
+    end
+    ---
 end
 
 function Pad:resize(w, h)
