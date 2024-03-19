@@ -7,6 +7,7 @@ local font -- = JM:get_font() --_G.JM_Font.current
 local mouse_get_position = love.mouse.getPosition
 local touch_getPosition = love.touch.getPosition
 local love_setColor, love_circle = love.graphics.setColor, love.graphics.circle
+local sqrt = math.sqrt
 
 ---@class JM.GUI.TouchButton : JM.GUI.Component
 local Button = setmetatable({}, Component)
@@ -81,10 +82,21 @@ function Button:set_opacity(opacity)
     self:set_color2(r, g, b, self.opacity)
 end
 
+function Button:__check_collision__(x, y)
+    if not self.use_radius then
+        return self:check_collision(x, y, 0, 0)
+    end
+
+    local dx = x - (self.x + self.w * 0.5)
+    local dy = y - (self.y + self.h * 0.5)
+    local dist = sqrt(dx ^ 2 + dy ^ 2)
+    return dist <= self.radius
+end
+
 function Button:mousepressed(x, y, button, istouch, presses)
     local dx = x - (self.x + self.w * 0.5)
     local dy = y - (self.y + self.h * 0.5)
-    local dist = math.sqrt(dx ^ 2 + dy ^ 2)
+    local dist = sqrt(dx ^ 2 + dy ^ 2)
 
     if self.use_radius and dist <= self.radius or not self.use_radius then
         Component.mousepressed(self, x, y, button, istouch, presses)
@@ -97,7 +109,7 @@ end
 function Button:mousereleased(x, y, button, istouch, presses)
     local dx = x - (self.x + self.w * 0.5)
     local dy = y - (self.y + self.h * 0.5)
-    local dist = math.sqrt(dx ^ 2 + dy ^ 2)
+    local dist = sqrt(dx ^ 2 + dy ^ 2)
 
     if self.__mouse_pressed then
         self:shrink()
@@ -115,7 +127,7 @@ end
 function Button:touchpressed(id, x, y, dx, dy, pressure)
     local distx = x - (self.x + self.w * 0.5)
     local disty = y - (self.y + self.h * 0.5)
-    local dist = math.sqrt(distx ^ 2 + disty ^ 2)
+    local dist = sqrt(distx ^ 2 + disty ^ 2)
 
     if self.use_radius and dist <= self.radius or not self.use_radius then
         Component.touchpressed(self, id, x, y, dx, dy, pressure)
@@ -130,7 +142,7 @@ function Button:touchreleased(id, x, y, dx, dy, pressure)
 
     local distx = x - (self.x + self.w * 0.5)
     local disty = y - (self.y + self.h * 0.5)
-    local dist = math.sqrt(distx ^ 2 + disty ^ 2)
+    local dist = sqrt(distx ^ 2 + disty ^ 2)
 
     if self.__touch_pressed then
         self:shrink()
