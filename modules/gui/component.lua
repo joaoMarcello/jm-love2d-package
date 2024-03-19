@@ -110,6 +110,7 @@ function Component:__constructor__(args)
 
     self.mode = MODES.mouse
 
+    ---@type string
     self.text = args.text
 
     self:refresh_corners()
