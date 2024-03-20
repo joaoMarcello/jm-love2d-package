@@ -206,6 +206,7 @@ local Home = TouchButton:new {
 local stick = VirtualStick:new {
     on_focus = true,
     is_mobile = true,
+    text = "left",
 }
 -- stick:set_position(stick.max_dist, height - stick.h - 130, true)
 --==========================================================================
