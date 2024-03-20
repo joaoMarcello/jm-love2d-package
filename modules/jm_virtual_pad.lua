@@ -203,10 +203,16 @@ local Home = TouchButton:new {
 }
 
 --==========================================================================
-local stick = VirtualStick:new {
+local left_stick = VirtualStick:new {
     on_focus = true,
     is_mobile = true,
     text = "left",
+}
+
+local right_stick = VirtualStick:new {
+    on_focus = true,
+    is_mobile = true,
+    text = "right",
 }
 -- stick:set_position(stick.max_dist, height - stick.h - 130, true)
 --==========================================================================
@@ -219,8 +225,8 @@ local Pad = {
     [1] = Bt_A,
     B = Bt_B,
     [2] = Bt_B,
-    Stick = stick,
-    [3] = stick,
+    Stick = left_stick,
+    [3] = left_stick,
     Start = Bt_Start,
     [4] = Bt_Start,
     Select = Bt_Select,
@@ -243,7 +249,9 @@ local Pad = {
     [13] = Bt_R,
     Home = Home,
     [14] = Home,
-    N = 14
+    RightStick = right_stick,
+    [15] = right_stick,
+    N = 15
 }
 
 local function dpad_is_pressed()
@@ -586,7 +594,8 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
     end --- END dpad mousemove
     ---
 
-    stick:mousemoved(x, y)
+    left_stick:mousemoved(x, y)
+    right_stick:mousemoved(x, y)
 end
 
 local touch_id_button = {}
@@ -747,7 +756,8 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
         ---
     end
 
-    stick:touchmoved(id, x, y)
+    left_stick:touchmoved(id, x, y)
+    right_stick:touchmoved(id, x, y)
     ---
 end
 
@@ -759,7 +769,7 @@ function Pad:touchpressed(id, x, y, dx, dy, pressure)
         obj:touchpressed(id, x, y, dx, dy, pressure)
 
         if not vibrate
-            and obj ~= stick
+            and obj ~= left_stick
             and obj:is_pressed()
         then
             love.system.vibrate(0.1)
@@ -842,7 +852,7 @@ function Pad:set_button_size(value)
     Bt_Y:init()
 end
 
----@alias JM.GUI.VPad.ButtonNames "X"|"Y"|"A"|"B"|"Dpad-left"|"Dpad-right"|"Dpad-up"|"Dpad-down"|"Stick"
+---@alias JM.GUI.VPad.ButtonNames "X"|"Y"|"A"|"B"|"Dpad-left"|"Dpad-right"|"Dpad-up"|"Dpad-down"|"Stick"|"RightStick"
 
 ---@param button JM.GUI.VPad.ButtonNames
 function Pad:get_button_by_str(button)
@@ -864,7 +874,9 @@ function Pad:get_button_by_str(button)
     elseif button == "Dpad-down" then
         bt = dpad_down
     elseif button == "Stick" then
-        bt = stick
+        bt = left_stick
+    elseif button == "RightStick" then
+        bt = right_stick
     end
     return bt
 end
@@ -994,13 +1006,27 @@ function Pad:fix_positions()
     end
 
     do
-        stick:set_dimensions(min * 0.2, min * 0.2)
-        stick:init()
-        stick:set_position(
-        -- stick.bounds_width * 0.5 - stick.w * 0.5,
-            stick.max_dist + w * 0.015,
-            stick.bounds_top + stick.bounds_height * 0.4,
+        left_stick:set_dimensions(min * 0.2, min * 0.2)
+        left_stick:set_position(
+            sfx + left_stick.max_dist + w * 0.015,
+            left_stick.bounds_top + left_stick.bounds_height * 0.4,
             true
+        )
+        left_stick:init()
+
+        local rstick = right_stick
+        rstick:set_dimensions(min * 0.2, min * 0.2)
+        rstick:set_position(
+            (sfx + sfw - rstick.w) - rstick.max_dist - w * 0.015,
+            rstick.bounds_top + rstick.bounds_height * 0.4,
+            true
+        )
+        rstick:init()
+        rstick:set_bounds(
+            (sfx + sfw) - left_stick.bounds_width,
+            left_stick.bounds_top,
+            left_stick.bounds_width,
+            left_stick.bounds_height
         )
     end
 
@@ -1169,6 +1195,7 @@ Pad:set_opacity(0.45)
 
 Pad:use_all_buttons(true)
 Pad:turn_off_dpad()
+-- Pad:turn_off_button("RightStick")
 -- Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
