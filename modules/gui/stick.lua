@@ -106,28 +106,28 @@ function Stick:use_dpad()
     local right = TouchButton:new {
         on_focus = true,
         text = "dpleft",
-        use_radius = true,
+        -- use_radius = true,
         draw = draw,
     }
 
     local left = TouchButton:new {
         on_focus = true,
         text = "dpright",
-        use_radius = true,
+        -- use_radius = true,
         draw = draw,
     }
 
     local up = TouchButton:new {
         on_focus = true,
         text = "dpup",
-        use_radius = true,
+        -- use_radius = true,
         draw = draw,
     }
 
     local down = TouchButton:new {
         on_focus = true,
         text = "dpdown",
-        use_radius = true,
+        -- use_radius = true,
         draw = draw,
     }
 
@@ -204,25 +204,27 @@ function Stick:check_dpad_mousepressed(x, y, button, istouch, presses)
     end
 end
 
+function Stick:check_dpad_touchpressed(x, y)
+    local list = self.dpad_list
+    if not list then return end
+
+    for i = 1, #list do
+        local obj = list[i]
+        if obj:__check_collision__(x, y) then return obj end
+    end
+end
+
 function Stick:mousepressed(x, y, button, istouch, presses)
+    if self.__mouse_pressed then return end
+
     do
-        local obj = not self.__mouse_pressed
-            and self:check_dpad_mousepressed(x, y)
+        local obj = self:check_dpad_mousepressed(x, y)
 
         if obj then
-            -- if obj == self.dpad_right then
-            --     self:set_position(obj.x - self.w, self.y)
-            -- elseif obj == self.dpad_left then
-            --     self:set_position(obj.right, self.y)
-            -- elseif obj == self.dpad_up then
-            --     self:set_position(self.x, obj.bottom)
-            -- elseif obj == self.dpad_down then
-            --     self:set_position(self.x, obj.y - self.h)
-            -- end
-
             self:refresh_position(x, y)
 
             Component.mousepressed(self, self.half_x, self.half_y, button, istouch, presses)
+
             if self.__mouse_pressed then
                 self:grow()
             end
@@ -262,6 +264,19 @@ end
 
 function Stick:touchpressed(id, x, y, dx, dy, pressure)
     if self.__touch_pressed then return false end
+
+    do
+        local obj = self:check_dpad_touchpressed(x, y)
+
+        if obj then
+            self:refresh_position(x, y)
+            Component.touchpressed(self, id, self.half_x, self.half_y, dx, dy, pressure)
+            if self.__touch_pressed then
+                self:grow()
+            end
+            return
+        end
+    end
 
     if self.is_mobile then
         local r = Component.collision(x, y, 0, 0,
