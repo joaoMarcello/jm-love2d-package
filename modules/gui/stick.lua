@@ -171,6 +171,7 @@ function Stick:release()
     self.cy = self.half_y
     self.__mouse_pressed = false
     self.__touch_pressed = false
+    self.time_press = false
     self.angle = 0
     self.dist = 0
 end
@@ -268,42 +269,58 @@ function Stick:set_opacity(value)
     self.opacity = value or self.opacity
 end
 
+function Stick:refresh_position(x, y)
+    local ldirx = math_abs(self:get_direction())
+
+    local half_x = self.half_x
+    local half_y = self.half_y
+    local dx = x - half_x
+    local dy = y - half_y
+    local angle = math_atan2(dy, dx)
+    local dist = math_sqrt(dx ^ 2 + dy ^ 2)
+    dist = Utils:clamp(dist, 0, self.max_dist)
+
+    self.cx = half_x + dist * math_cos(angle)
+    self.cy = half_y + dist * math_sin(angle)
+
+    self.angle = angle
+    self.dist = dist
+
+    local dirx = math_abs(self:get_direction())
+    if ldirx ~= dirx and self.time_press then
+        self.time_press = 0.0
+    end
+end
+
+function Stick:mousemoved(x, y)
+    if self.__mouse_pressed then
+        return self:refresh_position(x, y)
+    end
+end
+
+function Stick:touchmoved(id, x, y)
+    local __id = self.__touch_pressed
+    if not __id or __id ~= id then return end
+    return self:refresh_position(x, y)
+end
+
 function Stick:update(dt)
     Component.update(self, dt)
 
-    local mx, my = lmouse.getPosition()
+    -- local mx, my = lmouse.getPosition()
 
-    if self:touch_is_active() then
-        mx, my = ltouch.getPosition(self.__touch_pressed)
-    elseif self.__touch_pressed then
+    -- if self:touch_is_active() then
+    --     mx, my = ltouch.getPosition(self.__touch_pressed)
+    -- elseif self.__touch_pressed then
+    --     self:release()
+    -- end
+
+    if self.__touch_pressed and not self:touch_is_active() then
         self:release()
     end
 
     if self.__mouse_pressed and not lmouse.isDown(1) then
         self:release()
-    end
-
-    if self.__mouse_pressed or self.__touch_pressed then
-        local ldirx = math_abs(self:get_direction())
-
-        local half_x = self.half_x
-        local half_y = self.half_y
-        local dx = mx - half_x
-        local dy = my - half_y
-        local angle = math_atan2(dy, dx)
-        local dist = math_sqrt(dx ^ 2 + dy ^ 2)
-        dist = Utils:clamp(dist, 0, self.max_dist)
-
-        self.cx = half_x + dist * math_cos(angle)
-        self.cy = half_y + dist * math_sin(angle)
-
-        self.angle = angle
-        self.dist = dist
-
-        local dirx = math_abs(self:get_direction())
-        if ldirx ~= dirx and self.time_press then
-            self.time_press = 0.0
-        end
     end
 end
 
