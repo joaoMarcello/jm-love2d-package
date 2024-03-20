@@ -69,7 +69,7 @@ local Bt_Start = TouchButton:new {
 }
 
 local Bt_Select = TouchButton:new {
-    text = "select",
+    text = "back",
     on_focus = true,
     draw = bt_draw,
 }
@@ -618,11 +618,11 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
     right_stick:mousemoved(x, y)
 end
 
-local touch_id_button = {}
-local n_touchs_button = 0
+-- local touch_id_button = {}
+-- local n_touchs_button = 0
 
-local touch_id_dpad = {}
-local n_touchs_dpad = 0
+-- local touch_id_dpad = {}
+-- local n_touchs_dpad = 0
 
 function Pad:touchmoved(id, x, y, dx, dy, pressure)
     local vibrate = false
@@ -811,31 +811,31 @@ function Pad:touchpressed(id, x, y, dx, dy, pressure)
         love.system.vibrate(0.1)
     end
 
-    if ABXY_button_is_pressed() then
-        for i = 1, 4 do
-            local __id = list_buttons_ABXY[i].__touch_pressed
+    -- if ABXY_button_is_pressed() then
+    --     for i = 1, 4 do
+    --         local __id = list_buttons_ABXY[i].__touch_pressed
 
-            if __id
-                and id == __id
-                and not touch_id_button[__id]
-            then
-                touch_id_button[__id] = true
-                n_touchs_button = n_touchs_button + 1
-            end
-        end
-        ---
-    end
+    --         if __id
+    --             and id == __id
+    --             and not touch_id_button[__id]
+    --         then
+    --             touch_id_button[__id] = true
+    --             n_touchs_button = n_touchs_button + 1
+    --         end
+    --     end
+    --     ---
+    -- end
 
-    if dpad_is_pressed() then
-        for i = 1, 4 do
-            local __id = list_dpad[i].__touch_pressed
+    -- if dpad_is_pressed() then
+    --     for i = 1, 4 do
+    --         local __id = list_dpad[i].__touch_pressed
 
-            if __id and id == __id and not touch_id_dpad[__id] then
-                touch_id_dpad[__id] = true
-                n_touchs_dpad = n_touchs_dpad + 1
-            end
-        end
-    end
+    --         if __id and id == __id and not touch_id_dpad[__id] then
+    --             touch_id_dpad[__id] = true
+    --             n_touchs_dpad = n_touchs_dpad + 1
+    --         end
+    --     end
+    -- end
     ---
 end
 
@@ -844,25 +844,25 @@ function Pad:touchreleased(id, x, y, dx, dy, pressure)
         self[i]:touchreleased(id, x, y, dx, dy, pressure)
     end
 
-    if n_touchs_button > 0 then
-        if touch_id_button[id] then
-            touch_id_button[id] = nil
-            n_touchs_button = n_touchs_button - 1
-        end
-    end
+    -- if n_touchs_button > 0 then
+    --     if touch_id_button[id] then
+    --         touch_id_button[id] = nil
+    --         n_touchs_button = n_touchs_button - 1
+    --     end
+    -- end
 
-    if n_touchs_dpad > 0 then
-        if touch_id_dpad[id] then
-            touch_id_dpad[id] = nil
-            n_touchs_dpad = n_touchs_dpad - 1
-        end
-    end
+    -- if n_touchs_dpad > 0 then
+    --     if touch_id_dpad[id] then
+    --         touch_id_dpad[id] = nil
+    --         n_touchs_dpad = n_touchs_dpad - 1
+    --     end
+    -- end
 end
 
 function Pad:flush()
-    for k, v in next, touch_id_button do
-        touch_id_button[k] = nil
-    end
+    -- for k, v in next, touch_id_button do
+    --     touch_id_button[k] = nil
+    -- end
 end
 
 function Pad:set_button_size(value)
@@ -998,7 +998,7 @@ function Pad:fix_positions()
     Bt_Y:set_position(Bt_B.x, Bt_B.y - (space_bt_y) - Bt_Y.h)
 
     do
-        local size = w * 0.1
+        local size = max * 0.1
         local space = space * 0.5
         rect_rx = (20 * size) / (975 * 0.1)
 
@@ -1219,9 +1219,9 @@ Pad:fix_positions()
 Pad:set_opacity(0.45)
 
 Pad:use_all_buttons(true)
-Pad:turn_off_dpad()
+-- Pad:turn_off_dpad()
 Pad:turn_off_button("RightStick")
--- Pad:turn_off_button("Stick")
+Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
 
