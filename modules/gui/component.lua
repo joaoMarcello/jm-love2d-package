@@ -206,8 +206,12 @@ function Component:touch_is_active()
     if not self.__touch_pressed then return false end
     local touches = love.touch.getTouches()
 
-    for _, id in ipairs(touches) do
-        if id == self.__touch_pressed then return true end
+    -- for _, id in ipairs(touches) do
+    --     if id == self.__touch_pressed then return true end
+    -- end
+
+    for i = 1, #touches do
+        if touches[i] == self.__touch_pressed then return true end
     end
 
     return false
