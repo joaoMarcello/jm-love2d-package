@@ -285,8 +285,7 @@ local function pressing_vpad(self, button)
         end
     end
 
-    bt = (not bt and button == Buttons.B and vpad.B)
-        or bt
+    bt = (not bt and button == Buttons.B and vpad.B) or bt
 
     if not bt then
         bt = button == Buttons.dpad_left and vpad.Dpad_left
