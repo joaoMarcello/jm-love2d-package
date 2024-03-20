@@ -525,13 +525,13 @@ function Stick:draw()
     -- -- font:print(tostring(self:is_pressing("left")), self.x, self.y + self.h + 30)
     -- font:pop()
 
-    local dx, dy = self:get_direction()
-    lgx.setColor(1, 1, 0)
-    lgx.print(string.format("%.2f %.2f", dx, dy), self.x, self.y - self.max_dist - 12)
+    -- local dx, dy = self:get_direction()
+    -- lgx.setColor(1, 1, 0)
+    -- lgx.print(string.format("%.2f %.2f", dx, dy), self.x, self.y - self.max_dist - 12)
 
-    if self.time_press then
-        lgx.print(string.format("%.2f", self.time_press), self.x, self.bottom + 3)
-    end
+    -- if self.time_press then
+    --     lgx.print(string.format("%.2f", self.time_press), self.x, self.bottom + 3)
+    -- end
 end
 
 return Stick
