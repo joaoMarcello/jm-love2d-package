@@ -299,7 +299,7 @@ function Stick:refresh_position(x, y)
                 func(self.text == "left" and "leftx" or "rightx", dirx)
             end
             if condy then
-                func(self.text == "left" and "lefty" or "rightx", diry)
+                func(self.text == "left" and "lefty" or "righty", diry)
             end
         end
     end
