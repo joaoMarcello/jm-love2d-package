@@ -1558,8 +1558,8 @@ end
 local mousemoved = function(self, x, y, dx, dy, istouch)
     if self.use_vpad and not istouch then
         Controllers.P1:set_state(Controllers.State.vpad)
-        -- local mx, my = mousePosition()
         VPad:mousemoved(x, y, dx, dy, istouch)
+        Controllers.P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
@@ -1639,6 +1639,7 @@ local touchmoved = function(self, id, x, y, dx, dy, pressure)
     if self.use_vpad then
         Controllers.P1:set_state(Controllers.State.vpad)
         VPad:touchmoved(id, x, y, dx, dy, pressure)
+        Controllers.P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
