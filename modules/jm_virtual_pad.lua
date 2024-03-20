@@ -584,6 +584,8 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
         end
     end --- END dpad mousemove
     ---
+
+    stick:mousemoved(x, y)
 end
 
 local touch_id_button = {}
@@ -743,6 +745,8 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
 
         ---
     end
+
+    stick:touchmoved(id, x, y)
     ---
 end
 
