@@ -1,13 +1,16 @@
 ---@type JM.GUI.Component
 local Component = require(string.gsub(..., "stick", "component"))
 
+---@type JM.GUI.TouchButton
+local TouchButton = require(string.gsub(..., "stick", "touch_button"))
+
 local Utils = _G.JM_Utils
 
 local math_abs, math_sin, math_cos = math.abs, math.sin, math.cos
 local math_atan2, math_sqrt = math.atan2, math.sqrt
 local lgx = love.graphics
 local lmouse = love.mouse
-local ltouch = love.touch
+-- local ltouch = love.touch
 
 ---@class JM.GUI.VirtualStick : JM.GUI.Component
 local Stick = setmetatable({}, Component)
@@ -50,6 +53,8 @@ function Stick:__constructor__(args)
 
     self.opacity = args.opacity or 1
 
+    self.dpad_list = self.dpad_list or false
+
     self.update = Stick.update
     self.draw = Stick.draw
     self.get_direction = Stick.get_direction
@@ -58,7 +63,7 @@ function Stick:__constructor__(args)
 end
 
 function Stick:init()
-    local w, h = love.graphics.getDimensions()
+    local w, h = lgx.getDimensions()
     return self:__constructor__ {
         is_mobile = self.is_mobile,
         bound_left = 0,
@@ -67,6 +72,93 @@ function Stick:init()
         bound_height = h * 0.75,
         opacity = self.opacity,
     }
+end
+
+function Stick:set_dimensions(w, h)
+    Component.set_dimensions(self, w, h)
+
+    local list = self.dpad_list
+    if list then
+        local w, h = (self.w * 0.5), (self.h * 0.5)
+        for i = 1, #list do
+            local obj = list[i]
+            obj:set_dimensions(w, h)
+        end
+    end
+end
+
+function Stick:use_dpad()
+    if self.dpad_list then return end
+
+    local draw = function(bt)
+        if self.__mouse_pressed or self.__touch_pressed then
+            return
+        end
+        lgx.setColor(1, 1, 1, self.opacity)
+        lgx.circle("fill", bt.x + bt.w * 0.5, bt.y + bt.h * 0.5, bt.w * 0.25)
+
+        lgx.setColor(1, 1, 1, self.opacity + self.opacity * 0.1)
+        lgx.circle("line", bt.x + bt.w * 0.5, bt.y + bt.h * 0.5, bt.w * 0.25)
+        -- lgx.setColor(1, 0, 0, 0.5)
+        -- lgx.rectangle("line", self:rect())
+    end
+
+    local right = TouchButton:new {
+        on_focus = true,
+        text = "dpleft",
+        use_radius = true,
+        draw = draw,
+    }
+
+    local left = TouchButton:new {
+        on_focus = true,
+        text = "dpright",
+        use_radius = true,
+        draw = draw,
+    }
+
+    local up = TouchButton:new {
+        on_focus = true,
+        text = "dpup",
+        use_radius = true,
+        draw = draw,
+    }
+
+    local down = TouchButton:new {
+        on_focus = true,
+        text = "dpdown",
+        use_radius = true,
+        draw = draw,
+    }
+
+    self.dpad_right = right
+    self.dpad_left = left
+    self.dpad_up = up
+    self.dpad_down = down
+    self.dpad_list = { right, left, up, down }
+end
+
+function Stick:set_dpad_position()
+    local list = self.dpad_list
+    if not list then return end
+
+    local half_x = self.half_x
+    local half_y = self.half_y
+    local max_dist = self.max_dist
+    local size = self.dpad_down.w
+    local half_size = size * 0.5
+
+    self.dpad_right:set_position(half_x + max_dist, half_y - half_size)
+
+    self.dpad_left:set_position(half_x - max_dist - size, half_y - half_size)
+
+    self.dpad_up:set_position(half_x - half_size, half_y - max_dist - size)
+
+    self.dpad_down:set_position(half_x - half_size, half_y + max_dist)
+end
+
+function Stick:using_dpad()
+    return self.dpad_list
 end
 
 function Stick:set_position(x, y, capture)
@@ -81,6 +173,8 @@ function Stick:set_position(x, y, capture)
         self.init_x = self.x
         self.init_y = self.y
     end
+
+    return self:set_dpad_position()
 end
 
 function Stick:set_bounds(l, t, w, h)
@@ -100,7 +194,42 @@ function Stick:shrink()
     self:set_effect_transform("sy", 1)
 end
 
+function Stick:check_dpad_mousepressed(x, y, button, istouch, presses)
+    local list = self.dpad_list
+    if not list then return end
+
+    for i = 1, #list do
+        local obj = list[i]
+        if obj:__check_collision__(x, y) then return obj end
+    end
+end
+
 function Stick:mousepressed(x, y, button, istouch, presses)
+    do
+        local obj = not self.__mouse_pressed
+            and self:check_dpad_mousepressed(x, y)
+
+        if obj then
+            -- if obj == self.dpad_right then
+            --     self:set_position(obj.x - self.w, self.y)
+            -- elseif obj == self.dpad_left then
+            --     self:set_position(obj.right, self.y)
+            -- elseif obj == self.dpad_up then
+            --     self:set_position(self.x, obj.bottom)
+            -- elseif obj == self.dpad_down then
+            --     self:set_position(self.x, obj.y - self.h)
+            -- end
+
+            self:refresh_position(x, y)
+
+            Component.mousepressed(self, self.half_x, self.half_y, button, istouch, presses)
+            if self.__mouse_pressed then
+                self:grow()
+            end
+            return
+        end
+    end
+
     if self.is_mobile then
         local r = Component.collision(x, y, 0, 0,
             self.bounds_left, self.bounds_top,
@@ -338,6 +467,16 @@ function Stick:update(dt)
     end
 end
 
+function Stick:draw_dpad()
+    local list = self.dpad_list
+    if not list then return false end
+
+    for i = 1, #list do
+        local obj = list[i]
+        obj:draw()
+    end
+end
+
 function Stick:__custom_draw__()
     local opacity = self.opacity
     local radius = self.radius
@@ -371,6 +510,8 @@ function Stick:draw()
 
     -- love.graphics.setColor(1, 1, 0)
     -- love.graphics.rectangle("line", self.bounds_left, self.bounds_top, self.bounds_width, self.bounds_height)
+
+    self:draw_dpad()
 
     -- font:push()
     -- font:set_font_size(32)
