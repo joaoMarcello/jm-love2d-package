@@ -528,6 +528,22 @@ function Pad:unpress_dpad_touch(id, x, y, dx, dy, pressure)
 end
 
 function Pad:mousemoved(x, y, dx, dy, istouch)
+    for i = 1, self.N do
+        local obj = self[i]
+
+        local last = obj.__mouse_pressed
+
+        obj:mousemoved(x, y, dx, dy, istouch)
+
+        if not last and obj.__mouse_pressed then
+            self:verify_pressed(JM.SceneManager.scene)
+        end
+    end
+    if not self:dpad_is_pressed() then
+        local r = check_dpad_diagonal_press(self, x, y)
+        if r then self:verify_pressed(JM.SceneManager.scene) end
+    end
+
     local pressed = self:dpad_is_pressed()
 
     -- if all dpad buttons are on_focus
@@ -605,6 +621,28 @@ local touch_id_dpad = {}
 local n_touchs_dpad = 0
 
 function Pad:touchmoved(id, x, y, dx, dy, pressure)
+    local vibrate = false
+
+    for i = 1, self.N do
+        local obj = self[i]
+        local last = obj.__touch_pressed
+
+        obj:touchmoved(id, x, y, dx, dy, pressure)
+
+        if not last and obj.__touch_pressed then
+            self:verify_pressed(JM.SceneManager.scene)
+            if not vibrate then love.system.vibrate(0.1) end
+        end
+    end
+    if not self:dpad_is_pressed() then
+        local r = check_dpad_diagonal_press_touch(
+            self, id, x, y, dx, dy, pressure)
+        if r then
+            self:verify_pressed(JM.SceneManager.scene)
+            if not vibrate then love.system.vibrate(0.1) end
+        end
+    end
+
     local pressed = self:dpad_is_pressed()
 
     if dpad_up.on_focus and dpad_up.is_visible and pressed
@@ -685,76 +723,57 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
     end
     ---
 
-    if n_touchs_button > 0
-        and touch_id_button[id]
-    then
-        local obj = self:check_ABXY_collision(x, y)
+    -- if n_touchs_button > 0
+    --     and touch_id_button[id]
+    -- then
+    --     local obj = self:check_ABXY_collision(x, y)
 
-        if obj and not obj:is_pressing() then
-            obj:touchpressed(id, x, y, dx, dy, pressure)
+    --     if obj and not obj:is_pressing() then
+    --         obj:touchpressed(id, x, y, dx, dy, pressure)
 
-            if obj:is_pressed() then
-                local scene = JM.SceneManager.scene
-                self:verify_pressed(scene)
-                love.system.vibrate(0.1)
+    --         if obj:is_pressed() then
+    --             local scene = JM.SceneManager.scene
+    --             self:verify_pressed(scene)
+    --             love.system.vibrate(0.1)
+    --         end
+    --     end
+    --     ---
+    -- end
 
-                -- local touchpressed = scene and scene.__param__.touchpressed
+    -- if n_touchs_dpad > 0 and touch_id_dpad[id] then
+    --     ---@type JM.GUI.TouchButton|any
+    --     local obj1, obj2 = check_dpad_diagonal_press_touch(
+    --         self, id, x, y, dx, dy, pressure, true)
 
-                -- if touchpressed then
-                --     touchpressed(id, x, y, dx, dy, pressure)
-                --     love.system.vibrate(0.1)
-                -- end
-            end
-        end
-        ---
-    end
+    --     if obj1 and obj2 then
+    --         ---
+    --         if not obj1:is_pressing() and not obj2:is_pressing() then
+    --             ---
+    --             if check_dpad_diagonal_press_touch(
+    --                     self, id, x, y, dx, dy, pressure)
+    --             then
+    --                 local scene = JM.SceneManager.scene
+    --                 self:verify_pressed(scene)
+    --                 love.system.vibrate(0.1)
+    --             end
+    --         end
+    --         ---
+    --     else
+    --         ---@type JM.GUI.TouchButton|boolean|any
+    --         local obj = self:check_dpad_collision(x, y)
 
-    if n_touchs_dpad > 0 and touch_id_dpad[id] then
-        ---@type JM.GUI.TouchButton|any
-        local obj1, obj2 = check_dpad_diagonal_press_touch(
-            self, id, x, y, dx, dy, pressure, true)
+    --         if obj and not obj:is_pressing() then
+    --             obj:touchpressed(id, x, y, dx, dy, pressure)
+    --             if obj:is_pressed() then
+    --                 local scene = JM.SceneManager.scene
+    --                 self:verify_pressed(scene)
+    --                 love.system.vibrate(0.1)
+    --             end
+    --         end
+    --     end
 
-        if obj1 and obj2 then
-            ---
-            if not obj1:is_pressing() and not obj2:is_pressing() then
-                ---
-                if check_dpad_diagonal_press_touch(
-                        self, id, x, y, dx, dy, pressure)
-                then
-                    local scene = JM.SceneManager.scene
-                    self:verify_pressed(scene)
-                    love.system.vibrate(0.1)
-
-                    -- local touchpressed = scene and scene.__param__.touchpressed
-                    -- if touchpressed then
-                    --     touchpressed(id, x, y, dx, dy, pressure)
-                    --     love.system.vibrate(0.1)
-                    -- end
-                end
-            end
-            ---
-        else
-            ---@type JM.GUI.TouchButton|boolean|any
-            local obj = self:check_dpad_collision(x, y)
-
-            if obj and not obj:is_pressing() then
-                obj:touchpressed(id, x, y, dx, dy, pressure)
-                if obj:is_pressed() then
-                    local scene = JM.SceneManager.scene
-                    self:verify_pressed(scene)
-                    love.system.vibrate(0.1)
-
-                    -- local touchpressed = scene and scene.__param__.touchpressed
-                    -- if touchpressed then
-                    --     touchpressed(id, x, y, dx, dy, pressure)
-                    --     love.system.vibrate(0.1)
-                    -- end
-                end
-            end
-        end
-
-        ---
-    end
+    --     ---
+    -- end
 
     left_stick:touchmoved(id, x, y)
     right_stick:touchmoved(id, x, y)
@@ -1111,7 +1130,7 @@ function Pad:get_button_name(obj)
 end
 
 ---@param scene JM.Scene
-function Pad:verify_pressed(scene)
+function Pad:verify_pressed(scene, out_on_first)
     do
         local list = self:get_ABXY_list()
         for i = 1, 4 do
@@ -1194,9 +1213,9 @@ Pad:fix_positions()
 Pad:set_opacity(0.45)
 
 Pad:use_all_buttons(true)
-Pad:turn_off_dpad()
--- Pad:turn_off_button("RightStick")
--- Pad:turn_off_button("Stick")
+-- Pad:turn_off_dpad()
+Pad:turn_off_button("RightStick")
+Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
 
