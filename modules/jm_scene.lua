@@ -1516,6 +1516,7 @@ local mousepressed = function(self, x, y, button, istouch, presses)
         VPad:mousepressed(mx, my, button, istouch, presses)
 
         VPad:verify_pressed(self)
+        Controllers.P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
@@ -1598,6 +1599,7 @@ local touchpressed = function(self, id, x, y, dx, dy, pressure)
         Controllers.P1:set_state(Controllers.State.vpad)
         VPad:touchpressed(id, x, y, dx, dy, pressure)
         VPad:verify_pressed(self)
+        Controllers.P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
