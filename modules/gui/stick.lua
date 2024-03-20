@@ -196,6 +196,7 @@ function Stick:is_pressing(direction, constraint, angle_limit)
 
     if direction == "left" or direction == "right" then
         if math_abs(dx) < constraint then return false end
+
         local abs_angle = math_abs(angle)
         if (direction == "right" and abs_angle > angle_limit) or
             (direction == "left" and abs_angle < 180 - angle_limit)
@@ -249,28 +250,16 @@ function Stick:get_angle2()
     return angle
 end
 
--- function Stick:touch_moved(id, x, y, dx, dy, pressure)
---     if id ~= self.__touch_pressed then return false end
-
---     local distx = x - self.half_x
---     local disty = y - self.half_y
---     local angle = math_atan2(disty, distx)
---     local dist = math_sqrt(dx ^ 2 + dy ^ 2)
---     dist = Utils:clamp(dist, 0, self.max_dist)
-
---     self.cx = self.half_x + dist * math_cos(angle)
---     self.cy = self.half_y + dist * math_sin(angle)
-
---     self.angle = angle
---     self.dist = dist
--- end
-
 function Stick:set_opacity(value)
     self.opacity = value or self.opacity
 end
 
 function Stick:refresh_position(x, y)
-    local ldirx = math_abs(self:get_direction())
+    local ldirx, ldiry = self:get_direction()
+    local pressing_left = self:is_pressing("left")
+    local pressing_right = not pressing_left and self:is_pressing("right")
+    local pressing_up = self:is_pressing("up")
+    local pressing_down = not pressing_up and self:is_pressing("down")
 
     local half_x = self.half_x
     local half_y = self.half_y
@@ -286,10 +275,35 @@ function Stick:refresh_position(x, y)
     self.angle = angle
     self.dist = dist
 
-    local dirx = math_abs(self:get_direction())
-    if ldirx ~= dirx and self.time_press then
-        self.time_press = 0.0
+
+    local dirx, diry = self:get_direction()
+
+    local left = self:is_pressing("left")
+    local right = not left and self:is_pressing("right")
+    local up = self:is_pressing("up")
+    local down = not up and self:is_pressing("down")
+
+    local condx = (ldirx ~= dirx and (left or right))
+        or ((pressing_left or not pressing_right) and right)
+        or ((pressing_right or not pressing_left) and left)
+
+    local condy = (ldiry ~= diry and (up or down))
+        or ((pressing_up or not pressing_down) and down)
+        or ((pressing_down or not pressing_up) and up)
+
+    if (condx or condy) then
+        local scene = JM.SceneManager.scene
+        local func = scene and scene.__param__.vpadaxis
+        if func then
+            if condx then
+                func(self.text == "left" and "leftx" or "rightx", dirx)
+            end
+            if condy then
+                func(self.text == "left" and "lefty" or "rightx", diry)
+            end
+        end
     end
+    ---
 end
 
 function Stick:mousemoved(x, y)
