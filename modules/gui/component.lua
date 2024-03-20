@@ -202,6 +202,18 @@ function Component:mousereleased(x, y, button, istouch, presses)
     return self.__mouse_released
 end
 
+function Component:mousemoved(x, y, dx, dy, istouch)
+    if not self.on_focus then return end
+
+    if not self.__mouse_pressed then
+        if love.mouse.isDown(1) then
+            return self:mousepressed(x, y, 1, istouch)
+        elseif love.mouse.isDown(2) then
+            return self:mousepressed(x, y, 2, istouch)
+        end
+    end
+end
+
 function Component:touch_is_active()
     if not self.__touch_pressed then return false end
     local touches = love.touch.getTouches()
@@ -252,11 +264,11 @@ function Component:touchreleased(id, x, y, dx, dy, pressure)
 end
 
 function Component:touchmoved(id, x, y, dx, dy, pressure)
-    if not self.on_focus or not self.__touch_pressed or id ~= self.__touch_pressed then return end
+    if not self.on_focus then return end
 
-    ---@type JM.GUI.Event|nil
-    local evt = self.events[EVENTS.touchmoved]
-    local r = evt and evt.action(id, x, y, dx, dy, pressure)
+    if not self.__touch_pressed then
+        return self:touchpressed(id, x, y, dx, dy, pressure)
+    end
 end
 
 -- ---@param self JM.GUI.Component
