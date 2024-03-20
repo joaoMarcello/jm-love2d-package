@@ -1122,6 +1122,11 @@ function Pad:verify_pressed(scene)
     ---
 end
 
+---@param scene JM.Scene
+function Pad:verify_moved(scene)
+
+end
+
 function Pad:resize(w, h)
     self:set_button_size((math.min(w, h) * 0.2))
     self:fix_positions()
@@ -1158,8 +1163,8 @@ Pad:fix_positions()
 Pad:set_opacity(0.45)
 
 Pad:use_all_buttons(true)
--- Pad:turn_off_dpad()
-Pad:turn_off_button("Stick")
+Pad:turn_off_dpad()
+-- Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
 
