@@ -539,7 +539,11 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
             self:verify_pressed(JM.SceneManager.scene)
         end
     end
-    if not self:dpad_is_pressed() then
+
+
+    if not self:dpad_is_pressed()
+        and (love.mouse.isDown(1) or love.mouse.isDown(2))
+    then
         local r = check_dpad_diagonal_press(self, x, y)
         if r then self:verify_pressed(JM.SceneManager.scene) end
     end
@@ -634,6 +638,8 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
             if not vibrate then love.system.vibrate(0.1) end
         end
     end
+
+
     if not self:dpad_is_pressed() then
         local r = check_dpad_diagonal_press_touch(
             self, id, x, y, dx, dy, pressure)
@@ -1213,9 +1219,9 @@ Pad:fix_positions()
 Pad:set_opacity(0.45)
 
 Pad:use_all_buttons(true)
--- Pad:turn_off_dpad()
+Pad:turn_off_dpad()
 Pad:turn_off_button("RightStick")
-Pad:turn_off_button("Stick")
+-- Pad:turn_off_button("Stick")
 -- Pad:turn_on_button("Dpad-left")
 -- Pad:turn_on_button("Dpad-right")
 
