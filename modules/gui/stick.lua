@@ -6,6 +6,8 @@ local Utils = _G.JM_Utils
 local math_abs, math_sin, math_cos = math.abs, math.sin, math.cos
 local math_atan2, math_sqrt = math.atan2, math.sqrt
 local lgx = love.graphics
+local lmouse = love.mouse
+local ltouch = love.touch
 
 ---@class JM.GUI.VirtualStick : JM.GUI.Component
 local Stick = setmetatable({}, Component)
@@ -106,7 +108,7 @@ function Stick:mousepressed(x, y, button, istouch, presses)
         )
 
         if r then
-            self:set_position(x - self.w / 2, y - self.h / 2)
+            self:set_position(x - self.w * 0.5, y - self.h * 0.5)
         end
     end
 
@@ -124,9 +126,9 @@ end
 
 function Stick:mousereleased(x, y, button, istouch, presses)
     if self.__mouse_pressed then
+        Component.mousereleased(self, x, y, button, istouch, presses)
         self:release()
     end
-    Component.mousereleased(self, x, y, button, istouch, presses)
 end
 
 function Stick:touchpressed(id, x, y, dx, dy, pressure)
@@ -139,12 +141,12 @@ function Stick:touchpressed(id, x, y, dx, dy, pressure)
         )
 
         if r then
-            self:set_position(x - self.w / 2, y - self.h / 2)
+            self:set_position(x - self.w * 0.5, y - self.h * 0.5)
         end
     end
 
-    local distx = x - (self.x + self.w / 2)
-    local disty = y - (self.y + self.h / 2)
+    local distx = x - (self.x + self.w * 0.5)
+    local disty = y - (self.y + self.h * 0.5)
     local dist = math.sqrt(distx ^ 2 + disty ^ 2)
 
     if dist <= self.radius then
@@ -157,9 +159,9 @@ function Stick:touchreleased(id, x, y, dx, dy, pressure)
     if id ~= self.__touch_pressed then return false end
 
     if self.__touch_pressed then
+        Component.touchreleased(self, id, x, y, dx, dy, pressure)
         self:release()
     end
-    Component.touchreleased(self, id, x, y, dx, dy, pressure)
 end
 
 function Stick:release()
@@ -221,15 +223,19 @@ function Stick:is_pressing(direction, constraint, angle_limit)
 end
 
 function Stick:get_direction()
-    if not self.angle or not self.dist
+    local angle = self.angle
+    local dist = self.dist
+
+    if not angle or not dist
         or (self.cx == self.half_x and self.cy == self.half_y)
     then
         return 0, 0
     end
 
-    local value = self.dist / self.max_dist
+    local value = dist / self.max_dist
 
-    return value * (math_cos(self.angle) > 0 and 1 or -1), value * (math_sin(self.angle) > 0 and 1 or -1)
+    return value * (math_cos(angle) > 0 and 1 or -1),
+        value * (math_sin(angle) > 0 and 1 or -1)
 end
 
 function Stick:get_angle()
@@ -265,30 +271,39 @@ end
 function Stick:update(dt)
     Component.update(self, dt)
 
-    local mx, my = love.mouse.getPosition()
+    local mx, my = lmouse.getPosition()
 
     if self:touch_is_active() then
-        mx, my = love.touch.getPosition(self.__touch_pressed)
+        mx, my = ltouch.getPosition(self.__touch_pressed)
     elseif self.__touch_pressed then
         self:release()
     end
 
-    if self.__mouse_pressed and not love.mouse.isDown(1) then
+    if self.__mouse_pressed and not lmouse.isDown(1) then
         self:release()
     end
 
     if self.__mouse_pressed or self.__touch_pressed then
-        local dx = mx - self.half_x
-        local dy = my - self.half_y
+        local ldirx = math_abs(self:get_direction())
+
+        local half_x = self.half_x
+        local half_y = self.half_y
+        local dx = mx - half_x
+        local dy = my - half_y
         local angle = math_atan2(dy, dx)
         local dist = math_sqrt(dx ^ 2 + dy ^ 2)
         dist = Utils:clamp(dist, 0, self.max_dist)
 
-        self.cx = self.half_x + dist * math_cos(angle)
-        self.cy = self.half_y + dist * math_sin(angle)
+        self.cx = half_x + dist * math_cos(angle)
+        self.cy = half_y + dist * math_sin(angle)
 
         self.angle = angle
         self.dist = dist
+
+        local dirx = math_abs(self:get_direction())
+        if ldirx ~= dirx and self.time_press then
+            self.time_press = 0.0
+        end
     end
 end
 
@@ -341,6 +356,10 @@ function Stick:draw()
     local dx, dy = self:get_direction()
     lgx.setColor(1, 1, 0)
     lgx.print(string.format("%.2f %.2f", dx, dy), self.x, self.y - self.max_dist - 12)
+
+    if self.time_press then
+        lgx.print(string.format("%.2f", self.time_press), self.x, self.bottom + 3)
+    end
 end
 
 return Stick
