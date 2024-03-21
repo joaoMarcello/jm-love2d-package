@@ -124,6 +124,7 @@ function JM:get_font(font)
             threshold = { { "00", "7f" }, { "80", "ff" }, { "100", "17f" }, { "180", "24f" }, { "2b0", "2ff" }, { "300", "36f" }, { "370", "3ff" }, { "400", "4ff" }, { "1d00", "1d7f" }, { "1d80", "1dbf" }, { "1e00", "1eff" }, { "2000", "206f" }, { "2070", "209f" }, { "2100", "214f" }, { "2150", "218f" }, { "2200", "22ff" }, { "2300", "23ff" } },
         }
         fonts[font] = f
+        f:set_font_size(12)
         lfs.unmount(zip)
         -- print(r and "Success unmout" or "Fail unmount")
         return f
@@ -243,6 +244,7 @@ function JM:load_initial_state(
     if use_splash then
         ---@type JM.GameState.Splash
         state = require(JM.SplashScreenPath)
+        state:add_transition("fade", "in", nil, nil, nil)
         state:__get_data__():set_next_state_string(s)
     else
         state = require(s)
