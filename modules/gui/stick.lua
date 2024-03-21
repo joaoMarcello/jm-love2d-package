@@ -194,7 +194,7 @@ function Stick:shrink()
     self:set_effect_transform("sy", 1)
 end
 
-function Stick:check_dpad_mousepressed(x, y, button, istouch, presses)
+function Stick:check_dpad_collision(x, y)
     local list = self.dpad_list
     if not list then return end
 
@@ -204,21 +204,21 @@ function Stick:check_dpad_mousepressed(x, y, button, istouch, presses)
     end
 end
 
-function Stick:check_dpad_touchpressed(x, y)
-    local list = self.dpad_list
-    if not list then return end
+-- function Stick:check_dpad_touchpressed(x, y)
+--     local list = self.dpad_list
+--     if not list then return end
 
-    for i = 1, #list do
-        local obj = list[i]
-        if obj:__check_collision__(x, y) then return obj end
-    end
-end
+--     for i = 1, #list do
+--         local obj = list[i]
+--         if obj:__check_collision__(x, y) then return obj end
+--     end
+-- end
 
 function Stick:mousepressed(x, y, button, istouch, presses)
     if self.__mouse_pressed then return end
 
     do
-        local obj = self:check_dpad_mousepressed(x, y)
+        local obj = self:check_dpad_collision(x, y)
 
         if obj then
             self:refresh_position(x, y)
@@ -266,7 +266,7 @@ function Stick:touchpressed(id, x, y, dx, dy, pressure)
     if self.__touch_pressed then return false end
 
     do
-        local obj = self:check_dpad_touchpressed(x, y)
+        local obj = self:check_dpad_collision(x, y)
 
         if obj then
             self:refresh_position(x, y)
@@ -453,6 +453,11 @@ end
 function Stick:mousemoved(x, y)
     if self.__mouse_pressed then
         return self:refresh_position(x, y)
+        ---
+        -- else
+        --     if love.mouse.isDown(1) and self:check_dpad_collision(x, y) then
+        --         return self:mousepressed(x, y, 1, false)
+        --     end
     end
 end
 
