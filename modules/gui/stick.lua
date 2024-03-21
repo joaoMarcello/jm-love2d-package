@@ -87,7 +87,12 @@ function Stick:set_dimensions(w, h)
     end
 end
 
-function Stick:use_dpad()
+function Stick:use_dpad(value)
+    if not value then
+        self.dpad_list = false
+        return
+    end
+
     if self.dpad_list then return end
 
     local draw = function(bt)
