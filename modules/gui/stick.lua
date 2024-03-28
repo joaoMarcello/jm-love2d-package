@@ -60,6 +60,7 @@ function Stick:__constructor__(args)
     self.get_direction = Stick.get_direction
     self.get_angle = Stick.get_angle
     self.get_angle2 = Stick.get_angle2
+    self.is_pressing = Stick.is_pressing
 end
 
 function Stick:init()
@@ -442,13 +443,13 @@ function Stick:refresh_position(x, y)
 
     if (condx or condy) then
         local scene = JM.SceneManager.scene
-        local func = scene and scene.__param__.vpadaxis
-        if func then
+        local vpadaxis = scene and scene.__param__.vpadaxis
+        if vpadaxis then
             if condx then
-                func(self.text == "left" and "leftx" or "rightx", dirx)
+                vpadaxis(self.text == "left" and "leftx" or "rightx", dirx)
             end
             if condy then
-                func(self.text == "left" and "lefty" or "righty", diry)
+                vpadaxis(self.text == "left" and "lefty" or "righty", diry)
             end
         end
     end
