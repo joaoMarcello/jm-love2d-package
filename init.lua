@@ -43,7 +43,7 @@ function JM:get_font(font)
     end
 
     if font == "pix8" then
-        local pix8 = JM.FontGenerator:new {
+        local pix8 = self.FontGenerator:new {
             name            = "pix8",
             dir             = "jm-love2d-package/data/font/font_pix8-Sheet.png",
             glyphs          = [[AÀÁÃÄÂaàáãäâBbCcÇçDdEÈÉÊËeèéêëFfGgHhIÌÍÎÏiìíîïJjKkLlMmN:enne_up:n:enne:OÒÓÕÔÖoòóõôöPpQqRrSsTtUÙÚÛÜuùúûüVvWwXxYyZz0123456789!?@#$%^&*()<>{}:[]:mult::div::cpy:+-_=¬'"¹²³°ºª\/.:dots:;,:dash:|¢£:blk_bar::arw_fr::arw_bk::arw_up::arw_dw::bt_a::bt_b::bt_x::bt_y::bt_r::bt_l::star::heart::diamond::circle::arw2_fr::arw2_bk::spa_inter::female::male::check::line::db_comma_init::db_comma_end::comma_init::comma_end::arw_head_fr::arw_head_bk:]],
@@ -53,13 +53,13 @@ function JM:get_font(font)
             word_space      = 5,
             line_space      = 3,
         }
-        pix8:set_color(JM.Utils:get_rgba())
+        pix8:set_color(self.Utils:get_rgba())
         pix8:set_font_size(pix8.__ref_height)
         fonts[font] = pix8
         return pix8
         ---
     elseif font == "pix5" then
-        local pix5 = JM.FontGenerator:new {
+        local pix5 = self.FontGenerator:new {
             name = "pix5",
             dir = "jm-love2d-package/data/font/font_pix5-Sheet.png",
             glyphs = "aàáãâäbcçdeèéêëfghiìíîïjklmnoòóõôöpqrstuùúûüvwxyz0123456789-_.:dots::+:square::blk_bar::heart:()[]{}:arw_fr::arw_bk::arw_up::arw_dw::dash:|,;!?\\/*~^:arw2_fr::arw2_bk:º°¬'\":div:%#¢@",
@@ -69,13 +69,13 @@ function JM:get_font(font)
             word_space = 4,
             line_space = 1,
         }
-        pix5:set_color(JM.Utils:get_rgba(0, 0, 0))
+        pix5:set_color(self.Utils:get_rgba(0, 0, 0))
         pix5:set_font_size(pix5.__ref_height)
         fonts[font] = pix5
         return pix5
         ---
     elseif font == "circuit21" then
-        local c21 = JM.FontGenerator:new {
+        local c21 = self.FontGenerator:new {
             name = "circuit21",
             dir = "/jm-love2d-package/data/font/circuit21-Sheet.png",
             glyphs = "1234567890-:null:",
@@ -83,13 +83,13 @@ function JM:get_font(font)
             max_filter = "nearest",
             word_space = 3,
         }
-        c21:set_color(JM.Utils:get_rgba())
+        c21:set_color(self.Utils:get_rgba())
         c21:set_font_size(c21.__ref_height)
         fonts[font] = c21
         return c21
         ---
     elseif font == "circuit17" then
-        local c17 = JM.FontGenerator:new {
+        local c17 = self.FontGenerator:new {
             name = "circuit17",
             dir = "/jm-love2d-package/data/font/circuit17-Sheet.png",
             glyphs = "1234567890-:null:",
@@ -97,7 +97,7 @@ function JM:get_font(font)
             max_filter = "nearest",
             word_space = 3,
         }
-        c17:set_color(JM.Utils:get_rgba())
+        c17:set_color(self.Utils:get_rgba())
         c17:set_font_size(c17.__ref_height)
         fonts[font] = c17
         return c17
@@ -107,7 +107,7 @@ function JM:get_font(font)
         local zip = "/jm-love2d-package/data/font/open_sans.zip"
         lfs.mount(lfs.newFileData(zip), "content")
 
-        local f = JM.FontGenerator:new_by_ttf {
+        local f = self.FontGenerator:new_by_ttf {
             dir = "content/OpenSans-Regular.ttf",
             dir_bold = "content/OpenSans-SemiBold.ttf",
             ---
@@ -230,7 +230,7 @@ function JM:load_initial_state(
     end
 
     if not skip_load_default_font then
-        local font = JM:get_font()
+        local font = self:get_font()
 
         if not self.Vpad:get_font() then
             self.Vpad:set_font(font)
@@ -243,7 +243,7 @@ function JM:load_initial_state(
 
     if use_splash then
         ---@type JM.GameState.Splash
-        state = require(JM.SplashScreenPath)
+        state = require(self.SplashScreenPath)
         state:add_transition("fade", "in", nil, nil, nil)
         state:__get_data__():set_next_state_string(s)
     else
@@ -256,9 +256,9 @@ function JM:load_initial_state(
 end
 
 function JM:flush()
-    JM.FontGenerator.flush()
-    JM.ParticleSystem:flush()
-    JM.Physics:flush()
+    self.FontGenerator.flush()
+    self.ParticleSystem:flush()
+    self.Physics:flush()
     collectgarbage()
 end
 
@@ -324,8 +324,16 @@ function JM:is_in_capture_mode()
     return capture
 end
 
+---@return JM.Font.Font|nil
 function JM:has_default_font()
     return fonts["default"]
+end
+
+---@param font JM.Font.Font
+function JM:set_default_font(font, force)
+    if self:has_default_font() and not force then return false end
+    fonts["default"] = font
+    return true
 end
 
 function JM:update(dt)
@@ -370,9 +378,13 @@ function JM:update(dt)
 
     SceneManager.scene:update(dt)
 
-    if self:has_default_font() then
-        JM:get_font():update(dt)
+    do
+        local font = self:has_default_font()
+        if font then font:update(dt) end
     end
+    -- if self:has_default_font() then
+    --     self:get_font():update(dt)
+    -- end
 
     Sound:update(dt)
     self.ParticleSystem:update(dt)
@@ -399,8 +411,8 @@ function JM:textinput(t)
 end
 
 function JM:exit_game()
-    JM.Sound:stop_all()
-    JM.Shader:finish()
+    self.Sound:stop_all()
+    self.Shader:finish()
     local scene = SceneManager.scene
     scene:finish()
     scene = nil
@@ -414,8 +426,8 @@ function JM:keypressed(key, scancode, isrepeat)
     local scene = SceneManager.scene
     key = scancode
 
-    if JM.esc_to_quit and key == "escape" then
-        return JM:exit_game()
+    if key == "escape" and self.esc_to_quit then
+        return self:exit_game()
         ---
     elseif key == "f11"
         -- or (key == 'f' and love.keyboard.isDown("lctrl"))
