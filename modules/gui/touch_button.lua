@@ -115,7 +115,7 @@ function Button:mousereleased(x, y, button, istouch, presses)
         self:shrink()
     end
 
-    if self.use_radius and dist <= self.radius then
+    if self.use_radius and dist <= self.radius or not self.use_radius then
         Component.mousereleased(self, x, y, button, istouch, presses)
     end
 
@@ -243,6 +243,7 @@ function Button:__custom_draw__()
 
     -- if self.font_obj then
     do
+        font = font or JM:has_default_font()
         font:push()
         font:set_font_size(self.font_size)
         font:set_color(white)
