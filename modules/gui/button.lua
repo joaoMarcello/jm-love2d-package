@@ -62,19 +62,21 @@ function Button:init()
 end
 
 function Button:__custom_draw__()
-    love.graphics.setColor(self.color)
-    love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
+    local lgx = love.graphics
+    local x, y, w, h = self:rect()
+    lgx.setColor(self.color)
+    lgx.rectangle("fill", x, y, w, h)
 
 
-    love.graphics.setColor(0, 0, 0, 1)
-    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+    lgx.setColor(0, 0, 0, 1)
+    lgx.rectangle("line", x, y, w, h)
 
-    local font = JM:get_font() --JM.Font.current
+    local font = JM:get_font()
     font:printf(self.text,
-        self.x,
-        self.y + self.h * 0.5 - font.__font_size * 0.5,
+        x,
+        y + h * 0.5 - font.__font_size * 0.5,
         "center",
-        self.w
+        w
     )
 
     -- love.graphics.setColor(0, 0, 0, 1)
