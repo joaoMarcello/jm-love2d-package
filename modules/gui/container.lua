@@ -160,12 +160,14 @@ function Container:verify_mouse_collision(mx, my)
 end
 
 function Container:update(dt)
+    local list = self.components
+
     for i = self.N, 1, -1 do
         ---@type JM.GUI.Component
-        local gc = self.components[i]
+        local gc = list[i]
 
         if gc.__remove then
-            table.remove(self.components, i)
+            table.remove(list, i)
             self.N = self.N - 1
         else
             local r = gc.is_enable and gc:update(dt)
@@ -184,9 +186,10 @@ function Container:mousepressed(x, y, bt, istouch, presses)
 end
 
 function Container:mousereleased(x, y, bt, istouch, presses)
+    local list = self.components
     for i = 1, self.N do
         ---@type JM.GUI.Component
-        local gc = self.components[i]
+        local gc = list[i]
 
         local r = gc.is_enable and not gc.__remove
             and gc:mousereleased(x, y, bt, istouch, presses)
@@ -223,15 +226,18 @@ function Container:draw(camera)
         love_set_scissor(sx1, sy1, sw1, sh1)
     end
 
+    local list = self.components
+    local x, y = self.x, self.y
+    local right, bottom = self.right, self.bottom
 
     for i = 1, self.N do
         ---@type JM.GUI.Component
-        local gc = self.components[i]
+        local gc = list[i]
 
-        local out_of_limits = gc.right < self.x - 20
-            or gc.x > self.right + 20
-            or gc.bottom < self.y - 20
-            or gc.y > self.bottom + 20
+        local out_of_limits = gc.right < x - 20
+            or gc.x > right + 20
+            or gc.bottom < y - 20
+            or gc.y > bottom + 20
 
         local r = gc.is_visible and not gc.__remove and not out_of_limits
             and gc:draw()
@@ -244,7 +250,7 @@ function Container:draw(camera)
         love_rectangle("line", self:rect())
 
         love_set_color(0, 1, 1, 1)
-        love_rectangle("line", self.x + self.border_x, self.y + self.border_y, self.w - self.border_x * 2,
+        love_rectangle("line", x + self.border_x, y + self.border_y, self.w - self.border_x * 2,
             self.h - self.border_y * 2)
     end
 end
