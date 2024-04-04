@@ -60,6 +60,19 @@ local function dispatch_callback(type, ...)
     return false
 end
 
+---@overload fun(self:table)
+---@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top"}
+function Ad:init(args)
+    args = args or {}
+    if admob then
+        admob.changeEUConsent()
+    end
+    self:setIds(args.banner, args.inter, args.reward)
+    self:createBanner(nil, args.bannerPos, not args.hideBanner)
+    self:requestInterstitial()
+    self:requestRewardedAd()
+end
+
 ---@overload fun(self:any, args:{banner:string, inter:string, reward:string})
 ---@param banner any
 ---@param inter any
@@ -147,7 +160,7 @@ if admob then
     ---@param id string|nil
     ---@param position "bottom"|"top"
     function Ad:createBanner(id, position, show_on_creation)
-        admob.createBanner(id or id_banner or id_banner_test, position)
+        admob.createBanner(id or id_banner or id_banner_test, position or "bottom")
 
         if show_on_creation then
             return admob.showBanner()
