@@ -199,37 +199,6 @@ if admob then
         time = time + dt
     end
 
-    function Ad:tryShowInterstitial(onSuccess, onCloseAfterSuccess, onFail)
-        self:setCallback("interstitialClosed",
-            function()
-                self:requestInterstitial()
-                if onCloseAfterSuccess then onCloseAfterSuccess() end
-            end)
-
-        self:setCallback("interstitialFailedToLoad", onFail)
-        if self:showInterstitial() then
-            if onSuccess then onSuccess() end
-        else
-            onFail()
-        end
-    end
-
-    function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
-        self:setCallback("rewardedAdDidStop",
-            function()
-                self:requestRewardedAd()
-                if onCloseAfterSuccess then onCloseAfterSuccess() end
-            end)
-
-        self:setCallback("rewardedAdFailedToLoad", onFail)
-
-        if self:showRewardedAd() then
-            if onSuccess then onSuccess() end
-        else
-            if onFail then onFail() end
-        end
-    end
-
     ---
 else
     ---
@@ -245,6 +214,37 @@ else
     Ad.checkForAdsCallbacks = func
     Ad.getDeviceLanguage = function() return "EN" end
     Ad.update = func
+end
+
+function Ad:tryShowInterstitial(onSuccess, onCloseAfterSuccess, onFail)
+    self:setCallback("interstitialClosed",
+        function()
+            self:requestInterstitial()
+            if onCloseAfterSuccess then onCloseAfterSuccess() end
+        end)
+
+    self:setCallback("interstitialFailedToLoad", onFail)
+    if self:showInterstitial() then
+        if onSuccess then onSuccess() end
+    else
+        if onFail then onFail() end
+    end
+end
+
+function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
+    self:setCallback("rewardedAdDidStop",
+        function()
+            self:requestRewardedAd()
+            if onCloseAfterSuccess then onCloseAfterSuccess() end
+        end)
+
+    self:setCallback("rewardedAdFailedToLoad", onFail)
+
+    if self:showRewardedAd() then
+        if onSuccess then onSuccess() end
+    else
+        if onFail then onFail() end
+    end
 end
 
 return Ad
