@@ -183,7 +183,7 @@ function Component:mousepressed(x, y, button, istouch, presses)
 
     ---@type JM.GUI.Event|nil
     local evt = self.events[EVENTS.mousepressed]
-    local r = evt and evt.action(x, y, button, istouch, presses, evt.args)
+    local r = evt and evt.action(self, x, y, button, istouch, presses, evt.args)
 
     self.__mouse_pressed = true
     self.time_press = 0.0
@@ -196,7 +196,7 @@ function Component:mousereleased(x, y, button, istouch, presses)
 
     ---@type JM.GUI.Event|nil
     local evt = self.events[EVENTS.mousereleased]
-    local r = evt and evt.action(x, y, button, istouch, presses, evt.args)
+    local r = evt and evt.action(self, x, y, button, istouch, presses, evt.args)
 
     self.time_press = false
     return self.__mouse_released
