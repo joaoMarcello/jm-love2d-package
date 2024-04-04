@@ -109,18 +109,21 @@ if admob then
 
     function Ad:checkForAdsCallbacks()
         if admob.coreInterstitialError() then
-            local r = admob.interstitialFailedToLoad
-            if r then r() end
+            -- local r = admob.interstitialFailedToLoad
+            -- if r then r() end
+            dispatch_callback(CallbackType.interstitialFailedToLoad)
         end
 
         if admob.coreInterstitialClosed() then
-            local r = admob.interstitialClosed
-            if r then r() end
+            -- local r = admob.interstitialClosed
+            -- if r then r() end
+            dispatch_callback(CallbackType.interstitialClosed)
         end
 
         if admob.coreRewardedAdError() then
-            local r = admob.rewardedAdFailedToLoad
-            if r then r() end
+            -- local r = admob.rewardedAdFailedToLoad
+            -- if r then r() end
+            dispatch_callback(CallbackType.rewardedAdFailedToLoad)
         end
 
         if admob.coreRewardedAdDidFinish() then
@@ -135,8 +138,9 @@ if admob then
         end
 
         if admob.coreRewardedAdDidStop() then
-            local r = admob.rewardedAdDidStop
-            if r then r() end
+            -- local r = admob.rewardedAdDidStop
+            -- if r then r() end
+            dispatch_callback(CallbackType.rewardedAdDidStop)
         end
     end
 
