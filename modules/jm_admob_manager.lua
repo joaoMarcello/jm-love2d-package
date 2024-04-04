@@ -122,20 +122,14 @@ if admob then
 
     function Ad:checkForAdsCallbacks()
         if admob.coreInterstitialError() then
-            -- local r = admob.interstitialFailedToLoad
-            -- if r then r() end
             dispatch_callback(CallbackType.interstitialFailedToLoad)
         end
 
         if admob.coreInterstitialClosed() then
-            -- local r = admob.interstitialClosed
-            -- if r then r() end
             dispatch_callback(CallbackType.interstitialClosed)
         end
 
         if admob.coreRewardedAdError() then
-            -- local r = admob.rewardedAdFailedToLoad
-            -- if r then r() end
             dispatch_callback(CallbackType.rewardedAdFailedToLoad)
         end
 
@@ -145,14 +139,10 @@ if admob then
             reward_type = admob.coreGetRewardType() or reward_type
             reward_quant = admob.coreGetRewardQuantity() or 1
 
-            -- local r = admob.rewardUserWithReward
-            -- if r then r(reward_type, reward_quant) end
             dispatch_callback(CallbackType.rewardUserWithReward, reward_type, reward_quant)
         end
 
         if admob.coreRewardedAdDidStop() then
-            -- local r = admob.rewardedAdDidStop
-            -- if r then r() end
             dispatch_callback(CallbackType.rewardedAdDidStop)
         end
     end
@@ -160,7 +150,10 @@ if admob then
     ---@param id string|nil
     ---@param position "bottom"|"top"
     function Ad:createBanner(id, position, show_on_creation)
-        admob.createBanner(id or id_banner or id_banner_test, position or "bottom")
+        admob.createBanner(
+            id or id_banner or id_banner_test,
+            position or "bottom"
+        )
 
         if show_on_creation then
             return admob.showBanner()
