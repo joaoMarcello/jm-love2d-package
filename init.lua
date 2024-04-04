@@ -340,6 +340,8 @@ function JM:set_default_font(font, force)
 end
 
 function JM:update(dt)
+    self.Admob:update(dt)
+
     if thread_save_shot then
         local error_msg = thread_save_shot:getError()
         assert(not error_msg, error_msg)
