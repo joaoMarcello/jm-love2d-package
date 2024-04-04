@@ -101,6 +101,8 @@ function Ad:clearCallbacks()
 end
 
 if admob then
+    ---
+
     function Ad:changeEUConsent()
         return admob.changeEUConsent()
     end
@@ -162,8 +164,10 @@ if admob then
 
     function Ad:showInterstitial()
         if admob.isInterstitialLoaded() then
-            return admob.showInterstitial()
+            admob.showInterstitial()
+            return true
         end
+        return false
     end
 
     function Ad:requestRewardedAd(id)
@@ -172,10 +176,13 @@ if admob then
 
     function Ad:showRewardedAd()
         if admob.isRewardedAdLoaded() then
-            return admob.showRewardedAd()
+            admob.showRewardedAd()
+            return true
         end
+        return false
     end
 
+    ---@return string locale
     function Ad:getDeviceLanguage()
         return admob.getDeviceLanguage()
     end
@@ -186,6 +193,37 @@ if admob then
             time = 0.0
         end
         time = time + dt
+    end
+
+    function Ad:tryShowInterstitial(onSuccess, onCloseAfterSuccess, onFail)
+        self:setCallback("interstitialClosed",
+            function()
+                self:requestInterstitial()
+                if onCloseAfterSuccess then onCloseAfterSuccess() end
+            end)
+
+        self:setCallback("interstitialFailedToLoad", onFail)
+        if self:showInterstitial() then
+            if onSuccess then onSuccess() end
+        else
+            onFail()
+        end
+    end
+
+    function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
+        self:setCallback("rewardedAdDidStop",
+            function()
+                self:requestRewardedAd()
+                if onCloseAfterSuccess then onCloseAfterSuccess() end
+            end)
+
+        self:setCallback("rewardedAdFailedToLoad", onFail)
+
+        if self:showRewardedAd() then
+            if onSuccess then onSuccess() end
+        else
+            if onFail then onFail() end
+        end
     end
 
     ---
@@ -201,6 +239,7 @@ else
     Ad.showInterstitial = func
     Ad.showRewardedAd = func
     Ad.checkForAdsCallbacks = func
+    Ad.getDeviceLanguage = function() return "EN" end
     Ad.update = func
 end
 
