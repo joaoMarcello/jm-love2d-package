@@ -194,7 +194,7 @@ if admob then
 
     ---@return string locale
     function Ad:getDeviceLanguage()
-        return admob.getDeviceLanguage()
+        return admob.getDeviceLanguage() or "ER"
     end
 
     function Ad:update(dt)
