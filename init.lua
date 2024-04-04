@@ -209,6 +209,9 @@ JM.DialogueSystem = require(string.gsub(path, "init", "modules.jm_dialogue_syste
 ---@type JM.GUI.VPad
 JM.Vpad = require(string.gsub(path, "init", "modules.jm_virtual_pad"))
 
+---@type JM.AdmobManager
+JM.Admob = require(string.gsub(path, "init", "modules.jm_admob_manager"))
+
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 --===========================================================================
