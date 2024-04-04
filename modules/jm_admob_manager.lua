@@ -237,6 +237,7 @@ function Ad:tryShowInterstitial(onSuccess, onCloseAfterSuccess, onFail)
         end)
 
     self:setCallback("interstitialFailedToLoad", onFail)
+
     if self:showInterstitial() then
         if onSuccess then onSuccess() end
     else
