@@ -247,7 +247,7 @@ function JM:load_initial_state(
     if use_splash then
         ---@type JM.GameState.Splash
         state = require(self.SplashScreenPath)
-        state:add_transition("fade", "in", nil, nil, nil)
+        state:add_transition("fade", "in", { duration = 0.25 }, nil, nil)
         state:__get_data__():set_next_state_string(s)
     else
         state = require(s)
