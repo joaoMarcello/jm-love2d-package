@@ -93,6 +93,7 @@ do
         self.ox = args[6] or args.ox or (self.w * 0.5)
         self.oy = args[7] or args.oy or (self.h * 0.5)
 
+        ---@type number|boolean
         self.speed = args[5] or args.speed or false
 
         self.bottom = self.y + self.h
@@ -674,6 +675,11 @@ function Anima:get_current_frame()
     return self.frames_list[self.current_frame]
 end
 
+---@return JM.Anima.Frame|any
+function Anima:get_frame(index)
+    return self.frames_list[index]
+end
+
 ---
 --- Draw the animation using a rectangle.
 ---@param x number # Rectangle top-left position (x-axis).
@@ -792,16 +798,16 @@ function Anima:reset_time_updating()
     self.time_update = 0
 end
 
----@param current JM.Anima
----@param new_anima JM.Anima
-function Anima.change_animation(current, new_anima)
-    if new_anima == current then
-        return current
-    end
-    new_anima:reset()
-    new_anima:set_flip_x(current:is_flipped_in_x())
-    current:transfer_effects(new_anima)
-    return new_anima
-end
+-- ---@param current JM.Anima
+-- ---@param new_anima JM.Anima
+-- function Anima.change_animation(current, new_anima)
+--     if new_anima == current then
+--         return current
+--     end
+--     new_anima:reset()
+--     new_anima:set_flip_x(current:is_flipped_in_x())
+--     current:transfer_effects(new_anima)
+--     return new_anima
+-- end
 
 return Anima
