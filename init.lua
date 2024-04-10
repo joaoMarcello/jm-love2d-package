@@ -342,8 +342,15 @@ end
 local locker_path = JM_Path .. "modules.locker.init"
 function JM:update(dt)
     do
+        ---@type JM.Locker
         local locker = package.loaded[locker_path]
-        if locker then locker:update(dt) end
+        if locker then
+            local session = locker.session
+            locker:update(dt)
+            if not session and locker.session then
+                locker.session_inited = true
+            end
+        end
     end
 
     self.Admob:update(dt)
