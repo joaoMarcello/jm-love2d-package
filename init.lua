@@ -339,7 +339,13 @@ function JM:set_default_font(font, force)
     return true
 end
 
+local locker_path = JM_Path .. "modules.locker.init"
 function JM:update(dt)
+    do
+        local locker = package.loaded[locker_path]
+        if locker then locker:update(dt) end
+    end
+
     self.Admob:update(dt)
 
     if thread_save_shot then
