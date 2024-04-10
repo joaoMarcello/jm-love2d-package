@@ -9,6 +9,8 @@ local Locker = {
     parse = JM.Utils.parse_csv_line, Ldr = JM.Ldr
 }
 
+local __game_key
+
 ---@alias JM.Locker.Session {session_token:string, player_identifier:string, player_id:number, player_name:string, player_ulid:string, player_created_at:string, public_uid:string, seen_before:boolean, check_grant_notifications:boolean, check_deactivation_notifications:boolean, check_dlcs:table, success:boolean}
 
 ---@alias JM.Locker.PlayerData {member_id:string, rank:number, score:number, metadata:string}
@@ -40,6 +42,7 @@ function Locker:init(game_key, leaderboard_id, max)
     --     }
     -- )
 
+    __game_key = game_key
     self:request_session(game_key)
 
     -- ---@type JM.Locker.Session
@@ -80,6 +83,7 @@ end
 ]])
 
 function Locker:request_session(game_key)
+    game_key = game_key or __game_key
     if game_key and not self.session and not thread_session:isRunning() then
         thread_session:start(game_key)
         return true
@@ -254,7 +258,7 @@ function Locker:get_tab(scores)
     local cur_init = 1
     local N = #scores
 
-    print(scores)
+    -- print(scores)
     while cur_init <= N do
         local startp, endp = str_find(scores, "\n", cur_init)
 
