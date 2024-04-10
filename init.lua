@@ -416,6 +416,14 @@ function JM:update(dt)
         s = string.format("%s - %.2f", s, cap_duration)
     end
     love.window.setTitle(string.format("%s %s", identity, s))
+
+    do
+        ---@type JM.Locker
+        local locker = package.loaded[locker_path]
+        if locker then
+            locker.session_inited = false
+        end
+    end
 end
 
 function JM:draw()
