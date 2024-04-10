@@ -144,11 +144,11 @@ function Locker:env(member_id, score, time, text)
 
         --- the data in comma separated values
         local quote = ""
+        local decode = json.decode
         ---@type JM.Locker.GetMemberResponse
-        local body = json.decode(body)
+        local body = decode(body)
         local list = body.items
         local N = #list
-        local decode = json.decode
 
         for i = 1, N do
             ---@type JM.Locker.PlayerData
