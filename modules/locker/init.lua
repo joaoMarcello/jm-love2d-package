@@ -131,27 +131,10 @@ function Locker:env(member_id, score, time, text)
     time = time or "0"
     text = text or ""
 
-    local date = os.date("%d/%m/%Y %H:%M:%S %a", os.time())
-    local metadata = str_format("{\'seconds\':\'%s\', \'date\':\'%s\', \'text\':\'%s\'}", time, date, text)
-
-    -- print(metadata)
-    -- metadata = "{seconds=1000:,\'-/}"
+    local url, headers, data = self:str_env(member_id, score, time, text, true)
 
     ---@type number, JM.Locker.GetMemberResponse, table
-    local code, body, headers = https.request(
-        str_format("https://api.lootlocker.io/game/leaderboards/%s/submit", self.leaderboard_id),
-
-        {
-            method = "POST",
-
-            headers = {
-                ["Content-Type"] = "application/json",
-                ["x-session-token"] = self.session.session_token,
-            },
-
-            data = str_format("{\"member_id\":\"%s\", \"score\":%d, \"metadata\":\"%s\"}", member_id, score, metadata)
-        }
-    )
+    local code, body, _ = https.request(url, { method = "POST", headers = headers, data = data })
 
     do
         local code, body, _ = self:rec()
@@ -173,11 +156,12 @@ function Locker:env(member_id, score, time, text)
 
             local meta = data.metadata
             meta = meta == "" and "{}" or meta
+            meta = meta:gsub("'", "\"")
             meta = decode(meta)
 
             local line = str_format(
                 "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\"",
-                data.member_id, data.score, meta.seconds or "", meta.text or "", meta.date or "any"
+                data.member_id, data.score, meta.seconds or "", meta.text or "", meta.date or ""
             )
 
             if i == 1 then
@@ -189,7 +173,7 @@ function Locker:env(member_id, score, time, text)
 
         return quote .. "\n"
     end
-    -- return code, body, headers
+    ---
 end
 
 ---@param member_id any
@@ -201,7 +185,7 @@ end
 ---@return string|nil data
 ---@return string|nil url_rec
 ---@return table|nil headers_rec
-function Locker:str_env(member_id, score, time, text)
+function Locker:str_env(member_id, score, time, text, skip_str_rec)
     -- self:verify_session()
 
     if not self.session then
@@ -215,10 +199,14 @@ function Locker:str_env(member_id, score, time, text)
         ["x-session-token"] = self.session.session_token,
     }
 
-    local date = os.date("%d/%m/%Y %H:%M:%S %a", os.time())
+    local date = os.date("%m/%d/%Y %I:%M:%S %a %p", os.time())
     local metadata = str_format("{\'seconds\':\'%s\', \'date\':\'%s\', \'text\':\'%s\'}", time, date, text)
 
     local data = str_format("{\"member_id\":\"%s\", \"score\":%d, \"metadata\":\"%s\"}", member_id, score, metadata)
+
+    if skip_str_rec then
+        return url, headers, data
+    end
 
     local url2, headers2 = self:str_rec()
 
