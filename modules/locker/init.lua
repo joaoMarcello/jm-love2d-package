@@ -49,6 +49,8 @@ function Locker:init(game_key, leaderboard_id, max)
     self:set_leaderboard_id(leaderboard_id)
 
     self.MAX = max or 10
+
+    self.session_inited = false
 end
 
 local session_channel = love.thread.getChannel("jm_locker_session")
