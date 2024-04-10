@@ -26,8 +26,6 @@ function Locker:init(game_key, leaderboard_id, max)
         return self:init(unpack(game_key))
     end
 
-    print("going request...")
-
     -- local code, body, headers = https.request(
     --     "https://api.lootlocker.io/game/v2/session/guest", {
 
@@ -85,6 +83,7 @@ end
 function Locker:request_session(game_key)
     game_key = game_key or __game_key
     if game_key and not self.session and not thread_session:isRunning() then
+        print("going request...")
         thread_session:start(game_key)
         return true
     end
