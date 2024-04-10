@@ -92,6 +92,15 @@ function Locker:request_session(game_key)
     return false
 end
 
+function Locker:verify_session()
+    if not self.session then
+        local session = session_channel:pop()
+        if session then
+            self.session = session
+        end
+    end
+end
+
 function Locker:update(dt)
     if not self.session then
         local session = session_channel:pop()
@@ -193,6 +202,8 @@ end
 ---@return string|nil url_rec
 ---@return table|nil headers_rec
 function Locker:str_env(member_id, score, time, text)
+    -- self:verify_session()
+
     if not self.session then
         return
     end
@@ -216,7 +227,6 @@ end
 
 function Locker:rec(count)
     assert(self.leaderboard_id, ">> No 'leaderboard_id' found. Use the set_leaderboard_id method.")
-
     if not self.session then return false end
     count = count or self.MAX
 
@@ -235,6 +245,8 @@ function Locker:rec(count)
 end
 
 function Locker:str_rec(data, init, final)
+    -- self:verify_session()
+
     if not self.session then return end
 
     init = init or self.MAX
