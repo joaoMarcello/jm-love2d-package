@@ -200,7 +200,7 @@ function Locker:str_env(member_id, score, time, text, skip_str_rec)
     }
 
     local date = os.date("%m/%d/%Y %I:%M:%S %a %p", os.time())
-    local metadata = str_format("{\'seconds\':\'%s\', \'date\':\'%s\', \'text\':\'%s\'}", time, date, text)
+    local metadata = str_format("{\'seconds\':\'%.2f\', \'date\':\'%s\', \'text\':\'%s\'}", time, date, text)
 
     local data = str_format("{\"member_id\":\"%s\", \"score\":%d, \"metadata\":\"%s\"}", member_id, score, metadata)
 
