@@ -82,9 +82,12 @@ if code == 200 then
 end
 ]])
 
-function Locker:request_session(game_key)
+function Locker:request_session(game_key, force)
     game_key = game_key or __game_key
-    if game_key and not self.session and not thread_session:isRunning() then
+
+    if game_key and (not self.session or force)
+        and not thread_session:isRunning()
+    then
         print("going request...")
         thread_session:start(game_key)
         return true
@@ -99,6 +102,10 @@ function Locker:verify_session()
             self.session = session
         end
     end
+end
+
+function Locker:is_requesting_session()
+    return thread_session and thread_session:isRunning()
 end
 
 function Locker:update(dt)
@@ -187,7 +194,7 @@ end
 ---@return table|nil headers_rec
 function Locker:str_env(member_id, score, time, text, skip_str_rec)
     -- self:verify_session()
-
+    self:request_session(__game_key)
     if not self.session then
         return
     end
@@ -234,7 +241,7 @@ end
 
 function Locker:str_rec(data, init, final)
     -- self:verify_session()
-
+    self:request_session(__game_key)
     if not self.session then return end
 
     init = init or self.MAX
