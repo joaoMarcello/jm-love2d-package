@@ -115,7 +115,7 @@ local lgx = love.graphics
 
 local mask_shader = lgx.newShader [[
 vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords){vec4 pixel = Texel(texture, texture_coords );
-if(pixel.r == 1.0 && pixel.b == 1.0){return vec4(0.0,0.0,0.0,0.0);}return vec4(0.0,0.0,0.0,1.0);}]]
+if(pixel.r == 1.0 && pixel.b == 1.0){return vec4(0.0,0.0,0.0,0.0);}return vec4(0.05,0.05,0.05,1.0);}]]
 
 local SCREEN_WIDTH = State.screen_w
 local RECT_HEIGHT = State.screen_h / 2
