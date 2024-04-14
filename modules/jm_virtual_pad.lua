@@ -942,6 +942,13 @@ function Pad:turn_off_dpad()
     self:turn_off_button("Dpad-down")
 end
 
+function Pad:turn_on_dpad()
+    self:turn_on_button("Dpad-left")
+    self:turn_on_button("Dpad-right")
+    self:turn_on_button("Dpad-up")
+    self:turn_on_button("Dpad-down")
+end
+
 function Pad:allow_dpad_diagonal(value)
     allow_dpad_diagonal = value
 end
