@@ -19,6 +19,7 @@ local State = JM.Scene:new {
 }
 
 State.is_splash_screen = true
+local transition_color = { 0.2, 0.2, 0.2, 1 }
 
 ---@enum JM.Splash.States
 local States = {
@@ -57,7 +58,7 @@ local data = {
     --
     skip_state = function(self)
         if not State.transition then
-            State:add_transition("fade", "out", { duration = 1.1, post_delay = 0.2, color = { 0.1, 0.1, 0.1, 1 } }, nil,
+            State:add_transition("fade", "out", { duration = 1.1, post_delay = 0.2, color = transition_color }, nil,
                 function()
                     if self.state == States.jm then
                         State:change_gamestate(require(self.next_state), {
@@ -115,7 +116,7 @@ local lgx = love.graphics
 
 local mask_shader = lgx.newShader [[
 vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords){vec4 pixel = Texel(texture, texture_coords );
-if(pixel.r == 1.0 && pixel.b == 1.0){return vec4(0.0,0.0,0.0,0.0);}return vec4(0.1,0.1,0.1,1.0);}]]
+if(pixel.r == 1.0 && pixel.b == 1.0){return vec4(0.0,0.0,0.0,0.0);}return vec4(0.2,0.2,0.2,1.0);}]]
 
 local SCREEN_WIDTH = State.screen_w
 local RECT_HEIGHT = State.screen_h / 2
@@ -468,7 +469,7 @@ local function love_logo_update(dt)
         data.love_text:update(dt)
 
         if not State.transition and data.result_rot >= 1 then
-            State:add_transition("fade", "out", { duration = 1.1, post_delay = 0.2, color = { 0.1, 0.1, 0.1, 1 } }, nil,
+            State:add_transition("fade", "out", { duration = 1.1, post_delay = 0.2, color = transition_color }, nil,
                 function()
                     -- State:init(States.jm)
                     -- State:add_transition("fade", "in", { duration = 0.8, delay = 0.25 })
