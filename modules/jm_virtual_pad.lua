@@ -470,7 +470,7 @@ function Pad:mousepressed(x, y, button, istouch, presses)
         local obj = self[i]
         obj:mousepressed(x, y, button, istouch, presses)
 
-        if obj:is_pressing() and self:is_dpad(obj) then
+        if obj:is_pressed() and self:is_dpad(obj) then
             obj.back_to_normal = false
         end
     end
@@ -479,8 +479,19 @@ function Pad:mousepressed(x, y, button, istouch, presses)
 end
 
 function Pad:mousereleased(x, y, button, istouch, presses)
+    local scene = JM.SceneManager.scene
+
     for i = 1, self.N do
-        self[i]:mousereleased(x, y, button, istouch, presses)
+        ---@type JM.GUI.TouchButton|any
+        local obj = self[i]
+
+        local pressing = obj.__mouse_pressed
+
+        obj:mousereleased(x, y, button, istouch, presses)
+
+        if pressing and not obj.__mouse_pressed and obj.__mouse_released then
+            self:verify_released(scene, obj)
+        end
     end
 end
 
@@ -533,7 +544,9 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
 
         local last = obj.__mouse_pressed
 
-        obj:mousemoved(x, y, dx, dy, istouch)
+        if dx ~= 0 or dy ~= 0 then
+            obj:mousemoved(x, y, dx, dy, istouch)
+        end
 
         if not last and obj.__mouse_pressed then
             self:verify_pressed(JM.SceneManager.scene)
@@ -631,7 +644,9 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
         local obj = self[i]
         local last = obj.__touch_pressed
 
-        obj:touchmoved(id, x, y, dx, dy, pressure)
+        if dx ~= 0 or dy ~= 0 then
+            obj:touchmoved(id, x, y, dx, dy, pressure)
+        end
 
         if not last and obj.__touch_pressed then
             self:verify_pressed(JM.SceneManager.scene)
@@ -840,8 +855,19 @@ function Pad:touchpressed(id, x, y, dx, dy, pressure)
 end
 
 function Pad:touchreleased(id, x, y, dx, dy, pressure)
+    local scene = JM.SceneManager.scene
+
     for i = 1, self.N do
-        self[i]:touchreleased(id, x, y, dx, dy, pressure)
+        ---@type JM.GUI.TouchButton|any
+        local obj = self[i]
+
+        local pressing = obj.__touch_pressed
+
+        obj:touchreleased(id, x, y, dx, dy, pressure)
+
+        if pressing and not obj.__touch_pressed and obj.__touch_released then
+            self:verify_released(scene, obj)
+        end
     end
 
     -- if n_touchs_button > 0 then
@@ -1149,6 +1175,7 @@ function Pad:verify_pressed(scene, out_on_first)
         for i = 1, 4 do
             local obj = list[i]
             if obj:is_pressed() then
+                obj.time_press = 0.0000001
                 scene:vpadpressed(self:get_button_name(obj))
             end
         end
@@ -1159,6 +1186,7 @@ function Pad:verify_pressed(scene, out_on_first)
         for i = 1, 4 do
             local obj = list[i]
             if obj:is_pressed() then
+                obj.time_press = 0.0000001
                 scene:vpadpressed(obj.text:lower())
             end
         end
@@ -1166,23 +1194,53 @@ function Pad:verify_pressed(scene, out_on_first)
     ---
     do
         local L = Bt_L
-        if L:is_pressed() then scene:vpadpressed("leftshoulder") end
+        if L:is_pressed() then
+            L.time_press = 0.0000001
+            scene:vpadpressed("leftshoulder")
+        end
 
         local R = Bt_R
-        if R:is_pressed() then scene:vpadpressed("rightshoulder") end
+        if R:is_pressed() then
+            R.time_press = 0.0000001
+            scene:vpadpressed("rightshoulder")
+        end
     end
     ---
     do
         local start = Bt_Start
-        if start:is_pressed() then scene:vpadpressed("start") end
+        if start:is_pressed() then
+            start.time_press = 0.0000001
+            scene:vpadpressed("start")
+        end
 
         local select = Bt_Select
-        if select:is_pressed() then scene:vpadpressed("back") end
+        if select:is_pressed() then
+            select.time_press = 0.0000001
+            scene:vpadpressed("back")
+        end
 
         local home = Home
-        if home:is_pressed() then scene:vpadpressed("guide") end
+        if home:is_pressed() then
+            home.time_press = 0.0000001
+            scene:vpadpressed("guide")
+        end
     end
     ---
+end
+
+---@param scene JM.Scene
+---@param button JM.GUI.TouchButton|JM.GUI.VirtualStick
+function Pad:verify_released(scene, button)
+    if button == self.L then
+        return scene:vpadreleased('leftshoulder')
+    end
+    if button == self.R then
+        return scene:vpadreleased('rightshoulder')
+    end
+    if button == self.Home then
+        return scene:vpadreleased('guide')
+    end
+    return scene:vpadreleased(button.text:lower())
 end
 
 ---@param scene JM.Scene
