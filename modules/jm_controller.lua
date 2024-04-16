@@ -257,14 +257,16 @@ local function pressing_vpad(self, button)
     ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
     local bt = nil
 
-    if not vpad.Dpad_left.on_focus and not vpad.Dpad_right.on_focus then
-        ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
-        bt = button >= 11 and button <= 14 and vpad.Stick
-        ---
-    elseif button == Buttons.left_stick_x
-        or button == Buttons.left_stick_y
-    then
-        bt = vpad.Stick
+    if vpad.Stick.on_focus then
+        if not vpad.Dpad_left.on_focus and not vpad.Dpad_right.on_focus then
+            ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
+            bt = button >= 11 and button <= 14 and vpad.Stick
+            ---
+        elseif button == Buttons.left_stick_x
+            or button == Buttons.left_stick_y
+        then
+            bt = vpad.Stick
+        end
     end
 
     bt = (not bt and button == Buttons.A and vpad.A) or bt
