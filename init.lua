@@ -207,7 +207,7 @@ JM.Shader = require(string.gsub(path, "init", "modules.jm_shader"))
 JM.DialogueSystem = require(string.gsub(path, "init", "modules.jm_dialogue_system"))
 
 ---@type JM.GUI.VPad
-JM.Vpad = require(string.gsub(path, "init", "modules.jm_virtual_pad"))
+JM.Vpad = JM.Scene:get_vpad() --require(string.gsub(path, "init", "modules.jm_virtual_pad"))
 
 ---@type JM.AdmobManager
 JM.Admob = require(string.gsub(path, "init", "modules.jm_admob_manager"))
