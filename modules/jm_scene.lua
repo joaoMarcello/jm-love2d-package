@@ -1510,13 +1510,16 @@ end
 
 ---@param self JM.Scene
 local mousepressed = function(self, x, y, button, istouch, presses)
+    local P1 = Controllers.P1
+
     if self.use_vpad and not istouch then
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
+
         local mx, my = mousePosition()
         VPad:mousepressed(mx, my, button, istouch, presses)
 
         VPad:verify_pressed(self)
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
@@ -1529,17 +1532,22 @@ local mousepressed = function(self, x, y, button, istouch, presses)
 
     x, y = self:get_mouse_position()
 
+    local state1 = P1.state
     local r = param.mousepressed and param.mousepressed(x, y, button, istouch, presses)
+    P1:set_state(state1)
 end
 
 ---@param self JM.Scene
 local mousereleased = function(self, x, y, button, istouch, presses)
+    local P1 = Controllers.P1
+
     if self.use_vpad and not istouch then
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
 
         local mx, my = mousePosition()
         VPad:mousereleased(mx, my, button, istouch, presses)
-        self:vpadreleased()
+        -- self:vpadreleased()
+        P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
@@ -1548,18 +1556,22 @@ local mousereleased = function(self, x, y, button, istouch, presses)
         return
     end
 
+    local param = self.__param__
     x, y = self:get_mouse_position()
 
-    local param = self.__param__
+    local state1 = P1.state
     local r = param.mousereleased and param.mousereleased(x, y, button, istouch, presses)
+    P1:set_state(state1)
 end
 
 ---@param self JM.Scene
 local mousemoved = function(self, x, y, dx, dy, istouch)
+    local P1 = Controllers.P1
+
     if self.use_vpad and not istouch then
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
         VPad:mousemoved(x, y, dx, dy, istouch)
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
@@ -1568,11 +1580,12 @@ local mousemoved = function(self, x, y, dx, dy, istouch)
         return
     end
 
+    local param = self.__param__
     x, y = self:get_mouse_position()
 
-    local param = self.__param__
-
+    local state1 = P1.state
     local r = param.mousemoved and param.mousemoved(x, y, dx, dy, istouch)
+    P1:set_state(state1)
 end
 
 ---@param self JM.Scene
@@ -1595,11 +1608,13 @@ end
 
 ---@param self JM.Scene
 local touchpressed = function(self, id, x, y, dx, dy, pressure)
+    local P1 = Controllers.P1
+
     if self.use_vpad then
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
         VPad:touchpressed(id, x, y, dx, dy, pressure)
         VPad:verify_pressed(self)
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
@@ -1609,17 +1624,22 @@ local touchpressed = function(self, id, x, y, dx, dy, pressure)
     end
 
     -- x, y = self:point_monitor_to_world(x, y)
+    local state1 = P1.state
 
     local param = self.__param__
     local r = param.touchpressed and param.touchpressed(id, x, y, dx, dy, pressure)
+
+    P1:set_state(state1)
 end
 
 ---@param self JM.Scene
 local touchreleased = function(self, id, x, y, dx, dy, pressure)
+    local P1 = Controllers.P1
+
     if self.use_vpad then
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
         VPad:touchreleased(id, x, y, dx, dy, pressure)
-        self:vpadreleased()
+        P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
@@ -1630,16 +1650,20 @@ local touchreleased = function(self, id, x, y, dx, dy, pressure)
 
     -- x, y = self:point_monitor_to_world(x, y)
 
+    local state1 = P1.state
     local param = self.__param__
     local r = param.touchreleased and param.touchreleased(id, x, y, dx, dy, pressure)
+    P1:set_state(state1)
 end
 
 ---@param self JM.Scene
 local touchmoved = function(self, id, x, y, dx, dy, pressure)
+    local P1 = Controllers.P1
+
     if self.use_vpad then
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
         VPad:touchmoved(id, x, y, dx, dy, pressure)
-        Controllers.P1:set_state(Controllers.State.vpad)
+        P1:set_state(Controllers.State.vpad)
     end
 
     if self.time_pause
@@ -1649,9 +1673,10 @@ local touchmoved = function(self, id, x, y, dx, dy, pressure)
     end
 
     -- x, y = self:point_monitor_to_world(x, y)
-
+    local state1 = P1.state
     local param = self.__param__
     local r = param.touchmoved and param.touchmoved(id, x, y, dx, dy, pressure)
+    P1:set_state(state1)
 end
 
 ---@param self JM.Scene
@@ -1663,7 +1688,7 @@ end
 ---@param self JM.Scene
 local vpadreleased = function(self, button)
     local vpadreleased = self.__param__.vpadreleased
-    if vpadreleased then return vpadpressed(button) end
+    if vpadreleased then return vpadreleased(button) end
 end
 
 ---@param self JM.Scene
@@ -1685,11 +1710,16 @@ local keypressed = function(self, key, scancode, isrepeat)
         keyboard_owner:set_state(Controllers.State.keyboard)
     end
 
-    Controllers.P1:keypressed(key)
+    local P1 = Controllers.P1
+    P1:keypressed(key)
     Controllers.P2:keypressed(key)
+
+    local state1 = P1.state
 
     local param = self.__param__
     local r = param.keypressed and param.keypressed(key, scancode, isrepeat)
+
+    P1:set_state(state1)
 end
 
 ---@param self JM.Scene
