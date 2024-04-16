@@ -47,8 +47,12 @@ function Button:__constructor__(args)
     self:set_color2(1, 1, 1, self.opacity)
 
     self.back_to_normal = true
+    ---@type boolean|number
+    self.time_press = self.time_press or false
 
-    self:shrink()
+    if not self.time_press then
+        self:shrink()
+    end
 
     self.update = Button.update
     self.draw = Component.draw
