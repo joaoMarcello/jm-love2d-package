@@ -1,4 +1,48 @@
-local https = require "https"
+local https
+do
+    local success, result = pcall(function()
+        return require "https"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "love.https"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "love.lua-https"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "lua-https"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "lua-modules.https"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "lua-modules.lua-https"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "https.https"
+    end)
+    https = success and result or https
+end
+assert(https, "not found https")
+
 local json = require((...):gsub("init", "json"))
 local str_format = string.format
 local tonumber = tonumber
@@ -60,8 +104,8 @@ do
     jit.off(true, true)
 end
 
-local json = require("jm-love2d-package.modules.locker.json")
 local https = require "https"
+local json = require("jm-love2d-package.modules.locker.json")
 local game_key = ...
 local code, body, headers = https.request(
     "https://api.lootlocker.io/game/v2/session/guest", {
