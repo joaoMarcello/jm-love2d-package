@@ -323,7 +323,6 @@ function Sound:focus(f)
                 if audio then audio.source:play() end
             end
         end
-        -- self:play_song("HowToPlay", true)
         paused_song = nil
         paused_sfx = nil
     end
