@@ -487,6 +487,8 @@ end
 function JM:focus(f)
     local scene = SceneManager.scene
 
+    self.Sound:focus(f)
+
     if not f then
         scene:pause(math.huge)
     else
