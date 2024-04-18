@@ -39,7 +39,7 @@ do
     ---@param type "stream"|"static"|"queue"
     function Audio:__constructor__(path, name, volume, type, is_song)
         self.source = love.audio.newSource(path, type)
-        self.name = name:lower()
+        self.name = name --name:lower()
         self.volume = volume
         self.init_volume = volume
 
@@ -137,6 +137,9 @@ function Sound:add_sfx(path, name, volume)
     return true
 end
 
+---@param path string
+---@param name string
+---@param volume number|any
 function Sound:add_song(path, name, volume)
     if self:get_song(name) then return false end
     local audio = Audio:new(path, name, volume, song_mode, true)
@@ -270,6 +273,59 @@ function Sound:stop_all()
 
     for _, audio in pairs(list_sfx) do
         audio.source:stop()
+    end
+end
+
+local paused_sfx
+local paused_song
+
+function Sound:focus(f)
+    if not f then
+        paused_sfx = paused_sfx or {}
+        paused_song = paused_song or {}
+
+
+        for _, audio in next, list_sfx do
+            ---@type JM.Sound.Audio
+            audio = audio
+
+            local source = audio.source
+            if source:isPlaying() then
+                source:pause()
+                paused_sfx[audio.name] = true
+            end
+        end
+
+        for _, audio in next, list_song do
+            ---@type JM.Sound.Audio
+            audio = audio
+
+            local source = audio.source
+            if source:isPlaying() then
+                source:pause()
+                paused_song[audio.name] = true
+            end
+        end
+        ---
+    else
+        if paused_song then
+            for name, _ in next, paused_song do
+                local audio = self:get_song(name)
+                if audio then
+                    audio.source:play()
+                end
+            end
+        end
+
+        if paused_sfx then
+            for name, _ in next, paused_sfx do
+                local audio = self:get_sfx(name)
+                if audio then audio.source:play() end
+            end
+        end
+        -- self:play_song("HowToPlay", true)
+        paused_song = nil
+        paused_sfx = nil
     end
 end
 
