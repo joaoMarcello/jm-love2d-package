@@ -6,6 +6,9 @@ local VirtualStick = GUI.VirtualStick
 local push, pop = love.graphics.push, love.graphics.pop
 local setLineWidth = love.graphics.setLineWidth
 local setLineStyle = love.graphics.setLineStyle
+local love_vibrate = love.system.vibrate
+
+local vibrate_sec = 0.05
 
 --==========================================================================
 local Bt_A = TouchButton:new {
@@ -650,7 +653,7 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
 
         if not last and obj.__touch_pressed then
             self:verify_pressed(JM.SceneManager.scene)
-            if not vibrate then love.system.vibrate(0.1) end
+            if not vibrate then love_vibrate(vibrate_sec) end
         end
     end
 
@@ -660,7 +663,7 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
             self, id, x, y, dx, dy, pressure)
         if r then
             self:verify_pressed(JM.SceneManager.scene)
-            if not vibrate then love.system.vibrate(0.1) end
+            if not vibrate then love_vibrate(vibrate_sec) end
         end
     end
 
@@ -692,13 +695,7 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
             if obj.time_press == 0.0 then
                 local scene = JM.SceneManager.scene
                 self:verify_pressed(scene)
-                love.system.vibrate(0.1)
-
-                -- local touchpressed = scene and scene.__param__.touchpressed
-                -- if touchpressed then
-                --     touchpressed(id, x, y, dx, dy, pressure)
-                --     love.system.vibrate(0.1)
-                -- end
+                love_vibrate(vibrate_sec)
             end
             ---
         else
@@ -721,13 +718,7 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
                 if b1.time_press == 0.0 or b2.time_press == 0.0 then
                     local scene = JM.SceneManager.scene
                     self:verify_pressed(scene)
-                    love.system.vibrate(0.1)
-
-                    -- local touchpressed = scene and scene.__param__.touchpressed
-                    -- if touchpressed then
-                    --     touchpressed(id, x, y, dx, dy, pressure)
-                    --     love.system.vibrate(0.1)
-                    -- end
+                    love_vibrate(vibrate_sec)
                 end
                 ---
             elseif obj then
@@ -812,7 +803,7 @@ function Pad:touchpressed(id, x, y, dx, dy, pressure)
             and obj ~= left_stick
             and obj:is_pressed()
         then
-            love.system.vibrate(0.1)
+            love_vibrate(vibrate_sec)
             vibrate = true
         end
 
@@ -823,7 +814,7 @@ function Pad:touchpressed(id, x, y, dx, dy, pressure)
 
     local r = check_dpad_diagonal_press_touch(self, id, x, y, dx, dy, pressure)
     if r and not vibrate then
-        love.system.vibrate(0.1)
+        love_vibrate(vibrate_sec)
     end
 
     -- if ABXY_button_is_pressed() then
