@@ -1,7 +1,20 @@
 local https
 do
+    -- local success, result = pcall(function()
+    --     return require "https"
+    -- end)
+    -- https = success and result or https
+    https = require "https"
+end
+if not https then
     local success, result = pcall(function()
-        return require "https"
+        return require "Https"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "love.Https"
     end)
     https = success and result or https
 end
@@ -38,6 +51,30 @@ end
 if not https then
     local success, result = pcall(function()
         return require "https.https"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "libhttps"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "love.libhttps"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "luahttps"
+    end)
+    https = success and result or https
+end
+if not https then
+    local success, result = pcall(function()
+        return require "love.luahttps"
     end)
     https = success and result or https
 end
