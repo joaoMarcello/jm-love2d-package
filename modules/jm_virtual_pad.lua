@@ -903,7 +903,7 @@ function Pad:set_button_size(value)
     Bt_Y:init()
 end
 
----@alias JM.GUI.VPad.ButtonNames "X"|"Y"|"A"|"B"|"Dpad-left"|"Dpad-right"|"Dpad-up"|"Dpad-down"|"Stick"|"RightStick"
+---@alias JM.GUI.VPad.ButtonNames "X"|"Y"|"A"|"B"|"Dpad-left"|"Dpad-right"|"Dpad-up"|"Dpad-down"|"Stick"|"RightStick"|"Home"|"Guide"|"L"|"LeftShoulder"|"R"|"RightShoulder"
 
 ---@param button JM.GUI.VPad.ButtonNames
 function Pad:get_button_by_str(button)
@@ -928,10 +928,17 @@ function Pad:get_button_by_str(button)
         bt = left_stick
     elseif button == "RightStick" then
         bt = right_stick
+    elseif button == "Home" or button == "Guide" then
+        bt = Home
+    elseif button == "L" or button == "LeftShoulder" then
+        bt = Bt_L
+    elseif button == "R" or button == "RightShoulder" then
+        bt = Bt_R
     end
     return bt
 end
 
+---@param button JM.GUI.VPad.ButtonNames
 function Pad:toggle_button(button)
     local bt = self:get_button_by_str(button)
 
@@ -1089,7 +1096,7 @@ function Pad:fix_positions()
     end
 
     do
-        local size = min * 0.175
+        local size = min * 0.15 --0.175
         dpad_left:set_dimensions(size, size)
         dpad_right:set_dimensions(size, size)
         dpad_up:set_dimensions(size, size)
