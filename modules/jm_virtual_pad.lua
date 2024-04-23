@@ -1103,7 +1103,7 @@ function Pad:fix_positions()
 
         -- local sx, sy, sw, sh = love.window.getSafeArea()
 
-        local anchor_x = (sfx == 0 and 15 or sfx) + 10 -- w * dpad_pos_x + size
+        local anchor_x = (sfx == 0 and 20 or sfx) + 10 -- w * dpad_pos_x + size
         local anchor_y = h * dpad_pos_y - size
         -- local space_x = not stick.is_visible and (space * 4) or (space * 2)
 
