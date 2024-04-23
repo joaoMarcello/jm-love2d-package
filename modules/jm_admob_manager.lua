@@ -233,8 +233,10 @@ function Ad:tryShowInterstitial(onSuccess, onCloseAfterSuccess, onFail)
 
     if self:showInterstitial() then
         if onSuccess then onSuccess() end
+        return true
     else
         if onFail then onFail() end
+        return false
     end
 end
 
@@ -249,8 +251,10 @@ function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
 
     if self:showRewardedAd() then
         if onSuccess then onSuccess() end
+        return true
     else
         if onFail then onFail() end
+        return false
     end
 end
 
