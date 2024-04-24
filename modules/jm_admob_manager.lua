@@ -258,4 +258,23 @@ function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
     end
 end
 
+local count_inter = 1
+---@param id string|nil interstitial ads id
+---@return 0|-1|1 status
+function Ad:showCountInterstitialAd(id)
+    local r = 0
+    count_inter = count_inter % 2
+    if count_inter == 0 then
+        if not self:tryShowInterstitial() then
+            self:requestInterstitial()
+            r = -1
+        else
+            r = 1
+            love.timer.sleep(1)
+        end
+    end
+    count_inter = count_inter + 1
+    return r
+end
+
 return Ad
