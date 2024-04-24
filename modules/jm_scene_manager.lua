@@ -75,7 +75,7 @@ function Manager:change_gamestate(new_state, conf)
 
     self.scene = scene
     scene:resize(love.graphics.getDimensions())
-    scene:update(love.timer.getDelta())
+    scene:update(0.0)
 
     return r
 end
