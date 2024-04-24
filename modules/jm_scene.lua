@@ -1107,24 +1107,32 @@ local update = function(self, dt)
     self.__skip = frame_skip_update(self)
     if self.__skip then return end
 
-    local r = param.update and param.update(dt)
+    do
+        local update = param.update
+        if update then update(dt) end
+    end
 
     Controllers.P1:update(dt)
     Controllers.P2:update(dt)
 
-    for i = 1, self.amount_cameras do
-        ---@type JM.Camera.Camera
-        local camera = self.cameras_list[i]
-        camera:update(dt)
+    do
+        local list = self.cameras_list
+        for i = 1, self.amount_cameras do
+            ---@type JM.Camera.Camera
+            local camera = list[i]
+            camera:update(dt)
+        end
     end
 
     if param.layers then
+        local list = param.layers
+
         for i = 1, self.n_layers, 1 do
             ---@type JM.Scene.Layer
-            local layer = param.layers[i]
-
-            if layer.update then
-                layer:update(dt)
+            local layer = list[i]
+            do
+                local update = layer.update
+                if update then update(layer, dt) end
             end
         end
     end
@@ -1303,8 +1311,9 @@ local draw = function(self)
     end -- END FOR CAMERAS
 
 
-    if self.transition then
-        self.transition:draw()
+    do
+        local transition = self.transition
+        if transition then transition:draw() end
     end
 
     do
