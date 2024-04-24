@@ -15,6 +15,13 @@ local CallbackType = {
     rewardedAdDidStop = 5,
 }
 
+---@enum JM.AdmobManager.AdsType
+local AdsType = {
+    banner = 1,
+    reward = 2,
+    interstitial = 3
+}
+
 ---@alias JM.AdmobManager.Callbacks "interstitialFailedToLoad"|"interstitialClosed"|"rewardedAdFailedToLoad"|"rewardUserWithReward"|"rewardedAdDidStop"
 
 ---@class JM.AdmobManager
@@ -26,6 +33,7 @@ local id_inter_test = "ca-app-pub-3940256099942544/1033173712"
 local id_reward_test = "ca-app-pub-3940256099942544/5224354917"
 
 local id_banner, id_inter, id_reward
+local ids_list
 
 ---@type table|nil
 local callbacks
@@ -61,7 +69,7 @@ local function dispatch_callback(type, ...)
 end
 
 ---@overload fun(self:table)
----@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top"}
+---@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top", skipRequest: boolean|nil}
 function Ad:init(args)
     args = args or {}
     if admob then
@@ -69,8 +77,11 @@ function Ad:init(args)
     end
     self:setIds(args.banner, args.inter, args.reward)
     self:createBanner(nil, args.bannerPos, not args.hideBanner)
-    self:requestInterstitial()
-    self:requestRewardedAd()
+
+    if not args.skipRequest then
+        self:requestInterstitial()
+        self:requestRewardedAd()
+    end
 end
 
 ---@overload fun(self:any, args:{banner:string, inter:string, reward:string})
@@ -84,6 +95,26 @@ function Ad:setIds(banner, inter, reward)
     id_banner = banner
     id_inter = inter
     id_reward = reward
+end
+
+---@param ads_type "banner"|"reward"|"interstitial"
+function Ad:addBlockId(ads_type, ...)
+    if not ads_type or not (...) then return false end
+
+    local tp = AdsType[ads_type]
+    if not tp then return false end
+
+    ids_list = ids_list or {}
+    local list = ids_list[tp] or {}
+
+    local ids = { ... }
+    for i = 1, #ids do
+        local id = ids[i]
+        table.insert(list, id)
+    end
+    ids_list[tp] = list
+
+    return true
 end
 
 ---@param type JM.AdmobManager.Callbacks
@@ -222,6 +253,75 @@ else
     Ad.update = func
 end
 
+---@param index number|nil
+---@param onFail function|nil
+function Ad:forceInterstitialAd(index, onFail)
+    if not admob then
+        if onFail then onFail() end
+        return false
+    end
+    index = index or 1
+
+    local id = (ids_list and ids_list[AdsType.interstitial][index])
+        or id_inter or id_inter_test
+
+    local get_time = love.timer.getTime
+
+    if not admob.isInterstitialLoaded() then
+        self:requestInterstitial(id)
+        local time_start = get_time()
+
+        while not admob.isInterstitialLoaded() do
+            if (get_time() - time_start) > 2 then
+                break
+            end
+        end
+    end
+
+    if self:showInterstitial() then
+        love.timer.sleep(1)
+        return true
+    else
+        if onFail then onFail() end
+        return false
+    end
+end
+
+---@param index number|nil
+---@param onFail function|nil
+---@return boolean
+function Ad:forceRewardedAd(index, onFail)
+    if not admob then
+        if onFail then onFail() end
+        return false
+    end
+    index = index or 1
+
+    local id = (ids_list and ids_list[AdsType.reward][index])
+        or id_reward or id_reward_test
+
+    local get_time = love.timer.getTime
+
+    if not admob.isRewardedAdLoaded() then
+        self:requestRewardedAd(id)
+        local time_start = get_time()
+
+        while not admob.isRewardedAdLoaded() do
+            if get_time() - time_start > 2 then
+                break
+            end
+        end
+    end
+
+    if self:showRewardedAd() then
+        love.timer.sleep(1)
+        return true
+    else
+        if onFail then onFail() end
+        return false
+    end
+end
+
 function Ad:tryShowInterstitial(onSuccess, onCloseAfterSuccess, onFail)
     self:setCallback("interstitialClosed",
         function()
@@ -259,9 +359,9 @@ function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
 end
 
 local count_inter = 1
----@param id string|nil interstitial ads id
+
 ---@return 0|-1|1 status
-function Ad:showCountInterstitialAd(id)
+function Ad:showCountInterstitialAd()
     local r = 0
     count_inter = count_inter % 2
     if count_inter == 0 then
@@ -273,6 +373,18 @@ function Ad:showCountInterstitialAd(id)
             love.timer.sleep(1)
         end
     end
+    count_inter = count_inter + 1
+    return r
+end
+
+function Ad:showForcedCountInterstitialAd(index, onFail)
+    local r = false
+    count_inter = count_inter % 2
+
+    if count_inter == 0 then
+        r = self:forceInterstitialAd(index, onFail)
+    end
+
     count_inter = count_inter + 1
     return r
 end
