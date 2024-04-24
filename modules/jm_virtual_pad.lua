@@ -78,7 +78,7 @@ local Bt_Select = TouchButton:new {
 }
 --==========================================================================
 local dpad_pos_x = 0.05
-local dpad_pos_y = 0.8 --0.95
+local dpad_pos_y = 0.75 --0.95
 
 ---@param self JM.GUI.TouchButton
 local dpad_draw = function(self)
@@ -1103,7 +1103,7 @@ function Pad:fix_positions()
 
         -- local sx, sy, sw, sh = love.window.getSafeArea()
 
-        local anchor_x = (sfx == 0 and 20 or sfx) + 10 -- w * dpad_pos_x + size
+        local anchor_x = (sfx == 0 and 25 or sfx) + 10 -- w * dpad_pos_x + size
         local anchor_y = h * dpad_pos_y - size
         -- local space_x = not stick.is_visible and (space * 4) or (space * 2)
 
