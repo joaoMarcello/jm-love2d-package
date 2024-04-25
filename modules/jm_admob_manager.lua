@@ -69,7 +69,7 @@ local function dispatch_callback(type, ...)
 end
 
 ---@overload fun(self:table)
----@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top", skipRequest: boolean|nil}
+---@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top", skipInitialRequests: boolean|nil, skipRewardRequest:boolean|nil, skipInterstitialRequest: boolean|nil}
 function Ad:init(args)
     args = args or {}
     if admob then
@@ -78,9 +78,13 @@ function Ad:init(args)
     self:setIds(args.banner, args.inter, args.reward)
     self:createBanner(nil, args.bannerPos, not args.hideBanner)
 
-    if not args.skipRequest then
-        self:requestInterstitial()
-        self:requestRewardedAd()
+    if not args.skipInitialRequests then
+        if not args.skipInterstitialRequest then
+            self:requestInterstitial()
+        end
+        if not args.skipRewardRequest then
+            self:requestRewardedAd()
+        end
     end
 end
 
@@ -225,7 +229,7 @@ if admob then
 
     ---@return string locale
     function Ad:getDeviceLanguage()
-        return admob.getDeviceLanguage() or "ER"
+        return admob.getDeviceLanguage()
     end
 
     function Ad:update(dt)
@@ -335,7 +339,7 @@ function Ad:tryShowInterstitial(onSuccess, onCloseAfterSuccess, onFail)
         if onSuccess then onSuccess() end
         return true
     else
-        if onFail then onFail() end
+        if not admob and onFail then onFail() end
         return false
     end
 end
@@ -353,7 +357,7 @@ function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
         if onSuccess then onSuccess() end
         return true
     else
-        if onFail then onFail() end
+        if not admob and onFail then onFail() end
         return false
     end
 end
@@ -383,6 +387,7 @@ function Ad:showForcedCountInterstitialAd(index, onFail)
 
     if count_inter == 0 then
         r = self:forceInterstitialAd(index, onFail)
+        if not r then return false end
     end
 
     count_inter = count_inter + 1
