@@ -1279,7 +1279,7 @@ end
 
 Pad:set_button_size()
 Pad:fix_positions()
-Pad:set_opacity(0.45)
+Pad:set_opacity(0.4)
 
 Pad:use_all_buttons(true)
 Pad:turn_off_dpad()
