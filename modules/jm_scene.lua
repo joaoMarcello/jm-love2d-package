@@ -1495,7 +1495,7 @@ local init = function(self, ...)
     -- end
 
     if self.use_vpad then
-        Controllers.P1:set_vpad(self:get_vpad())
+        Controllers.P1:set_vpad(VPad)
     end
 
     local param = self.__param__
