@@ -614,6 +614,8 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
     local total_width = cur_x
     local max_height = -math.huge
 
+    local newImageData = love.image.newImageData
+
     for _, glyph_s in ipairs(glyph_table) do
         local glyph = render:getGlyphData(glyph_s)
 
@@ -624,7 +626,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
             if type(w) == "number" and type(h) == "number"
                 and w > 0 and h > 0
             then
-                local glyphData = love.image.newImageData(w, h, "rgba8", glyph:getString():gsub("(.)(.)", "%1%1%1%2"))
+                local glyphData = newImageData(w, h, "rgba8", glyph:getString():gsub("(.)(.)", "%1%1%1%2"))
 
                 local glyphDataWidth, glyphDataHeight = glyphData:getDimensions()
 
@@ -646,6 +648,10 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
     local limits = love.graphics.getSystemLimits()
     local max_value = max_texturesize or total_width
 
+    if total_width < limits.texturesize then
+        max_value = total_width + 4
+    end
+
     if max_value > limits.texturesize then
         max_value = limits.texturesize
     end
@@ -653,7 +659,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
     local n_lines = math.ceil(total_width / max_value)
     n_lines = n_lines == 0 and 1 or n_lines
 
-    local font_imgdata = love.image.newImageData(
+    local font_imgdata = newImageData(
         max_value,
         (max_height) * n_lines + 5, "rgba8"
     )
