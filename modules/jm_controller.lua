@@ -644,6 +644,12 @@ function Controller:switch_to_joystick()
     return self:set_state(States.joystick)
 end
 
+function Controller:switch_to_vpad()
+    if not self.vpad then return false end
+    self:set_state(States.vpad)
+    return true
+end
+
 function Controller:is_on_keyboard_mode()
     return self.state == States.keyboard
 end
