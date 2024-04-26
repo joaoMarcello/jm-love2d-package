@@ -1,4 +1,4 @@
----@alias JM.GameState.Config {skip_finish:boolean, skip_load:boolean, save_prev:boolean, skip_collect:boolean, skip_init:boolean, skip_transition:boolean, transition:string, transition_conf:table, unload:string, skip_prev_state_finish:boolean}
+---@alias JM.GameState.Config {skip_finish:boolean, skip_load:boolean, save_prev:boolean, skip_collect:boolean, skip_init:boolean, skip_transition:boolean, transition:string, transition_conf:table, unload:string, skip_prev_state_finish:boolean, trans_end_action:function}
 
 -- ---@type JM.Scene
 -- local scene
