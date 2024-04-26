@@ -1266,6 +1266,7 @@ function Pad:update(dt)
 end
 
 function Pad:draw()
+    if not (JM.ControllerManager.P1:is_on_vpad_mode()) then return end
     push("all")
     setLineWidth(2)
     setLineStyle("smooth")
