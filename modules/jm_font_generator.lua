@@ -556,7 +556,8 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
     local success
 
     success, render = pcall(function()
-        return love.font.newRasterizer(path, dpi or 64)
+        -- return love.font.newRasterizer(path, dpi or 64)
+        return love.font.newRasterizer(path, dpi or 64, "normal", 1)
     end)
 
     if not success or not path then return end
@@ -567,9 +568,14 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
     local glyph_table = {}
     local glyphs = ""
 
+    --[[
+        Useful site to checks the desired threshold
+             https://symbl.cc/en/unicode-table/
+    ]]
     local threshold = threshold or { { 33, 126 }, { 128, 255 }, { 256, 383 } }
 
     local type, tonumber = type, tonumber
+    local utf8_char = utf8.char
 
     for k = 1, #threshold do
         local lim = threshold[k]
@@ -588,7 +594,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
         assert(left <= right)
 
         for i = left, right do
-            local glyph_s = utf8.char(i)
+            local glyph_s = utf8_char(i)
             local glyph = render:getGlyphData(glyph_s)
 
             if glyph then
@@ -616,7 +622,9 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
 
     local newImageData = love.image.newImageData
 
-    for _, glyph_s in ipairs(glyph_table) do
+    -- for _, glyph_s in ipairs(glyph_table) do
+    for i = 1, #glyph_table do
+        local glyph_s = glyph_table[i]
         local glyph = render:getGlyphData(glyph_s)
 
         if glyph then
