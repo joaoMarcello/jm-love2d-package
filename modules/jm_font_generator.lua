@@ -547,7 +547,8 @@ function Font:load_glyphs(dir, format, glyphs, quads_pos, min_filter, max_filter
     self.__imgs[format] = img
 end
 
-local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_texturesize)
+---@param hinting "normal"|"light"|"mono"|"none"|any
+local function load_by_tff(name, path, fontsize, save, threshold, glyphs_str, max_texturesize, hinting, dpiscale)
     if not name or not path then return end
 
     ---@type love.Rasterizer
@@ -557,7 +558,7 @@ local function load_by_tff(name, path, dpi, save, threshold, glyphs_str, max_tex
 
     success, render = pcall(function()
         -- return love.font.newRasterizer(path, dpi or 64)
-        return love.font.newRasterizer(path, dpi or 64, "normal", 1)
+        return love.font.newRasterizer(path, fontsize or 64, hinting or "normal", dpiscale or 1)
     end)
 
     if not success or not path then return end
@@ -2092,30 +2093,48 @@ local Generator = {
     --
     new_by_ttf = function(self, args)
         args = args or {}
-        local imgData, glyphs, quads_pos = load_by_tff(args.name,
-            args.dir or args.path, args.dpi, args.save, args.threshold, nil, args.max_texturesize)
+        local imgData, glyphs, quads_pos = load_by_tff(
+            args.name,
+            args.dir or args.path, args.dpi, args.save, args.threshold, nil,
+            args.max_texturesize, args.hinting, args.dpiscale
+        )
         args.regular_data = imgData
         args.regular_quads = quads_pos
 
         do
-            local data, gly, quads = load_by_tff(args.name .. " bold",
-                args.dir_bold or args.path_bold, args.dpi, args.save, args.threshold, glyphs, args.max_texturesize)
+            local data, _, quads = load_by_tff(
+                args.name .. " bold",
+                args.dir_bold or args.path_bold,
+                args.dpi, args.save, args.threshold,
+                glyphs, args.max_texturesize,
+                args.hinting, args.dpiscale
+            )
 
             args.bold_data = data
             args.bold_quads = quads
         end
 
         do
-            local italic_data, gly, quads = load_by_tff(
+            local italic_data, _, quads = load_by_tff(
                 args.name .. " italic",
-                args.dir_italic or args.path_italic, args.dpi, args.save, args.threshold, glyphs, args.max_texturesize)
+                args.dir_italic or args.path_italic,
+                args.dpi, args.save, args.threshold,
+                glyphs, args.max_texturesize,
+                args.hinting, args.dpiscale
+            )
 
             args.italic_data = italic_data
             args.italic_quads = quads
         end
 
         args.glyphs = glyphs
-        return Font.new(Font, args)
+
+        do
+            local font = Font.new(Font, args)
+            local font_size = args.font_size
+            if font_size then font:set_font_size(font_size) end
+            return font
+        end
     end,
     --
     --
