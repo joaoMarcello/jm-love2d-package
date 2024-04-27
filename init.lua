@@ -146,6 +146,13 @@ function JM:get_font(font)
     end
 end
 
+---@param name string
+---@param font JM.Font.Font
+function JM:force_font(name, font)
+    fonts[name] = font
+    return font
+end
+
 ---@type JM.Camera.Camera
 JM.Camera = require(string.gsub(path, "init", "modules.jm_camera"))
 
