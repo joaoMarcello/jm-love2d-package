@@ -657,7 +657,7 @@ local function load_by_tff(name, path, fontsize, save, threshold, glyphs_str, ma
     local limits = love.graphics.getSystemLimits()
     local max_value = max_texturesize or total_width
 
-    if total_width < limits.texturesize then
+    if total_width < max_texturesize then
         max_value = total_width + 4
     end
 
