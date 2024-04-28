@@ -1062,16 +1062,17 @@ function Pad:fix_positions()
     end
 
     do
-        left_stick:set_dimensions(min * 0.2, min * 0.2)
+        local dim = min * 0.175
+        left_stick:set_dimensions(dim, dim)
         left_stick:set_position(
-            sfx + left_stick.max_dist + w * 0.015,
-            left_stick.bounds_top + left_stick.bounds_height * 0.4,
+            (sfx == 0 and 30 or sfx) + left_stick.max_dist + 15,
+            left_stick.bounds_top + left_stick.bounds_height * 0.35,
             true
-        )
+        ) -- (w * 0.015 * 0)
         left_stick:init()
 
         local rstick = right_stick
-        rstick:set_dimensions(min * 0.2, min * 0.2)
+        rstick:set_dimensions(dim, dim)
         rstick:set_position(
             (sfx + sfw - rstick.w) - rstick.max_dist - w * 0.015,
             rstick.bounds_top + rstick.bounds_height * 0.4,
