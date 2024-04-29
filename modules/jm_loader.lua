@@ -30,6 +30,7 @@ local Loader = {
         return dat
     end,
     --
+    ---@return string|love.ByteData|any
     load = function(path, return_type, skip_unpack)
         return_type = return_type or str
         ---@type any
