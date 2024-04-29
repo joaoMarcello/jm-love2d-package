@@ -181,7 +181,7 @@ local Font = {
     Phrase = Phrase,
 }
 
----@alias JM.FontGenerator.Args {name: string, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string, dir:string, dir_bold:string, dir_italic:string, word_space:number}
+---@alias JM.FontGenerator.Args {name: string, font_size: number, line_space: number, tab_size: number, character_space: number, color: JM.Color, glyphs:string, glyphs_bold:string, glyphs_italic:string, glyphs_bold_italic:string, regular_data: love.ImageData, bold_data:love.ImageData, italic_data:love.ImageData, regular_quads:any, italic_quads:any, bold_quads:any, min_filter:string, max_filter:string, dir:string, dir_bold:string, dir_italic:string, word_space:number, skip_remove_mask_step:boolean}
 
 -- -@overload fun(self: table, args: JM.AvailableFonts)
 
@@ -237,7 +237,8 @@ function Font:__constructor__(args)
         find_nicks2(get_glyphs(args.glyphs)),
         args.regular_quads,
         args.min_filter,
-        args.max_filter
+        args.max_filter,
+        args.skip_remove_mask_step
     )
 
 
@@ -250,7 +251,8 @@ function Font:__constructor__(args)
             find_nicks2(get_glyphs(args.glyphs_bold or args.glyphs)),
             args.bold_quads,
             args.min_filter,
-            args.max_filter
+            args.max_filter,
+            args.skip_remove_mask_step
         )
     else
         self.__characters[FontFormat.bold] = self.__characters[FontFormat.normal]
@@ -266,7 +268,8 @@ function Font:__constructor__(args)
             find_nicks2(get_glyphs(args.glyphs_italic or args.glyphs)),
             args.italic_quads,
             args.min_filter,
-            args.max_filter
+            args.max_filter,
+            args.skip_remove_mask_step
         )
     else
         self.__characters[FontFormat.italic] = self.__characters[FontFormat.normal]
@@ -367,7 +370,7 @@ end
 ---@param dir any
 ---@param format JM.Font.FormatOptions
 ---@param glyphs table
-function Font:load_glyphs(dir, format, glyphs, quads_pos, min_filter, max_filter)
+function Font:load_glyphs(dir, format, glyphs, quads_pos, min_filter, max_filter, skip_remove_mask_step)
     -- try load the img data
     local success, img_data = pcall(
         function()
@@ -390,8 +393,9 @@ function Font:load_glyphs(dir, format, glyphs, quads_pos, min_filter, max_filter
         return r == mask_color_red[1] and g == mask_color_red[2] and b == mask_color_red[3] and a == mask_color_red[4]
     end
 
+    ---@type love.Image
     local img
-    do
+    if not skip_remove_mask_step then
         local width, height = img_data:getDimensions()
 
         local data = love.image.newImageData(width, height)
@@ -408,6 +412,9 @@ function Font:load_glyphs(dir, format, glyphs, quads_pos, min_filter, max_filter
         img = lgx.newImage(data)
         img:setFilter(min_filter or "linear", max_filter or "nearest")
         data:release()
+        ---
+    else
+        img = lgx.newImage(img_data)
     end
 
     local w, h = img_data:getDimensions()
@@ -754,6 +761,8 @@ local function load_by_tff(name, path, fontsize, save, threshold, glyphs_str, ma
     if save then
         font_imgdata:encode("png", name:match(".*[^%.]") .. ".png")
         love.filesystem.write("glyphs_" .. name .. ".txt", glyphs)
+        JM.Ldr.save(quad_pos, "quad_" .. name .. ".dat")
+        JM.Ldr.save({ glyphs = glyphs, quad_pos = quad_pos }, "data_" .. name .. ".dat")
     end
 
     return font_imgdata, glyphs, quad_pos
