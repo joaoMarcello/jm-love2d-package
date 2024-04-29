@@ -148,7 +148,7 @@ end
 
 ---@param name string
 ---@param font JM.Font.Font
-function JM:force_font(name, font)
+function JM:set_font(name, font)
     fonts[name] = font
     return font
 end
