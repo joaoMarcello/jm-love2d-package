@@ -246,7 +246,10 @@ function Label:__custom_draw__()
 
         lgx.setColor(font.__default_color)
         -- lgx.setLineWidth(1)
-        lgx.line(px2, py + font.__line_space, px2, py + font.__font_size)
+        local h = self.h
+        local hh = h * 0.75
+        local y = self.y + (h - hh) * 0.5
+        lgx.line(px2, y, px2, y + hh)
         -- lgx.setLineWidth(1)
     end
 
