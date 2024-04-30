@@ -200,10 +200,10 @@ end
 
 function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     bounds = bounds or {
-        left = -math.huge,
-        right = math.huge,
-        top = -math.huge,
-        bottom = math.huge,
+        left = -1000000,
+        right = 1000000,
+        top = -1000000,
+        bottom = 1000000,
     }
 
     conf = conf or {}
