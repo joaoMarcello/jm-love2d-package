@@ -1038,9 +1038,10 @@ function Camera:set_scale(value)
 end
 
 function Camera:jump_to(x, y)
-    self:set_position(
-        x - self.focus_x / self.scale,
-        y - self.focus_y / self.scale
+    local scale = self.scale
+    return self:set_position(
+        x - self.focus_x / scale,
+        y - self.focus_y / scale
     )
 end
 
