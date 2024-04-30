@@ -326,6 +326,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     ---@type table|any
     self.game_objects = nil --{}
+
+    self.update_time = 0.0
 end
 
 function Scene:get_vpad()
@@ -1108,6 +1110,7 @@ local update = function(self, dt)
     if self.__skip then return end
 
     do
+        self.update_time = self.update_time + dt
         local update = param.update
         if update then update(dt) end
     end
@@ -1497,6 +1500,8 @@ local init = function(self, ...)
     if self.use_vpad then
         Controllers.P1:set_vpad(VPad)
     end
+
+    self.update_time = 0.0
 
     local param = self.__param__
     local r = param.init and param.init(unpack { ... })
