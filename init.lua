@@ -265,6 +265,13 @@ function JM:load_initial_state(
     return SceneManager.scene:resize(love.graphics.getDimensions())
 end
 
+function JM:to_fullscreen()
+    if not fullscreen then
+        fullscreen = true
+        return love.window.setFullscreen(true, _G.FULLSCREEN_TYPE or 'desktop')
+    end
+end
+
 function JM:flush()
     self.FontGenerator.flush()
     self.ParticleSystem:flush()
