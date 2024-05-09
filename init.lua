@@ -353,6 +353,27 @@ function JM:set_default_font(font, force)
     return true
 end
 
+---@type JM.GUI.Component|nil
+local fullscreen_button = nil
+
+function JM:show_fullscreen_button()
+    if fullscreen_button then return end
+    local img = love.graphics.newImage("/jm-love2d-package/data/img/fullscreen_icon.png")
+
+    local size = math.floor(
+        math.min(love.graphics.getDimensions()) * 0.075 + 0.5)
+
+    fullscreen_button = self.GUI.Component:new {
+        x = 0, y = 0, w = size, h = size,
+        on_focus = true,
+        draw = function(self)
+            local lgx = love.graphics
+            lgx.setColor(1, 1, 1)
+            return lgx.draw(img, self.x, self.y, 0, self.w / img:getWidth(), self.h / img:getHeight())
+        end
+    }
+end
+
 local locker_path = JM_Path .. "modules.locker.init"
 function JM:update(dt)
     do
@@ -438,10 +459,24 @@ function JM:update(dt)
             locker.session_inited = false
         end
     end
+
+    do
+        if fullscreen_button then
+            local w, h = love.graphics:getDimensions()
+            local border = math.floor(math.min(w, h) * 0.025 + 0.5)
+            fullscreen_button:set_position(border, h - fullscreen_button.h - border)
+            fullscreen_button:update(dt)
+        end
+    end
 end
 
 function JM:draw()
-    return SceneManager.scene:draw()
+    if fullscreen_button and fullscreen_button.on_focus then
+        SceneManager.scene:draw()
+        return fullscreen_button:draw()
+    else
+        return SceneManager.scene:draw()
+    end
 end
 
 --===========================================================================
@@ -487,7 +522,26 @@ function JM:keyreleased(key, scancode)
 end
 
 function JM:mousepressed(x, y, button, istouch, presses)
-    return SceneManager.scene:mousepressed(x, y, button, istouch, presses)
+    if fullscreen_button and istouch and fullscreen_button.on_focus then
+        fullscreen_button:set_focus(false)
+    end
+
+    if fullscreen_button and fullscreen_button.on_focus
+        and fullscreen_button:check_collision(x, y, 0, 0)
+    then
+        if fullscreen then
+            love.window.setFullscreen(false)
+            fullscreen = false
+        else
+            self:to_fullscreen()
+        end
+
+        local size = math.floor(
+            math.min(love.graphics.getDimensions()) * 0.075 + 0.5)
+        fullscreen_button:set_dimensions(size, size)
+    else
+        return SceneManager.scene:mousepressed(x, y, button, istouch, presses)
+    end
 end
 
 function JM:mousereleased(x, y, button, istouch, presses)
@@ -570,6 +624,11 @@ function JM:gamepadaxis(joy, axis, value)
 end
 
 function JM:resize(w, h)
+    if fullscreen_button then
+        local size = math.floor(
+            math.min(w, h) * 0.075 + 0.5)
+        fullscreen_button:set_dimensions(size, size)
+    end
     return SceneManager.scene:resize(w, h)
 end
 
