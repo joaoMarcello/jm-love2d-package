@@ -28,6 +28,10 @@ local AdsType = {
 local Ad = {}
 
 local time = 0.0
+
+local inter_ads_time = 0.0
+local inter_ads_interval = 30.0
+
 local id_banner_test = "ca-app-pub-3940256099942544/6300978111"
 local id_inter_test = "ca-app-pub-3940256099942544/1033173712"
 local id_reward_test = "ca-app-pub-3940256099942544/5224354917"
@@ -232,12 +236,22 @@ if admob then
         return admob.getDeviceLanguage()
     end
 
+    local lim = 1 / 30
     function Ad:update(dt)
+        dt = dt > lim and lim or dt
+
         if time >= 0.1 then
             self:checkForAdsCallbacks()
             time = 0.0
         end
         time = time + dt
+
+        if inter_ads_time ~= 0.0 then
+            inter_ads_time = inter_ads_time - dt
+            if inter_ads_time < 0 then
+                inter_ads_time = 0.0
+            end
+        end
     end
 
     ---
@@ -379,6 +393,29 @@ function Ad:showCountInterstitialAd()
     end
     count_inter = count_inter + 1
     return r
+end
+
+function Ad:showTimeInterstitialAd()
+    if inter_ads_time ~= 0 then return false end
+    local r = false
+    if self:tryShowInterstitial() then
+        r = true
+        love.timer.sleep(1)
+        inter_ads_time = inter_ads_interval
+    else
+        self:requestInterstitial()
+    end
+    return r
+end
+
+function Ad:dispatchInterstitialTimer()
+    inter_ads_time = inter_ads_interval
+end
+
+function Ad:setInterstitialAdInterval(value)
+    value = value or inter_ads_interval
+    assert(value > 0, "Error: value should be a positive number!")
+    inter_ads_interval = value
 end
 
 function Ad:showForcedCountInterstitialAd(index, onFail)
