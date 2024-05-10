@@ -629,6 +629,7 @@ function JM:resize(w, h)
         local size = math.floor(
             math.min(w, h) * 0.075 + 0.5)
         fullscreen_button:set_dimensions(size, size)
+        fullscreen_button:set_focus(not fullscreen)
     end
     return SceneManager.scene:resize(w, h)
 end
