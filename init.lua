@@ -624,6 +624,7 @@ function JM:gamepadaxis(joy, axis, value)
 end
 
 function JM:resize(w, h)
+    fullscreen = love.window.getFullscreen()
     if fullscreen_button then
         local size = math.floor(
             math.min(w, h) * 0.075 + 0.5)
