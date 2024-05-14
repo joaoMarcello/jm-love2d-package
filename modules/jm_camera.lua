@@ -1549,8 +1549,8 @@ function Camera:attach(lock_shake, subpixel, shake_factor, skip_scissor)
     -- return love_translate(round(tx), round(ty))
 
     return love_translate(
-        round(tx - ((ox + vx) / scale)),
-        round(ty - ((oy + vy) / scale))
+        (tx - ((ox + vx) / scale)),
+        (ty - ((oy + vy) / scale))
     )
 end
 
