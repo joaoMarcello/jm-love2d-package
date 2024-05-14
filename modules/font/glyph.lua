@@ -216,12 +216,8 @@ end
 
 -- local floor = math.floor
 function Glyph:draw(x, y)
-    -- if floor(self.sx) == self.sx then
-    --     self.x, self.y = floor(x + 0.5), floor(y + 0.5)
-    -- else
-    --     self.x, self.y = x, y
-    -- end
     self.x, self.y = x, y
+    -- self.x, self.y = floor(x + 0.5), floor(y + 0.5)
     return Affectable.draw(self, __glyph_draw__)
 end
 
