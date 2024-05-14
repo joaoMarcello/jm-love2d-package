@@ -112,8 +112,8 @@ do
         x = x - cam.focus_x / cam.scale
         y = y - cam.focus_y / cam.scale
 
-        x = Utils:round(x)
-        y = Utils:round(y)
+        -- x = Utils:round(x)
+        -- y = Utils:round(y)
 
         self.last_x = self.x or x
         self.last_y = self.y or y
