@@ -216,7 +216,7 @@ end
 
 -- local floor = math.floor
 function Glyph:draw(x, y)
-    -- if false and floor(self.sx) == self.sx then
+    -- if floor(self.sx) == self.sx then
     --     self.x, self.y = floor(x + 0.5), floor(y + 0.5)
     -- else
     --     self.x, self.y = x, y
