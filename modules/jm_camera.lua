@@ -1529,11 +1529,12 @@ function Camera:attach(lock_shake, subpixel, shake_factor, skip_scissor)
     -- local ox, oy = (self.viewport_w * 0.5), (self.viewport_h * 0.5)
     local ox, oy = self.ox, self.oy
     local scale = self.scale
+    local vx, vy = self.viewport_x, self.viewport_y
 
     love_push()
-    love_translate(ox + self.viewport_x, oy + self.viewport_y) ---
+    love_translate(ox + vx, oy + vy) ---
     love_scale(scale)
-    love_rotate(self.angle)                                    ---
+    love_rotate(self.angle)          ---
 
     local shake_x, shake_y = 0, 0
     if not lock_shake then
@@ -1542,14 +1543,14 @@ function Camera:attach(lock_shake, subpixel, shake_factor, skip_scissor)
         shake_x = self.controller_shake_x.value * shake_factor
     end
 
-    local tx = -(self.x) + (self.viewport_x / scale) + shake_x
-    local ty = -(self.y) + (self.viewport_y / scale) + shake_y
+    local tx = -(self.x) + (vx / scale) + shake_x
+    local ty = -(self.y) + (vy / scale) + shake_y
 
     -- return love_translate(round(tx), round(ty))
 
     return love_translate(
-        (tx - ((ox + self.viewport_x) / scale)),
-        (ty - ((oy + self.viewport_y) / scale))
+        round(tx - ((ox + vx) / scale)),
+        round(ty - ((oy + vy) / scale))
     )
 end
 
