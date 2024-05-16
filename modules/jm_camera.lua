@@ -1512,6 +1512,12 @@ function Camera:update(dt)
     self.dy = self.y - last_y
 end
 
+local format = string.format
+local tonumber = tonumber
+local function round2(x)
+    return tonumber(format("%.2f", x))
+end
+
 function Camera:attach(lock_shake, subpixel, shake_factor, skip_scissor)
     if not skip_scissor then
         local x, y, w, h = self:get_viewport()
@@ -1546,12 +1552,10 @@ function Camera:attach(lock_shake, subpixel, shake_factor, skip_scissor)
     local tx = -(self.x) + (vx / scale) + shake_x
     local ty = -(self.y) + (vy / scale) + shake_y
 
-    -- return love_translate(round(tx), round(ty))
+    local px = (tx - ((ox + self.viewport_x) / scale))
+    local py = (ty - ((oy + self.viewport_y) / scale))
 
-    return love_translate(
-        (tx - ((ox + vx) / scale)),
-        (ty - ((oy + vy) / scale))
-    )
+    return love_translate(round2(px), round2(py))
 end
 
 function Camera:detach()
