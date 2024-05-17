@@ -327,12 +327,19 @@ local function kinematic_moves_dynamic_x(self, goalx)
                         end
                     end
 
+                    local coll_x = false
                     if not wall_left and item.wall_left then
                         dispatch_event(item, BodyEvents.wall_left_touch)
+                        coll_x = true
                     end
                     if not wall_right and item.wall_right then
                         dispatch_event(item, BodyEvents.wall_right_touch)
+                        coll_x = true
                     end
+                    if coll_x then
+                        dispatch_event(item, BodyEvents.axis_x_collision)
+                    end
+
 
                     local col = item:check(nil, nil, filter_stuck_x, empty_table(), empty_table_for_coll())
 
