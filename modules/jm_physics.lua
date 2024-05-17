@@ -238,6 +238,14 @@ local default_filter = function(body, item)
     return true
 end
 
+---@param body JM.Physics.Body
+---@param type_ JM.Physics.BodyEventOptions
+local function dispatch_event(body, type_)
+    ---@type JM.Physics.Event
+    local evt = body.events[type_]
+    local r = evt and evt.action(body, body.holder, evt.args)
+end
+
 ---@param obj JM.Physics.Body
 ---@param item JM.Physics.Collide
 local filter_stuck_x = function(obj, item)
@@ -295,6 +303,9 @@ local function kinematic_moves_dynamic_x(self, goalx)
                         item.x, item.y, item.w, item.h)
                     or collision_rect(self.x, self.y, self.w, self.h, item:rect())
                 then
+                    local wall_left = item.wall_left
+                    local wall_right = item.wall_right
+
                     local dist1 = abs(item:right() - self.x)
                     local dist2 = abs(item.x - self:right())
 
@@ -304,6 +315,7 @@ local function kinematic_moves_dynamic_x(self, goalx)
                         -- or item.speed_x <= 0
                         then
                             item:refresh(goalx + self.w + 0.1)
+                            item.wall_left = self
                         end
                     else
                         if diff < 0
@@ -311,7 +323,15 @@ local function kinematic_moves_dynamic_x(self, goalx)
                         -- or item.speed_x >= 0
                         then
                             item:refresh(goalx - item.w - 0.1)
+                            item.wall_right = self
                         end
+                    end
+
+                    if not wall_left and item.wall_left then
+                        dispatch_event(item, BodyEvents.wall_left_touch)
+                    end
+                    if not wall_right and item.wall_right then
+                        dispatch_event(item, BodyEvents.wall_right_touch)
                     end
 
                     local col = item:check(nil, nil, filter_stuck_x, empty_table(), empty_table_for_coll())
@@ -410,15 +430,6 @@ local function kinematic_moves_dynamic_y(self, goaly)
         end
     end
 end
-
----@param body JM.Physics.Body
----@param type_ JM.Physics.BodyEventOptions
-local function dispatch_event(body, type_)
-    ---@type JM.Physics.Event
-    local evt = body.events[type_]
-    local r = evt and evt.action(body, body.holder, evt.args)
-end
-
 --=============================================================================
 
 ---@class JM.Physics.Body
@@ -1724,18 +1735,36 @@ do
                 ---
             else
                 ---
-                if self.wall_left or self.wall_right then
-                    dispatch_event(self, BodyEvents.leaving_x_axis_body)
-                end
+                local leave = false
 
                 if self.wall_left then
-                    self.wall_left = nil
-                    dispatch_event(self, BodyEvents.leaving_wall_left)
+                    local wall = self.wall_left
+                    local x, y, w, h = wall:rect()
+
+                    if wall.type == BodyTypes.static
+                        or not self:check_collision(x - 0.15, y, w + 0.3, h)
+                    then
+                        self.wall_left = nil
+                        dispatch_event(self, BodyEvents.leaving_wall_left)
+                        leave = true
+                    end
                 end
 
                 if self.wall_right then
-                    self.wall_right = nil
-                    dispatch_event(self, BodyEvents.leaving_wall_right)
+                    local wall = self.wall_right
+                    local x, y, w, h = wall:rect()
+
+                    if wall.type == BodyTypes.static
+                        or not self:check_collision(x - 0.15, y, w + 0.3, h)
+                    then
+                        self.wall_right = nil
+                        dispatch_event(self, BodyEvents.leaving_wall_right)
+                        leave = true
+                    end
+                end
+
+                if leave then
+                    dispatch_event(self, BodyEvents.leaving_x_axis_body)
                 end
             end -- end moving in x axis
 
