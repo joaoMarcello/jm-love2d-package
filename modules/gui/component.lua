@@ -109,6 +109,9 @@ function Component:__constructor__(args)
     self.type_obj = TYPES_.generic
 
     self.mode = MODES.mouse
+    self.auto_press = args.auto_press
+    ---@type JM.Scene|nil
+    self.gamestate = args.scene or args.gamestate
 
     ---@type string
     self.text = args.text
@@ -194,9 +197,11 @@ function Component:mousereleased(x, y, button, istouch, presses)
     self.__mouse_released = self.__mouse_pressed and true or false
     self.__mouse_pressed = false
 
-    ---@type JM.GUI.Event|nil
-    local evt = self.events[EVENTS.mousereleased]
-    local r = evt and evt.action(self, x, y, button, istouch, presses, evt.args)
+    if self:check_collision(x, y, 0, 0) then
+        ---@type JM.GUI.Event|nil
+        local evt = self.events[EVENTS.mousereleased]
+        local r = evt and evt.action(self, x, y, button, istouch, presses, evt.args)
+    end
 
     self.time_press = false
     return self.__mouse_released
@@ -211,6 +216,8 @@ function Component:mousemoved(x, y, dx, dy, istouch)
         elseif love.mouse.isDown(2) then
             return self:mousepressed(x, y, 2, istouch)
         end
+    elseif not self:check_collision(x, y, 0, 0) then
+        return self:mousereleased(self.x - 2, self.y - 2, 1, false)
     end
 end
 
@@ -231,13 +238,19 @@ end
 
 function Component:touchpressed(id, x, y, dx, dy, pressure)
     if not self.on_focus then return false end
+    do
+        local scene = self.gamestate
+        if scene then
+            x, y = scene:real_to_screen(x, y)
+        end
+    end
 
     local check = self:check_collision(x, y, 0, 0)
     if not check then return false end
 
     ---@type JM.GUI.Event|nil
     local evt = self.events[EVENTS.touchpressed]
-    local r = evt and evt.action(id, x, y, dx, dy, pressure)
+    local r = evt and evt.action(self, id, x, y, dx, dy, pressure, evt.args)
 
     self.__touch_pressed = id
     self.time_press = 0.0
@@ -251,9 +264,18 @@ function Component:touchreleased(id, x, y, dx, dy, pressure)
         return
     end
 
-    ---@type JM.GUI.Event|nil
-    local evt = self.events[EVENTS.touchreleased]
-    local r = evt and evt.action(id, x, y, dx, dy, pressure)
+    do
+        local scene = self.gamestate
+        if scene then
+            x, y = scene:real_to_screen(x, y)
+        end
+    end
+
+    if self:check_collision(x, y, 0, 0) then
+        ---@type JM.GUI.Event|nil
+        local evt = self.events[EVENTS.touchreleased]
+        local r = evt and evt.action(self, id, x, y, dx, dy, pressure, evt.args)
+    end
 
     self.__touch_released = self.__touch_pressed and true or false
     self.__touch_pressed = false
@@ -268,6 +290,10 @@ function Component:touchmoved(id, x, y, dx, dy, pressure)
 
     if not self.__touch_pressed then
         return self:touchpressed(id, x, y, dx, dy, pressure)
+        ---
+    elseif not self:check_collision(x, y, 0, 0) then
+        return self:touchreleased(id, self.x - 2, self.y - 2, 0, 0, 1)
+        ---
     end
 end
 
@@ -304,6 +330,15 @@ function Component:update(dt)
     -- end
     if self.time_press then
         self.time_press = self.time_press + dt
+
+        local limit = self.auto_press
+        if limit and self.time_press > limit then
+            if self.__mouse_pressed then
+                self:mousereleased(self.x + 1, self.y + 1, 1, false)
+            elseif self.__touch_pressed then
+                self:touchreleased(self.__touch_pressed, self.x + 1, self.y + 1, 0, 0, 1)
+            end
+        end
     end
 
     if self.__touch_released then self.__touch_released = false end
