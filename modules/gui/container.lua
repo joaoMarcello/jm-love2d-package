@@ -50,6 +50,8 @@ function Container:__constructor__(args)
     self.show_bounds = args.show_bounds
     self.skip_scissor = args.skip_scissor
 
+    self.touch_mode = args.touch_mode or false
+
     self:set_type(args.type or "", args.mode or "center", args.grid_x, args.grid_y)
     return self
 end
@@ -91,7 +93,7 @@ function Container:switch(index)
     if last then
         last:set_focus(false)
     end
-    if self.cur_gc then
+    if self.cur_gc and not self.touch_mode then
         self.cur_gc:set_focus(true)
     end
 end
@@ -161,6 +163,7 @@ end
 
 function Container:update(dt)
     local list = self.components
+    local touch_mode = self.touch_mode
 
     for i = self.N, 1, -1 do
         ---@type JM.GUI.Component
@@ -170,12 +173,27 @@ function Container:update(dt)
             table.remove(list, i)
             self.N = self.N - 1
         else
-            local r = gc.is_enable and gc:update(dt)
+            if gc.is_enable then
+                gc:update(dt)
+
+                if touch_mode then
+                    if not gc.__mouse_pressed and not gc.__touch_pressed
+                        and gc.on_focus
+                    then
+                        gc:set_focus(false)
+                    end
+                    ---
+                end
+            end
         end
+        ---
     end
+    ---
 end
 
 function Container:mousepressed(x, y, bt, istouch, presses)
+    if self.touch_mode then self:put_on_focus_by_pos(x, y) end
+
     for i = 1, self.N do
         ---@type JM.GUI.Component
         local gc = self.components[i]
@@ -193,6 +211,33 @@ function Container:mousereleased(x, y, bt, istouch, presses)
 
         local r = gc.is_enable and not gc.__remove
             and gc:mousereleased(x, y, bt, istouch, presses)
+    end
+end
+
+function Container:mousemoved(x, y, dx, dy, istouch)
+    if self.touch_mode then self:put_on_focus_by_pos(x, y) end
+
+    local list = self.components
+    for i = 1, self.N do
+        ---@type JM.GUI.Component
+        local gc = list[i]
+
+        if gc.is_enable and not gc.__remove then
+            gc:mousemoved(x, y, dx, dy, istouch)
+        end
+    end
+end
+
+function Container:put_on_focus_by_pos(x, y)
+    local list = self.components
+    for i = 1, self.N do
+        ---@type JM.GUI.Component
+        local gc = list[i]
+        if gc.is_enable and not gc.__remove then
+            if gc:check_collision(x, y, 0, 0) and not gc.on_focus then
+                gc:set_focus(true)
+            end
+        end
     end
 end
 
