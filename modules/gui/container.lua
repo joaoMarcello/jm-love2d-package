@@ -6,6 +6,8 @@ local love_rectangle = love.graphics.rectangle
 ---@type JM.GUI.Component
 local Component = require((...):gsub("container", "component"))
 
+local Affectable = JM.Affectable
+
 ---@enum JM.GUI.Container.InsertMode
 local INSERT_MODE = {
     normal = 1,
@@ -162,6 +164,8 @@ function Container:verify_mouse_collision(mx, my)
 end
 
 function Container:update(dt)
+    self.__effect_manager:update(dt)
+
     local list = self.components
     local touch_mode = self.touch_mode
 
@@ -177,7 +181,7 @@ function Container:update(dt)
                 gc:update(dt)
 
                 if touch_mode then
-                    if not gc.__mouse_pressed and not gc.__touch_pressed
+                    if (not gc.__mouse_pressed) and (not gc.__touch_pressed)
                         and gc.on_focus
                     then
                         gc:set_focus(false)
@@ -228,6 +232,69 @@ function Container:mousemoved(x, y, dx, dy, istouch)
     end
 end
 
+function Container:touchpressed(id, x, y, dx, dy, pressure)
+    if self.gamestate then
+        x, y = self.gamestate:real_to_screen(x, y)
+    end
+
+    if self.touch_mode then
+        self:put_on_focus_by_pos(x, y)
+    end
+
+    local list = self.components
+
+    for i = 1, self.N do
+        ---@type JM.GUI.Component
+        local gc = list[i]
+
+        if gc.is_enable and not gc.__remove then
+            gc:touchpressed(id, x, y, dx, dy, pressure)
+        end
+    end
+end
+
+function Container:touchreleased(id, x, y, dx, dy, pressure)
+    if self.gamestate then
+        x, y = self.gamestate:real_to_screen(x, y)
+    end
+
+    if self.touch_mode then
+        self:put_on_focus_by_pos(x, y)
+    end
+
+    local list = self.components
+
+    for i = 1, self.N do
+        ---@type JM.GUI.Component
+        local gc = list[i]
+
+        if gc.is_enable and not gc.__remove then
+            gc:touchreleased(id, x, y, dx, dy, pressure)
+        end
+    end
+end
+
+function Container:touchmoved(id, x, y, dx, dy, pressure)
+    if self.gamestate then
+        x, y = self.gamestate:real_to_screen(x, y)
+    end
+
+    if self.touch_mode then
+        self:put_on_focus_by_pos(x, y)
+    end
+
+    local list = self.components
+
+    for i = 1, self.N do
+        ---@type JM.GUI.Component
+        local gc = list[i]
+
+        if gc.is_enable and not gc.__remove then
+            gc:touchmoved(id, x, y, dx, dy, pressure)
+        end
+    end
+end
+
 function Container:put_on_focus_by_pos(x, y)
     local list = self.components
     for i = 1, self.N do
@@ -262,7 +329,7 @@ function Container:keyreleased(key, scancode)
 end
 
 ---@param camera JM.Camera.Camera|any
-function Container:draw(camera)
+local function my_draw(self, camera)
     local sx, sy, sw, sh = love_get_scissor()
 
     if not self.skip_scissor and camera and camera.scene then
@@ -298,6 +365,10 @@ function Container:draw(camera)
         love_rectangle("line", x + self.border_x, y + self.border_y, self.w - self.border_x * 2,
             self.h - self.border_y * 2)
     end
+end
+
+function Container:draw(cam)
+    return Affectable.draw(self, my_draw, cam)
 end
 
 ---@param obj JM.GUI.Component
