@@ -238,12 +238,12 @@ end
 
 function Component:touchpressed(id, x, y, dx, dy, pressure)
     if not self.on_focus then return false end
-    do
-        local scene = self.gamestate
-        if scene then
-            x, y = scene:real_to_screen(x, y)
-        end
-    end
+    -- do
+    --     local scene = self.gamestate
+    --     if scene then
+    --         x, y = scene:real_to_screen(x, y)
+    --     end
+    -- end
 
     local check = self:check_collision(x, y, 0, 0)
     if not check then return false end
@@ -264,12 +264,12 @@ function Component:touchreleased(id, x, y, dx, dy, pressure)
         return
     end
 
-    do
-        local scene = self.gamestate
-        if scene then
-            x, y = scene:real_to_screen(x, y)
-        end
-    end
+    -- do
+    --     local scene = self.gamestate
+    --     if scene then
+    --         x, y = scene:real_to_screen(x, y)
+    --     end
+    -- end
 
     if self:check_collision(x, y, 0, 0) then
         ---@type JM.GUI.Event|nil
@@ -325,9 +325,6 @@ function Component:update(dt)
 
     self:__custom_update__(dt)
 
-    -- if self.mode == MODES.mouse then
-    --     mode_mouse_update(self, dt)
-    -- end
     if self.time_press then
         self.time_press = self.time_press + dt
 
