@@ -338,6 +338,12 @@ function Component:update(dt)
         end
     end
 
+    if self.__mouse_pressed and not self.auto_press
+        and not love.mouse.isDown(1)
+    then
+        self:mousereleased(self.x - 2, self.y - 2, 1, false)
+    end
+
     if self.__touch_released then self.__touch_released = false end
     if self.__mouse_released then self.__mouse_released = false end
 end
