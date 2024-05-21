@@ -29,8 +29,8 @@ local Ad = {}
 
 local time = 0.0
 
-local inter_ads_time = 0.0
 local inter_ads_interval = 30.0
+local inter_ads_time = inter_ads_interval
 
 local id_banner_test = "ca-app-pub-3940256099942544/6300978111"
 local id_inter_test = "ca-app-pub-3940256099942544/1033173712"
@@ -73,7 +73,7 @@ local function dispatch_callback(type, ...)
 end
 
 ---@overload fun(self:table)
----@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top", skipInitialRequests: boolean|nil, skipRewardRequest:boolean|nil, skipInterstitialRequest: boolean|nil}
+---@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top", skipInitialRequests: boolean|nil, skipRewardRequest:boolean|nil, skipInterstitialRequest: boolean|nil, interAdsInterval: number, countSteps: number}
 function Ad:init(args)
     args = args or {}
     if admob then
@@ -89,6 +89,14 @@ function Ad:init(args)
         if not args.skipRewardRequest then
             self:requestRewardedAd()
         end
+    end
+
+    if args.interAdsInterval then
+        self:setInterstitialAdInterval(args.interAdsInterval)
+    end
+
+    if args.countSteps then
+        self:setCountStep(args.countSteps)
     end
 end
 
@@ -376,12 +384,13 @@ function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
     end
 end
 
-local count_inter = 1
+local count_inter = 1 -- acumulator
+local count_steps = 2 -- amount ads to wait before display the next
 
 ---@return 0|-1|1 status
 function Ad:showCountInterstitialAd()
     local r = 0
-    count_inter = count_inter % 2
+    count_inter = count_inter % count_steps
     if count_inter == 0 then
         if not self:tryShowInterstitial() then
             self:requestInterstitial()
@@ -408,19 +417,31 @@ function Ad:showTimeInterstitialAd()
     return r
 end
 
+function Ad:setCountStep(value)
+    value = math.floor(value or count_steps)
+    assert(value > 1, "Error: Steps should be greater than 1!")
+    count_steps = value
+end
+
+function Ad:resetCounter()
+    count_inter = 1
+end
+
 function Ad:dispatchInterstitialTimer()
     inter_ads_time = inter_ads_interval
 end
 
+---@param value number # Time between interstitial ads (default 30)
 function Ad:setInterstitialAdInterval(value)
     value = value or inter_ads_interval
     assert(value > 0, "Error: value should be a positive number!")
     inter_ads_interval = value
+    inter_ads_time = inter_ads_interval * 0.75
 end
 
 function Ad:showForcedCountInterstitialAd(index, onFail)
     local r = false
-    count_inter = count_inter % 2
+    count_inter = count_inter % count_steps
 
     if count_inter == 0 then
         r = self:forceInterstitialAd(index, onFail)
@@ -429,6 +450,20 @@ function Ad:showForcedCountInterstitialAd(index, onFail)
 
     count_inter = count_inter + 1
     return r
+end
+
+function Ad:__isInterstitialLoaded()
+    if admob then
+        return admob.isInterstitialLoaded()
+    end
+    return false
+end
+
+function Ad:__isRewardedAdLoaded()
+    if admob then
+        return admob.isRewardedAdLoaded()
+    end
+    return false
 end
 
 return Ad
