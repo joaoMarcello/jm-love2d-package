@@ -118,10 +118,15 @@ function GC:update(dt)
     self.__effect_manager:update(dt)
 end
 
----@param custom_draw function|nil
-function GC:draw(custom_draw)
+---@param custom_draw function|JM.Camera.Camera|nil
+function GC:draw(custom_draw, cam)
+    if type(custom_draw) == "table" then
+        cam = custom_draw
+        custom_draw = self.__specific_draw__
+    end
+    custom_draw = custom_draw or self.__specific_draw__
     if custom_draw then
-        Affectable.draw(self, custom_draw)
+        return Affectable.draw(self, custom_draw, cam)
     end
 end
 
