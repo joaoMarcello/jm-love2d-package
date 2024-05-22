@@ -297,6 +297,41 @@ function Component:touchmoved(id, x, y, dx, dy, pressure)
     end
 end
 
+---@param eff_type JM.Effect.id_string
+---@param eff_args any
+---@return JM.Effect|table|any
+function Component:apply_effect(eff_type, eff_args, force)
+    if not self.eff_actives then self.eff_actives = {} end
+
+    local cur_eff = self.eff_actives[eff_type]
+
+    if not force
+        and cur_eff
+        and not cur_eff.__remove
+    then
+        return nil
+    end
+
+    if cur_eff then
+        cur_eff.__remove = true
+    end
+
+    self.eff_actives[eff_type] = Affectable.apply_effect(self, eff_type, eff_args)
+    return self.eff_actives[eff_type]
+end
+
+function Component:remove_effect(eff_type)
+    local actives = self.eff_actives
+    if not actives then return false end
+
+    ---@type JM.Effect
+    local eff = actives[eff_type]
+    if eff then
+        eff:restaure_object()
+        eff.__remove = true
+    end
+end
+
 -- ---@param self JM.GUI.Component
 -- local function mode_mouse_update(self, dt)
 --     local x, y
