@@ -67,11 +67,6 @@ function Container:set_position(x, y)
     Component.set_position(self, x, y)
 
     self:shift_objects(diff_x, diff_y)
-    -- for _, gc in ipairs(self.components) do
-    --     ---@type JM.GUI.Component
-    --     local c = gc
-    --     c:set_position(c.x + diff_x, c.y + diff_y)
-    -- end
 end
 
 function Container:shift_objects(dx, dy)
