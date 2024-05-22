@@ -328,6 +328,11 @@ function Container:keyreleased(key, scancode)
     end
 end
 
+function Container:set_dimensions(w, h)
+    Component.set_dimensions(self, w, h)
+    return self:__add_behavior__()
+end
+
 ---@param camera JM.Camera.Camera|any
 local function my_draw(self, camera)
     local sx, sy, sw, sh = love_get_scissor()
