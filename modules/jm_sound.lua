@@ -71,6 +71,8 @@ local Sound = {
     fade_out_speed = 0.5,
     fade_in_speed = 0.5,
     lock__ = false,
+    timer = {},
+    n_timer = 0,
 }
 
 function Sound:config(args)
@@ -93,6 +95,11 @@ function Sound:init()
     -- self:stop_all()
 end
 
+function Sound:flush()
+    _G.JM_Utils.clear_table(self.timer)
+    self.n_timer = 0
+end
+
 function Sound:update(dt)
     if self.__fade_out then
         local volume = love_get_volume() - 1.0 / self.fade_out_speed * dt
@@ -109,6 +116,20 @@ function Sound:update(dt)
         love_set_volume(volume)
         if volume >= 1 then
             self.__fade_in = false
+        end
+    end
+
+    if self.n_timer > 0 then
+        for k, _ in next, self.timer do
+            ---@type JM.Sound.Timed
+            k = k
+            k.delay = k.delay - dt
+
+            if k.delay <= 0.0 then
+                self:play_sfx(k.name, k.force)
+                self.timer[k] = nil
+                self.n_timer = self.n_timer - 1
+            end
         end
     end
 end
@@ -231,12 +252,20 @@ function Sound:play_song(name, reset)
     return audio.source:play()
 end
 
-function Sound:play_sfx(name, force)
+---@alias JM.Sound.Timed {delay:number, name:string, force:boolean}
+
+function Sound:play_sfx(name, force, delay)
     if Sound.lock__ then return end
 
     ---@type JM.Sound.Audio|nil
     local audio = list_sfx[name]
     if not audio then return end
+
+    if delay then
+        self.timer[{ delay = delay, name = name, force = force }] = true
+        self.n_timer = self.n_timer + 1
+        return audio.source
+    end
 
     if not audio.source:isPlaying() then
         audio.source:play()
