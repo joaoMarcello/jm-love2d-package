@@ -276,6 +276,7 @@ function JM:flush()
     self.FontGenerator.flush()
     self.ParticleSystem:flush()
     self.Physics:flush()
+    self.Sound:flush()
     collectgarbage()
 end
 
@@ -636,8 +637,8 @@ end
 
 --===========================================================================
 
-function Play_sfx(name, force)
-    return Sound:play_sfx(name, force)
+function Play_sfx(name, force, delay)
+    return Sound:play_sfx(name, force, delay)
 end
 
 function Play_song(name, reset)
