@@ -66,7 +66,9 @@ function Container:set_position(x, y)
 
     Component.set_position(self, x, y)
 
-    self:shift_objects(diff_x, diff_y)
+    if diff_x ~= 0 or diff_y ~= 0 then
+        return self:shift_objects(diff_x, diff_y)
+    end
 end
 
 function Container:shift_objects(dx, dy)
