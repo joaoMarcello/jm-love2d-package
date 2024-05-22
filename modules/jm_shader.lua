@@ -880,14 +880,14 @@ function M:get_shader(shader, state, conf)
             shock = lgx.newShader(code)
             shaders[shader] = shock
 
-            if conf.duration then
-                shock:send("duration", conf.duration)
-            end
-
             shock:send("iResolution",
                 conf.iResolution or (state
                     and { state.screen_w, state.screen_h }
                     or { lgx:getDimensions() }))
+
+            shock:send("iTime", 0.0)
+            shock:send("duration", conf.duration or 0.4)
+            shock:send("center", conf.center or { 0.5, 0.5 })
         end
         return shock
         ---
