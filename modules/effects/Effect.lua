@@ -255,7 +255,7 @@ function Effect:restaure_object()
     end
 
     if id == Type.flickering
-        or id == Type.popout
+    -- or id == Type.popout
     then
         obj:set_visible(true)
     end
