@@ -556,6 +556,25 @@ function Scene:point_monitor_to_world(x, y, camera)
     return x - camera.viewport_x / camera.scale, y - camera.viewport_y / camera.scale
 end
 
+---@param camera JM.Camera.Camera?
+function Scene:screen_to_real(x, y, camera)
+    camera = camera or self.camera
+    x = x or 0
+    y = y or 0
+
+    local ds = min((self.w - self.x) / self.screen_w,
+        (self.h - self.y) / self.screen_h
+    )
+
+    x = x - camera.viewport_x
+    y = y - camera.viewport_y
+
+    x = x * ds + (self.offset_x + self.x)
+    y = y * ds + (self.offset_y + self.y)
+
+    return x, y
+end
+
 ---@param value number|nil number in monitor coordinates size
 ---@param cam JM.Camera.Camera|nil
 ---@return number v the value scaled to camera's coordinates
