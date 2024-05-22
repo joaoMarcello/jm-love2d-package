@@ -1,9 +1,9 @@
 // https://www.shadertoy.com/view/wsGSR1
 // Created by trisslotten and edited by JM for use with LÖVE2D
-uniform float iTime = 0.0;
-uniform float duration = 0.4;
-uniform vec2 iResolution = vec2(512.0, 288.0);
-uniform vec2 center = vec2(0.5, 0.5);
+uniform float iTime;
+uniform float duration;
+uniform vec2 iResolution;
+uniform vec2 center;
 
 vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc ){
     float time = iTime;//mod(iTime, duration);
@@ -12,7 +12,7 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc ){
         return Texel(tex, uv);
     }
 
-    float scaling = love_ScreenSize.x / iResolution.x;
+    float scaling = 1.0; //love_ScreenSize.x / iResolution.x;
     vec2 pos = center * iResolution * scaling;
     
     float radius = 5000.0 * time * time * scaling;
