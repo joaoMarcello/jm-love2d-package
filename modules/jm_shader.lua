@@ -888,6 +888,9 @@ function M:get_shader(shader, state, conf)
             shock:send("iTime", 0.0)
             shock:send("duration", conf.duration or 0.4)
             shock:send("center", conf.center or { 0.5, 0.5 })
+            local dpi = love.window.getDPIScale()
+            dpi = dpi <= 0 and 1 or dpi
+            shock:send("scaling", conf.scaling or dpi)
         end
         return shock
         ---
