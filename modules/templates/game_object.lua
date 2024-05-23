@@ -6,6 +6,7 @@ Object.__index = Object
 
 ---@return GenericObject|table
 function Object:new(x, y, w, h, draw_order, update_order, reuse_tab)
+    ---@type GenericObject|table
     local obj = GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
     setmetatable(obj, self)
     return Object.__constructor__(obj)
