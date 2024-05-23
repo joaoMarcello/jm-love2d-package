@@ -305,6 +305,19 @@ function Container:put_on_focus_by_pos(x, y)
     end
 end
 
+function Container:remove_focus_by_pos(x, y)
+    local list = self.components
+    for i = 1, self.N do
+        ---@type JM.GUI.Component
+        local gc = list[i]
+        if gc.is_enable and not gc.__remove then
+            if not gc:check_collision(x, y, 0, 0) and gc.on_focus then
+                gc:set_focus(false)
+            end
+        end
+    end
+end
+
 function Container:keypressed(key, scancode, isrepeat)
     for i = 1, self.N do
         ---@type JM.GUI.Component
