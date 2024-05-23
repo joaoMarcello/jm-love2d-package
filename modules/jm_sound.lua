@@ -88,6 +88,10 @@ function Sound:unlock()
     Sound.lock__ = false
 end
 
+function Sound:is_locked()
+    return self.lock__
+end
+
 function Sound:init()
     self.__fade_in = false
     self.__fade_out = false
