@@ -16,7 +16,7 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc ){
     //float scaling = 1.0; //love_ScreenSize.x / iResolution.x;
     vec2 pos = center * iResolution * scaling;
     
-    float radius = 5000.0 * time * time;// * scaling;
+    float radius = (5000.0 * time * time) / scaling;// * scaling;
     float thickness_ratio = 0.1;
     
     float time_ratio = time/duration;
