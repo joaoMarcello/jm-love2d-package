@@ -4,6 +4,7 @@ uniform float iTime;
 uniform float duration;
 uniform vec2 iResolution;
 uniform vec2 center;
+uniform float scaling;
 
 vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc ){
     float time = iTime;//mod(iTime, duration);
@@ -12,10 +13,10 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc ){
         return Texel(tex, uv);
     }
 
-    float scaling = 1.0; //love_ScreenSize.x / iResolution.x;
+    //float scaling = 1.0; //love_ScreenSize.x / iResolution.x;
     vec2 pos = center * iResolution * scaling;
     
-    float radius = 5000.0 * time * time * scaling;
+    float radius = 5000.0 * time * time;// * scaling;
     float thickness_ratio = 0.1;
     
     float time_ratio = time/duration;
