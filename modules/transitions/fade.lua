@@ -40,7 +40,8 @@ function Fade:update(dt)
 end
 
 function Fade:draw()
-    local r, g, b = unpack(self.color)
+    local r, g, b, a = unpack(self.color)
+    if a == 0 then return end
 
     love.graphics.setColor(r, g, b, self.time / self.duration)
     love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
