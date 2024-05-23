@@ -2252,7 +2252,7 @@ function Scene:__get_data__()
     return false
 end
 
----@return table|any
+---@return table
 function Scene:get_props()
     self.props = self.props or nil
     return self.props or self:__get_data__()
