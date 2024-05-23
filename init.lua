@@ -1,6 +1,9 @@
 local path = (...)
 _G.FULLSCREEN_TYPE = _G.FULLSCREEN_TYPE or "desktop"
 
+if not path:match("%.init") then
+    path = path .. ".init"
+end
 _G.JM_Path = string.gsub(path, "init", "")
 
 local JM = {}
