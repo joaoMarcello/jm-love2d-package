@@ -566,8 +566,8 @@ function Scene:screen_to_real(x, y, camera)
         (self.h - self.y) / self.screen_h
     )
 
-    x = x - camera.viewport_x
-    y = y - camera.viewport_y
+    x = x + camera.viewport_x
+    y = y + camera.viewport_y
 
     x = x * ds + (self.offset_x + self.x)
     y = y * ds + (self.offset_y + self.y)
