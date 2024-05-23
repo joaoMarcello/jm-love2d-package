@@ -13,7 +13,7 @@ function GC:init_state(gamestate, world)
     GC.world = world
 end
 
----@return table
+---@return table|GameObject
 function GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
     reuse_tab = reuse_tab or GC.gamestate.pop_object()
 
@@ -34,18 +34,30 @@ function GC:__constructor__(x, y, w, h, draw_order, update_order)
     self.w = w or 16
     self.h = h or 16
 
+    self.ox = self.w * 0.5
+    self.oy = self.h * 0.5
+
     self.is_visible = true
     self.is_enable = true
 
     self.__remove = false
 
     self.eff_actives = nil
+    self.props = nil
 
     self.draw_order = draw_order or 0
     self.update_order = update_order or 0
 
     self.draw_order = self.draw_order + math.random()
     self.update_order = self.update_order + math.random()
+end
+
+function GC:get_props()
+    return self.props
+end
+
+function GC:set_custom_draw(draw)
+    self.__specific_draw__ = draw or self.__specific_draw__
 end
 
 function GC:set_draw_order(value)
