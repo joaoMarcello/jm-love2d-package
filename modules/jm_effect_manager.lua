@@ -318,7 +318,7 @@ function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
 
         eff = pulse
     elseif eff_type == TYPE.clickHere then
-        local bb = Swing:new(object, { range = 0.03, speed = 1 / 3, max_sequence = 2 })
+        local bb = Swing:new(object, { range = 0.0125, speed = 1 / 3, max_sequence = 2 })
 
         local idle = Idle:new(object, { duration = 1 })
 
