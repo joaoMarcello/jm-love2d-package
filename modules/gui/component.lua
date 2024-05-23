@@ -116,6 +116,8 @@ function Component:__constructor__(args)
     ---@type string
     self.text = args.text
 
+    self.extra_border = args.border or args.extra_border
+
     self:refresh_corners()
     self.events = {}
     self:init()
@@ -159,6 +161,17 @@ function Component:rect()
 end
 
 function Component:check_collision(x, y, w, h)
+    do
+        local b = self.extra_border
+        if b then
+            local sx, sy, sw, sh = self:rect()
+            sx = sx - b
+            sy = sy - b
+            sw = sw + b * 2
+            sh = sh + b * 2
+            return collision(x, y, w, h, sx, sy, sw, sh)
+        end
+    end
     return collision(x, y, w, h, self:rect())
 end
 
@@ -217,7 +230,8 @@ function Component:mousemoved(x, y, dx, dy, istouch)
             return self:mousepressed(x, y, 2, istouch)
         end
     elseif not self:check_collision(x, y, 0, 0) then
-        return self:mousereleased(self.x - 2, self.y - 2, 1, false)
+        local b = self.extra_border or 0
+        return self:mousereleased(self.x - 2 - b, self.y - 2 - b, 1, false)
     end
 end
 
@@ -376,7 +390,8 @@ function Component:update(dt)
     if self.__mouse_pressed and not self.auto_press
         and not love.mouse.isDown(1)
     then
-        self:mousereleased(self.x - 2, self.y - 2, 1, false)
+        local b = self.extra_border or 0
+        self:mousereleased(self.x - 2 - b, self.y - 2 - b, 1, false)
     end
 
     if self.__touch_released then self.__touch_released = false end
