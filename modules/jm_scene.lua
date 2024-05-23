@@ -2247,9 +2247,15 @@ function Scene:draw_game_object(camera, sort_by_y, custom_sort)
     end
 end
 
----@return any
+---@return table|any
 function Scene:__get_data__()
     return false
+end
+
+---@return table|any
+function Scene:get_props()
+    self.props = self.props or nil
+    return self.props or self:__get_data__()
 end
 
 return Scene
