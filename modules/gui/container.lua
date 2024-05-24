@@ -481,7 +481,13 @@ function Container:refresh_positions_x(mode)
     local y = self.y + self.border_y
     local w = self.w - self.border_x * 2
     local h = self.h - self.border_y * 2
-    local space = (w - self.total_width) / (N - 1)
+
+    local space
+    if N == 1 then
+        space = w * 0.5
+    else
+        space = (w - self.total_width) / (N - 1)
+    end
 
     for i = 1, N do
         ---@type JM.GUI.Component|nil
@@ -500,7 +506,9 @@ function Container:refresh_positions_x(mode)
         end
 
         gc:set_position(
-            prev and prev.right + space or x,
+            (prev and (prev.right + space))
+            or (N == 1 and (x + space - gc.w * 0.5))
+            or x,
             py
         )
     end
