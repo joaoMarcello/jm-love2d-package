@@ -1512,10 +1512,10 @@ function Camera:update(dt)
     self.dy = self.y - last_y
 end
 
-local format = string.format
-local tonumber = tonumber
 local function round2(x)
-    return tonumber(format("%.2f", x))
+    local f = mfloor(x)
+    local r = x % 1.0
+    return f + (mfloor(r * 100.0) / 100.0)
 end
 
 function Camera:attach(lock_shake, subpixel, shake_factor, skip_scissor)
