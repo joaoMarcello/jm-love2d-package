@@ -159,9 +159,9 @@ function Affectable:__draw__(draw, ...)
     --if not draw then return end
     lgx_push()
     apply_transform(self, self.x, self.y)
-    local args = (...) and { ... }
+    local args = (...) or nil
     if args then
-        draw(self, unpack(args))
+        draw(self, args)
     else
         draw(self)
     end

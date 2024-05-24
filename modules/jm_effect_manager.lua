@@ -123,14 +123,14 @@ end
 ---@param draw function # Draw method from affectable object.
 ---@param ... unknown # The param for the object draw method
 function EffectManager:draw(draw, ...)
-    local args = (...) and { ... } or nil
+    local args = (...) or nil
 
     for i = #(self.__effects_list), 1, -1 do
         ---@type JM.Effect
         local eff = self.__effects_list[i]
 
         if args then
-            eff:draw(draw, unpack(args))
+            eff:draw(draw, args)
         else
             eff:draw(draw)
         end
