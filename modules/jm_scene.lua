@@ -194,8 +194,11 @@ function Scene:new2(args)
     args.w = args.w and (args.x + args.w) or love.graphics.getWidth()
     args.h = args.h and (args.y + args.h) or love.graphics.getHeight()
 
-    return self:new(args.x, args.y, args.w, args.h, args.canvas_w or args.canvas_width,
-        args.canvas_h or args.canvas_height, bounds, args)
+    return self:new(args.x, args.y, args.w, args.h,
+        args.canvas_w or args.canvas_width or args.game_width,
+        args.canvas_h or args.canvas_height or args.game_height,
+        bounds, args
+    )
 end
 
 function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
