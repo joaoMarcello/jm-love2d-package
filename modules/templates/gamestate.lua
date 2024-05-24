@@ -13,8 +13,8 @@ local State = JM.Scene:new {
     y = nil,
     w = nil,
     h = nil,
-    canvas_w = _G.SCREEN_WIDTH or 320,
-    canvas_h = _G.SCREEN_HEIGHT or 180,
+    game_width = _G.SCREEN_WIDTH or 320,
+    game_height = _G.SCREEN_HEIGHT or 180,
     tile = _G.TILE,
     subpixel = _G.SUBPIXEL or 3,
     canvas_filter = _G.CANVAS_FILTER or 'linear',
@@ -25,8 +25,9 @@ local State = JM.Scene:new {
     cam_scale = 1,
 }
 --============================================================================
+---@class GenericState.Data
 local data = {}
-
+State.props = data
 --============================================================================
 
 function State:__get_data__()
@@ -80,6 +81,10 @@ local function touchreleased(id, x, y, dx, dy, pressure)
 
 end
 
+local function touchmoved(id, x, y, dx, dy, pressure)
+
+end
+
 local function gamepadpressed(joystick, button)
 
 end
@@ -95,19 +100,11 @@ local function update(dt)
 
 end
 
-local layer_main = {
-    ---@param cam JM.Camera.Camera
-    draw = function(self, cam)
+---@param cam JM.Camera.Camera
+local function draw(cam)
 
-    end
-}
+end
 
-local layers = {
-    --
-    layer_main,
-    --
-    --
-}
 --============================================================================
 State:implements {
     load = load,
@@ -121,11 +118,12 @@ State:implements {
     mousemoved = mousemoved,
     touchpressed = touchpressed,
     touchreleased = touchreleased,
+    touchmoved = touchmoved,
     gamepadpressed = gamepadpressed,
     gamepadreleased = gamepadreleased,
     gamepadaxis = gamepadaxis,
     update = update,
-    layers = layers,
+    draw = draw,
 }
 
 return State
