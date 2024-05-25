@@ -313,6 +313,14 @@ function Component:touchmoved(id, x, y, dx, dy, pressure)
     end
 end
 
+function Component:is_pressed()
+    return self.time_press
+end
+
+function Component:is_released()
+    return self.__mouse_released or self.__touch_released
+end
+
 ---@param eff_type JM.Effect.id_string
 ---@param eff_args any
 ---@return JM.Effect|table|any
