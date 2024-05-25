@@ -282,6 +282,7 @@ end
 function Ad:incrementInterstitialAdsTime(value)
     value = value or value
     inter_ads_time = inter_ads_time + value
+    inter_ads_time = math.min(math.max(value, 0), inter_ads_interval)
 end
 
 ---@param index number|nil
@@ -433,6 +434,10 @@ function Ad:resetCounter()
 end
 
 function Ad:dispatchInterstitialTimer()
+    inter_ads_time = inter_ads_interval
+end
+
+function Ad:restartInterstitialTimer()
     inter_ads_time = inter_ads_interval
 end
 
