@@ -113,6 +113,8 @@ function Component:__constructor__(args)
     ---@type JM.Scene|nil
     self.gamestate = args.scene or args.gamestate
 
+    self.props = nil
+
     ---@type string
     self.text = args.text
 
