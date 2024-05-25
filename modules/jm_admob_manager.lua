@@ -279,6 +279,11 @@ else
     Ad.update = func
 end
 
+function Ad:incrementInterstitialAdsTime(value)
+    value = value or value
+    inter_ads_time = inter_ads_time + value
+end
+
 ---@param index number|nil
 ---@param onFail function|nil
 function Ad:forceInterstitialAd(index, onFail)
