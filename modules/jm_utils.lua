@@ -214,13 +214,24 @@ function Utils:unpack_color(color)
     return color[1], color[2], color[3], color[4]
 end
 
-function Utils:round(x)
+function Utils:round(x, precision)
+    if precision then return self:round2(x, precision) end
     local f = mfloor(x + 0.5)
     if (x == f) or (x % 2.0 == 0.5) then
         return f
     else
         return mfloor(x + 0.5)
     end
+end
+
+function Utils:round2(x, precision)
+    precision = precision or 2
+    assert(precision >= 1)
+
+    local exp = 10 ^ precision
+    local f = mfloor(x)
+    local r = x % 1.0
+    return f + (mfloor(r * exp) / exp)
 end
 
 function Utils:clamp(value, min, max)
