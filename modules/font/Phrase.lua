@@ -481,6 +481,7 @@ function Phrase:__line_length(line, prev)
     return total_len
 end
 
+---@return number
 function Phrase:width(lines)
     lines = lines or self:get_lines()
     local max = -math.huge
