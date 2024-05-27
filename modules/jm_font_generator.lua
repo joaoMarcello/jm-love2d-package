@@ -2049,7 +2049,18 @@ function Font:generate_phrase(text, x, y, right, align)
     local fr = self.buffer__[text][index]
     fr:set_bounds(nil, nil, right)
 
-    return fr, fr:width(fr:get_lines()), fr:text_height(fr:get_lines())
+    local lines = fr:get_lines()
+    return fr, fr:width(lines), fr:text_height(lines)
+end
+
+
+function Font:get_text_dimensions(text, x, y, w, align)
+    x = x or 0
+    y = y or 0
+    w = w or 100000000
+    align = align or "left"
+    local _, width, height = self:generate_phrase(text, x, y, w, align)
+    return width, height
 end
 
 ---@param text any
