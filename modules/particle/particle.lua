@@ -140,14 +140,14 @@ function Particle:new(
         reuse_table.angle = angle or 0
         reuse_table.lifetime = lifetime or 1
         reuse_table.delay = delay or false
-        reuse_table.gravity = gravity or world.gravity
+        reuse_table.gravity = gravity or (world and world.gravity)
         reuse_table.speed_x = speed_x or 0.0
         reuse_table.speed_y = speed_y or 0.0
         reuse_table.acc_x = acc_x or 0.0
         reuse_table.acc_y = acc_y or 0.0
         reuse_table.max_speed_x = max_speed_x or false
         reuse_table.max_speed_y = max_speed_y or false
-        reuse_table.mass = mass or world.default_mass
+        reuse_table.mass = mass or (world and world.default_mass)
         reuse_table.direction = 1
         --
         reuse_table.__remove = false
@@ -196,14 +196,14 @@ function Particle:new(
         angle = angle or 0,
         lifetime = lifetime or 1,
         delay = delay or 0.0,
-        gravity = gravity or world.gravity,
+        gravity = gravity or (world and world.gravity),
         speed_x = speed_x or 0.0,
         speed_y = speed_y or 0.0,
         acc_x = acc_x or 0.0,
         acc_y = acc_y or 0.0,
         max_speed_x = max_speed_x or false,
         max_speed_y = max_speed_y or false,
-        mass = mass or world.default_mass,
+        mass = mass or (world and world.default_mass),
         direction = 1,
         --
         __remove = false,
