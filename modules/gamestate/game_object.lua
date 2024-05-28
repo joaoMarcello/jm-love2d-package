@@ -13,6 +13,10 @@ function GC:init_state(gamestate, world)
     GC.world = world
 end
 
+function GC:get_gamestate_and_world()
+    return GC.gamestate, GC.world
+end
+
 ---@return table|GameObject
 function GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
     reuse_tab = reuse_tab or GC.gamestate.pop_object()
