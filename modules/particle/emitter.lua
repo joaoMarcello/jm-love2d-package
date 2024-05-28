@@ -73,6 +73,7 @@ function Emitter:new(
     x, y, w, h, draw_order, lifetime,
     update_action, action_args, reuse_tab
 )
+    ---@class JM.Emitter
     local obj = GC:new(x, y, w, h, draw_order, 0, reuse_tab)
     setmetatable(obj, self)
     Emitter.__constructor__(obj, lifetime, update_action, action_args)
@@ -95,6 +96,9 @@ function Emitter:__constructor__(lifetime, update_action, action_args)
     self.__custom_update__ = update_action
     self.update_args = action_args
 
+    self.gamestate = GC.gamestate
+    self.world = GC.world
+
     self.update = Emitter.update
     self.draw = Emitter.draw
 end
@@ -103,7 +107,7 @@ function Emitter:set_shader(shader)
     self.shader = shader
 end
 
----@param obj GameObject|BodyObject
+---@param obj GameObject|BodyObject|any
 function Emitter:set_track_obj(obj)
     self.__obj__ = obj
 end
@@ -126,6 +130,14 @@ function Emitter:track_obj()
         self.x, self.y = obj.x, obj.y
         self.w, self.h = obj.w, obj.h
     end
+end
+
+function Emitter:set_gamestate(gamestate)
+    self.gamestate = gamestate
+end
+
+function Emitter:set_world(world)
+    self.world = world
 end
 
 function Emitter:pop_anima(id)
@@ -198,6 +210,16 @@ function Emitter:pop_particle_reuse_table()
     return tab_remove(Emitter.ParticleRecycler, #Emitter.ParticleRecycler)
 end
 
+function Emitter:do_the_thing()
+    self.pause = false
+    local r
+    if self.__custom_update__ then
+        r = self:__custom_update__(love.timer:getDelta(), self.update_args)
+    end
+    self.pause = true
+    return r
+end
+
 ---@param p JM.Particle
 function Emitter:add_particle(p)
     tab_insert(self.particles, p)
@@ -211,6 +233,9 @@ function Emitter:destroy()
 end
 
 function Emitter:update(dt)
+    local temp_g, temp_w = GC:get_gamestate_and_world()
+    GC:init_state(self.gamestate, self.world)
+
     local list = self.particles
     local N = self.N
 
@@ -230,6 +255,7 @@ function Emitter:update(dt)
     if self.lifetime <= 0.0 then
         if N <= 0 then
             self.__remove = true
+            GC:init_state(temp_g, temp_w)
             return
         end
         --
@@ -273,6 +299,8 @@ function Emitter:update(dt)
             end
         end
     end
+
+    GC:init_state(temp_g, temp_w)
 end
 
 local setShader = love.graphics.setShader
