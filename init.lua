@@ -278,6 +278,7 @@ end
 function JM:flush()
     self.FontGenerator.flush()
     self.ParticleSystem:flush()
+    self.EffectManager:flush()
     self.Physics:flush()
     self.Sound:flush()
     collectgarbage()
