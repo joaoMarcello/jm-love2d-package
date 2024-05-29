@@ -3,7 +3,7 @@
 --     jit.off(true, true)
 -- end
 
-local GC = _G.JM_Package.GameObject
+local GC = _G.JM.GameObject
 
 --========================================================================
 local sort_draw = function(a, b) return a.draw_order < b.draw_order end
@@ -12,7 +12,8 @@ local tab_sort, tab_remove, tab_insert = table.sort, table.remove, table.insert
 
 local pairs = pairs
 
-local mode_k = { __mode = 'k' }
+-- local mode_k = { __mode = 'k' }
+-- local mode_v = { __mode = 'v' }
 --========================================================================
 
 
@@ -38,33 +39,7 @@ end
 function Emitter:register_anima(anima, nick)
     if not Emitter.Animas[nick] then
         Emitter.Animas[nick] = anima
-        Emitter.AnimaRecycler[nick] = setmetatable({}, mode_k)
-    end
-end
-
-local getTime = love.timer.getTime
-local timer = getTime()
-
-function Emitter:flush()
-    timer = getTime()
-
-    for key, tab in pairs(Emitter.AnimaRecycler) do
-        for anima, _ in pairs(tab) do
-            tab[anima] = nil
-        end
-
-        if getTime() - timer > 0.0005 then
-            break
-        end
-    end
-
-    timer = getTime()
-
-    for key, _ in pairs(Emitter.ParticleRecycler) do
-        Emitter.ParticleRecycler[key] = nil
-        if getTime() - timer > 0.0005 then
-            break
-        end
+        Emitter.AnimaRecycler[nick] = {} --setmetatable({}, mode_k)
     end
 end
 
@@ -141,11 +116,21 @@ function Emitter:set_world(world)
 end
 
 function Emitter:pop_anima(id)
+    -- local rec = Emitter.AnimaRecycler[id]
+    -- if rec then
+    --     for obj, _ in next, rec do
+    --         rec[obj] = nil
+    --         obj:reset()
+    --         return obj
+    --     end
+    -- end
+
     local rec = Emitter.AnimaRecycler[id]
     if rec then
-        for obj, _ in next, rec do
-            rec[obj] = nil
-            obj:reset()
+        ---@type JM.Anima
+        local obj = table.remove(rec)
+        if obj then
+            obj.speed = Emitter.Animas[id].speed
             return obj
         end
     end
@@ -156,12 +141,19 @@ end
 ---@param anima JM.Anima
 function Emitter:push_anima(anima, id)
     if not id then return false end
+    -- local rec = Emitter.AnimaRecycler[id]
+    -- if rec then
+    --     -- anima.events = nil
+    --     rec[anima] = true
+    -- end
+    -- return true
+
     local rec = Emitter.AnimaRecycler[id]
     if rec then
-        -- anima.events = nil
-        rec[anima] = true
+        anima:reset()
+        table.insert(rec, anima)
+        return true
     end
-    return true
 end
 
 ---@type function
@@ -207,7 +199,35 @@ function Emitter:pop_particle_reuse_table()
     --     return t
     -- end
 
-    return tab_remove(Emitter.ParticleRecycler, #Emitter.ParticleRecycler)
+    return tab_remove(Emitter.ParticleRecycler)
+end
+
+local getTime = love.timer.getTime
+local timer = getTime()
+
+function Emitter:flush()
+    timer = getTime()
+
+    for key, tab in pairs(Emitter.AnimaRecycler) do
+        -- for anima, _ in pairs(tab) do
+        --     tab[anima] = nil
+        -- end
+
+        JM_Utils.clear_table(tab)
+
+        -- if getTime() - timer > 0.0005 then
+        --     break
+        -- end
+    end
+
+    timer = getTime()
+
+    for key, _ in pairs(Emitter.ParticleRecycler) do
+        Emitter.ParticleRecycler[key] = nil
+        if getTime() - timer > 0.0005 then
+            break
+        end
+    end
 end
 
 function Emitter:do_the_thing()
@@ -233,8 +253,8 @@ function Emitter:destroy()
 end
 
 function Emitter:update(dt)
-    local temp_g, temp_w = GC:get_gamestate_and_world()
-    GC:init_state(self.gamestate, self.world)
+    -- local temp_g, temp_w = GC:get_gamestate_and_world()
+    -- GC:init_state(self.gamestate, self.world)
 
     local list = self.particles
     local N = self.N
@@ -255,7 +275,7 @@ function Emitter:update(dt)
     if self.lifetime <= 0.0 then
         if N <= 0 then
             self.__remove = true
-            GC:init_state(temp_g, temp_w)
+            -- GC:init_state(temp_g, temp_w)
             return
         end
         --
@@ -278,7 +298,9 @@ function Emitter:update(dt)
             if p.body then p.body.__remove = true end
 
             if p.anima then
-                self:push_anima(p.anima, p.id)
+                Emitter:push_anima(p.anima, p.id)
+                p.anima = nil
+                p.id = false
             end
 
             self:push_particle(p)
@@ -300,7 +322,7 @@ function Emitter:update(dt)
         end
     end
 
-    GC:init_state(temp_g, temp_w)
+    -- GC:init_state(temp_g, temp_w)
 end
 
 local setShader = love.graphics.setShader
