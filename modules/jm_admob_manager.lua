@@ -52,15 +52,15 @@ local function dispatch_callback(type, ...)
     local func = callbacks[type]
 
     if func then
-        local args = (...) and { ... }
+        local args = (...) or nil --and { ... }
 
         if args then
             local temp = callbacks_args and callbacks_args[type]
 
             if temp then
-                func(temp, unpack(args))
+                func(temp, args)
             else
-                func(unpack(args))
+                func(args)
             end
         else
             func(callbacks_args and callbacks_args[type])
@@ -169,15 +169,24 @@ if admob then
 
     function Ad:checkForAdsCallbacks()
         if admob.coreInterstitialError() then
-            dispatch_callback(CallbackType.interstitialFailedToLoad)
+            local tp = CallbackType.interstitialFailedToLoad
+            dispatch_callback(tp)
+            callbacks[tp] = nil
+            callbacks_args[tp] = nil
         end
 
         if admob.coreInterstitialClosed() then
-            dispatch_callback(CallbackType.interstitialClosed)
+            local tp = CallbackType.interstitialClosed
+            dispatch_callback(tp)
+            callbacks[tp] = nil
+            callbacks_args[tp] = nil
         end
 
         if admob.coreRewardedAdError() then
-            dispatch_callback(CallbackType.rewardedAdFailedToLoad)
+            local tp = CallbackType.rewardedAdFailedToLoad
+            dispatch_callback(tp)
+            callbacks[tp] = nil
+            callbacks_args[tp] = nil
         end
 
         if admob.coreRewardedAdDidFinish() then
@@ -186,11 +195,17 @@ if admob then
             reward_type = admob.coreGetRewardType() or reward_type
             reward_quant = admob.coreGetRewardQuantity() or 1
 
-            dispatch_callback(CallbackType.rewardUserWithReward, reward_type, reward_quant)
+            local tp = CallbackType.rewardUserWithReward
+            dispatch_callback(tp, reward_type, reward_quant)
+            callbacks[tp] = nil
+            callbacks_args[tp] = nil
         end
 
         if admob.coreRewardedAdDidStop() then
+            local tp = CallbackType.rewardedAdDidStop
             dispatch_callback(CallbackType.rewardedAdDidStop)
+            callbacks[tp] = nil
+            callbacks_args[tp] = nil
         end
     end
 
@@ -382,7 +397,8 @@ function Ad:tryShowRewardedAd(onSuccess, onCloseAfterSuccess, onFail)
     self:setCallback("rewardedAdFailedToLoad", onFail)
 
     if self:showRewardedAd() then
-        if onSuccess then onSuccess() end
+        -- if onSuccess then onSuccess() end
+        self:setCallback("rewardUserWithReward", onSuccess)
         return true
     else
         if not admob and onFail then onFail() end
