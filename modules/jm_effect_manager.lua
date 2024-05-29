@@ -51,27 +51,61 @@ local Sample = require(path .. "effects.shader")
 local JM_current_id_for_effect_manager__ = math.random(1000) * math.random()
 
 ---@class JM.EffectManager
+---@field object JM.Template.Affectable
 --- Manages a list of Effect.
 local EffectManager = {}
 EffectManager.__index = EffectManager
+
+local Recycler = {}
+local Utils = JM_Utils
+
+EffectManager.push_object = function(obj)
+    Utils.clear_table(obj)
+    table.insert(Recycler, obj)
+end
+
+---@return JM.EffectManager|nil
+EffectManager.pop_object = function()
+    return table.remove(Recycler)
+end
+
+EffectManager.flush = function(self)
+    Utils.clear_table(Recycler)
+end
 
 ---
 --- Public constructor.
 ---@return JM.EffectManager
 function EffectManager:new(affectable_object)
-    local obj = {}
-    setmetatable(obj, self)
+    local reuse = self.pop_object()
+    if reuse then
+        reuse.__sort__ = false
+        if reuse.__effects_list then
+            Utils.clear_table(reuse.__effects_list)
+        end
+        reuse.object = affectable_object
+        setmetatable(reuse, self)
+        return reuse
+    end
 
-    EffectManager.__constructor__(obj, affectable_object)
+    ---@type JM.EffectManager
+    local obj = {
+        __effects_list = nil,
+        __sort__ = false,
+        object = affectable_object,
+    }
+    setmetatable(obj, EffectManager)
+
+    -- EffectManager.__constructor__(obj, affectable_object)
     return obj
 end
 
----@param affectable_object JM.Template.Affectable
-function EffectManager:__constructor__(affectable_object)
-    self.__effects_list = {}
-    self.__sort__ = false
-    self.object = affectable_object
-end
+-- ---@param affectable_object JM.Template.Affectable
+-- function EffectManager:__constructor__(affectable_object)
+--     self.__effects_list = {}
+--     self.__sort__ = false
+--     self.object = affectable_object
+-- end
 
 --- Update EffectManager class.
 ---@param dt number
@@ -123,11 +157,14 @@ end
 ---@param draw function # Draw method from affectable object.
 ---@param ... unknown # The param for the object draw method
 function EffectManager:draw(draw, ...)
+    local list = self.__effects_list
+    if not list then return end
+
     local args = (...) or nil
 
-    for i = #(self.__effects_list), 1, -1 do
+    for i = #(list), 1, -1 do
         ---@type JM.Effect
-        local eff = self.__effects_list[i]
+        local eff = list[i]
 
         if args then
             eff:draw(draw, args)
@@ -149,8 +186,15 @@ function EffectManager:stop_all()
     return false
 end
 
+function EffectManager:use_effect()
+    if self == EffectManager then return end
+    self.__effects_list = self.__effects_list or {}
+end
+
 function EffectManager:clear()
     local list = self.__effects_list
+    if not list then return false end
+
     local N = #list
     if N > 0 then
         for i = 1, N do
@@ -173,9 +217,12 @@ end
 ---@param effect_unique_id number
 ---@return boolean result
 function EffectManager:stop_effect(effect_unique_id)
-    for i = 1, #self.__effects_list do
+    local list = self.__effects_list
+    if not list then return false end
+
+    for i = 1, #(list) do
         ---@type JM.Effect
-        local eff = self.__effects_list[i]
+        local eff = list[i]
 
         if eff:get_unique_id() == effect_unique_id then
             eff.__remove = true
@@ -186,22 +233,24 @@ function EffectManager:stop_effect(effect_unique_id)
 end
 
 function EffectManager:pause_all()
-    if self.__effects_list then
-        for i = 1, #self.__effects_list do
-            ---@type JM.Effect
-            local eff = self.__effects_list[i]
-            eff.__is_enabled = false
-        end
+    local list = self.__effects_list
+    if not list then return end
+
+    for i = 1, #list do
+        ---@type JM.Effect
+        local eff = list[i]
+        eff.__is_enabled = false
     end
 end
 
 function EffectManager:resume_all()
-    if self.__effects_list then
-        for i = 1, #self.__effects_list do
-            ---@type JM.Effect
-            local eff = self.__effects_list[i]
-            eff.__is_enabled = true
-        end
+    local list = self.__effects_list
+    if not list then return end
+
+    for i = 1, #list do
+        ---@type JM.Effect
+        local eff = list[i]
+        eff.__is_enabled = true
     end
 end
 
@@ -259,6 +308,9 @@ local default_args = {}
 ---@return JM.Effect eff # The generate effect.
 function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
     object = object or self.object
+    if not self.__effects_list and self ~= EffectManager then
+        self.__effects_list = {}
+    end
 
     local eff
 
@@ -408,6 +460,7 @@ function EffectManager:apply_effect(object, type_, effect_args, __only_get__)
 
     default_args.__id__ = nil
     default_args.__counter__ = nil
+    Utils.clear_table(default_args)
 
     if eff then
         -- eff:set_unique_id(JM_current_id_for_effect_manager__)
@@ -432,9 +485,11 @@ end
 
 function EffectManager:__is_in_list(effect)
     if not effect then return end
+    local list = self.__effects_list
+    if not list then return end
 
-    for i = 1, #self.__effects_list do
-        if effect == self.__effects_list[i] then
+    for i = 1, #list do
+        if effect == list[i] then
             return true
         end
     end
@@ -445,6 +500,7 @@ end
 --- Insert effect.
 ---@param effect JM.Effect
 function EffectManager:__insert_effect(effect)
+    if not self.__effects_list then return end
     if self:__is_in_list(effect) then return end
 
     table.insert(self.__effects_list, effect)
