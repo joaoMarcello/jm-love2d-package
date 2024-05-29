@@ -92,6 +92,8 @@ end
 
 function GC:remove()
     self.__remove = true
+    self.__effect_manager.push_object(self.__effect_manager)
+    self.__effect_manager = nil
 end
 
 ---@param eff_type JM.Effect.id_string
