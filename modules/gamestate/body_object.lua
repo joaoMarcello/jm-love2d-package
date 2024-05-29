@@ -13,6 +13,7 @@ function Component:new(
     x, y, w, h, draw_order, update_order,
     bd_type, reuse_tab
 )
+    ---@type BodyObject|table
     local obj = GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
 
     setmetatable(obj, self)
@@ -36,6 +37,8 @@ function Component:remove()
     self.__remove = true
     self.body.__remove = true
     self.body = nil
+    self.__effect_manager.push_object(self.__effect_manager)
+    self.__effect_manager = nil
 end
 
 -- ---@param eff_type JM.Effect.id_string
