@@ -34,8 +34,7 @@ end
 function PS:init_module(world, gamestate)
     Particle:init_module(world, gamestate)
     Emitter:init_module(world, gamestate)
-
-    Emitter:flush()
+    -- Emitter:flush()
 end
 
 local AnimaParticles = {}
