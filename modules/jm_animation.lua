@@ -275,6 +275,8 @@ function Anima:copy()
     ---@type JM.Anima
     local anim = Anima:new(args)
 
+    JM_Utils.clear_table(args)
+
     anim.current_state = self.current_state
     anim:set_scale(self.scale_x, self.scale_y)
     return anim
