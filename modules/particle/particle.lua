@@ -109,7 +109,7 @@ function Particle:new(
 
         QUADS[img] = QUADS[img] or {}
         QUADS[img][key] = QUADS[img][key]
-            or love.graphics.newQuad(qx, qy, qw, qh, img:getDimensions())
+            or lgx.newQuad(qx, qy, qw, qh, img:getDimensions())
 
         quad = QUADS[img][key]
     end
