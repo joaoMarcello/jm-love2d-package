@@ -279,6 +279,11 @@ end
 function Effect:apply(object, reset)
     if not object then return end
 
+    do
+        local manager = object.__effect_manager
+        manager:use_effect()
+    end
+
     if object and object ~= self.__object then
         if self.__object then self:restaure_object() end
 
