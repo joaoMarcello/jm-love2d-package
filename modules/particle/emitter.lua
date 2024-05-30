@@ -130,7 +130,10 @@ function Emitter:pop_anima(id)
         ---@type JM.Anima
         local obj = table.remove(rec)
         if obj then
-            obj.speed = Emitter.Animas[id].speed
+            ---@type JM.Anima
+            local default = Emitter.Animas[id]
+            obj.speed = default.speed
+            obj.rotation = default.rotation
             return obj
         end
     end
