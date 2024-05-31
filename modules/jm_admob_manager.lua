@@ -79,14 +79,17 @@ local function dispatch_callback(type, ...)
 end
 
 ---@overload fun(self:table)
----@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top", skipInitialRequests: boolean|nil, skipRewardRequest:boolean|nil, skipInterstitialRequest: boolean|nil, interAdsInterval: number, countSteps: number}
+---@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top", skipInitialRequests: boolean|nil, skipRewardRequest:boolean|nil, skipInterstitialRequest: boolean|nil, interAdsInterval: number, countSteps: number, skipBannerCreation:boolean}
 function Ad:init(args)
     args = args or {}
     if admob then
         admob.changeEUConsent()
     end
     self:setIds(args.banner, args.inter, args.reward)
-    self:createBanner(nil, args.bannerPos, not args.hideBanner)
+
+    if not args.skipBannerCreation then
+        self:createBanner(nil, args.bannerPos, not args.hideBanner)
+    end
 
     if not args.skipInitialRequests then
         if not args.skipInterstitialRequest then
