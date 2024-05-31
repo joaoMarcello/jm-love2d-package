@@ -24,6 +24,7 @@ local love_rect = lgx.rectangle
 local mousePosition = love.mouse.getPosition
 local collectgarbage = collectgarbage
 local tab_insert, tab_sort, tab_remove = table.insert, table.sort, table.remove
+local HUGE = math.huge
 
 local Transitions = {
     cartoon = require(string.gsub(path, "jm_scene", "transitions.cartoon")),
@@ -1113,9 +1114,16 @@ local update = function(self, dt)
     end
 
     if self.time_pause then
-        self.time_pause = self.time_pause - dt
+        if self.time_pause == HUGE then
+            -- if love.window.hasMouseFocus()
+            -- then
+            --     self.time_pause = 0.0
+            -- end
+        else
+            self.time_pause = self.time_pause - dt
+        end
 
-        if self.time_pause <= 0 then
+        if self.time_pause <= 0.0 then
             self.time_pause = nil
             self.pause_action = nil
             self.pause_draw = nil
@@ -1546,6 +1554,13 @@ end
 
 ---@param self JM.Scene
 local mousepressed = function(self, x, y, button, istouch, presses)
+    do
+        local time_pause = self.time_pause
+        if time_pause and time_pause == HUGE then
+            self.time_pause = 0.0
+        end
+    end
+
     local P1 = Controllers.P1
 
     if self.use_vpad and not istouch then
