@@ -57,6 +57,9 @@ function Flick:update(dt)
     if self.__time >= self.__speed then
         self.__flick_state = -self.__flick_state
         self.__time = self.__time - self.__speed
+        if self.__time >= self.__speed then
+            self.__time = 0.0
+        end
         self:__increment_cycle()
     end
 end
