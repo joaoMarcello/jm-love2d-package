@@ -82,9 +82,9 @@ end
 ---@param args {banner:string, inter:string, reward:string, hideBanner:boolean, bannerPos:"bottom"|"top", skipInitialRequests: boolean|nil, skipRewardRequest:boolean|nil, skipInterstitialRequest: boolean|nil, interAdsInterval: number, countSteps: number, skipBannerCreation:boolean}
 function Ad:init(args)
     args = args or {}
-    if admob then
-        admob.changeEUConsent()
-    end
+    -- if admob then
+    --     admob.changeEUConsent()
+    -- end
     self:setIds(args.banner, args.inter, args.reward)
 
     if not args.skipBannerCreation then
@@ -169,6 +169,13 @@ function Ad:clearCallbacks()
     end
 end
 
+local function restaure_scene_pause_on_error()
+    local scene = JM.SceneManager.scene
+    if scene:is_paused() and scene.time_pause == math.huge then
+        scene:unpause()
+    end
+end
+
 if admob then
     ---
     function Ad:changeEUConsent()
@@ -178,6 +185,7 @@ if admob then
     function Ad:checkForAdsCallbacks()
         if admob.coreInterstitialError() then
             dispatch_callback(CallbackType.interstitialFailedToLoad)
+            restaure_scene_pause_on_error()
         end
 
         if admob.coreInterstitialClosed() then
@@ -211,7 +219,7 @@ if admob then
         )
 
         if show_on_creation then
-            return admob.showBanner()
+            admob.showBanner()
         end
     end
 
@@ -220,7 +228,8 @@ if admob then
     end
 
     function Ad:showBanner()
-        return admob.showBanner()
+        admob.showBanner()
+        restaure_scene_pause_on_error()
     end
 
     function Ad:requestInterstitial(id)
