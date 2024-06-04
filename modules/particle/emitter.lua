@@ -159,26 +159,26 @@ function Emitter:push_anima(anima, id)
     end
 end
 
----@type function
-local clear_table
-do
-    local success, result = pcall(function()
-        require "table.clear"
-        return true
-    end)
+-- ---@type function
+-- local clear_table
+-- do
+--     local success, result = pcall(function()
+--         require "table.clear"
+--         return true
+--     end)
 
-    ---@diagnostic disable-next-line: undefined-field
-    if success then
-        ---@diagnostic disable-next-line: undefined-field
-        clear_table = table.clear
-    else
-        clear_table = function(t)
-            for k, _ in next, t do
-                rawset(t, k, nil)
-            end
-        end
-    end
-end
+--     ---@diagnostic disable-next-line: undefined-field
+--     if success then
+--         ---@diagnostic disable-next-line: undefined-field
+--         clear_table = table.clear
+--     else
+--         clear_table = function(t)
+--             for k, _ in next, t do
+--                 rawset(t, k, nil)
+--             end
+--         end
+--     end
+-- end
 
 ---@param p JM.Particle
 function Emitter:push_particle(p)
