@@ -31,6 +31,8 @@ function PS:register_anima(anima, nick)
     Emitter:register_anima(anima, nick)
 end
 
+---@param world JM.Physics.World
+---@param gamestate JM.Scene
 function PS:init_module(world, gamestate)
     Particle:init_module(world, gamestate)
     Emitter:init_module(world, gamestate)
