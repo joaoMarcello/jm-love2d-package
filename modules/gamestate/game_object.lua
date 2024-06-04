@@ -39,8 +39,8 @@ end
 ---@return table|GameObject|any
 function GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
     reuse_tab = reuse_tab
-        or GC.gamestate.pop_object()
         or GC.__pop_object()
+        or GC.gamestate.pop_object()
 
     -- if reuse_tab then
     --     for i, _ in pairs(reuse_tab) do
