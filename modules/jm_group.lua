@@ -43,7 +43,6 @@ end
 ---@param obj GameObject|BodyObject
 ---@return any
 function Group:add_object(obj)
-    obj.group = self
     tab_insert(self.list, obj)
     self.N = self.N + 1
     return obj
@@ -71,10 +70,10 @@ function Group:update(dt)
     local list = self.list
     tab_sort(list, sort_update)
 
-    local state, world = GameObject:get_gamestate_and_world()
+    local state, world, group = GameObject:get_gamestate_and_world()
     do
         local my_gamestate, my_world = self.gamestate, self.world
-        GameObject:init_state(my_gamestate, my_world)
+        GameObject:init_state(my_gamestate, my_world, self)
         PS:init_module(my_world, my_gamestate)
     end
 
@@ -102,7 +101,7 @@ function Group:update(dt)
         ---
     end
 
-    GameObject:init_state(state, world)
+    GameObject:init_state(state, world, group)
     PS:init_module(state, world)
     ---
 end
