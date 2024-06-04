@@ -1,25 +1,46 @@
 local Affectable = _G.JM_Affectable
 
--- local pairs = pairs
+local tab_insert, tab_remove = table.insert, table.remove
+local tab_clear = _G.JM_Utils.clear_table
+
+local ObjectRecycler = {}
 
 ---@class GameObject: JM.Template.Affectable
 local GC = setmetatable({}, Affectable)
 GC.__index = GC
+GC.ObjectRecycler = ObjectRecycler
 
 ---@param gamestate JM.Scene|any
 ---@param world JM.Physics.World|nil
-function GC:init_state(gamestate, world)
+---@param group JM.Group?
+function GC:init_state(gamestate, world, group)
     GC.gamestate = gamestate
     GC.world = world
+    GC.group = group
+end
+
+function GC.__push_object(obj)
+    tab_clear(obj)
+    tab_insert(ObjectRecycler, obj)
+end
+
+function GC.__pop_object()
+    return tab_remove(ObjectRecycler)
+end
+
+function GC:flush()
+    tab_clear(ObjectRecycler)
 end
 
 function GC:get_gamestate_and_world()
-    return GC.gamestate, GC.world
+    return GC.gamestate, GC.world, GC.group
 end
 
 ---@return table|GameObject|any
 function GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
-    reuse_tab = reuse_tab or GC.gamestate.pop_object()
+    reuse_tab = reuse_tab
+        or GC.gamestate.pop_object()
+        or GC.__pop_object()
 
     -- if reuse_tab then
     --     for i, _ in pairs(reuse_tab) do
@@ -48,6 +69,7 @@ function GC:__constructor__(x, y, w, h, draw_order, update_order)
 
     self.eff_actives = nil
     self.props = nil
+    self.group = nil
 
     self.draw_order = draw_order or 0
     self.update_order = update_order or 0
@@ -58,6 +80,14 @@ end
 
 function GC:get_props()
     return self.props
+end
+
+function GC:add_object(obj)
+    ---@type JM.Group
+    local group = self.group
+    -- if group then
+    return group:add_object(obj)
+    -- end
 end
 
 function GC:set_custom_draw(draw)
