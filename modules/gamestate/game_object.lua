@@ -11,7 +11,7 @@ GC.__index = GC
 GC.ObjectRecycler = ObjectRecycler
 
 ---@param gamestate JM.Scene|any
----@param world JM.Physics.World|nil
+---@param world JM.Physics.World?
 ---@param group JM.Group?
 function GC:init_state(gamestate, world, group)
     GC.gamestate = gamestate
@@ -40,7 +40,7 @@ end
 function GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
     reuse_tab = reuse_tab
         or GC.__pop_object()
-        or GC.gamestate.pop_object()
+    -- or GC.gamestate.pop_object()
 
     -- if reuse_tab then
     --     for i, _ in pairs(reuse_tab) do
