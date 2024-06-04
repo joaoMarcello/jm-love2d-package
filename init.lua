@@ -222,6 +222,9 @@ JM.Vpad = JM.Scene:get_vpad() --require(string.gsub(path, "init", "modules.jm_vi
 ---@type JM.AdmobManager
 JM.Admob = require(string.gsub(path, "init", "modules.jm_admob_manager"))
 
+---@type JM.Group
+JM.Group = require(string.gsub(path, "init", "modules.jm_group"))
+
 JM.SplashScreenPath = 'jm-love2d-package.modules.templates.splashScreen'
 
 --===========================================================================
@@ -281,6 +284,7 @@ function JM:flush()
     self.EffectManager:flush()
     self.Physics:flush()
     self.Sound:flush()
+    self.GameObject:flush()
     collectgarbage()
 end
 
