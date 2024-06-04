@@ -16,20 +16,23 @@ local PS = _G.JM.ParticleSystem
 local Group = {}
 Group.__index = Group
 
----@param state JM.Scene
+---@param gamestate JM.Scene
 ---@param world JM.Physics.World?
 ---@return JM.Group
-function Group:new(state, world)
+function Group:new(gamestate, world)
     ---@class JM.Group
     local obj = {
         list = {},
         N = 0,
-        gamestate = state,
+        gamestate = gamestate,
         world = world,
     }
 
     obj.draw = Group.draw
     obj.update = Group.update
+
+    GameObject:init_state(gamestate, world, obj)
+    PS:init_module(world, gamestate)
 
     setmetatable(obj, Group)
     return obj
