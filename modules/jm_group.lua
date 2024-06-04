@@ -17,7 +17,7 @@ local Group = {}
 Group.__index = Group
 
 ---@param gamestate JM.Scene
----@param world JM.Physics.World?
+---@param world JM.Physics.World|any
 ---@return JM.Group
 function Group:new(gamestate, world)
     ---@class JM.Group
