@@ -1696,8 +1696,8 @@ end
 --     -- love.graphics.rectangle("line", cam:get_viewport())
 -- end
 
-function Map.load_map(dir, world_config, tile_rules)
-    local map = Map:new(GC.gamestate)
+function Map.load_map(dir, world_config, tile_rules, gamestate)
+    local map = Map:new(gamestate or GC.gamestate)
     local d = JM.Ldr.load(dir)
     map:init(d, world_config)
     map:build_world()
