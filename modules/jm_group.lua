@@ -105,7 +105,7 @@ function Group:update(dt)
     end
 
     GameObject:init_state(state, world, group)
-    PS:init_module(state, world)
+    PS:init_module(world, state)
     ---
 end
 
