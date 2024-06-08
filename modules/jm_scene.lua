@@ -107,7 +107,15 @@ local function create_canvas(width, height, filter, subpixel)
         subpixel = scene.subpixel
     end
 
-    local canvas = love.graphics.newCanvas(width * subpixel, height * subpixel, { dpiscale = 1 })
+    local canvas = love.graphics.newCanvas(
+        width * subpixel,
+        height * subpixel,
+        {
+            dpiscale = 1,
+            msaa = 0,
+            format = "normal",
+        }
+    )
     canvas:setFilter(filter, filter)
     -- canvas:setWrap("clampzero", "clampzero", "clampzero")
     return canvas
@@ -424,8 +432,8 @@ function Scene:restaure_canvas()
 
     if self.using_canvas_layer and not self.canvas_layer then
         local w, h = self.canvas:getDimensions()
-        self.canvas_layer = love.graphics.newCanvas(w, h, { dpiscale = self.canvas:getDPIScale() })
-        self.canvas_layer:setFilter(self.canvas_filter, self.canvas_filter)
+        -- self.canvas_layer = love.graphics.newCanvas(w, h, { dpiscale = self.canvas:getDPIScale() })
+        self.canvas_layer = create_canvas(w, h, self.canvas_filter, 1)
     end
 end
 
