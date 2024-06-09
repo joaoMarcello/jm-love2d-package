@@ -3,11 +3,14 @@ local Affectable = _G.JM_Affectable
 local tab_insert, tab_remove = table.insert, table.remove
 local tab_clear = _G.JM_Utils.clear_table
 
+---@type table<integer, GameObject>
 local ObjectRecycler = {}
 
 ---@class GameObject: JM.Template.Affectable
+---@field __effect_manager JM.EffectManager
 local GC = setmetatable({}, Affectable)
 GC.__index = GC
+---@private
 GC.ObjectRecycler = ObjectRecycler
 
 ---@param gamestate JM.Scene|any
@@ -24,6 +27,7 @@ function GC.__push_object(obj)
     tab_insert(ObjectRecycler, obj)
 end
 
+---@return GameObject?
 function GC.__pop_object()
     return tab_remove(ObjectRecycler)
 end
