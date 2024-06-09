@@ -4,6 +4,10 @@ local tab_insert, tab_remove = table.insert, table.remove
 local sort_update = function(a, b) return a.update_order > b.update_order end
 local sort_draw = function(a, b) return a.draw_order < b.draw_order end
 
+--- Sort game objects on list by his y position
+---@param a any
+---@param b any
+---@return boolean
 local sort_draw_by_y = function(a, b)
     return a.y < b.y
 end
@@ -12,8 +16,11 @@ local GameObject = _G.JM.GameObject
 local PS = _G.JM.ParticleSystem
 --============================================================================
 
+---@alias JM.GameObject GameObject|BodyObject
+
 ---@class JM.Group
 local Group = {}
+---@private
 Group.__index = Group
 
 ---@param gamestate JM.Scene
@@ -22,6 +29,7 @@ Group.__index = Group
 function Group:new(gamestate, world)
     ---@class JM.Group
     local obj = {
+        ---@type table<integer, JM.GameObject>
         list = {},
         N = 0,
         gamestate = gamestate,
@@ -43,25 +51,40 @@ function Group:clear()
     self.N = 0
 end
 
----@param obj GameObject|BodyObject
----@return any
+---@generic T: any
+---@param obj `T`
+---@return `T` obj # The added object.
 function Group:add_object(obj)
     tab_insert(self.list, obj)
     self.N = self.N + 1
     return obj
 end
 
----@return (GameObject|BodyObject)?
+function Group:get_object(index)
+    return self.list[index]
+end
+
+---@private
+---@return JM.GameObject?
 function Group:remove_object(index)
     local list = self.list
-
-    ---@type GameObject | BodyObject
     local obj = list[index]
 
     if obj then
         do
             local bd = obj.body
-            if bd then bd.__remove = true end
+            if bd then
+                bd.__remove = true
+                obj.body = nil
+            end
+        end
+
+        do
+            local manager = obj.__effect_manager
+            if manager then
+                manager.push_object(manager)
+                obj.__effect_manager = nil
+            end
         end
 
         self.N = self.N - 1
@@ -81,7 +104,6 @@ function Group:update(dt)
     end
 
     for i = self.N, 1, -1 do
-        ---@type GameObject
         local gc = list[i]
 
         if gc.__remove then
