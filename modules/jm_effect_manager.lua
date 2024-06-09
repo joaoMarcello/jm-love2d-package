@@ -52,6 +52,7 @@ local JM_current_id_for_effect_manager__ = math.random(1000) * math.random()
 
 ---@class JM.EffectManager
 ---@field object JM.Template.Affectable
+---@field __effects_list table<integer, JM.Effect>?
 --- Manages a list of Effect.
 local EffectManager = {}
 EffectManager.__index = EffectManager
@@ -114,7 +115,6 @@ function EffectManager:update(dt)
 
     if list then
         for i = #list, 1, -1 do
-            ---@type JM.Effect
             local eff = list[i]
             local r1 = eff:__update__(dt)
             local r2 = eff.__is_enabled and not eff.__remove and eff:update(dt)
@@ -163,7 +163,6 @@ function EffectManager:draw(draw, ...)
     local args = (...) or nil
 
     for i = #(list), 1, -1 do
-        ---@type JM.Effect
         local eff = list[i]
 
         if args then
@@ -198,7 +197,6 @@ function EffectManager:clear()
     local N = #list
     if N > 0 then
         for i = 1, N do
-            ---@type JM.Effect
             local eff = list[i]
 
             eff:restaure_object()
@@ -221,7 +219,6 @@ function EffectManager:stop_effect(effect_unique_id)
     if not list then return false end
 
     for i = 1, #(list) do
-        ---@type JM.Effect
         local eff = list[i]
 
         if eff:get_unique_id() == effect_unique_id then
@@ -237,7 +234,6 @@ function EffectManager:pause_all()
     if not list then return end
 
     for i = 1, #list do
-        ---@type JM.Effect
         local eff = list[i]
         eff.__is_enabled = false
     end
@@ -248,7 +244,6 @@ function EffectManager:resume_all()
     if not list then return end
 
     for i = 1, #list do
-        ---@type JM.Effect
         local eff = list[i]
         eff.__is_enabled = true
     end
