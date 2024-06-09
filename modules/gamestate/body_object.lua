@@ -5,6 +5,7 @@ local Affectable = _G.JM_Affectable
 local GC = require((...):gsub("body_object", "game_object"))
 
 ---@class BodyObject: GameObject
+---@field __effect_manager JM.EffectManager
 local Component = setmetatable({}, GC) --JM_Utils:create_class(Affectable, GC)
 Component.__index = Component
 
