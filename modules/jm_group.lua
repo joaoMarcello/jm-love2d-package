@@ -139,7 +139,6 @@ function Group:draw(camera, sort_by_y, custom_sort)
     tab_sort(list, custom_sort or (sort_by_y and sort_draw_by_y or sort_draw))
 
     for i = 1, self.N do
-        ---@type GameObject
         local gc = list[i]
 
         do

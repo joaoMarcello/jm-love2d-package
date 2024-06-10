@@ -79,11 +79,11 @@ function Component:update(dt)
     self.x, self.y = self.body.x, self.body.y
 end
 
-function Component:draw(custom_draw)
-    if custom_draw then
-        Affectable.draw(self, custom_draw)
-    end
-    return false
-end
+-- function Component:draw(custom_draw)
+--     if custom_draw then
+--         Affectable.draw(self, custom_draw)
+--     end
+--     return false
+-- end
 
 return Component
