@@ -170,7 +170,9 @@ function GC:update(dt)
     self.__effect_manager:update(dt)
 end
 
----@param custom_draw function|JM.Camera.Camera|nil
+---@overload fun(self, cam:JM.Camera.Camera?)
+---@param custom_draw function
+---@param cam JM.Camera.Camera?
 function GC:draw(custom_draw, cam)
     if type(custom_draw) == "table" then
         cam = custom_draw
