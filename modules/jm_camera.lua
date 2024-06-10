@@ -1319,6 +1319,8 @@ function Camera:scissor_transform(x, y, w, h, subpixel)
         self.viewport_w,
         self.viewport_h
 
+    local scale = self.scale
+
     cx = cx * subpixel
     cy = cy * subpixel
     cw = cw * subpixel
@@ -1326,10 +1328,10 @@ function Camera:scissor_transform(x, y, w, h, subpixel)
 
     --- The object scissor
     local sx, sy, sw, sh =
-        (self.viewport_x / self.scale - self.x + x) * self.scale,
-        (self.viewport_y / self.scale - self.y + y) * self.scale,
-        w * self.scale,
-        h * self.scale
+        (cx / scale - self.x + x) * scale,
+        (cy / scale - self.y + y) * scale,
+        w * scale,
+        h * scale
 
     sx = sx * subpixel
     sy = sy * subpixel
