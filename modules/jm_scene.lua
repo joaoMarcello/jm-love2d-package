@@ -336,8 +336,8 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     self.show_info = conf.debug or nil
 
-    ---@type table|any
-    self.game_objects = nil --{}
+    ---@deprecated
+    self.game_objects = nil
 
     self.update_time = 0.0
 end
@@ -2220,21 +2220,27 @@ Scene.pop_object = pop_object
 
 function Scene:remove_object(index)
     ---@type GameObject | BodyObject
+    ---@diagnostic disable-next-line: deprecated
     local obj = self.game_objects[index]
 
     if obj then
         if obj.body then obj.body.__remove = true end
 
+        ---@diagnostic disable-next-line: deprecated
         return tab_remove(self.game_objects, index)
     end
 end
 
+---@deprecated
 function Scene:add_object(obj)
+    ---@diagnostic disable-next-line: deprecated
     tab_insert(self.game_objects, obj)
     return obj
 end
 
+---@deprecated
 function Scene:update_game_objects(dt)
+    ---@diagnostic disable-next-line: deprecated
     local list = self.game_objects
     tab_sort(list, sort_update)
 
@@ -2258,8 +2264,10 @@ function Scene:update_game_objects(dt)
     end
 end
 
+---@deprecated
 ---@param camera JM.Camera.Camera | any
 function Scene:draw_game_object(camera, sort_by_y, custom_sort)
+    ---@diagnostic disable-next-line: deprecated
     local list = self.game_objects
     tab_sort(list, custom_sort or (sort_by_y and sort_draw_by_y or sort_draw))
 
