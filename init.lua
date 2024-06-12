@@ -323,7 +323,8 @@ function JM:toggle_capture_mode(id, interval, frameskip, duration)
         cap_time = 0.0
         cap_frameskip = frameskip or 1
         cap_duration = duration or 20
-        capture_id = id and tostring(id) or "gif"
+        id = id or tostring(os.time())
+        capture_id = id
         cap_interval = interval or (0.017 * 2) --- 0.0333
         love.filesystem.createDirectory(capture_id)
 
