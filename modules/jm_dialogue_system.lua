@@ -245,6 +245,7 @@ do
             cur = 1,
             n_boxes = #boxes,
             is_visible = true,
+            do_round = conf.do_round or false,
             w = w,
             h = h,
         }, Dialogue)
@@ -345,6 +346,7 @@ do
         if not self.is_visible then return end
         local box = self:get_cur_box()
         if cam and not cam:rect_is_on_view(box:rect()) then return end
+        box.do_round = self.do_round
         return box:draw(cam)
     end
 end
