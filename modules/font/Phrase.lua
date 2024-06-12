@@ -593,7 +593,7 @@ local pointer_char_count = { [1] = 0 }
 ---@return number|nil tx
 ---@return number|nil ty
 ---@return JM.Font.Glyph|nil glyph
-function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
+function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__, do_round)
     if not align then align = "left" end
     if not threshold then threshold = #lines end
 
@@ -623,7 +623,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
         font.__batches[i]:clear()
     end
 
-    local round = math.floor
+    local round = Utils.round
 
     for i = 1, N do
         apply_commands(self, prev_word, init_font_size, false)
@@ -634,7 +634,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
         elseif align == "center" then
             tx = x + (self.__bounds.right - x) * 0.5
                 - self:__line_length(lines[i], prev_word) * 0.5
-            tx = round(tx)
+            tx = round(Utils, tx)
             --
         elseif align == "justify" then
             local total = self:__line_length(lines[i], lines[i][1])
@@ -684,8 +684,8 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
             local r = current_word:get_width() + space
 
-            result_tx, result_char = current_word:draw(tx, ty, __max_char__, character_count,
-                ty + init_font_size)
+            result_tx, result_char = current_word:draw(tx, ty, __max_char__, character_count, ty + init_font_size,
+                do_round)
 
             tx = tx + r
 
