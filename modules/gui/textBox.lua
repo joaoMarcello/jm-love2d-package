@@ -80,7 +80,7 @@ TextBox.AlignY = AlignY
 TextBox.AlignX = AlignX
 TextBox.__index = TextBox
 
----@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes, time_wait:number, allow_cycle:boolean, show_border:boolean, remove_empty_lines:boolean, glyph_sfx:string, finish_sfx:string}
+---@alias JM.TextBox.ArgsConstructor {text:string, x:number, y:number, w:number, font:JM.Font.Font, align:JM.GUI.TextBox.AlignOptionsX, text_align:JM.GUI.TextBox.AlignOptionsY, speed:number, simulate_speak:boolean, n_lines:number, mode:JM.GUI.TextBox.Modes, update_mode:JM.GUI.TextBox.UpdateModes, time_wait:number, allow_cycle:boolean, show_border:boolean, remove_empty_lines:boolean, glyph_sfx:string, finish_sfx:string, do_round:boolean?}
 
 ---
 ---@overload fun(self: any, args:JM.TextBox.ArgsConstructor)
@@ -181,6 +181,7 @@ function TextBox:__constructor__(args)
 
     self.glyph_sfx = args.glyph_sfx
     self.finish_sfx = args.finish_sfx
+    self.do_round = args.do_round
 
     local N = #self.lines
 
@@ -704,7 +705,8 @@ local function _draw_(self)
 
         ---@diagnostic disable-next-line: param-type-mismatch
         self.align, self.w,
-        self.cur_glyph
+        self.cur_glyph,
+        self.do_round
     )
     -- love.graphics.pop()
 
