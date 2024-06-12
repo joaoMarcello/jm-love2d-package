@@ -468,9 +468,9 @@ function Phrase:__line_length(line, prev)
             end
         end
 
-        if word.text ~= "\n" then
-            total_len = total_len + word:get_width()
-        end
+        -- if word.text ~= "\n" then
+        total_len = total_len + word:get_width()
+        -- end
         -- prev_word = word
     end
 
@@ -623,6 +623,8 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
         font.__batches[i]:clear()
     end
 
+    local round = math.floor
+
     for i = 1, N do
         apply_commands(self, prev_word, init_font_size, false)
 
@@ -632,7 +634,7 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
         elseif align == "center" then
             tx = x + (self.__bounds.right - x) * 0.5
                 - self:__line_length(lines[i], prev_word) * 0.5
-
+            tx = round(tx)
             --
         elseif align == "justify" then
             local total = self:__line_length(lines[i], lines[i][1])
@@ -682,7 +684,8 @@ function Phrase:draw_lines(lines, x, y, align, threshold, __max_char__)
 
             local r = current_word:get_width() + space
 
-            result_tx, result_char = current_word:draw(tx, ty, __max_char__, character_count, ty + init_font_size)
+            result_tx, result_char = current_word:draw(tx, ty, __max_char__, character_count,
+                ty + init_font_size)
 
             tx = tx + r
 
