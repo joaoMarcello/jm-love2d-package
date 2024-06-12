@@ -311,7 +311,7 @@ local glyph_setscale = Glyph.set_scale
 local glyph_draw = Glyph.draw
 
 ---@param x number
-function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
+function Word:draw(x, y, __max_char__, __glyph_count__, bottom, do_round)
     -- love.graphics.setColor(0.9, 0, 0, 0.15)
     -- love.graphics.rectangle("fill", x, y, self:get_width(), self.__font.__font_size)
 
@@ -322,6 +322,7 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
     local glyph
     local N = self.__N_characters
     local list_glyphs = self.__characters
+    local floor = math.floor
 
     for i = 1, N do
         -- if not self.is_copy then break end
@@ -363,8 +364,10 @@ function Word:draw(x, y, __max_char__, __glyph_count__, bottom)
             py = bottom - glyph.h * glyph.sy
             px = tx
 
-            -- px = math.floor(px + 0.5)
-            -- py = math.floor(py + 0.5)
+            if do_round then
+                px = floor(px + 0.5)
+                py = floor(py + 0.5)
+            end
 
             if self.is_copy then
                 glyph_draw(glyph, px, py)
