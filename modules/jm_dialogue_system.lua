@@ -150,6 +150,7 @@ do
 
         ---@type love.File|any
         local file = love.filesystem.newFile(dir)
+        ---@type table<integer, JM.GUI.TextBox>
         local boxes = {}
         local ids = {}
         local texts = {}
@@ -231,7 +232,6 @@ do
 
         local w, h = 0, 0
         for i = 1, #boxes do
-            ---@type JM.GUI.TextBox
             local box = boxes[i]
             local _, _, bw, bh = box:rect()
             if bw > w then w = bw end
@@ -250,6 +250,7 @@ do
             h = h,
         }, Dialogue)
 
+        ---@diagnostic disable-next-line: cast-local-type
         boxes = nil
         headers = nil
         ids = nil
