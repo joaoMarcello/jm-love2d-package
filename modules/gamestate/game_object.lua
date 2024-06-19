@@ -87,6 +87,7 @@ function GC:get_props()
 end
 
 --- Check object class type
+---@deprecated
 ---@param class table
 ---@return boolean
 function GC:type_of(class)
