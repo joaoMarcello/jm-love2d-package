@@ -122,7 +122,7 @@ local BodyEvents = {
 }
 ---@alias JM.Physics.EventNames "ground_touch"|"ceil_touch"|"wall_left_touch"|"wall_right_touch"|"axis_x_collision"|"axis_y_collision"|"start_falling"|"speed_y_change_direction"|"speed_x_change_direction"|"leaving_ground"|"leaving_ceil"|"leaving_y_axis_body"|"leaving_wall_left"|"leaving_wall_right"|"leaving_x_axis_body"|"on_stucked"|"pushed_off_ledge"|"hop_ledge"
 
----@alias JM.Physics.Collide JM.Physics.Body|JM.Physics.Slope|any
+---@alias JM.Physics.Collide JM.Physics.Body|JM.Physics.Slope
 
 ---@alias JM.Physics.Cell {count:number, x:number, y:number, items:table}
 
@@ -930,7 +930,7 @@ do
 
         collisions.n = n_collisions
 
-        collisions.has_slope = has_slope
+        collisions.has_slope = has_slope --[[@as JM.Physics.Slope]]
         collisions.goal_x = goal_x
         collisions.goal_y = goal_y
 
@@ -2271,6 +2271,12 @@ do
         return true
     end
 
+    ---@param x any
+    ---@param y any
+    ---@param w any
+    ---@param h any
+    ---@param empty_tab any
+    ---@return table<JM.Physics.Collide, boolean>|nil
     function World:get_items_in_cell_obj(x, y, w, h, empty_tab)
         local cl, ct, cw, ch = self:rect_to_cell(x, y, w, h)
         local items
