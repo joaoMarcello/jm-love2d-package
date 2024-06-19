@@ -172,7 +172,15 @@ function Scene.set_default_scene_config(conf)
     Scene.default_config = conf
 end
 
+---@alias JM.Scene.ArgsConstructor {subpixel:integer?, canvas_w:integer?, canvas_h:integer?, tile:integer?, canvas_filter:"linear"|"nearest", use_canvas_layer:boolean?, scale_type:"pixel perfect"|"scale to fit"|"keep proportions", use_vpad:boolean?, x:integer?, y:integer?, w:integer?, h:integer?, show_border:boolean?, use_stencil:boolean?, debug:boolean?, color:JM.Color|string, cam_tile:integer?, cam_border_color:JM.Color, cam_scale:number, cam_show_grid:boolean?, cam_show_world_bounds:boolean?, cam_type:JM.Camera.Type}
+
+---@overload fun(self:JM.Scene, args:JM.Scene.ArgsConstructor)
 ---@param self JM.Scene
+---@param x integer?
+---@param y integer?
+---@param w integer?
+---@param h integer?
+---@param bounds {bound_left:integer?, bound_top:integer?, bound_right:integer?, bound_bottom:integer?}|nil
 ---@return JM.Scene
 function Scene:new(x, y, w, h, canvas_w, canvas_h, bounds, config)
     if type(x) == "table" then return self:new2(x) end
@@ -189,12 +197,14 @@ end
 ---@return JM.Scene
 function Scene:new2(args)
     local bounds
-    if args.bound_left or args.bound_right or args.bound_top or args.bound_bottom then
+    if args.bound_left or args.bound_right
+        or args.bound_top or args.bound_bottom
+    then
         bounds = {
-            left = args.bound_left,
-            right = args.bound_right,
-            top = args.bound_top,
-            bottom = args.bound_bottom,
+            left = args.bound_left or -10000000,
+            right = args.bound_right or 10000000,
+            top = args.bound_top or -10000000,
+            bottom = args.bound_bottom or 10000000,
         }
     end
 
@@ -340,6 +350,17 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.game_objects = nil
 
     self.update_time = 0.0
+
+    do
+        local color = conf.color
+        if color then
+            if type(color) == "string" then
+                self:set_color(JM.Utils:hex_to_rgba_float(color))
+            else
+                self:set_color(unpack(conf.color))
+            end
+        end
+    end
 end
 
 function Scene:get_vpad()
@@ -486,6 +507,9 @@ function Scene:add_camera(config)
 end
 
 function Scene:get_color()
+    if not self.color_r then
+        return 1, 1, 1, 1
+    end
     return self.color_r, self.color_g, self.color_b, self.color_a
 end
 
@@ -1381,7 +1405,15 @@ local draw = function(self)
     if not shader or type(shader) ~= "table" then
         set_canvas(last_canvas)
 
+
         if self.capture_mode then return end
+
+        if self.color_r and self.scale_type == ScaleType.pixelPerfect
+        then
+            setColor(self:get_color())
+            lgx.rectangle("fill", 0, 0, lgx.getDimensions())
+        end
+
         setColor(1, 1, 1, 1)
         setBlendMode("alpha", 'premultiplied')
 
