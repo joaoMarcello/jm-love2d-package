@@ -100,6 +100,20 @@ function GC:type_of(class)
     return false
 end
 
+--- Check object class type
+---@param class table
+---@return boolean
+function GC:is_an(class)
+    local meta = getmetatable(self)
+    while meta do
+        if meta == class then
+            return true
+        end
+        meta = getmetatable(meta)
+    end
+    return false
+end
+
 function GC:add_object(obj)
     ---@type JM.Group
     local group = self.group
