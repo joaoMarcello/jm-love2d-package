@@ -383,16 +383,16 @@ function Scene:set_scale_type(v)
     else
         self.scale_type = v
 
-        if v == ScaleType.pixelPerfect then
-            self.canvas_filter = 'nearest'
-            -- self:set_subpixel(1)
-            if self.canvas then
-                self.canvas:setFilter("nearest", "nearest")
-            end
-            if self.canvas_layer then
-                self.canvas_layer:setFilter("nearest", "nearest")
-            end
-        end
+        -- if v == ScaleType.pixelPerfect then
+        --     self.canvas_filter = 'nearest'
+        --     -- self:set_subpixel(1)
+        --     if self.canvas then
+        --         self.canvas:setFilter("linear", "nearest")
+        --     end
+        --     if self.canvas_layer then
+        --         self.canvas_layer:setFilter("linear", "nearest")
+        --     end
+        -- end
     end
 end
 
