@@ -1967,8 +1967,11 @@ function Font:printf(text, x, y, align, limit_right)
 
     local ty = 0                --y
     local N = all_lines.N_lines --#(all_lines.lines)
+    local floor = math.floor
     -- x = 0
     lgx.push()
+    tx = floor(tx + 0.5)
+    y = floor(y + 0.5)
     lgx.translate(tx, y)
 
     self:set_font_size(cur_fontsize[1])
@@ -1995,7 +1998,7 @@ function Font:printf(text, x, y, align, limit_right)
             or (align == "center" and x + limit_right * 0.5 - lw * 0.5)
             or x
 
-        pos_to_draw = math.floor(pos_to_draw + .5)
+        pos_to_draw = floor(pos_to_draw + .5)
 
         print(self, line, pos_to_draw, ty, actions, ex_sp, current_color, N_line, cur_fontsize)
 
@@ -2052,7 +2055,6 @@ function Font:generate_phrase(text, x, y, right, align)
     local lines = fr:get_lines()
     return fr, fr:width(lines), fr:text_height(lines)
 end
-
 
 function Font:get_text_dimensions(text, x, y, w, align)
     x = x or 0
