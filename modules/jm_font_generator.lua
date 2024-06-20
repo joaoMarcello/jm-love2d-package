@@ -1765,7 +1765,7 @@ local printf_lines = setmetatable({}, metatable_mode_k)
 ---@param y number
 ---@param align "left"|"right"|"center"|"justify"|any
 ---@param limit_right number|any
-function Font:printf(text, x, y, align, limit_right)
+function Font:printf(text, x, y, align, limit_right, skip_round)
     --
     if type(align) == "number" then
         ---@diagnostic disable-next-line: cast-local-type
@@ -1970,8 +1970,10 @@ function Font:printf(text, x, y, align, limit_right)
     local floor = math.floor
     -- x = 0
     lgx.push()
-    tx = floor(tx + 0.5)
-    y = floor(y + 0.5)
+    if not skip_round then
+        tx = floor(tx + 0.5)
+        y = floor(y + 0.5)
+    end
     lgx.translate(tx, y)
 
     self:set_font_size(cur_fontsize[1])
