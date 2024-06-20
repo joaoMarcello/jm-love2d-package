@@ -709,6 +709,13 @@ function Scene:add_transition(type_, mode, config, action, endAction, camera)
     end
 end
 
+local function is_multiple(a, b)
+    if a > b then a, b = b, a end -- a should be smaller than b
+    if a == 0 then return false end
+    local r = b / a
+    return r == floor(r)
+end
+
 function Scene:calc_canvas_scale()
     if not self.canvas then return end
 
@@ -726,6 +733,39 @@ function Scene:calc_canvas_scale()
 
         self.offset_x = floor((windowWidth - canvasWidthScaled) * 0.5)
         self.offset_y = floor((windowHeight - canvasHeightScaled) * 0.5)
+
+        local filter = self.canvas_filter
+        if filter == "linear" then
+            if is_multiple(self.screen_w, windowWidth)
+                and is_multiple(self.screen_h, windowHeight)
+                and self:is_current_active()
+                and self.subpixel <= windowWidth / self.screen_w
+            then
+                self.canvas_filter = "nearest"
+                self.canvas:setFilter("nearest", "nearest")
+                do
+                    local c = self.canvas_layer
+                    if c then
+                        c:setFilter("nearest", "nearest")
+                    end
+                end
+            end
+            ---
+        elseif filter == "nearest" then
+            if not self:is_current_active()
+                or (not is_multiple(self.screen_w, windowWidth))
+                or (not is_multiple(self.screen_h, windowHeight))
+            then
+                self.canvas_filter = "linear"
+                self.canvas:setFilter("linear", "linear")
+                do
+                    local c = self.canvas_layer
+                    if c then
+                        c:setFilter("linear", "linear")
+                    end
+                end
+            end
+        end
     end
 
     if scale_type == ScaleType.scaleToFit then
