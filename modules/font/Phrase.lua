@@ -762,6 +762,7 @@ function Phrase:draw(x, y, align, __max_char__, dt)
     -- self.x = 0
     -- self.y = 0
 
+    y = math.floor(y + 0.5)
     translate(x, y)
     -- x = 0
     -- y = 0
