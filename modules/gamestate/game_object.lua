@@ -40,6 +40,7 @@ function GC:get_gamestate_and_world()
     return GC.gamestate, GC.world, GC.group
 end
 
+---@param x number|nil
 ---@return table|GameObject|any
 function GC:new(x, y, w, h, draw_order, update_order, reuse_tab)
     reuse_tab = reuse_tab
