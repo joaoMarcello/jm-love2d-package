@@ -514,6 +514,10 @@ function Anima:reset()
     self.__is_paused = nil
     self.is_visible = true
     self.__is_enabled = true
+    self.flip_x = 1
+    self.flip_y = 1
+    self.scale_x = 1
+    self.scale_y = 1
 end
 
 -- ---@param arg {x: number, y: number, rot: number, sx: number, sy: number, ox: number, oy: number, kx: number, ky: number}
