@@ -807,10 +807,11 @@ function M:get_shader(shader, state, conf)
             code = lfs.read("/jm-love2d-package/data/shader/glitch_transform_tdhooper.glsl")
             gl = lgx.newShader(code)
             shaders[shader] = gl
+
             gl:send("iTime", 0.0)
-            gl:send("glitchScale", 0.25)
-            gl:send("glitchSwapSpeed", 30)
-            gl:send("glitchSeedProb", 0.75)
+            gl:send("glitchScale", conf.glitchScale or 0.25)
+            gl:send("glitchSwapSpeed", conf.glitchSwapSpeed or 30)
+            gl:send("glitchSeedProb", conf.glitchSeedProb or 0.75)
         end
         return gl
         ---
