@@ -9,9 +9,11 @@ local Affectable = _G.JM_Affectable
 local Quads = setmetatable({}, { __mode = 'k' })
 
 ---@class JM.Font.Glyph: JM.Template.Affectable
+---@field x number
 local Glyph = setmetatable({}, Affectable)
 Glyph.__index = Glyph
 
+---@param img love.Image|nil
 ---@return JM.Font.Glyph
 function Glyph:new(img, args)
     -- local obj = Affectable:new(self.__glyph_draw__)
@@ -215,6 +217,8 @@ local function __glyph_draw__(self)
 end
 
 -- local floor = math.floor
+---@param x number
+---@param y number
 function Glyph:draw(x, y)
     self.x, self.y = x, y
     -- self.x, self.y = floor(x + 0.5), floor(y + 0.5)
