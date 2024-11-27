@@ -35,105 +35,103 @@
 -- end
 
 -- function love.textinput(t)
---     local scene = SceneManager.scene
---     scene:textinput(t)
+--     return JM:textinput(t)
 -- end
 
--- local getKeyFromScancode = love.keyboard.getKeyFromScancode
--- function love.keypressed(key)
---     local scene = SceneManager.scene
---     key = getKeyFromScancode(key)
-
---     if key == "escape" then
---         scene:finish()
---         scene = nil
---         collectgarbage()
---         love.event.quit()
---         return
+-- function love.keypressed(key, scancode, isrepeat)
+--     if key == 'p' and love.keyboard.isDown('lctrl') then
+--         return love.graphics.captureScreenshot("img_" .. os.time() .. ".png")
 --     end
 
---     if scene then
---         scene:keypressed(key)
---     end
+--     return JM:keypressed(key, scancode, isrepeat)
 -- end
 
--- function love.keyreleased(key)
---     local scene = SceneManager.scene
---     key = getKeyFromScancode(key)
-
---     if scene then
---         scene:keyreleased(key)
---     end
+-- function love.keyreleased(key, scancode)
+--     return JM:keyreleased(key, scancode)
 -- end
 
 -- function love.mousepressed(x, y, button, istouch, presses)
---     local scene = SceneManager.scene
---     if scene then scene:mousepressed(x, y, button, istouch, presses) end
+--     return JM:mousepressed(x, y, button, istouch, presses)
 -- end
 
 -- function love.mousereleased(x, y, button, istouch, presses)
---     local scene = SceneManager.scene
---     if scene then scene:mousereleased(x, y, button, istouch, presses) end
+--     return JM:mousereleased(x, y, button, istouch, presses)
 -- end
 
 -- function love.mousemoved(x, y, dx, dy, istouch)
---     local scene = SceneManager.scene
---     if scene then scene:mousemoved(x, y, dx, dy, istouch) end
+--     return JM:mousemoved(x, y, dx, dy, istouch)
+-- end
+
+-- function love.focus(f)
+--     return JM:focus(f)
+-- end
+
+-- function love.visible(v)
+--     return JM:visible(v)
+-- end
+
+-- function love.wheelmoved(x, y)
+--     return JM:wheelmoved(x, y)
 -- end
 
 -- function love.touchpressed(id, x, y, dx, dy, pressure)
---     local scene = SceneManager.scene
---     if scene then scene:touchpressed(id, x, y, dx, dy, pressure) end
+--     if not _G.USE_VPAD then
+--         do
+--             local scene = JM.SceneManager.scene
+--             if scene and not scene.is_splash_screen then
+--                 scene.use_vpad = true
+--             end
+--             JM.ControllerManager.P1:set_vpad(JM.Vpad)
+--         end
+--         _G.USE_VPAD = true
+--         JM:to_fullscreen()
+--         return JM.Vpad:resize(love.graphics.getDimensions())
+--     end
+--     return JM:touchpressed(id, x, y, dx, dy, pressure)
 -- end
 
 -- function love.touchreleased(id, x, y, dx, dy, pressure)
---     local scene = SceneManager.scene
---     if scene then scene:touchreleased(id, x, y, dx, dy, pressure) end
+--     return JM:touchreleased(id, x, y, dx, dy, pressure)
 -- end
 
 -- function love.touchmoved(id, x, y, dx, dy, pressure)
---     local scene = SceneManager.scene
---     if scene then scene:touchmoved(id, x, y, dx, dy, pressure) end
+--     return JM:touchmoved(id, x, y, dx, dy, pressure)
 -- end
 
 -- function love.joystickpressed(joystick, button)
---     local scene = SceneManager.scene
---     if scene then scene:joystickpressed(joystick, button) end
+--     return JM:joystickpressed(joystick, button)
 -- end
 
 -- function love.joystickreleased(joystick, button)
---     local scene = SceneManager.scene
---     if scene then scene:joystickreleased(joystick, button) end
+--     return JM:joystickreleased(joystick, button)
 -- end
 
 -- function love.joystickaxis(joystick, axis, value)
---     local scene = SceneManager.scene
---     if scene then scene:joystickaxis(joystick, axis, value) end
+--     return JM:joystickaxis(joystick, axis, value)
 -- end
 
 -- function love.joystickadded(joystick)
---     local scene = SceneManager.scene
---     if scene then scene:joystickadded(joystick) end
+--     return JM:joystickadded(joystick)
 -- end
 
 -- function love.joystickremoved(joystick)
---     local scene = SceneManager.scene
---     if scene then scene:joystickremoved(joystick) end
+--     return JM:joystickremoved(joystick)
 -- end
 
 -- function love.gamepadpressed(joy, button)
---     local scene = SceneManager.scene
---     if scene then scene:gamepadpressed(joy, button) end
+--     return JM:gamepadpressed(joy, button)
 -- end
 
 -- function love.gamepadreleased(joy, button)
---     local scene = SceneManager.scene
---     if scene then scene:gamepadreleased(joy, button) end
+--     return JM:gamepadreleased(joy, button)
 -- end
 
 -- function love.gamepadaxis(joy, axis, value)
---     local scene = SceneManager.scene
---     if scene then scene:gamepadaxis(joy, axis, value) end
+--     return JM:gamepadaxis(joy, axis, value)
+-- end
+
+-- function love.resize(w, h)
+--     return JM:resize(w, h)
 -- end
 
 -- local km = 0
