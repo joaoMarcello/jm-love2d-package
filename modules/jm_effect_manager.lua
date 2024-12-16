@@ -89,12 +89,13 @@ function EffectManager:new(affectable_object)
         return reuse
     end
 
-    ---@type JM.EffectManager
+    -- ---@type JM.EffectManager
     local obj = {
         __effects_list = nil,
         __sort__ = false,
         object = affectable_object,
     }
+
     setmetatable(obj, EffectManager)
 
     -- EffectManager.__constructor__(obj, affectable_object)
