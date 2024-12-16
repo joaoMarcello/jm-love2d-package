@@ -1253,6 +1253,7 @@ local draw = function(self)
     push()
 
     if self.use_stencil then
+        ---@diagnostic disable-next-line: missing-fields
         set_canvas { self.canvas, stencil = true }
     else
         set_canvas(self.canvas)
