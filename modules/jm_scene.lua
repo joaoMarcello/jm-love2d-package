@@ -97,7 +97,8 @@ end
 ---@param height number
 ---@param filter string
 ---@param subpixel number
-local function create_canvas(width, height, filter, subpixel)
+---@param dpi number
+local function create_canvas(width, height, filter, subpixel, dpi)
     if type(width) == "table" then
         ---@type JM.Scene
         local scene = width
@@ -111,7 +112,7 @@ local function create_canvas(width, height, filter, subpixel)
         width * subpixel,
         height * subpixel,
         {
-            dpiscale = 1,
+            dpiscale = dpi or 1,
             msaa = 0,
             format = "normal",
         }
