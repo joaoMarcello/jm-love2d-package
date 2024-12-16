@@ -11,6 +11,7 @@ local State = JM.Scene:new {
     canvas_w = 1920,          --SCREEN_WIDTH,
     canvas_h = 1080,          --SCREEN_HEIGHT,
     subpixel = 1.0,           --SUBPIXEL,
+    dpi = 1,
     canvas_filter = 'linear', --CANVAS_FILTER,
     tile = TILE,
     cam_tile = TILE,
