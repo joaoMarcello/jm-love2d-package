@@ -24,7 +24,7 @@ local function round(x)
     end
 end
 
-local filter_default = function(x, y, id)
+local filter_default = function(x, y, id, ...)
     return true
 end
 
