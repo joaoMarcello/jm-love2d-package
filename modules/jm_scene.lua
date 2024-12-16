@@ -332,9 +332,10 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.canvas_layer = nil
 
     -- self:restaure_canvas()
-
+    
+    self.dpi = conf.dpi or 4
+    
     self:implements {}
-
     -- self:calc_canvas_scale()
 
     self.capture_mode = false
@@ -346,6 +347,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.use_stencil = conf.use_stencil or nil
 
     self.show_info = conf.debug or nil
+
 
     ---@deprecated
     self.game_objects = nil
@@ -448,14 +450,15 @@ end
 
 function Scene:restaure_canvas()
     if not self.canvas then
-        self.canvas = create_canvas(self.screen_w, self.screen_h, self.canvas_filter, self.subpixel)
+        self.canvas = create_canvas(self.screen_w, self.screen_h, 
+            self.canvas_filter, self.subpixel, self.dpi)
         self:calc_canvas_scale()
     end
 
     if self.using_canvas_layer and not self.canvas_layer then
         local w, h = self.canvas:getDimensions()
         -- self.canvas_layer = love.graphics.newCanvas(w, h, { dpiscale = self.canvas:getDPIScale() })
-        self.canvas_layer = create_canvas(w, h, self.canvas_filter, 1)
+        self.canvas_layer = create_canvas(w, h, self.canvas_filter, 1, self.dpi)
     end
 end
 
