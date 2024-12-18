@@ -2190,7 +2190,7 @@ end
 
 local shader_param = setmetatable({}, { __mode = 'k' })
 
----@param shader love.Shader|table|any
+---@param shader love.Shader|table<integer, love.Shader>|any
 ---@param action function|nil
 ---@return love.Shader|table
 function Scene:set_shader(shader, action)
