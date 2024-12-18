@@ -384,6 +384,18 @@ function JM:show_fullscreen_button()
     }
 end
 
+local dpi = 1
+--- set default dpi when create canvas on jm_scene
+---@param value number
+function JM:set_default_dpi(value)
+    value = value or 1
+    dpi = value
+end
+
+function JM:get_default_dpi()
+    return dpi
+end
+
 local locker_path = JM_Path .. "modules.locker.init"
 function JM:update(dt)
     do
