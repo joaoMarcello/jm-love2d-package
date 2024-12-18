@@ -284,6 +284,7 @@ local function check_collision(x1, y1, w1, h1, x2, y2, w2, h2)
 end
 
 ---@param self JM.GUI.VPad
+---@return JM.GUI.TouchButton|boolean?, JM.GUI.TouchButton?
 local function check_dpad_diagonal_press(self, x, y, skip_press)
     if allow_dpad_diagonal and dpad_up.on_focus and dpad_up.is_visible
     then
@@ -542,26 +543,54 @@ function Pad:unpress_dpad_touch(id, x, y, dx, dy, pressure)
 end
 
 function Pad:mousemoved(x, y, dx, dy, istouch)
-    for i = 1, self.N do
-        local obj = self[i]
+    do
+        local bb1, bb2 = check_dpad_diagonal_press(self, x, y, true)
 
-        local last = obj.__mouse_pressed
+        for i = 1, self.N do
+            local obj = self[i]
 
-        if dx ~= 0 or dy ~= 0 then
-            obj:mousemoved(x, y, dx, dy, istouch)
-        end
+            local last = obj.__mouse_pressed
 
-        if not last and obj.__mouse_pressed then
-            self:verify_pressed(JM.SceneManager.scene)
+            if (dx ~= 0 or dy ~= 0)
+                -- dont unpress dpad if diagonal press
+                and (obj ~= bb1 and obj ~= bb2)
+            then
+                obj:mousemoved(x, y, dx, dy, istouch)
+            end
+
+            if not last and obj.__mouse_pressed then
+                self:verify_pressed(JM.SceneManager.scene)
+            end
         end
     end
 
 
-    if not self:dpad_is_pressed()
+    if (true or not self:dpad_is_pressed())
         and (love.mouse.isDown(1) or love.mouse.isDown(2))
     then
-        local r = check_dpad_diagonal_press(self, x, y)
-        if r then self:verify_pressed(JM.SceneManager.scene) end
+        -- local r = check_dpad_diagonal_press(self, x, y)
+        -- if r then self:verify_pressed(JM.SceneManager.scene) end
+
+        local b1, b2 = check_dpad_diagonal_press(self, x, y, true)
+
+        b1 = b1 --[[@as JM.GUI.TouchButton]]
+        b2 = b2 --[[@as JM.GUI.TouchButton]]
+
+        if (b1 and not b1:is_pressing())
+            or (b2 and not b2:is_pressing())
+        then
+            local t1, t2 = b1.time_press, b2.time_press
+            check_dpad_diagonal_press(self, x, y)
+
+            if t1 then
+                b1.time_press = t1 + 0.0000001
+            end
+
+            if t2 then
+                b2.time_press = t2 + 0.0000001
+            end
+            self:verify_pressed(JM.SceneManager.scene)
+        end
     end
 
     local pressed = self:dpad_is_pressed()
@@ -591,40 +620,38 @@ function Pad:mousemoved(x, y, dx, dy, istouch)
             if obj.time_press == 0 then
                 local scene = JM.SceneManager.scene
                 self:verify_pressed(scene)
-                -- local mousepressed = scene and scene.__param__.mousepressed
-                -- if mousepressed then mousepressed(x, y, 1, false) end
             end
             ---
         else
-            local b1, b2 = check_dpad_diagonal_press(self, x, y, true)
+            -- local b1, b2 = check_dpad_diagonal_press(self, x, y, true)
 
-            if b1 and b2 then
-                local t1, t2 = b1.time_press, b2.time_press
+            -- if b1 and b2 then
+            --     local t1, t2 = b1.time_press, b2.time_press
 
-                self:unpress_dpad_mouse(x, y)
-                check_dpad_diagonal_press(self, x, y)
+            --     self:unpress_dpad_mouse(x, y)
+            --     check_dpad_diagonal_press(self, x, y)
 
-                b1.time_press = t1 or b1.time_press
-                b2.time_press = t2 or b2.time_press
+            --     b1.time_press = t1 or b1.time_press
+            --     b2.time_press = t2 or b2.time_press
 
-                if b1.time_press == 0 or b2.time_press == 0 then
-                    local scene = JM.SceneManager.scene
-                    self:verify_pressed(scene)
+            --     if b1.time_press == 0 or b2.time_press == 0 then
+            --         local scene = JM.SceneManager.scene
+            --         self:verify_pressed(scene)
 
-                    -- local mousepressed = scene and scene.__param__.mousepressed
-                    -- if mousepressed then mousepressed(x, y, 1, false) end
-                end
-                ---
-            elseif obj then
-                ---
-                for i = 1, 4 do
-                    local bt = list_dpad[i]
-                    if bt ~= obj and bt:is_pressing() then
-                        bt:mousereleased(x, y, 1, false)
-                    end
-                end
-                ---
-            end
+            --         -- local mousepressed = scene and scene.__param__.mousepressed
+            --         -- if mousepressed then mousepressed(x, y, 1, false) end
+            --     end
+            --     ---
+            -- elseif obj then
+            --     ---
+            --     for i = 1, 4 do
+            --         local bt = list_dpad[i]
+            --         if bt ~= obj and bt:is_pressing() then
+            --             bt:mousereleased(x, y, 1, false)
+            --         end
+            --     end
+            --     ---
+            -- end
             ---
         end
     end --- END dpad mousemove
@@ -643,27 +670,64 @@ end
 function Pad:touchmoved(id, x, y, dx, dy, pressure)
     local vibrate = false
 
-    for i = 1, self.N do
-        local obj = self[i]
-        local last = obj.__touch_pressed
+    do
+        local bb1, bb2 = check_dpad_diagonal_press_touch(self, id, x, y, dx, dy, pressure, true)
 
-        if dx ~= 0 or dy ~= 0 then
-            obj:touchmoved(id, x, y, dx, dy, pressure)
-        end
+        for i = 1, self.N do
+            local obj = self[i]
+            local last = obj.__touch_pressed
 
-        if not last and obj.__touch_pressed then
-            self:verify_pressed(JM.SceneManager.scene)
-            if not vibrate then love_vibrate(vibrate_sec) end
+            if (dx ~= 0 or dy ~= 0)
+                -- dont unpress dpad if diagonal press
+                and (obj ~= bb1 and obj ~= bb2)
+            then
+                obj:touchmoved(id, x, y, dx, dy, pressure)
+            end
+
+            if not last and obj.__touch_pressed then
+                self:verify_pressed(JM.SceneManager.scene)
+                if not vibrate then love_vibrate(vibrate_sec) end
+            end
         end
     end
 
 
-    if not self:dpad_is_pressed() then
-        local r = check_dpad_diagonal_press_touch(
-            self, id, x, y, dx, dy, pressure)
-        if r then
+    -- if not self:dpad_is_pressed() then
+    do
+        -- local r = check_dpad_diagonal_press_touch(
+        --     self, id, x, y, dx, dy, pressure)
+        -- if r then
+        --     self:verify_pressed(JM.SceneManager.scene)
+        --     if not vibrate then love_vibrate(vibrate_sec) end
+        -- end
+
+        local b1, b2 = check_dpad_diagonal_press_touch(
+            self, id, x, y, dx, dy, pressure, true)
+
+        b1 = b1 --[[@as JM.GUI.TouchButton]]
+        b2 = b2 --[[@as JM.GUI.TouchButton]]
+
+        if (b1 and not b1:is_pressing())
+            or (b2 and not b2:is_pressing())
+        then
+            local t1, t2 = b1.time_press, b2.time_press
+
+            check_dpad_diagonal_press_touch(
+                self, id, x, y, dx, dy, pressure)
+
+            if t1 then
+                b1.time_press = t1
+            end
+
+            if t2 then
+                b2.time_press = t2
+            end
+
             self:verify_pressed(JM.SceneManager.scene)
-            if not vibrate then love_vibrate(vibrate_sec) end
+            if not vibrate then
+                love_vibrate(vibrate_sec)
+                vibrate = true
+            end
         end
     end
 
@@ -699,38 +763,38 @@ function Pad:touchmoved(id, x, y, dx, dy, pressure)
             end
             ---
         else
-            local b1, b2 = check_dpad_diagonal_press_touch(
-                self, id, x, y, dx, dy, pressure, true
-            )
+            -- local b1, b2 = check_dpad_diagonal_press_touch(
+            --     self, id, x, y, dx, dy, pressure, true
+            -- )
 
-            if b1 and b2 then
-                local t1, t2 = b1.time_press, b2.time_press
+            -- if b1 and b2 then
+            --     local t1, t2 = b1.time_press, b2.time_press
 
-                self:unpress_dpad_touch(id, x, y, dx, dy, pressure)
+            --     self:unpress_dpad_touch(id, x, y, dx, dy, pressure)
 
-                check_dpad_diagonal_press_touch(
-                    self, id, x, y, dx, dy, pressure
-                )
+            --     check_dpad_diagonal_press_touch(
+            --         self, id, x, y, dx, dy, pressure
+            --     )
 
-                b1.time_press = t1 or b1.time_press
-                b2.time_press = t2 or b2.time_press
+            --     b1.time_press = t1 or b1.time_press
+            --     b2.time_press = t2 or b2.time_press
 
-                if b1.time_press == 0.0 or b2.time_press == 0.0 then
-                    local scene = JM.SceneManager.scene
-                    self:verify_pressed(scene)
-                    love_vibrate(vibrate_sec)
-                end
-                ---
-            elseif obj then
-                ---
-                for i = 1, 4 do
-                    local bt = list_dpad[i]
-                    if bt ~= obj and bt:is_pressing() then
-                        bt:touchreleased(bt.__touch_pressed, x, y, dx, dy, pressure)
-                    end
-                end
-                ---
-            end
+            --     if b1.time_press == 0.0 or b2.time_press == 0.0 then
+            --         local scene = JM.SceneManager.scene
+            --         self:verify_pressed(scene)
+            --         love_vibrate(vibrate_sec)
+            --     end
+            --     ---
+            -- elseif obj then
+            --     ---
+            --     for i = 1, 4 do
+            --         local bt = list_dpad[i]
+            --         if bt ~= obj and bt:is_pressing() then
+            --             bt:touchreleased(bt.__touch_pressed, x, y, dx, dy, pressure)
+            --         end
+            --     end
+            --     ---
+            -- end
         end
     end
     ---
