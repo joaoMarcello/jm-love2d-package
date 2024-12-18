@@ -332,9 +332,9 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.canvas_layer = nil
 
     -- self:restaure_canvas()
-    
-    self.dpi = conf.dpi or 1
-    
+
+    self.dpi = conf.dpi or JM:get_default_dpi() or 1
+
     self:implements {}
     -- self:calc_canvas_scale()
 
@@ -450,7 +450,7 @@ end
 
 function Scene:restaure_canvas()
     if not self.canvas then
-        self.canvas = create_canvas(self.screen_w, self.screen_h, 
+        self.canvas = create_canvas(self.screen_w, self.screen_h,
             self.canvas_filter, self.subpixel, self.dpi)
         self:calc_canvas_scale()
     end
