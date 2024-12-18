@@ -333,7 +333,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     -- self:restaure_canvas()
     
-    self.dpi = conf.dpi or 4
+    self.dpi = conf.dpi or 1
     
     self:implements {}
     -- self:calc_canvas_scale()
