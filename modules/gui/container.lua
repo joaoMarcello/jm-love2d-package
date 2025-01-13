@@ -411,6 +411,7 @@ function Container:add(obj)
     return obj
 end
 
+---@param type_ "horizontal_list"|"vertical_list"|"grid"|""|nil
 function Container:set_type(type_, mode, grid_x, grid_y)
     mode = INSERT_MODE[mode]
     mode = mode or INSERT_MODE.center
