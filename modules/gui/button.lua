@@ -8,7 +8,7 @@ local Component = require(path:gsub("button", "component"))
 local Button = setmetatable({}, Component)
 Button.__index = Button
 
----@return JM.GUI.Component
+---@return JM.GUI.Button
 function Button:new(args)
     ---@class JM.GUI.Button
     local obj = Component:new(args)
