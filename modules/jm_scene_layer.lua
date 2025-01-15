@@ -117,9 +117,9 @@ end
 
 local shader_param = {}
 
----@param shader love.Shader|table
+---@param shader love.Shader|table|any
 ---@param action function|any
----@return love.Shader|table
+---@return love.Shader|table|any
 function Layer:set_shader(shader, action)
     self.shader = shader
     if shader then
