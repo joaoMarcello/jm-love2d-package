@@ -10,7 +10,10 @@ local math_abs, math_sin, math_cos = math.abs, math.sin, math.cos
 local math_atan2, math_sqrt = math.atan2, math.sqrt
 local lgx = love.graphics
 local lmouse = love.mouse
+local love_vibrate = love.system.vibrate
 -- local ltouch = love.touch
+
+local vibrate_sec = 0.05
 
 ---@class JM.GUI.VirtualStick : JM.GUI.Component
 local Stick = setmetatable({}, Component)
@@ -289,6 +292,7 @@ function Stick:touchpressed(id, x, y, dx, dy, pressure)
             Component.touchpressed(self, id, self.half_x, self.half_y, dx, dy, pressure)
             if self.__touch_pressed then
                 self:grow()
+                love_vibrate(vibrate_sec)
             end
             return
         end
@@ -311,7 +315,10 @@ function Stick:touchpressed(id, x, y, dx, dy, pressure)
 
     if dist <= self.radius then
         Component.touchpressed(self, id, x, y, dx, dy, pressure)
-        if self.__touch_pressed then self:grow() end
+        if self.__touch_pressed then
+            self:grow()
+            return love_vibrate(vibrate_sec)
+        end
     end
 end
 
