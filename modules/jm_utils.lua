@@ -355,6 +355,21 @@ function Utils:hsvToRgb(h, s, v)
     return (r1 + m), (g1 + m), (b1 + m)
 end
 
+--- Checks if a given object is a instance of a given class
+---@param obj table
+---@param class table
+---@return boolean
+function Utils:type_off(obj, class)
+    local meta = getmetatable(obj)
+    while meta do
+        if meta == class then
+            return true
+        end
+        meta = getmetatable(meta)
+    end
+    return false
+end
+
 --=====================================================================
 
 ---comment
