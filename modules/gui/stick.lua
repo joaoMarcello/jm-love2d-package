@@ -142,6 +142,8 @@ function Stick:use_dpad(value)
     self.dpad_up = up
     self.dpad_down = down
     self.dpad_list = { right, left, up, down }
+
+    self:set_dpad_position()
 end
 
 function Stick:turn_off_dpad()
