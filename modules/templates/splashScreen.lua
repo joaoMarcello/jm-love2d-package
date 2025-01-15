@@ -384,7 +384,7 @@ local function finish()
 end
 
 local function keypressed(key)
-    if data.total_time <= 1 then return end
+    if data.total_time <= 1.75 then return end
     if key == "o" then
         State.camera:toggle_grid()
         State.camera:toggle_debug()
