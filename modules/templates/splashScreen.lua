@@ -414,17 +414,17 @@ local function gamepadpressed(joy, bt)
     end
 end
 
-function State:add_transition(...)
-    JM.Scene.add_transition(self, ...)
-    local transition = self.transition
-    if transition then
-        if not transition.mode_out then
-            self.transition = nil
-            self.trans_end_action = nil
-            self.trans_action = nil
-        end
-    end
-end
+-- function State:add_transition(...)
+--     JM.Scene.add_transition(self, ...)
+--     local transition = self.transition
+--     if transition then
+--         if not transition.mode_out then
+--             self.transition = nil
+--             self.trans_end_action = nil
+--             self.trans_action = nil
+--         end
+--     end
+-- end
 
 local function love_logo_update(dt)
     if not data.played_sound and data.sound then
