@@ -246,6 +246,20 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressing_vpad(self, button)
+    do
+        local prev = self.prev_state
+        if prev and prev == States.vpad then
+            local temp = self.state
+            self.prev_state = nil
+            self:set_state(States.vpad)
+
+            local r = self:pressing(button)
+
+            self:set_state(temp)
+            self.prev_state = prev
+            return r
+        end
+    end
     local button_is_axis = is_axis(button)
 
     if not self.vpad or self.state ~= States.vpad then
@@ -563,6 +577,7 @@ function Controller:__constructor__(args)
     self.button_to_key = args.keys or default_keymap()
     self.button_string = args.button_string or default_joystick_map()
     self.is_keyboard_owner = false
+    self.prev_state = false
 
     self.virtual_to_gamepad = {
         [Buttons.A] = 'a',
@@ -655,11 +670,22 @@ function Controller:is_on_keyboard_mode()
 end
 
 function Controller:is_on_joystick_mode()
-    return self.state == States.joystick
+    local joystick = States.joystick
+    do
+        local prev_state = self.prev_state
+        if prev_state == joystick then return true end
+    end
+    return self.state == joystick
 end
 
 function Controller:is_on_vpad_mode()
-    return self.state == States.vpad
+    local vpad = States.vpad
+    do
+        local prev_state = self.prev_state
+        if prev_state == vpad then return true end
+    end
+
+    return self.state == vpad
 end
 
 ---@param vpad JM.GUI.VPad
@@ -682,6 +708,36 @@ function Controller:remove_joystick()
         return true
     end
     return false
+end
+
+-- ---@param value boolean?
+-- function Controller:set_temp_keyboard_mode(value)
+--     if value then
+--         if not self.prev_state then
+--             self.on_temp_keyboard_mode = value
+--             self.prev_state = self.state
+--         end
+--     elseif self.prev_state then
+--         self.on_temp_keyboard_mode = false
+--         self:set_state(self.prev_state)
+--         self.prev_state = nil
+--     end
+-- end
+
+function Controller:capture_state()
+    if not self.prev_state then
+        self.on_temp_keyboard_mode = true
+        self.prev_state = self.state
+    end
+end
+
+function Controller:restaure_state()
+    local prev = self.prev_state
+    if prev then
+        self.on_temp_keyboard_mode = false
+        self:set_state(prev)
+        self.prev_state = nil
+    end
 end
 
 ---@param bt JM.Controller.Buttons
