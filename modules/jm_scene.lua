@@ -1650,12 +1650,16 @@ local mousepressed = function(self, x, y, button, istouch, presses)
 
     if self.use_vpad and not istouch then
         P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode(true)
+        P1:capture_state()
 
         local mx, my = mousePosition()
         VPad:mousepressed(mx, my, button, istouch, presses)
 
         VPad:verify_pressed(self)
-        P1:set_state(Controllers.State.vpad)
+        P1:restaure_state()
+        -- P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode()
     end
 
     if self.time_pause
@@ -1668,9 +1672,15 @@ local mousepressed = function(self, x, y, button, istouch, presses)
 
     x, y = self:get_mouse_position()
 
-    local state1 = P1.state
+    -- local state1 = P1.state
+    -- P1:set_temp_keyboard_mode(true)
+    P1:capture_state()
+
     local r = param.mousepressed and param.mousepressed(x, y, button, istouch, presses)
-    P1:set_state(state1)
+
+    P1:restaure_state()
+    -- P1:set_state(state1)
+    -- P1:set_temp_keyboard_mode()
 end
 
 ---@param self JM.Scene
@@ -1679,11 +1689,16 @@ local mousereleased = function(self, x, y, button, istouch, presses)
 
     if self.use_vpad and not istouch then
         P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode(true)
+        P1:capture_state()
 
         local mx, my = mousePosition()
         VPad:mousereleased(mx, my, button, istouch, presses)
         -- self:vpadreleased()
-        P1:set_state(Controllers.State.vpad)
+
+        P1:restaure_state()
+        -- P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode()
     end
 
     if self.time_pause
@@ -1695,9 +1710,15 @@ local mousereleased = function(self, x, y, button, istouch, presses)
     local param = self.__param__
     x, y = self:get_mouse_position()
 
-    local state1 = P1.state
+    -- local state1 = P1.state
+    -- P1:set_temp_keyboard_mode(true)
+    P1:capture_state()
+
     local r = param.mousereleased and param.mousereleased(x, y, button, istouch, presses)
-    P1:set_state(state1)
+
+    P1:restaure_state()
+    -- P1:set_state(state1)
+    -- P1:set_temp_keyboard_mode()
 end
 
 ---@param self JM.Scene
@@ -1706,8 +1727,14 @@ local mousemoved = function(self, x, y, dx, dy, istouch)
 
     if self.use_vpad and not istouch then
         P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode(true)
+        P1:capture_state()
+
         VPad:mousemoved(x, y, dx, dy, istouch)
-        P1:set_state(Controllers.State.vpad)
+
+        -- P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode()
+        P1:restaure_state()
     end
 
     if self.time_pause
@@ -1719,9 +1746,15 @@ local mousemoved = function(self, x, y, dx, dy, istouch)
     local param = self.__param__
     x, y = self:get_mouse_position()
 
-    local state1 = P1.state
+    -- local state1 = P1.state
+    -- P1:set_temp_keyboard_mode(true)
+    P1:capture_state()
+
     local r = param.mousemoved and param.mousemoved(x, y, dx, dy, istouch)
-    P1:set_state(state1)
+
+    P1:restaure_state()
+    -- P1:set_state(state1)
+    -- P1:set_temp_keyboard_mode()
 end
 
 ---@param self JM.Scene
@@ -1748,9 +1781,15 @@ local touchpressed = function(self, id, x, y, dx, dy, pressure)
 
     if self.use_vpad then
         P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode(true)
+        P1:capture_state()
+
         VPad:touchpressed(id, x, y, dx, dy, pressure)
         VPad:verify_pressed(self)
-        P1:set_state(Controllers.State.vpad)
+
+        P1:restaure_state()
+        -- P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode()
     end
 
     if self.time_pause
@@ -1760,12 +1799,16 @@ local touchpressed = function(self, id, x, y, dx, dy, pressure)
     end
 
     -- x, y = self:point_monitor_to_world(x, y)
-    local state1 = P1.state
+    -- local state1 = P1.state
+    -- P1:set_temp_keyboard_mode(true)
+    P1:capture_state()
 
     local param = self.__param__
     local r = param.touchpressed and param.touchpressed(id, x, y, dx, dy, pressure)
 
-    P1:set_state(state1)
+    P1:restaure_state()
+    -- P1:set_state(state1)
+    -- P1:set_temp_keyboard_mode()
 end
 
 ---@param self JM.Scene
@@ -1774,8 +1817,14 @@ local touchreleased = function(self, id, x, y, dx, dy, pressure)
 
     if self.use_vpad then
         P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode(true)
+        P1:capture_state()
+
         VPad:touchreleased(id, x, y, dx, dy, pressure)
-        P1:set_state(Controllers.State.vpad)
+
+        P1:restaure_state()
+        -- P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode()
     end
 
     if self.time_pause
@@ -1786,10 +1835,16 @@ local touchreleased = function(self, id, x, y, dx, dy, pressure)
 
     -- x, y = self:point_monitor_to_world(x, y)
 
-    local state1 = P1.state
+    -- local state1 = P1.state
+    -- P1:set_temp_keyboard_mode(true)
+    P1:capture_state()
+
     local param = self.__param__
     local r = param.touchreleased and param.touchreleased(id, x, y, dx, dy, pressure)
-    P1:set_state(state1)
+
+    P1:restaure_state()
+    -- P1:set_state(state1)
+    -- P1:set_temp_keyboard_mode()
 end
 
 ---@param self JM.Scene
@@ -1798,8 +1853,14 @@ local touchmoved = function(self, id, x, y, dx, dy, pressure)
 
     if self.use_vpad then
         P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode(true)
+        P1:capture_state()
+
         VPad:touchmoved(id, x, y, dx, dy, pressure)
-        P1:set_state(Controllers.State.vpad)
+
+        P1:restaure_state()
+        -- P1:set_state(Controllers.State.vpad)
+        -- P1:set_temp_keyboard_mode()
     end
 
     if self.time_pause
@@ -1809,10 +1870,16 @@ local touchmoved = function(self, id, x, y, dx, dy, pressure)
     end
 
     -- x, y = self:point_monitor_to_world(x, y)
-    local state1 = P1.state
+    -- local state1 = P1.state
+    -- P1:set_temp_keyboard_mode(true)
+    P1:capture_state()
+
     local param = self.__param__
     local r = param.touchmoved and param.touchmoved(id, x, y, dx, dy, pressure)
-    P1:set_state(state1)
+
+    P1:restaure_state()
+    -- P1:set_state(state1)
+    -- P1:set_temp_keyboard_mode()
 end
 
 ---@param self JM.Scene
@@ -1841,12 +1908,13 @@ local keypressed = function(self, key, scancode, isrepeat)
         return
     end
 
+    local P1 = Controllers.P1
+
     local keyboard_owner = Controllers.keyboard_owner
     if keyboard_owner then
         keyboard_owner:set_state(Controllers.State.keyboard)
     end
 
-    local P1 = Controllers.P1
     P1:keypressed(key)
     Controllers.P2:keypressed(key)
 
