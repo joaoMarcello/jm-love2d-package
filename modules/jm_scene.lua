@@ -1909,6 +1909,7 @@ local keypressed = function(self, key, scancode, isrepeat)
     end
 
     local P1 = Controllers.P1
+    P1:capture_state()
 
     local keyboard_owner = Controllers.keyboard_owner
     if keyboard_owner then
@@ -1918,12 +1919,13 @@ local keypressed = function(self, key, scancode, isrepeat)
     P1:keypressed(key)
     Controllers.P2:keypressed(key)
 
-    local state1 = P1.state
+    -- local state1 = P1.state
 
     local param = self.__param__
     local r = param.keypressed and param.keypressed(key, scancode, isrepeat)
 
-    P1:set_state(state1)
+    -- P1:set_state(state1)
+    P1:restaure_state()
 end
 
 ---@param self JM.Scene
