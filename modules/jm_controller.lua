@@ -33,6 +33,8 @@ local Buttons = {
     stick_2_down = 28,
 }
 
+---@alias JM.Controller.ButtonsNames "left_stick_x"|"right_stick_x"|"left_stick_y"|"right_stick_y"|"L2"|"R2"|"home"|"stick_1_left"|"stick_1_right"|"stick_1_up"|"stick_1_down"|"dpad_left"|"dpad_right"|"dpad_up"|"dpad_down"|"A"|"B"|"X"|"Y"|"L"|"L3"|"R"|"R3"|"start"|"select"|"stick_2_left"|"stick_2_right"|"stick_2_up"|"stick_2_down"
+
 local function default_joystick_map()
     return {
         [Buttons.home] = "guide",
@@ -111,7 +113,7 @@ end
 
 function ButtonParam:__constructor__()
     self.time_press_interval = 0.0
-    self.interval_value = 0.5
+    self.interval_value = 0.25
 
     self.press_count = 0
     self.time_press_count = 0.0
@@ -246,20 +248,21 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressing_vpad(self, button)
-    do
-        local prev = self.prev_state
-        if prev and prev == States.vpad then
-            local temp = self.state
-            self.prev_state = nil
-            self:set_state(States.vpad)
+    -- do
+    --     local prev = self.prev_state
+    --     if prev and prev == States.vpad then
+    --         local temp = self.state
+    --         self.prev_state = nil
+    --         self:set_state(States.vpad)
 
-            local r = self:pressing(button)
+    --         local r = self:pressing(button)
 
-            self:set_state(temp)
-            self.prev_state = prev
-            return r
-        end
-    end
+    --         self:set_state(temp)
+    --         self.prev_state = prev
+    --         return r
+    --     end
+    -- end
+
     local button_is_axis = is_axis(button)
 
     if not self.vpad or self.state ~= States.vpad then
@@ -272,7 +275,9 @@ local function pressing_vpad(self, button)
     local bt = nil
 
     if vpad.Stick.on_focus then
-        if not vpad.Dpad_left.on_focus and not vpad.Dpad_right.on_focus then
+        if (not vpad.Dpad_left.on_focus
+                and not vpad.Dpad_right.on_focus)
+        then
             ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
             bt = button >= 11 and button <= 14 and vpad.Stick
             ---
@@ -341,8 +346,8 @@ local function pressing_vpad(self, button)
             return bt:is_pressing("down")
             ---
         elseif button == Buttons.left_stick_x then
-            local r = bt:is_pressing("left")
-            r = not r and bt:is_pressing("right") or r
+            local r = bt:is_pressing("right")
+            r = (not r) and bt:is_pressing("left") or r
 
             if r then
                 local dx = bt:get_direction()
@@ -353,7 +358,7 @@ local function pressing_vpad(self, button)
             ---
         elseif button == Buttons.left_stick_y then
             local r = bt:is_pressing("up")
-            r = not r and bt:is_pressing("down") or r
+            r = (not r) and bt:is_pressing("down") or r
 
             if r then
                 local _, dy = bt:get_direction()
@@ -383,7 +388,9 @@ local function pressed_vpad(self, button)
     ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
     local bt = nil
 
-    if not vpad.Dpad_left.on_focus and not vpad.Dpad_right.on_focus then
+    if (not vpad.Dpad_left.on_focus
+            and not vpad.Dpad_right.on_focus)
+    then
         bt = button >= 11 and button <= 14 and vpad.Stick
         ---
     elseif button == Buttons.left_stick_x
@@ -417,8 +424,8 @@ local function pressed_vpad(self, button)
         bt = not bt and button == Buttons.dpad_right and vpad.Dpad_right or bt
     end
     if not bt then
-        bt = button == Buttons.dpad_up and vpad.Dpad_up
-        bt = not bt and button == Buttons.dpad_down and vpad.Dpad_down or bt
+        bt = button == Buttons.dpad_up and vpad.Dpad_up.on_focus and vpad.Dpad_up
+        bt = not bt and button == Buttons.dpad_down and vpad.Dpad_down.on_focus and vpad.Dpad_down or bt
     end
 
     if not bt then
@@ -465,6 +472,21 @@ end
 ---@param self JM.Controller
 ---@param button JM.Controller.Buttons
 local function pressing_joystick(self, button)
+    do
+        local prev = self.prev_state
+        if prev and prev == States.joystick then
+            local temp = self.state
+            self.prev_state = nil
+            self:set_state(States.joystick)
+
+            local r = self:pressing(button)
+
+            self:set_state(temp)
+            self.prev_state = prev
+            return r
+        end
+    end
+
     local button_is_axis = is_axis(button)
 
     if self.state ~= States.joystick then
@@ -756,8 +778,12 @@ function Controller:pressing_time(bt)
     return r --self:pressing(bt)
 end
 
----@param bt JM.Controller.Buttons
+---@param bt JM.Controller.Buttons|JM.Controller.ButtonsNames
 function Controller:pressing_interval(bt)
+    if type(bt) == "string" then
+        return self:pressing_interval(Buttons[bt])
+    end
+
     local button_is_axis = is_axis(bt)
 
     ---@type JM.Controller.ButtonParam
@@ -773,7 +799,15 @@ function Controller:pressing_interval(bt)
     if (type(r) == "number" and math.abs(r) > 0)
         or (not button_is_axis and r)
     then
-        param.time_press_interval = param.interval_value
+        if param.time_pressing == 0 then
+            param.time_press_interval = 0.6
+        else
+            param.time_press_interval = param.interval_value
+        end
+    end
+
+    if param.time_pressing == 0.0 then
+        return button_is_axis and 0 or false
     end
 
     return r
@@ -879,6 +913,8 @@ function Controller:update(dt)
         i = i + 1
     end
 
+    local temp = self.state
+
     -- for button_name, id in next, Buttons do
     for id = 0, 28 do
         local button_is_axis = is_axis(id)
@@ -926,6 +962,8 @@ function Controller:update(dt)
             end
         end
     end
+
+    self:set_state(temp)
 end
 
 return Controller
