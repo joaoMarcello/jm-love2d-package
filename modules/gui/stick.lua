@@ -294,8 +294,8 @@ function Stick:set_bounds(l, t, w, h)
 end
 
 function Stick:grow()
-    -- self:set_effect_transform("sx", 1.2)
-    -- self:set_effect_transform("sy", 1.2)
+    self:set_effect_transform("sx", 1.2)
+    self:set_effect_transform("sy", 1.2)
 end
 
 function Stick:shrink()
