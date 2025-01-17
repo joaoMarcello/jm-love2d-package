@@ -146,13 +146,16 @@ function Stick:use_dpad(value, use_diagonals)
             return
         end
 
-        lgx.setColor(1, 1, 1, self.opacity)
-        lgx.circle("fill", bt.x + bt.w * 0.5, bt.y + bt.h * 0.5,
-            bt.w * 0.175)
+        local x, y, w, h = bt.x, bt.y, bt.w, bt.h
+        local opacity = self.opacity
 
-        lgx.setColor(1, 1, 1, self.opacity + self.opacity * 0.1)
-        lgx.circle("line", bt.x + bt.w * 0.5, bt.y + bt.h * 0.5,
-            bt.w * 0.175)
+        lgx.setColor(1, 1, 1, opacity * 0.75)
+        lgx.circle("fill", x + w * 0.5, y + h * 0.5,
+            w * 0.175)
+
+        lgx.setColor(1, 1, 1, opacity + opacity * 0.1)
+        lgx.circle("line", x + w * 0.5, y + h * 0.5,
+            w * 0.175)
         -- lgx.setColor(1, 0, 0, 0.5)
         -- lgx.rectangle("line", self:rect())
     end
