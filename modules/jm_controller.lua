@@ -275,13 +275,22 @@ local function pressing_vpad(self, button)
     local bt = nil
 
     if vpad.Stick.on_focus then
-        if (not vpad.Dpad_left.on_focus
+        if button == Buttons.stick_1_right then
+            local r = self:pressing(Buttons.left_stick_x)
+            return r >= 1 and true or false
+        elseif button == Buttons.stick_1_left then
+            local r = self:pressing(Buttons.left_stick_x)
+            return r <= -1 and true or false
+        end
+
+        if false and (not vpad.Dpad_left.on_focus
                 and not vpad.Dpad_right.on_focus)
         then
             ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
             bt = button >= 11 and button <= 14 and vpad.Stick
-            ---
-        elseif button == Buttons.left_stick_x
+        end
+
+        if button == Buttons.left_stick_x
             or button == Buttons.left_stick_y
         then
             bt = vpad.Stick
@@ -388,12 +397,22 @@ local function pressed_vpad(self, button)
     ---@type JM.GUI.VirtualStick | JM.GUI.TouchButton | any
     local bt = nil
 
-    if (not vpad.Dpad_left.on_focus
+    -- if button == Buttons.stick_1_right then
+    --     local r = self:pressing(Buttons.left_stick_x)
+    --     return r >= 1 and true or false
+    -- elseif button == Buttons.stick_1_left then
+    --     local r = self:pressing(Buttons.left_stick_x)
+    --     return r <= -1 and true or false
+    -- end
+
+    if false and (not vpad.Dpad_left.on_focus
             and not vpad.Dpad_right.on_focus)
     then
         bt = button >= 11 and button <= 14 and vpad.Stick
         ---
-    elseif button == Buttons.left_stick_x
+    end
+
+    if button == Buttons.left_stick_x
         or button == Buttons.left_stick_y
     then
         bt = vpad.Stick
