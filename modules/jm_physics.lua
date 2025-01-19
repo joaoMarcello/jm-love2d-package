@@ -1811,6 +1811,14 @@ setmetatable(Slope, Body)
 
 ---@alias JM.Physics.SlopeType "floor"|"ceil"
 
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param world JM.Physics.World
+---@param direction any
+---@param slope_type JM.Physics.SlopeType
+---@param bd_type any
 ---@return JM.Physics.Body|JM.Physics.Slope
 function Slope:new(x, y, w, h, world, direction, slope_type, bd_type)
     local obj = Body:new(x, y, w, h, bd_type or BodyTypes.static, world, "")
@@ -2952,6 +2960,8 @@ do
 
     local dt_lim = 1 / 30
     function World:update(dt)
+        if dt == 0 then return end
+
         dt = dt > dt_lim and dt_lim or dt
         local list = self.bodies
 
