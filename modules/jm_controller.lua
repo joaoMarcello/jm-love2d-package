@@ -302,9 +302,9 @@ local function pressing_vpad(self, button)
     if not bt and button == Buttons.X then
         local X = vpad.X
         if X.on_focus and X.is_visible then
-            bt = X
-        else
             bt = vpad.B
+        else
+            bt = X
         end
     end
 
@@ -423,9 +423,9 @@ local function pressed_vpad(self, button)
     if not bt and button == Buttons.X then
         local X = vpad.X
         if X.on_focus and X.is_visible then
-            bt = X
-        else
             bt = vpad.B
+        else
+            bt = X
         end
     end
 
