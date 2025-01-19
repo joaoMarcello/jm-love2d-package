@@ -1292,7 +1292,7 @@ function Pad:verify_pressed(scene, out_on_first)
 end
 
 ---@param scene JM.Scene
----@param button JM.GUI.TouchButton|JM.GUI.VirtualStick
+---@param button JM.GUI.TouchButton
 function Pad:verify_released(scene, button)
     if button == self.L then
         return scene:vpadreleased('leftshoulder')
@@ -1303,7 +1303,7 @@ function Pad:verify_released(scene, button)
     if button == self.Home then
         return scene:vpadreleased('guide')
     end
-    return scene:vpadreleased(button.text:lower())
+    return scene:vpadreleased(self:get_button_name(button))
 end
 
 ---@param scene JM.Scene
