@@ -798,7 +798,8 @@ function Controller:pressing_time(bt)
 end
 
 ---@param bt JM.Controller.Buttons|JM.Controller.ButtonsNames
-function Controller:pressing_interval(bt)
+---@param speed number?
+function Controller:pressing_interval(bt, speed)
     if type(bt) == "string" then
         return self:pressing_interval(Buttons[bt])
     end
@@ -821,7 +822,7 @@ function Controller:pressing_interval(bt)
         if param.time_pressing == 0 then
             param.time_press_interval = 0.6
         else
-            param.time_press_interval = param.interval_value
+            param.time_press_interval = speed or param.interval_value
         end
     end
 
@@ -939,7 +940,7 @@ function Controller:update(dt)
         local button_is_axis = is_axis(id)
         local r = self:pressing(id)
 
-        local button_is_pressed = (type(r) == "number" and math.abs(r) ~= 0)
+        local button_is_pressed = (type(r) == "number" and abs(r) ~= 0)
             or (not button_is_axis and r)
 
         ---@type JM.Controller.ButtonParam
