@@ -1891,6 +1891,8 @@ end
 ---@param self JM.Scene
 local vpadreleased = function(self, button)
     local vpadreleased = self.__param__.vpadreleased
+    Controllers.P1:vpadreleased(button)
+    Controllers.P2:vpadreleased(button)
     if vpadreleased then return vpadreleased(button) end
 end
 
