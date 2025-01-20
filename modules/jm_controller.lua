@@ -927,6 +927,14 @@ function Controller:vpadreleased(button)
         bt = Buttons.Y
     elseif button == 'b' then
         bt = Buttons.B
+    elseif button == 'dpright' then
+        bt = Buttons.dpad_right
+    elseif button == 'dpleft' then
+        bt = Buttons.dpad_left
+    elseif button == 'dpup' then
+        bt = Buttons.dpad_up
+    elseif button == 'dpdown' then
+        bt = Buttons.dpad_down
     elseif button == 'leftshoulder' then
         bt = Buttons.L
     elseif button == 'rightshoulder' then
