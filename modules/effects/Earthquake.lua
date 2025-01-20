@@ -18,6 +18,7 @@ function Earthquake:new(obj, args)
     return obj
 end
 
+---@param args table
 ---@param self JM.Effect
 function Earthquake:__constructor__(args)
     self.__id = Effect.TYPE.earthquake
