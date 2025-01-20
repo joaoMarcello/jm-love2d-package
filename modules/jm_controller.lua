@@ -916,6 +916,37 @@ function Controller:keyreleased(key)
     end
 end
 
+---@param button string
+function Controller:vpadreleased(button)
+    local bt
+    if button == 'a' then
+        bt = Buttons.A
+    elseif button == 'x' then
+        bt = Buttons.X
+    elseif button == 'y' then
+        bt = Buttons.Y
+    elseif button == 'b' then
+        bt = Buttons.B
+    elseif button == 'leftshoulder' then
+        bt = Buttons.L
+    elseif button == 'rightshoulder' then
+        bt = Buttons.R
+    elseif button == 'start' then
+        bt = Buttons.start
+    elseif button == 'back' then
+        bt = Buttons.select
+    elseif button == 'guide' then
+        bt = Buttons.home
+    end
+    if bt then
+        local param = self.button_param[bt] --[[@as JM.Controller.ButtonParam]]
+        if param then
+            param.time_pressing = 0.0
+            param.time_press_interval = 0.0
+        end
+    end
+end
+
 function Controller:update(dt)
     local i = 0
     while i <= Buttons.R2 do
