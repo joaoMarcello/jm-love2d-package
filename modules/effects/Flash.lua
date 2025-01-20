@@ -84,7 +84,7 @@ end
 --- Update flash.
 ---@param dt number
 function Flash:update(dt)
-    self.__rad = (self.__rad + PI * 2 / self.__speed * dt)
+    self.__rad = (self.__rad + ((PI * 2) / self.__speed) * dt)
 
     if self.__rad >= PI then
         self.__rad = self.__rad % PI
