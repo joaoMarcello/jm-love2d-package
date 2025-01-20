@@ -106,7 +106,7 @@ function Effect:__constructor__(object, args)
     self.__scale = { x = 1, y = 1 }
     self.__is_enabled = true
     self.__prior = 1
-    self.__rad = 0
+    self.__rad = args.rad or 0
     self.cycle_count = 0
     self.__args = args
     self.__remove = false
