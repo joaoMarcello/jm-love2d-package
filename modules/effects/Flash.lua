@@ -68,12 +68,21 @@ end
 
 ---@overload fun(self: JM.Effect, args: nil)
 ---@param self JM.Effect
----@param args {speed: number, color: table, min: number, max: number}
+---@param args {speed: number, color: table, min: number, max: number, colorcopy:boolean?}
 function Flash:__constructor__(args)
     self.__id = Effect.TYPE.flash
-    self.__alpha = 1
+    -- self.__alpha = 1
     self.__speed = args and args.speed or 0.3
     self.__color = args and args.color or { 238 / 255, 243 / 255, 46 / 255, 1 }
+    if args.colorcopy then
+        local eff_color = { 1, 1, 1, 1 }
+        self.__color = eff_color
+
+        local c = args.color or { 1, 1, 1, 1 }
+        for i = 1, 4 do
+            eff_color[i] = c[i]
+        end
+    end
     local max = args and args.max or 1
     local min = args and args.min or 0.1
     self.__origin = min
