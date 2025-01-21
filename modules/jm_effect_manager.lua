@@ -109,9 +109,12 @@ end
 --     self.object = affectable_object
 -- end
 
+local lim = 1.0 / 30.0
 --- Update EffectManager class.
 ---@param dt number
 function EffectManager:update(dt)
+    dt = dt > lim and lim or dt
+
     local list = self.__effects_list
 
     if list then
