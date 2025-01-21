@@ -230,12 +230,12 @@ function Effect:__update__(dt)
         self.__remove = true
     end
 
-    if self.__remove then
-        if self.__final_action then
-            self.__final_action(self.__args_final_action)
-        end
-        self:restaure_object()
-    end
+    -- if self.__remove then
+    --     if self.__final_action then
+    --         self.__final_action(self.__args_final_action)
+    --     end
+    --     self:restaure_object()
+    -- end
 end
 
 function Effect:restaure_object()
