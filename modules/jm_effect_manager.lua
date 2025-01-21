@@ -117,8 +117,11 @@ function EffectManager:update(dt)
     if list then
         for i = #list, 1, -1 do
             local eff = list[i]
-            local r1 = eff:__update__(dt)
-            local r2 = eff.__is_enabled and not eff.__remove and eff:update(dt)
+            eff:__update__(dt)
+
+            if eff.__is_enabled and not eff.__remove then
+                eff:update(dt)
+            end
 
             if eff.__remove then
                 if eff.__final_action then
@@ -133,8 +136,14 @@ function EffectManager:update(dt)
                         self.__effects_clear = nil;
                         break
                     end
-                    self.__effects_list[i] = nil
-                    local r2 = table.remove(self.__effects_list, i)
+
+                    do
+                        local eff_list = self.__effects_list
+                        if eff_list then
+                            eff_list[i] = nil
+                            table.remove(eff_list, i)
+                        end
+                    end
                 end
             end -- END if remove effect
         end     -- END FOR i in effects list
