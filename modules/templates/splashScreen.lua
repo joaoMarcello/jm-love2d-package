@@ -65,7 +65,7 @@ local data = {
                         State:change_gamestate(require(self.next_state), {
                             unload = path,
                             transition = "fade",
-                            transition_conf = { duration = 0.25 }
+                            transition_conf = { duration = 0.25, color = transition_color }
                         })
                     else
                         -- State:add_transition("fade", "in", { delay = 0.25, duration = 0.8 })
@@ -75,7 +75,7 @@ local data = {
                             unload = path,
                             -- skip_transition = true,
                             transition = "fade",
-                            transition_conf = { duration = 0.5 },
+                            transition_conf = { duration = 0.5, color = transition_color },
                         })
 
                         if self.sound then
@@ -491,7 +491,7 @@ local function love_logo_update(dt)
                         unload = path,
                         -- skip_transition = true,
                         transition = "fade",
-                        transition_conf = { duration = 0.5, color = { 1, 1, 1, 1 } },
+                        transition_conf = { duration = 0.15, color = transition_color },
                     })
 
                     if data.sound then
