@@ -76,7 +76,11 @@ end
 function Component:update(dt)
     -- Affectable.update(self, dt)
     self.__effect_manager:update(dt)
-    self.x, self.y = self.body.x, self.body.y
+
+    local bd = self.body
+    if bd then
+        self.x, self.y = bd.x, bd.y
+    end
 end
 
 -- function Component:draw(custom_draw)
