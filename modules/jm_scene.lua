@@ -1562,29 +1562,38 @@ local draw = function(self)
 
     --- Drawing debugging info
     do
-        if self.show_info then
-            local km = collectgarbage("count") / 1024.0
-            lgx.setColor(0, 0, 0, 0.7)
-            lgx.rectangle("fill", 0, 0, 80, 120)
-            lgx.setColor(1, 1, 0, 1)
-            lgx.print(string.format("Memory:\n\t%.2f Mb", km), 5, 10)
-            lgx.print("FPS: " .. tostring(love.timer.getFPS()), 5, 50)
-            local maj, min, rev, code = love.getVersion()
-            lgx.print(string.format("Version:\n\t%d.%d.%d", maj, min, rev), 5, 75)
+        local info = self.show_info
+        if info then
+            local is_number = type(info) == "number"
 
-            local stats = love.graphics.getStats()
-            local fmt = string.format
-            lgx.setColor(0.9, 0.9, 0.9)
-            lgx.printf(
-                fmt("draw: %d\ncanvas_sw: %d\nshader_sw: %d\ntextMemo: %.2f\ncanvases: %d\ndrawBatched: %d",
-                    stats.drawcalls,
-                    stats.canvasswitches,
-                    stats.shaderswitches,
-                    stats.texturememory / (1024 ^ 2),
-                    stats.canvases,
-                    stats.drawcallsbatched),
-                lgx.getWidth() - 212, 12, 200,
-                "right")
+            do
+                local km = collectgarbage("count") / 1024.0
+                lgx.setColor(0, 0, 0, 0.7)
+                lgx.rectangle("fill", 0, 0, 80, 120)
+                lgx.setColor(1, 1, 0, 1)
+                lgx.print(string.format("Memory:\n\t%.2f Mb", km), 5, 10)
+                lgx.print("FPS: " .. tostring(love.timer.getFPS()), 5, 50)
+                local maj, min, rev, code = love.getVersion()
+                lgx.print(string.format("Version:\n\t%d.%d.%d", maj, min, rev), 5, 75)
+            end
+
+            if is_number and info == 1
+                or (not is_number)
+            then
+                local stats = love.graphics.getStats()
+                local fmt = string.format
+                lgx.setColor(0.9, 0.9, 0.9)
+                lgx.printf(
+                    fmt("draw: %d\ncanvas_sw: %d\nshader_sw: %d\ntextMemo: %.2f\ncanvases: %d\ndrawBatched: %d",
+                        stats.drawcalls,
+                        stats.canvasswitches,
+                        stats.shaderswitches,
+                        stats.texturememory / (1024 ^ 2),
+                        stats.canvases,
+                        stats.drawcallsbatched),
+                    lgx.getWidth() - 212, 12, 200,
+                    "right")
+            end
         end
     end
 
