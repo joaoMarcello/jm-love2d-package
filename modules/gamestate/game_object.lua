@@ -195,6 +195,14 @@ function GC:remove_effect(eff_type)
     end
 end
 
+function GC:get_effect(eff_type)
+    local actives = self.eff_actives
+    if not actives then return end
+
+    local eff = actives[eff_type] --[[@as JM.Effect]]
+    return eff
+end
+
 function GC:update(dt)
     -- Affectable.update(self, dt)
     self.__effect_manager:update(dt)
