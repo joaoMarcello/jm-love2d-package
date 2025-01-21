@@ -32,6 +32,7 @@ local Label = setmetatable({
 }, Component)
 Label.__index = Label
 
+---@param args table
 ---@return JM.GUI.Label
 function Label:new(args)
     if not font then
@@ -138,6 +139,7 @@ function Label:keypressed(key)
 
             self.time = 0.0
             self.show_line = true
+            return true
         end
         --
     elseif key == "return" then
