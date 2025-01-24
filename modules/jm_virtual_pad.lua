@@ -950,12 +950,18 @@ function Pad:set_button_size(value)
     value = value or (math.min(love.graphics.getDimensions()) * 0.2)
     Bt_A:set_dimensions(value, value)
     Bt_A:init()
+
+    local border = Bt_A.radius * 0.2
+    Bt_A.extra_border = border
     Bt_B:set_dimensions(value, value)
     Bt_B:init()
+    Bt_B.extra_border = border
     Bt_X:set_dimensions(value, value)
     Bt_X:init()
+    Bt_X.extra_border = border
     Bt_Y:set_dimensions(value, value)
     Bt_Y:init()
+    Bt_Y.extra_border = border
 end
 
 ---@alias JM.GUI.VPad.ButtonNames "X"|"Y"|"A"|"B"|"Dpad-left"|"Dpad-right"|"Dpad-up"|"Dpad-down"|"Stick"|"RightStick"|"Home"|"Guide"|"L"|"LeftShoulder"|"R"|"RightShoulder"
@@ -1085,7 +1091,8 @@ function Pad:fix_positions()
 
     Bt_A:set_position(
         (sfx + sfw) - border_w - Bt_A.w,
-        (sfy + sfh) - border_button_y - Bt_A.h
+        -- (sfy + sfh) - border_button_y - Bt_A.h
+        (sfy + sfh) - border_button_y - (min * 0.2)
     )
     Bt_B:set_position(Bt_A.x - Bt_B.w - space_bt_x, Bt_A.y - Bt_B.h * 0.5)
 
@@ -1097,8 +1104,8 @@ function Pad:fix_positions()
         local space = space * 0.5
         rect_rx = (20 * size) / (975 * 0.1)
 
-        Bt_Start:set_dimensions(size, size * 0.4)
-        Bt_Select:set_dimensions(size, size * 0.4)
+        Bt_Start:set_dimensions(size, size * 0.35) --0.4
+        Bt_Select:set_dimensions(size, size * 0.35)
 
         Bt_Start:set_position(
             w * 0.5 - space - Bt_Start.w,
@@ -1106,6 +1113,10 @@ function Pad:fix_positions()
         )
 
         Bt_Select:set_position(w * 0.5 + space * 2, Bt_Start.y)
+
+        local border = Bt_Start.h * 0.2
+        Bt_Start.extra_border = border
+        Bt_Select.extra_border = border
     end
 
     do
@@ -1116,13 +1127,17 @@ function Pad:fix_positions()
     end
 
     do
-        local size = w * 0.2
+        local size = w * 0.175                 --0.2
         local border = 15
-        Bt_L:set_dimensions(size, size * 0.3)
+        Bt_L:set_dimensions(size, size * 0.25) --0.3
         Bt_L:set_position(sfx + border, sfy + border)
 
-        Bt_R:set_dimensions(size, size * 0.3)
+        Bt_R:set_dimensions(size, size * 0.25)
         Bt_R:set_position((sfx + sfw) - border - Bt_R.w, sfy + border)
+
+        local ex = Bt_L.h * 0.25
+        Bt_L.extra_border = ex
+        Bt_R.extra_border = ex
     end
 
     do
@@ -1152,7 +1167,7 @@ function Pad:fix_positions()
     end
 
     do
-        local size = min * 0.15 --0.175
+        local size = min * 0.125 --0.15
         dpad_left:set_dimensions(size, size)
         dpad_right:set_dimensions(size, size)
         dpad_up:set_dimensions(size, size)
@@ -1169,7 +1184,7 @@ function Pad:fix_positions()
         -- local sx, sy, sw, sh = love.window.getSafeArea()
 
         local anchor_x = (sfx == 0 and 25 or sfx) + 10 -- w * dpad_pos_x + size
-        local anchor_y = h * dpad_pos_y - size
+        local anchor_y = h * dpad_pos_y - (min * 0.15)
         -- local space_x = not stick.is_visible and (space * 4) or (space * 2)
 
         dpad_left:set_position(anchor_x, anchor_y - size * 0.5)
@@ -1180,6 +1195,12 @@ function Pad:fix_positions()
             dpad_left.y - dpad_up.h
         )
         dpad_down:set_position(dpad_up.x, dpad_left.bottom)
+
+        local border = dpad_right.w * 0.15
+        dpad_right.extra_border = border
+        dpad_left.extra_border = border
+        dpad_up.extra_border = border
+        dpad_down.extra_border = border
     end
 end
 
@@ -1312,7 +1333,7 @@ function Pad:verify_moved(scene)
 end
 
 function Pad:resize(w, h)
-    self:set_button_size((math.min(w, h) * 0.2))
+    self:set_button_size((math.min(w, h) * 0.175)) --0.2
     self:fix_positions()
 end
 
@@ -1322,6 +1343,68 @@ function Pad:set_opacity(value)
         local gc = self[i]
         gc:set_opacity(value)
     end
+end
+
+---@param cam (JM.Camera.Camera)?
+---@return number, number, number, number
+function Pad:get_safe_area(cam)
+    local x, y, w, h
+
+    do
+        -- the dpad is used instead of virtual stick
+        if dpad_right.on_focus then
+            x = dpad_right.right
+        elseif left_stick.on_focus then
+            x = left_stick.init_x + left_stick.max_dist + left_stick.radius
+        else
+            x = 0
+        end
+    end
+
+    do
+        local bt = (Home.on_focus and Home)
+        bt = (not bt) and (Bt_L.on_focus and Bt_L) or bt
+        bt = (not bt) and (Bt_R.on_focus and Bt_R) or bt
+
+        if bt then
+            y = bt.bottom
+        else
+            y = 0
+        end
+    end
+
+    do
+        local right
+        if Bt_B.on_focus then
+            right = Bt_B.x
+        elseif right_stick.on_focus then
+            right = right_stick.cx - right_stick.radius
+        else
+            right = love.graphics.getWidth()
+        end
+
+        w = right - x
+    end
+
+    do
+        local bottom
+        if Bt_Start.on_focus then
+            bottom = Bt_Start.y
+        elseif dpad_down.on_focus then
+            bottom = dpad_down.bottom
+        elseif Bt_A.on_focus then
+            bottom = Bt_A.bottom
+        else
+            bottom = love.graphics.getHeight()
+        end
+
+        h = bottom - y
+    end
+    -- local scene = JM.SceneManager.scene
+    -- x, y = scene:real_to_screen(x, y)
+    -- w = scene:monitor_length_to_world(w, cam)
+    -- h = scene:monitor_length_to_world(h, cam)
+    return x, y, w, h
 end
 
 function Pad:update(dt)
