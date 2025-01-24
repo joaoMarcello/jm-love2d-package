@@ -229,10 +229,12 @@ function Button:__custom_draw__()
     love_setColor(self.color)
     -- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
+    local x, y, w, h = self.x, self.y, self.w, self.h
+
     if not self.use_radius then
-        love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+        love.graphics.rectangle("line", x, y, w, h)
     else
-        local px, py = (self.x + self.w * 0.5), (self.y + self.h * 0.5)
+        local px, py = (x + w * 0.5), (y + h * 0.5)
 
         do
             local r, g, b = unpack(self.color)
@@ -255,7 +257,7 @@ function Button:__custom_draw__()
         -- self.font_obj.__bounds.right = self.w + 40
         -- self.font_obj:draw(self.x - 20, self.y + self.h * 0.5 - (font.__font_size + 2) * 0.5, "center")
 
-        font:printf(self.text, self.x, self.y + self.h * 0.5 - (font.__font_size) * 0.5, self.w, "center")
+        font:printf(self.text, x, y + h * 0.5 - (font.__font_size) * 0.5, w, "center")
 
         -- font:printx(self.text, self.x - 20, self.y, self.w + 40, "center")
         font:pop()
