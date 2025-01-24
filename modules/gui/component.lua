@@ -308,7 +308,8 @@ function Component:touchmoved(id, x, y, dx, dy, pressure)
         return self:touchpressed(id, x, y, dx, dy, pressure)
         ---
     elseif not self:check_collision(x, y, 0, 0) then
-        return self:touchreleased(id, self.x - 2, self.y - 2, 0, 0, 1)
+        local b = self.extra_border or 0
+        return self:touchreleased(id, self.x - 2 - b, self.y - 2 - b, 0, 0, 1)
         ---
     end
 end
