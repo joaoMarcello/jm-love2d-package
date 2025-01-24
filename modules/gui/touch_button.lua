@@ -32,6 +32,26 @@ function Button:get_font()
     return font
 end
 
+---@param self JM.GUI.TouchButton
+local post_draw = function(self)
+    local lgx = love.graphics
+    local x, y, w, h = self:rect()
+
+    lgx.setColor(1, 0, 0, 1)
+    lgx.rectangle("line", x, y, w, h)
+
+    if self.extra_border then
+        lgx.setColor(1, 0, 1, 1)
+        lgx.rectangle("line", x - self.extra_border, y - self.extra_border,
+            w + self.extra_border * 2, h + self.extra_border * 2)
+    end
+
+    if self.use_radius then
+        lgx.setColor(1, 1, 0)
+        lgx.circle("line", x + w * 0.5, y + h * 0.5, self.radius + (self.extra_border or 0))
+    end
+end
+
 function Button:__constructor__(args)
     self.x = args.x or 0
     self.y = args.y or 0
@@ -54,6 +74,7 @@ function Button:__constructor__(args)
         self:shrink()
     end
 
+    -- self.__pos_draw__ = post_draw
     self.update = Button.update
     self.draw = Component.draw
     self.is_pressed = Button.is_pressed
@@ -94,7 +115,7 @@ function Button:__check_collision__(x, y)
     local dx = x - (self.x + self.w * 0.5)
     local dy = y - (self.y + self.h * 0.5)
     local dist = sqrt(dx ^ 2 + dy ^ 2)
-    return dist <= self.radius
+    return dist <= self.radius + (self.extra_border or 0)
 end
 
 function Button:mousepressed(x, y, button, istouch, presses)
@@ -102,7 +123,7 @@ function Button:mousepressed(x, y, button, istouch, presses)
     local dy = y - (self.y + self.h * 0.5)
     local dist = sqrt(dx ^ 2 + dy ^ 2)
 
-    if self.use_radius and dist <= self.radius or not self.use_radius then
+    if self.use_radius and dist <= (self.radius + (self.extra_border or 0)) or not self.use_radius then
         Component.mousepressed(self, x, y, button, istouch, presses)
         if self.__mouse_pressed then
             self:grow()
@@ -235,15 +256,16 @@ function Button:__custom_draw__()
         love.graphics.rectangle("line", x, y, w, h)
     else
         local px, py = (x + w * 0.5), (y + h * 0.5)
+        local radius = self.radius
 
         do
             local r, g, b = unpack(self.color)
             love_setColor(r, g, b, self.opacity) --0.4
-            love_circle("fill", px, py, self.radius)
+            love_circle("fill", px, py, radius)
         end
 
         love_setColor(white)
-        love_circle("line", px, py, self.radius)
+        love_circle("line", px, py, radius)
     end
 
 
