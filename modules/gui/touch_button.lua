@@ -115,7 +115,7 @@ function Button:__check_collision__(x, y)
     local dx = x - (self.x + self.w * 0.5)
     local dy = y - (self.y + self.h * 0.5)
     local dist = sqrt(dx ^ 2 + dy ^ 2)
-    return dist <= self.radius + (self.extra_border or 0)
+    return dist <= self.radius + (self.extra_border or 0.0)
 end
 
 function Button:mousepressed(x, y, button, istouch, presses)
@@ -123,7 +123,10 @@ function Button:mousepressed(x, y, button, istouch, presses)
     local dy = y - (self.y + self.h * 0.5)
     local dist = sqrt(dx ^ 2 + dy ^ 2)
 
-    if self.use_radius and dist <= (self.radius + (self.extra_border or 0)) or not self.use_radius then
+    if self.use_radius
+        and dist <= (self.radius + (self.extra_border or 0.0))
+        or (not self.use_radius)
+    then
         Component.mousepressed(self, x, y, button, istouch, presses)
         if self.__mouse_pressed then
             self:grow()
@@ -140,7 +143,10 @@ function Button:mousereleased(x, y, button, istouch, presses)
         self:shrink()
     end
 
-    if self.use_radius and dist <= self.radius or not self.use_radius then
+    if self.use_radius
+        and dist <= (self.radius + (self.extra_border or 0.0))
+        or (not self.use_radius)
+    then
         Component.mousereleased(self, x, y, button, istouch, presses)
     end
 
@@ -154,7 +160,10 @@ function Button:touchpressed(id, x, y, dx, dy, pressure)
     local disty = y - (self.y + self.h * 0.5)
     local dist = sqrt(distx ^ 2 + disty ^ 2)
 
-    if self.use_radius and dist <= self.radius or not self.use_radius then
+    if self.use_radius
+        and dist <= (self.radius + (self.extra_border or 0.0))
+        or (not self.use_radius)
+    then
         Component.touchpressed(self, id, x, y, dx, dy, pressure)
         if self.__touch_pressed then
             self:grow()
@@ -173,7 +182,10 @@ function Button:touchreleased(id, x, y, dx, dy, pressure)
         self:shrink()
     end
 
-    if self.use_radius and dist <= self.radius or not self.use_radius then
+    if self.use_radius
+        and dist <= (self.radius + (self.extra_border or 0.0))
+        or (not self.use_radius)
+    then
         Component.touchreleased(self, id, x, y, dx, dy, pressure)
     end
 
@@ -213,7 +225,7 @@ function Button:update(dt)
     if self.__mouse_pressed and back_to_normal then
         local mx, my = mouse_get_position()
 
-        if not self:check_collision(mx, my, 0, 0) then
+        if not self:__check_collision__(mx, my) then
             self.__mouse_pressed = false
             self:shrink()
             self.time_press = false
@@ -227,7 +239,7 @@ function Button:update(dt)
         else
             local tx, ty = touch_getPosition(self.__touch_pressed)
 
-            if not self:check_collision(tx, ty, 0, 0) then
+            if not self:__check_collision__(tx, ty) then
                 self.__touch_pressed = false
                 self:shrink()
                 self.time_press = false
