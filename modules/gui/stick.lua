@@ -561,15 +561,23 @@ function Stick:refresh_position(x, y)
 
     if (condx or condy) then
         local scene = JM.SceneManager.scene
-        local vpadaxis = scene and scene.__param__.vpadaxis
-        if vpadaxis then
+        if scene then
             if condx then
-                vpadaxis(self.text == "left" and "leftx" or "rightx", dirx)
+                scene:vpadaxis(self.text == "left" and "leftx" or "rightx", dirx)
             end
             if condy then
-                vpadaxis(self.text == "left" and "lefty" or "righty", diry)
+                scene:vpadaxis(self.text == "left" and "lefty" or "righty", diry)
             end
         end
+        -- local vpadaxis = scene and scene.__param__.vpadaxis
+        -- if vpadaxis then
+        --     if condx then
+        --         vpadaxis(self.text == "left" and "leftx" or "rightx", dirx)
+        --     end
+        --     if condy then
+        --         vpadaxis(self.text == "left" and "lefty" or "righty", diry)
+        --     end
+        -- end
     end
     ---
 end
