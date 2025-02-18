@@ -137,6 +137,21 @@ local type, abs = type, math.abs
 local function pressing_key(self, button)
     local button_is_axis = is_axis(button)
 
+    do
+        local prev = self.prev_state
+        if prev then
+            local temp = self.state
+            self.prev_state = nil
+            self:set_state(prev)
+
+            local r = self:pressing(button)
+
+            self:set_state(temp)
+            self.prev_state = prev
+            return r
+        end
+    end
+
     if self.state ~= States.keyboard or not self.is_keyboard_owner then
         return button_is_axis and 0 or false
     end
