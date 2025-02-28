@@ -81,6 +81,11 @@ end
 assert(https, "not found https")
 
 local json = require((...):gsub("init", "json"))
+
+---@type JM.Foreign.JS
+local JS = require(JM_Path .. ".modules.js")
+assert(JS, "Error: module JS not found.")
+
 local str_format = string.format
 local tonumber = tonumber
 
@@ -91,6 +96,8 @@ local Locker = {
 }
 
 local __game_key
+
+local _WEB
 
 ---@alias JM.Locker.Session {session_token:string, player_identifier:string, player_id:number, player_name:string, player_ulid:string, player_created_at:string, public_uid:string, seen_before:boolean, check_grant_notifications:boolean, check_deactivation_notifications:boolean, check_dlcs:table, success:boolean}
 
@@ -163,37 +170,109 @@ if code == 200 then
 end
 ]])
 
+---@param value boolean?
+function Locker:set_web_mode(value)
+    _WEB = value and true
+end
+
+local function set_session(data)
+    Locker.session = json.decode(data)
+end
+
+local function do_the_request(self, game_key)
+    if _WEB then
+        local body = string.format("{\"game_key\":\"%s\", \"game_version\": \"0.10.0.0\"}", game_key)
+
+        local str = ([[
+            const xhr = new XMLHttpRequest();
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            const body = JSON.stringify(%s);
+
+            xhr.onload = () => {
+                if (this.readyState == 4 && this.status == 200){
+                    _$_(this.responseText);
+                }
+            };
+            xhr.open("POST", "https://api.lootlocker.io/game/v2/session/guest");
+            xhr.send(body);
+    ]]):format(body)
+
+        JS.newPromiseRequest(JS.stringFunc(str), set_session, nil, 10, 42)
+
+        self.__requesting_session = true
+    else
+        print("going request...")
+        thread_session:start(game_key)
+    end
+end
+
 function Locker:request_session(game_key, force)
     game_key = game_key or __game_key
 
     if game_key and (not self.session or force)
-        and not thread_session:isRunning()
+        and not self:is_requesting_session()
     then
-        print("going request...")
-        thread_session:start(game_key)
-        return true
+        return do_the_request(self, game_key)
     end
-    return false
+
+    -- if _WEB then
+    --     if game_key and (not self.session or force) and
+    --         not self:is_requesting_session()
+    --     then
+    --         return true
+    --     end
+    --     return false
+    -- else
+    --     if game_key and (not self.session or force)
+    --         and not self:is_requesting_session()
+    --     then
+    --         print("going request...")
+    --         thread_session:start(game_key)
+    --         return true
+    --     end
+    --     return false
+    -- end
 end
 
-function Locker:verify_session()
-    if not self.session then
-        local session = session_channel:pop()
-        if session then
-            self.session = session
-        end
-    end
-end
+-- function Locker:verify_session()
+--     if not self.session then
+--         local session
+
+--         if _WEB then
+
+--         else
+--             session = session_channel:pop()
+--         end
+
+--         if session then
+--             self.session = session
+--         end
+--     end
+-- end
 
 function Locker:is_requesting_session()
+    if _WEB then
+        return self.__requesting_session
+    end
     return thread_session and thread_session:isRunning()
+end
+
+function Locker:get_session_data(dt)
+    if _WEB then
+        JS.retrieveData(dt)
+        return self.session
+    else
+        return session_channel and session_channel:pop()
+    end
 end
 
 function Locker:update(dt)
     if not self.session then
-        local session = session_channel:pop()
+        local session = self:get_session_data(dt)
         if session then
             self.session = session
+            self.__requesting_session = false
         end
     end
 end
