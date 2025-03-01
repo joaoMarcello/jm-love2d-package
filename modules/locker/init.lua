@@ -1,90 +1,27 @@
 local https
 do
-    -- local success, result = pcall(function()
-    --     return require "https"
-    -- end)
-    -- https = success and result or https
-    https = require "https"
-end
-if not https then
     local success, result = pcall(function()
-        return require "Https"
+        return require "https"
     end)
     https = success and result or https
+
+    -- https = require "https"
 end
-if not https then
-    local success, result = pcall(function()
-        return require "love.Https"
-    end)
-    https = success and result or https
-end
-if not https then
-    local success, result = pcall(function()
-        return require "love.https"
-    end)
-    https = success and result or https
-end
-if not https then
-    local success, result = pcall(function()
-        return require "love.lua-https"
-    end)
-    https = success and result or https
-end
+
 if not https then
     local success, result = pcall(function()
         return require "lua-https"
     end)
     https = success and result or https
 end
-if not https then
-    local success, result = pcall(function()
-        return require "lua-modules.https"
-    end)
-    https = success and result or https
-end
-if not https then
-    local success, result = pcall(function()
-        return require "lua-modules.lua-https"
-    end)
-    https = success and result or https
-end
-if not https then
-    local success, result = pcall(function()
-        return require "https.https"
-    end)
-    https = success and result or https
-end
-if not https then
-    local success, result = pcall(function()
-        return require "libhttps"
-    end)
-    https = success and result or https
-end
-if not https then
-    local success, result = pcall(function()
-        return require "love.libhttps"
-    end)
-    https = success and result or https
-end
-if not https then
-    local success, result = pcall(function()
-        return require "luahttps"
-    end)
-    https = success and result or https
-end
-if not https then
-    local success, result = pcall(function()
-        return require "love.luahttps"
-    end)
-    https = success and result or https
-end
-assert(https, "not found https")
+
+-- assert(https, "not found https")
 
 local json = require((...):gsub("init", "json"))
 
 ---@type JM.Foreign.JS
-local JS = require(JM_Path .. ".modules.js")
-assert(JS, "Error: module JS not found.")
+local JS = require(JM_Path .. "modules.js")
+assert(type(JS.newPromiseRequest) == "function", "Error: module JS not found.")
 
 local str_format = string.format
 local tonumber = tonumber
@@ -141,8 +78,30 @@ function Locker:init(game_key, leaderboard_id, max)
     self.session_inited = false
 end
 
-local session_channel = love.thread.getChannel("jm_locker_session")
-local thread_session = love.thread.newThread([[
+---@type love.Channel?
+local session_channel
+
+---@type love.Thread?
+local thread_session
+
+---@param value boolean?
+function Locker:set_web_mode(value)
+    _WEB = value and true
+
+    if _WEB then
+        if session_channel then
+            session_channel:clear()
+            session_channel:release()
+        end
+        if thread_session then
+            thread_session:release()
+        end
+        session_channel = nil
+        thread_session = nil
+        ---
+    else
+        session_channel = love.thread.getChannel("jm_locker_session")
+        thread_session = love.thread.newThread([[
 do
     local jit = require "jit"
     jit.off(true, true)
@@ -169,39 +128,71 @@ if code == 200 then
     love.thread.getChannel('jm_locker_session'):push(r)
 end
 ]])
+    end
+end
 
----@param value boolean?
-function Locker:set_web_mode(value)
-    _WEB = value and true
+function Locker:on_succeed_session(action, args)
+    self.__on_succeed_session = action
+    self.__on_succeed_session_args = args
 end
 
 local function set_session(data)
     Locker.session = json.decode(tostring(data))
+    print("got session")
+    print("My token: " .. tostring(Locker.session.session_token))
+    Locker.__requesting_session = false
+    if Locker.__on_succeed_session then
+        Locker.__on_succeed_session(Locker.__on_succeed_session_args)
+    end
 end
 
+local function on_session_error(id, data)
+    print("session time out")
+    Locker.__requesting_session = false
+end
+
+---@param self JM.Locker
 local function do_the_request(self, game_key)
     if _WEB then
+        print("requesting using javascript")
+
+
         local data = string.format("{\"game_key\":\"%s\", \"game_version\": \"0.10.0.0\"}", game_key)
 
         local str = ([[
             var xhr = new XMLHttpRequest();
-            xhr.setRequestHeader("Content-Type", "application/json");
 
-            var body = JSON.stringify(%s);
-
-            xhr.onload = () => {
-                if (this.readyState == 4 && this.status == 200){
+            xhr.onreadystatechange = function () {
+                if (this.readyState == XMLHttpRequest.DONE
+                    && this.status == 200)
+                {
                     _$_(this.responseText);
                 }
+                else if (this.readyState == 4){
+                    console.log("could not fetch the data.");
+                }
+                else {
+                    console.log("uma enorme desventura.");
+                }
             };
+
             xhr.open("POST", "https://api.lootlocker.io/game/v2/session/guest");
-            xhr.send(body);
+
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            var data = `%s`;
+
+            xhr.send(data);
     ]]):format(data)
 
-        JS.newPromiseRequest(JS.stringFunc(str), set_session, nil, 10, 42)
+        -- var data = JSON.stringify(%s);
+        -- var data = `%s`;
+
+        JS.newPromiseRequest(JS.stringFunc(str), set_session, on_session_error, 10, 112)
 
         self.__requesting_session = true
-    else
+        ---
+    elseif thread_session then
         print("going request...")
         thread_session:start(game_key)
     end
@@ -210,7 +201,7 @@ end
 function Locker:request_session(game_key, force)
     game_key = game_key or __game_key
 
-    if game_key and (not self.session or force)
+    if game_key and ((not self.session) or force)
         and not self:is_requesting_session()
     then
         self.session = nil
@@ -245,7 +236,7 @@ end
 
 function Locker:get_session_data(dt)
     if _WEB then
-        JS.retrieveData(dt)
+        -- JS.retrieveData(dt)
         return self.session
     else
         return session_channel and session_channel:pop()
@@ -436,5 +427,7 @@ function Locker:get_proper(data)
     end
     return data[1], tonumber(data[2]), tonumber(data[3]), data[4], data[5]
 end
+
+Locker:set_web_mode(false)
 
 return Locker
