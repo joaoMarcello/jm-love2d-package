@@ -1,3 +1,8 @@
+--[[
+    Original code by Marcelo Silva Nascimento Mancini.
+    Modified by João Moreira.
+]]
+
 ---@type table<integer, JS.Request>
 local __requestQueue = {}
 
