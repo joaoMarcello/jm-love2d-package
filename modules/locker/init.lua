@@ -138,8 +138,8 @@ end
 
 local function set_session(data)
     Locker.session = json.decode(tostring(data))
-    print("got session")
-    print("My token: " .. tostring(Locker.session.session_token))
+    -- print("got session")
+    -- print("My token: " .. tostring(Locker.session.session_token))
     Locker.__requesting_session = false
     if Locker.__on_succeed_session then
         Locker.__on_succeed_session(Locker.__on_succeed_session_args)
@@ -154,8 +154,7 @@ end
 ---@param self JM.Locker
 local function do_the_request(self, game_key)
     if _WEB then
-        print("requesting using javascript")
-
+        -- print("requesting using javascript")
 
         local data = string.format("{\"game_key\":\"%s\", \"game_version\": \"0.10.0.0\"}", game_key)
 
@@ -167,12 +166,6 @@ local function do_the_request(self, game_key)
                     && this.status == 200)
                 {
                     _$_(this.responseText);
-                }
-                else if (this.readyState == 4){
-                    console.log("could not fetch the data.");
-                }
-                else {
-                    console.log("uma enorme desventura.");
                 }
             };
 
@@ -193,7 +186,7 @@ local function do_the_request(self, game_key)
         self.__requesting_session = true
         ---
     elseif thread_session then
-        print("going request...")
+        -- print("going request...")
         thread_session:start(game_key)
     end
 end
