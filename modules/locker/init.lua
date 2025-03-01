@@ -181,13 +181,13 @@ end
 
 local function do_the_request(self, game_key)
     if _WEB then
-        local body = string.format("{\"game_key\":\"%s\", \"game_version\": \"0.10.0.0\"}", game_key)
+        local data = string.format("{\"game_key\":\"%s\", \"game_version\": \"0.10.0.0\"}", game_key)
 
         local str = ([[
-            const xhr = new XMLHttpRequest();
+            var xhr = new XMLHttpRequest();
             xhr.setRequestHeader("Content-Type", "application/json");
 
-            const body = JSON.stringify(%s);
+            var body = JSON.stringify(%s);
 
             xhr.onload = () => {
                 if (this.readyState == 4 && this.status == 200){
@@ -196,7 +196,7 @@ local function do_the_request(self, game_key)
             };
             xhr.open("POST", "https://api.lootlocker.io/game/v2/session/guest");
             xhr.send(body);
-    ]]):format(body)
+    ]]):format(data)
 
         JS.newPromiseRequest(JS.stringFunc(str), set_session, nil, 10, 42)
 
@@ -213,6 +213,7 @@ function Locker:request_session(game_key, force)
     if game_key and (not self.session or force)
         and not self:is_requesting_session()
     then
+        self.session = nil
         return do_the_request(self, game_key)
     end
 
@@ -234,22 +235,6 @@ function Locker:request_session(game_key, force)
     --     return false
     -- end
 end
-
--- function Locker:verify_session()
---     if not self.session then
---         local session
-
---         if _WEB then
-
---         else
---             session = session_channel:pop()
---         end
-
---         if session then
---             self.session = session
---         end
---     end
--- end
 
 function Locker:is_requesting_session()
     if _WEB then
