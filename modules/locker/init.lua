@@ -176,7 +176,7 @@ function Locker:set_web_mode(value)
 end
 
 local function set_session(data)
-    Locker.session = json.decode(data)
+    Locker.session = json.decode(tostring(data))
 end
 
 local function do_the_request(self, game_key)
