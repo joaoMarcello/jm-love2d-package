@@ -103,7 +103,7 @@ function _Request:new(isPromise, command, onDataLoaded, onError, timeout, id)
         JS.callJS(command)
     end
     obj.onDataLoaded = onDataLoaded or __defaultErrorFunction
-    obj.timeOut = (timeout == nil) and obj.timeOut or timeout
+    obj.timeOut = timeout or 5
     obj.interval = 0.0
     obj.id = id
 
@@ -173,9 +173,15 @@ function JS.retrieveData(dt)
         if (isDebugActive) then
             print("Request died: " .. deadRequests[i])
         end
-        table.remove(__requestQueue, deadRequests[i])
+        local req_index = deadRequests[i]
+        -- clear_table(req)
+        table.remove(__requestQueue, req_index)
     end
     return isRetrieving
+end
+
+function JS.isRetrievingData()
+    return (#__requestQueue) ~= 0
 end
 
 --May only be used for functions that don't return a promise
@@ -227,3 +233,4 @@ end)
 --         __getWebDB("%s");
 --     ]]
 --     , "__LuaJSDB"))
+return JS
