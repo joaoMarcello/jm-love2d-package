@@ -66,7 +66,10 @@ function Locker:init(game_key, leaderboard_id, max)
     -- )
 
     __game_key = game_key
-    self:request_session(game_key)
+
+    if not self:try_cache_session() then
+        self:request_session(game_key)
+    end
 
     -- ---@type JM.Locker.Session
     -- self.session = json.decode(body)
@@ -76,6 +79,16 @@ function Locker:init(game_key, leaderboard_id, max)
     self.MAX = max or 10
 
     self.session_inited = false
+end
+
+---@return JM.Locker.Session?
+function Locker:try_cache_session()
+    if (not self.session) and love.filesystem.getInfo("guest.dat") then
+        local session = JM.Ldr.load("guest.dat")
+        self.session = session
+        print("CACHED = ", JM.Ldr.ser.pack(session))
+        return session
+    end
 end
 
 ---@type love.Channel?
@@ -138,6 +151,8 @@ end
 
 local function set_session(data)
     Locker.session = json.decode(tostring(data))
+    JM.Ldr.save(Locker.session, "guest.dat")
+    print(JM.Ldr.ser.pack(Locker.session))
     -- print("got session")
     -- print("My token: " .. tostring(Locker.session.session_token))
     Locker.__requesting_session = false
@@ -227,7 +242,7 @@ function Locker:is_requesting_session()
     return thread_session and thread_session:isRunning()
 end
 
-function Locker:get_session_data(dt)
+function Locker:try_retrieve_session_data(dt)
     if _WEB then
         -- JS.retrieveData(dt)
         return self.session
@@ -238,10 +253,16 @@ end
 
 function Locker:update(dt)
     if not self.session then
-        local session = self:get_session_data(dt)
-        if session then
+        local session = self:try_retrieve_session_data(dt)
+
+        if session == "error" then
+            self:request_session()
+            ---
+        elseif session then
             self.session = session
             self.__requesting_session = false
+            JM.Ldr.save(session, "guest.dat")
+            -- love.filesystem.write("guest.txt", JM.Ldr.ser.pack(session))
         end
     end
 end
