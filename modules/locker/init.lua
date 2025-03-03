@@ -83,10 +83,10 @@ end
 
 ---@return JM.Locker.Session?
 function Locker:try_cache_session()
-    if (not self.session) and love.filesystem.getInfo("guest.dat") then
-        local session = JM.Ldr.load("guest.dat")
+    if (not self.session) and love.filesystem.getInfo("__temp0903154.dat") then
+        local session = JM.Ldr.load("__temp0903154.dat")
         self.session = session
-        print("CACHED = ", JM.Ldr.ser.pack(session))
+        -- print("CACHED = ", JM.Ldr.ser.pack(session))
         return session
     end
 end
@@ -151,8 +151,9 @@ end
 
 local function set_session(data)
     Locker.session = json.decode(tostring(data))
-    JM.Ldr.save(Locker.session, "guest.dat")
-    print(JM.Ldr.ser.pack(Locker.session))
+    JM.Ldr.save(Locker.session, "__temp0903154.dat")
+    -- print(JM.Ldr.stringify(Locker.session))
+
     -- print("got session")
     -- print("My token: " .. tostring(Locker.session.session_token))
     Locker.__requesting_session = false
@@ -261,8 +262,11 @@ function Locker:update(dt)
         elseif session then
             self.session = session
             self.__requesting_session = false
-            JM.Ldr.save(session, "guest.dat")
-            -- love.filesystem.write("guest.txt", JM.Ldr.ser.pack(session))
+            JM.Ldr.save(session, "__temp0903154.dat")
+            if not _WEB then
+                love.filesystem.write("guest.txt", JM.Ldr.ser.pack(session))
+                print("NEW SESSION = ", JM.Ldr.ser.pack(session))
+            end
         end
     end
 end
