@@ -10,6 +10,22 @@ local love_vibrate = love.system.vibrate
 
 local vibrate_sec = 0.05
 
+if _G.WEB then
+    ---@type JM.Foreign.JS
+    local JS = require(JM_Path .. "modules.js")
+
+    local format = string.format
+
+    love_vibrate = function(value)
+        if (not _G.JM.SceneManager.scene.use_vpad) then
+            return love_vibrate(value)
+        end
+        value = value * 1000
+        if value > 1500 then return end
+        return JS.callJS(format("navigator.vibrate(%d)", value))
+    end
+end
+
 --==========================================================================
 local Bt_A = TouchButton:new {
     use_radius = true,
