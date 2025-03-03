@@ -232,6 +232,7 @@ local SceneManager = JM.SceneManager
 local Sound = JM.Sound
 
 local fullscreen = love.window.getFullscreen()
+local OS = love.system.getOS()
 
 --- Loads the first game scene.
 ---@param s string the directory for the first game scene.
@@ -271,9 +272,36 @@ function JM:load_initial_state(
     return SceneManager.scene:resize(love.graphics.getDimensions())
 end
 
+local function prepare_canvas_to_fullscreen()
+    ---@type JM.Foreign.JS
+    local JS = require(JM_Path .. "modules.js")
+
+    local code = [[
+        var canvas = document.getElementById("canvas");
+
+        console.log(`Canvas Dimensions before: ${canvas.width}x${canvas.height}`);
+
+        var dpi = window.devicePixelRatio || 1;
+        var screenWidth = window.screen.width;
+        var screenHeight = window.screen.height;
+        canvas.width = screenWidth * dpi;
+        canvas.height = screenHeight * dpi;
+
+        console.log(`Canvas Dimensions after: ${canvas.width}x${canvas.height}`);
+    ]]
+
+    -- console.log(`Canvas Dimensions after: ${canvas.width}x${canvas.height}`);
+    return JS.callJS(JS.stringFunc(code))
+end
+
 function JM:to_fullscreen()
     if not fullscreen then
         fullscreen = true
+
+        if OS == "Web" then
+            prepare_canvas_to_fullscreen()
+        end
+
         return love.window.setFullscreen(true, _G.FULLSCREEN_TYPE or 'desktop')
     end
 end
@@ -531,7 +559,11 @@ function JM:keypressed(key, scancode, isrepeat)
         or (key == "return") and love.keyboard.isDown('lalt')
     then
         fullscreen = not fullscreen
-        love.window.setFullscreen(fullscreen, _G.FULLSCREEN_TYPE or 'desktop')
+        if fullscreen then
+            self:to_fullscreen()
+        else
+            love.window.setFullscreen(fullscreen, _G.FULLSCREEN_TYPE or 'desktop')
+        end
         return scene:resize(love.graphics.getDimensions())
     end
 
