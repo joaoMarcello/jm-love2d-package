@@ -21,6 +21,10 @@ local str, bytedata, format_comp, format_enc, format_enc2
 local Loader = {
     ser = myserial,
     --
+    stringify = function(obj)
+        return myserial.pack(obj)
+    end,
+    --
     save = function(data, path)
         ---@type any
         local dat = type(data) == "string" and data or myserial.pack(data)
