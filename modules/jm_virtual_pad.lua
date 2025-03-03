@@ -10,7 +10,7 @@ local love_vibrate = love.system.vibrate
 
 local vibrate_sec = 0.05
 
-if _G.WEB then
+if love.system.getOS() == "Web" then
     ---@type JM.Foreign.JS
     local JS = require(JM_Path .. "modules.js")
 
