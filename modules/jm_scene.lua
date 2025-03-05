@@ -222,6 +222,8 @@ function Scene:new2(args)
 end
 
 function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
+    local global = JM.__config
+
     bounds = bounds or {
         left = -1000000,
         right = 1000000,
@@ -249,11 +251,11 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.h = h or dispositive_h
 
     -- the game's screen dimensions
-    self.screen_w = canvas_w or self.w
-    self.screen_h = canvas_h or self.h
+    self.screen_w = canvas_w or global.screen_width or self.w
+    self.screen_h = canvas_h or global.screen_height or self.h
 
-    self.tile_size_x = conf.tile or 32
-    self.tile_size_y = conf.tile or 32
+    self.tile_size_x = conf.tile or global.tile or 32
+    self.tile_size_y = conf.tile or global.tile or 32
 
     self.world_left = bounds.left or 0
     self.world_right = bounds.right or 0
@@ -321,32 +323,34 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     -- used when scene is in frame skip mode
     self.__skip = nil
 
-    self.subpixel = conf.subpixel or 4
-    self.canvas_filter = conf.canvas_filter or 'linear'
+    self.subpixel = conf.subpixel or global.subpixel or 4
+    self.canvas_filter = conf.canvas_filter or global.filter or 'linear'
 
     self.canvas_scale_x = 1
     self.canvas_scale_y = 1
-    self:set_scale_type(conf.scale_type or ScaleType.keepProportions)
+    self:set_scale_type(conf.scale_type
+        or global.scale_type
+        or ScaleType.keepProportions)
 
     self.using_canvas_layer = conf.use_canvas_layer or nil
     self.canvas_layer = nil
 
     -- self:restaure_canvas()
 
-    self.dpi = conf.dpi or JM:get_default_dpi() or 1
+    self.dpi = conf.dpi or global.dpi or 1
 
     self:implements {}
     -- self:calc_canvas_scale()
 
     self.capture_mode = false
 
-    self.use_vpad = conf.use_vpad or false
+    self.use_vpad = conf.use_vpad or conf.use_vpad or false
 
     self.show_border = conf.show_border or false
 
     self.use_stencil = conf.use_stencil or nil
 
-    self.show_info = conf.debug or nil
+    self.show_info = conf.debug or global.show_info or nil
 
 
     ---@deprecated
@@ -355,7 +359,7 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
     self.update_time = 0.0
 
     do
-        local color = conf.color
+        local color = conf.color or global.color
         if color then
             if type(color) == "string" then
                 self:set_color(JM.Utils:hex_to_rgba_float(color))
