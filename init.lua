@@ -272,6 +272,36 @@ function JM:load_initial_state(
     return SceneManager.scene:resize(love.graphics.getDimensions())
 end
 
+---@param config table?
+function JM:set_global_config(config)
+    self.__config = self.__config or {
+        screen_width = 320,
+        screen_height = 180,
+        dpi = 1,
+        subpixel = 4,
+        tile = 16,
+        use_vpad = false,
+        filter = "linear",
+        scale_type = "keep proportions",
+        color = nil,
+        show_info = false,
+    }
+
+    if not config then return end
+
+    local c = self.__config
+    c.screen_width = config.screen_width or c.screen_width
+    c.screen_height = config.screen_height or c.screen_height
+    c.dpi = config.dpi or c.dpi
+    c.subpixel = config.subpixel or c.subpixel
+    c.tile = config.tile or c.tile
+    c.use_vpad = config.use_vpad or c.use_vpad
+    c.filter = config.filter or c.filter
+    c.scale_type = config.scale_type or c.scale_type
+    c.color = config.color or c.color
+    c.show_info = config.show_info or c.show_info
+end
+
 local function prepare_canvas_to_fullscreen()
     ---@type JM.Foreign.JS
     local JS = require(JM_Path .. "modules.js")
@@ -410,18 +440,6 @@ function JM:show_fullscreen_button()
             return lgx.draw(img, self.x, self.y, 0, self.w / img:getWidth(), self.h / img:getHeight())
         end
     }
-end
-
-local dpi = 1
---- set default dpi when create canvas on jm_scene
----@param value number
-function JM:set_default_dpi(value)
-    value = value or 1
-    dpi = value
-end
-
-function JM:get_default_dpi()
-    return dpi
 end
 
 local locker_path = JM_Path .. "modules.locker.init"
@@ -699,5 +717,7 @@ end
 function Play_song(name, reset)
     return Sound:play_song(name, reset)
 end
+
+JM:set_global_config()
 
 return JM
