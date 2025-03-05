@@ -278,7 +278,7 @@ function JM:set_global_config(config)
         screen_width = 320,
         screen_height = 180,
         dpi = 1,
-        subpixel = 4,
+        subpixel = 1,
         tile = 16,
         use_vpad = false,
         filter = "linear",
