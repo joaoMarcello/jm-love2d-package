@@ -560,7 +560,9 @@ function JM:keypressed(key, scancode, isrepeat)
     then
         fullscreen = not fullscreen
         if fullscreen then
+            fullscreen = false
             self:to_fullscreen()
+            fullscreen = true
         else
             love.window.setFullscreen(fullscreen, _G.FULLSCREEN_TYPE or 'desktop')
         end
