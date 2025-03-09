@@ -344,7 +344,9 @@ function Scene:__constructor__(x, y, w, h, canvas_w, canvas_h, bounds, conf)
 
     self.capture_mode = false
 
-    self.use_vpad = conf.use_vpad or conf.use_vpad or false
+    self.use_vpad = conf.use_vpad
+        or (type(conf.use_vpad) == "nil" and global.use_vpad)
+        or false
 
     self.show_border = conf.show_border or false
 
