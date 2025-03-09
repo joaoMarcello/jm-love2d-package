@@ -17,6 +17,7 @@ local State = JM.Scene:new {
     cam_tile = TILE,
     show_border = false,
     scale_type = "keep proportions",
+    use_vpad = false,
     -- use_stencil = true,
 }
 
