@@ -53,6 +53,15 @@ function M:get_shader(shader, state, conf)
 
         return vignette
         ---
+    elseif shader == "grayscale" then
+        local gray = shaders[shader]
+        if not gray then
+            code = lfs.read("/jm-love2d-package/data/shader/grayscale.glsl")
+            gray = lgx.newShader(code)
+            shaders[shader] = gray
+        end
+
+        return gray
     elseif shader == "crt" then
         local crt = shaders[shader]
         if not crt then
