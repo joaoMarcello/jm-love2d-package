@@ -1,5 +1,5 @@
 uniform vec3[16] palette;
-uniform int size = 16;
+uniform int size;
 
 vec4 effect(vec4 color, Image tex, vec2 tc, vec2 coord)
 {
