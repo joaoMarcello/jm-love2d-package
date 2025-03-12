@@ -17,7 +17,7 @@ vec4 effect(vec4 color, Image tex, vec2 tc, vec2 coord)
             //     + 4.0 * pow(distVec.g, 2.0)
             //     + 3.0 * pow(distVec.b, 2.0)
             // );
-            dist = sqrt(2.0 * (distVec.r * distVec.r)
+            dist = (2.0 * (distVec.r * distVec.r)
                 + 4.0 * (distVec.g * distVec.g)
                 + 3.0 * (distVec.b * distVec.b)
             );
@@ -27,7 +27,7 @@ vec4 effect(vec4 color, Image tex, vec2 tc, vec2 coord)
             //     + 4.0 * pow(distVec.g, 2.0)
             //     + 2.0 * pow(distVec.b, 2.0)
             // );
-            dist = sqrt(3.0 * (distVec.r * distVec.r)
+            dist = (3.0 * (distVec.r * distVec.r)
                 + 4.0 * (distVec.g * distVec.g)
                 + 2.0 * (distVec.b * distVec.b)
             );
