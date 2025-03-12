@@ -354,7 +354,7 @@ function M:get_shader(shader, state, conf)
         ]]
         local pico8 = shaders[shader]
         if not pico8 then
-            code = lfs.read("/jm-love2d-package/data/shader/pico8.glsl")
+            code = lfs.read("/jm-love2d-package/data/shader/pico8_copilot.glsl")
             pico8 = lgx.newShader(code)
             shaders[shader] = pico8
 
@@ -378,6 +378,9 @@ function M:get_shader(shader, state, conf)
             }
             pico8:send("size", 16)
             pico8:send("palette", unpack(palette))
+            pico8:send("weights_dark", { 2.0, 4.0, 3.0 })
+            pico8:send("weights_light", { 3.0, 4.0, 2.0 })
+            pico8:send("threshold", 128 / 255)
         end
         return pico8
     elseif shader == "godsray" then
