@@ -323,9 +323,15 @@ function Sound:focus(f)
             audio = audio
 
             local source = audio.source
-            if source:isPlaying() then
-                source:pause()
-                paused_sfx[audio.name] = true
+
+            if source then
+                local ok, is_playing = pcall(source.isPlaying, source)
+
+                if ok and is_playing then
+                    if pcall(source.pause, source) then
+                        paused_sfx[audio.name] = true
+                    end
+                end
             end
         end
 
@@ -334,9 +340,15 @@ function Sound:focus(f)
             audio = audio
 
             local source = audio.source
-            if source:isPlaying() then
-                source:pause()
-                paused_song[audio.name] = true
+
+            if source then
+                local ok, is_playing = pcall(source.isPlaying, source)
+
+                if ok and is_playing then
+                    if pcall(source.pause, source) then
+                        paused_song[audio.name] = true
+                    end
+                end
             end
         end
         ---
@@ -344,8 +356,9 @@ function Sound:focus(f)
         if paused_song then
             for name, _ in next, paused_song do
                 local audio = self:get_song(name)
-                if audio then
-                    audio.source:play()
+                local source = audio and audio.source
+                if source then
+                    pcall(source.play, source)
                 end
             end
         end
@@ -353,7 +366,8 @@ function Sound:focus(f)
         if paused_sfx then
             for name, _ in next, paused_sfx do
                 local audio = self:get_sfx(name)
-                if audio then audio.source:play() end
+                local source = audio and audio.source
+                if source then pcall(source.play, source) end
             end
         end
         paused_song = nil
