@@ -102,8 +102,15 @@ function M:get_shader(shader, state, conf)
             code = lfs.read("/jm-love2d-package/data/shader/crt_lalaoopybee.glsl")
             crt = lgx.newShader(code)
             shaders[shader] = crt
+            
+            -- local w, h = state.screen_w, state.screen_h
+            -- crt:send("resolutionLogical", {w, h})
+            -- local dpi = state.dpi
+            -- w = w  * dpi
+            -- h = h  * dpi
+            -- crt:send("resolutionPhysical", {w, h})
+            -- crt:send("resolution", {love.graphics.getDimensions()} )
 
-            -- crt:send("resolution", {state.screen_w, state.screen_h} )
             crt:send("time", 0.0)
             crt:send("CURVATURE", 5.2)
             crt:send("BLUR", 0.021)
