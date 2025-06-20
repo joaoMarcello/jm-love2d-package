@@ -32,7 +32,7 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     // flicker com ruído
     number noise = rand(sc + time);
     // number flicker = mix(0.95, 1.05, noise);
-    number flicker = mix(0.9, 1.05, noise);
+    number flicker = mix(0.925, 1.05, noise);
 
     // aplicação final dos efeitos
     col *= edge.x * edge.y * brightness * flicker;
