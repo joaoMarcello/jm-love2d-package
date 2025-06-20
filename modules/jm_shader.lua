@@ -96,6 +96,21 @@ function M:get_shader(shader, state, conf)
 
         return scan
         ---
+    elseif shader == "crt_lalaoopybee" then
+        local crt = shaders[shader]
+        if not crt then
+            code = lfs.read("/jm-love2d-package/data/shader/crt_lalaoopybee.glsl")
+            crt = lgx.newShader(code)
+            shaders[shader] = crt
+
+            -- crt:send("resolution", {state.screen_w, state.screen_h} )
+            crt:send("time", 0.0)
+            crt:send("CURVATURE", 5.2)
+            crt:send("BLUR", 0.021)
+            crt:send("CA_AMT", 1.005)
+
+        end
+        return crt
     elseif shader == "filmgrain" then
         local noisetex = conf.noisetex or self:noise_generator(1024, 768)
 
