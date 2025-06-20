@@ -39,11 +39,11 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     col = clamp(col, 0.0, 1.0);
 
     // brilho oscilante
-    // float brightness = 0.95 + 0.05 * sin(time * 3.0);
+    float brightness = 0.95 + 0.05 * sin(time * 3.0);
 
-    // Geração de ruído para brilho aleatório
-    float noise1 = rand(vec2(floor(scLogical.x * 10.0), floor(scLogical.y * 10.0)) + floor(time * 30.0));
-    float brightness = mix(0.95, 1.05, noise1); //0.95, 1.05
+    // // Geração de ruído para brilho aleatório
+    // float noise1 = rand(vec2(floor(scLogical.x * 10.0), floor(scLogical.y * 10.0)) + fract(time * 30.0));
+    // float brightness = mix(0.95, 1.05, noise1); //0.95, 1.05
 
 
 
