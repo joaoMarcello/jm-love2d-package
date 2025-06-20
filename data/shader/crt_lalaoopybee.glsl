@@ -1,5 +1,5 @@
 extern number time;
-// extern vec2 resolution;
+extern vec2 resolution;
 
 extern number CURVATURE;
 extern number BLUR;
@@ -10,10 +10,13 @@ number rand(vec2 co) {
 }
 
 // float hash(vec2 p) {
-//     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+//     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 // }
 
 vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
+    // Corrige coordenadas para considerar o tamanho lógico do canvas
+    vec2 scLogical = uv * resolution;
+
     // curvatura
     vec2 crtUV = uv * 2.0 - 1.0;
     vec2 offset = crtUV.yx / CURVATURE;
@@ -36,8 +39,13 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     col = clamp(col, 0.0, 1.0);
 
     // brilho oscilante
-    float brightness = 0.95 + 0.05 * sin(time * 3.0);
-    // number brightness = 0.75 + 0.35 * sin(time * 6.0);
+    // float brightness = 0.95 + 0.05 * sin(time * 3.0);
+
+    // Geração de ruído para brilho aleatório
+    float noise1 = rand(vec2(floor(scLogical.x * 10.0), floor(scLogical.y * 10.0)) + floor(time * 30.0));
+    float brightness = mix(0.95, 1.05, noise1); //0.95, 1.05
+
+
 
     // flicker com ruído
     // float noise = rand(sc + time);
@@ -50,16 +58,28 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     // aplicação final dos efeitos
     col *= edge.x * edge.y * brightness * flicker;
 
-    // linhas de varredura
-    float lineY = fract(sc.y * 0.5); // simula mod(sc.y, 2.0)
-    float lineX = fract(sc.x / 3.0); // simula mod(sc.x, 3.0)
+    // // linhas de varredura
+    // // float lineY = fract(scLogical.y * 0.5); // simula mod(sc.y, 2.0)
+    // // float lineX = fract(scLogical.x / 3.0); // simula mod(sc.x, 3.0)
 
-    if (lineY < 0.5)
-        col *= 0.7;
-    else if (lineX < 0.333)
-        col *= 0.7;
-    else
-        col *= 1.2;
+    // float lineY = fract(scLogical.y / 1.5); // simula mod(sc.y, 2.0)
+    // float lineX = fract(scLogical.x / 1.5); // simula mod(sc.x, 3.0)
+
+    // float opacity = 0.85;
+
+    // if (lineY < 0.3) // 0.5
+    //     col *= opacity;
+    // else if (lineX < 0.3) // 0.333
+    //     col *= opacity;
+    // else
+    //     col *= 1. ;//+ (1. - opacity) * 0.2;
+
+    float SCANLINE_INTENSITY = 0.2;
+    float SCANLINE_FREQ = 3.14;
+
+     // Scanline tipo senoidal (baseado em Y lógico do canvas)
+    float scanline = 1.0 - SCANLINE_INTENSITY * 0.5 * (sin(scLogical.y * SCANLINE_FREQ) * 0.5 + 0.5);
+    col *= scanline;
 
     // return vec4(col, 1.0) * color;
     return vec4(col * color.rgb, edge.x * edge.y * color.a);
