@@ -9,6 +9,10 @@ number rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+// float hash(vec2 p) {
+//     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+// }
+
 vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     // curvatura
     vec2 crtUV = uv * 2.0 - 1.0;
@@ -36,7 +40,10 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     // number brightness = 0.75 + 0.35 * sin(time * 6.0);
 
     // flicker com ruído
-    float noise = rand(sc + time);
+    // float noise = rand(sc + time);
+    float noise = rand(vec2(uv.x * 128.0, uv.y * 128.0) + time);
+    // float noise = hash(uv * 100.0 + time);
+
     // number flicker = mix(0.95, 1.05, noise);
     float flicker = clamp(mix(0.925, 1.05, noise), 0.9, 1.05);
 
@@ -44,9 +51,12 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     col *= edge.x * edge.y * brightness * flicker;
 
     // linhas de varredura
-    if (mod(sc.y, 2.0) < 1.0)
+    float lineY = fract(sc.y * 0.5); // simula mod(sc.y, 2.0)
+    float lineX = fract(sc.x / 3.0); // simula mod(sc.x, 3.0)
+
+    if (lineY < 0.5)
         col *= 0.7;
-    else if (mod(sc.x, 3.0) < 1.0)
+    else if (lineX < 0.333)
         col *= 0.7;
     else
         col *= 1.2;
