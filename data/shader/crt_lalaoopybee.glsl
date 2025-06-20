@@ -15,24 +15,30 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     vec2 offset = crtUV.yx / CURVATURE;
     crtUV += crtUV * offset * offset;
     crtUV = crtUV * 0.5 + 0.5;
+    crtUV = clamp(crtUV, 0.0, 1.0);
 
     // vinheta
     vec2 edge = smoothstep(0.0, BLUR, crtUV) * (1.0 - smoothstep(1.0 - BLUR, 1.0, crtUV));
 
-    // aberração cromática usando tex
+    // Aberração cromática (com clamp para evitar vazamento)
+    vec2 uvR = clamp((crtUV - 0.5) * CA_AMT + 0.5, 0.0, 1.0);
+    vec2 uvG = crtUV;
+    vec2 uvB = clamp((crtUV - 0.5) / CA_AMT + 0.5, 0.0, 1.0);
+
     vec3 col;
-    col.r = Texel(tex, (crtUV - 0.5) * CA_AMT + 0.5).r;
-    col.g = Texel(tex, crtUV).g;
-    col.b = Texel(tex, (crtUV - 0.5) / CA_AMT + 0.5).b;
+    col.r = Texel(tex, uvR).r;
+    col.g = Texel(tex, uvG).g;
+    col.b = Texel(tex, uvB).b;
+    col = clamp(col, 0.0, 1.0);
 
     // brilho oscilante
-    number brightness = 0.95 + 0.05 * sin(time * 3.0);
+    float brightness = 0.95 + 0.05 * sin(time * 3.0);
     // number brightness = 0.75 + 0.35 * sin(time * 6.0);
 
     // flicker com ruído
-    number noise = rand(sc + time);
+    float noise = rand(sc + time);
     // number flicker = mix(0.95, 1.05, noise);
-    number flicker = mix(0.925, 1.05, noise);
+    float flicker = clamp(mix(0.925, 1.05, noise), 0.9, 1.05);
 
     // aplicação final dos efeitos
     col *= edge.x * edge.y * brightness * flicker;
