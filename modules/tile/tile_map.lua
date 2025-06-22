@@ -54,9 +54,9 @@ TileMap.__index = TileMap
 ---@param tile_size number
 ---@param filter function|nil
 ---@return JM.TileMap
-function TileMap:new(path_map, path_tileset, tile_size, filter, regions)
+function TileMap:new(path_map, path_tileset, tile_size, filter, regions, batchmode)
     local obj = setmetatable({}, self)
-    TileMap.__constructor__(obj, path_map, path_tileset, tile_size, filter, regions)
+    TileMap.__constructor__(obj, path_map, path_tileset, tile_size, filter, regions, batchmode)
     return obj
 end
 
@@ -64,11 +64,12 @@ end
 ---@param path_tileset string
 ---@param tile_size number
 ---@param filter function|nil
-function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regions)
+function TileMap:__constructor__(path_map, path_tileset, tile_size, filter, regions, batchmode)
+    batchmode = batchmode or "dynamic"
     -- self.path = path_map
     self.tile_size = tile_size or 32
     self.tile_set = TileSet:new(path_tileset, self.tile_size)
-    self.sprite_batch = love.graphics.newSpriteBatch(self.tile_set.img, nil, "dynamic")
+    self.sprite_batch = love.graphics.newSpriteBatch(self.tile_set.img, nil, batchmode)
 
     self.__bound_left = -math.huge
     self.__bound_top = -math.huge
