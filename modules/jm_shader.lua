@@ -113,7 +113,7 @@ function M:get_shader(shader, state, conf)
 
             crt:send("time", 0.0)
             crt:send("CURVATURE", 5.2)
-            crt:send("BLUR", 0.021)
+            crt:send("BLUR", 0.015) --0.021
             crt:send("CA_AMT", 1.005) --1.005
 
         end
