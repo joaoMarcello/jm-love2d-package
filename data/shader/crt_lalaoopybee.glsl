@@ -45,7 +45,7 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     col *= edge.x * edge.y * brightness * flicker;
     
     // Scanline senoidal baseada em scLogical.y
-    float scanline = 1.0 - 0.2 * 0.5 * (sin(scLogical.y * 3.14) * 0.5 + 0.5);
+    float scanline = 1.0 - 0.1 * 0.5 * (sin(scLogical.y * 3.14) * 0.5 + 0.5);
     col *= scanline;
     
     // Ghosting/Burn-in com canal alpha
@@ -68,7 +68,7 @@ vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
     
     // Interlacing – variação de brilho em linhas alternadas
     float interlace = step(0.5, mod(scLogical.y, 2.0));
-    effectColor.rgb *= mix(vec3(1.0), vec3(0.9), interlace);
+    effectColor.rgb *= mix(vec3(1.0), vec3(0.95), interlace);
     
     // Ajuste de Saturação e Contraste (desbota as cores)
     float luminance = dot(effectColor.rgb, vec3(0.299, 0.587, 0.114));
