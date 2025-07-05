@@ -1108,7 +1108,7 @@ function Pad:fix_positions()
     Bt_A:set_position(
         (sfx + sfw) - border_w - Bt_A.w,
         -- (sfy + sfh) - border_button_y - Bt_A.h
-        (sfy + sfh) - border_button_y - (min * 0.125) --0.2
+        (sfy + sfh) - border_button_y - (min * 0.2) --0.2
     )
     Bt_B:set_position(Bt_A.x - Bt_B.w - space_bt_x, Bt_A.y - Bt_B.h * 0.5)
 
@@ -1200,7 +1200,7 @@ function Pad:fix_positions()
         -- local sx, sy, sw, sh = love.window.getSafeArea()
 
         local anchor_x = (sfx == 0 and 25 or sfx) + 10 -- w * dpad_pos_x + size
-        local anchor_y = h * dpad_pos_y - (min * 0.1) --0.15
+        local anchor_y = h * dpad_pos_y - (min * 0.1)  --0.15
         -- local space_x = not stick.is_visible and (space * 4) or (space * 2)
 
         dpad_left:set_position(anchor_x, anchor_y - size * 0.5)
