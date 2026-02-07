@@ -261,6 +261,10 @@ if admob then
         return admob.getDeviceLanguage()
     end
 
+    function Ad:getAppVersionName()
+        return admob.getAppVersionName()
+    end
+
     local lim = 1 / 30
     function Ad:update(dt)
         dt = dt > lim and lim or dt
@@ -293,6 +297,7 @@ else
     Ad.showRewardedAd = func
     Ad.checkForAdsCallbacks = func
     Ad.getDeviceLanguage = function() return "EN" end
+    Ad.getAppVersionName = function() return "unknown" end
     Ad.update = func
 end
 
