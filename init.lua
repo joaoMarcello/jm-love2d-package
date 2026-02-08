@@ -222,6 +222,9 @@ JM.Vpad = JM.Scene:get_vpad() --require(string.gsub(path, "init", "modules.jm_vi
 ---@type JM.AdmobManager
 JM.Admob = require(string.gsub(path, "init", "modules.jm_admob_manager"))
 
+---@type JM.PlayGamesManager
+JM.PlayGames = require(string.gsub(path, "init", "modules.jm_playgames_manager"))
+
 ---@type JM.Group
 JM.Group = require(string.gsub(path, "init", "modules.jm_group"))
 
