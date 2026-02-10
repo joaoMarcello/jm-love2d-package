@@ -16,7 +16,16 @@ local leaderboard_hard_id
 
 local auto_signin = true
 
----@param args {normalLeaderboardId:string, hardLeaderboardId:string, autoSignIn:boolean}
+-- Callback system for score retrieval
+---@type table<string, function>|nil
+local scoreCallbacks
+
+---@type table<string, any>|nil
+local scoreCallbackArgs
+
+local time = 0.0
+
+---@param args {normalLeaderboardId:string, hardLeaderboardId:string, autoSignIn:boolean, onSignInSuccess:function|nil}|nil
 function PlayGames:init(args)
     args = args or {}
 
@@ -36,6 +45,35 @@ function PlayGames:init(args)
     if auto_signin and playgames and playgames.isEnabled() then
         if not playgames.isSignedIn() then
             playgames.signIn()
+        end
+    end
+end
+
+---@param leaderboardId string
+---@param onSuccess function
+---@param args any|nil
+function PlayGames:setScoreCallback(leaderboardId, onSuccess, args)
+    if not leaderboardId or not onSuccess then return false end
+
+    scoreCallbacks = scoreCallbacks or {}
+    scoreCallbackArgs = scoreCallbackArgs or {}
+
+    scoreCallbacks[leaderboardId] = onSuccess
+    scoreCallbackArgs[leaderboardId] = args
+
+    return true
+end
+
+function PlayGames:clearScoreCallbacks()
+    if scoreCallbacks then
+        for k, v in next, scoreCallbacks do
+            scoreCallbacks[k] = nil
+        end
+    end
+
+    if scoreCallbackArgs then
+        for k, v in next, scoreCallbackArgs do
+            scoreCallbackArgs[k] = nil
         end
     end
 end
@@ -174,11 +212,67 @@ if playgames then
         return leaderboard_hard_id or ""
     end
 
+    ---@param leaderboardId string
+    ---@param onSuccess function
+    ---@param args any|nil
+    function PlayGames:requestPlayerScore(leaderboardId, onSuccess, args)
+        if not playgames.isEnabled() then return false end
+        if not playgames.isSignedIn() then return false end
+        if not leaderboardId or not onSuccess then return false end
+        -- Proteção contra requisições duplicadas
+        if scoreCallbacks and scoreCallbacks[leaderboardId] then
+            print("[PlayGames] Requisição duplicada ignorada para " .. leaderboardId)
+            return false
+        end
+        -- Registra o callback
+        self:setScoreCallback(leaderboardId, onSuccess, args)
+
+        -- Inicia a requisição assíncrona
+        playgames.getPlayerScore(leaderboardId)
+
+        return true
+    end
+
+    function PlayGames:checkForScoreCallbacks()
+        if not scoreCallbacks then return end
+
+        for leaderboardId, callback in next, scoreCallbacks do
+            if playgames.hasScoreForLeaderboard(leaderboardId) then
+                local score = playgames.getScore(leaderboardId)
+                local args = scoreCallbackArgs and scoreCallbackArgs[leaderboardId]
+
+                -- Dispara o callback
+                if args then
+                    callback(score, args)
+                else
+                    callback(score)
+                end
+
+                -- Remove o callback após disparar
+                scoreCallbacks[leaderboardId] = nil
+                if scoreCallbackArgs then
+                    scoreCallbackArgs[leaderboardId] = nil
+                end
+            end
+        end
+    end
+
+    local lim = 1 / 30
+    function PlayGames:update(dt)
+        dt = dt > lim and lim or dt
+
+        if time >= 0.1 then
+            self:checkForScoreCallbacks()
+            time = 0.0
+        end
+        time = time + dt
+    end
+
     ---
 else
     ---
     -- Funções vazias quando Play Games não está disponível
-    local func_false = function() return false end
+    local func_false = function() end
     local func_empty = function() return "" end
 
     PlayGames.isEnabled = func_false
@@ -194,6 +288,9 @@ else
     PlayGames.getPlayerId = func_empty
     PlayGames.getLeaderboardNormalId = func_empty
     PlayGames.getLeaderboardHardId = func_empty
+    PlayGames.requestPlayerScore = func_false
+    PlayGames.checkForScoreCallbacks = func_false
+    PlayGames.update = func_false
 end
 
 return PlayGames
