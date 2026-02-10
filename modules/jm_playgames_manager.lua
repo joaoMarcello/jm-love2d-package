@@ -293,4 +293,8 @@ else
     PlayGames.update = func_false
 end
 
+function PlayGames:loadedPlayGamesModule()
+    return playgames ~= false
+end
+
 return PlayGames
