@@ -25,6 +25,10 @@ local scoreCallbackArgs
 
 local time = 0.0
 
+---@type function?
+local onSignInSuccess = nil
+local is_signed = false
+
 ---@param args {normalLeaderboardId:string, hardLeaderboardId:string, autoSignIn:boolean, onSignInSuccess:function|nil}|nil
 function PlayGames:init(args)
     args = args or {}
@@ -40,6 +44,8 @@ function PlayGames:init(args)
     if args.autoSignIn ~= nil then
         auto_signin = args.autoSignIn
     end
+
+    onSignInSuccess = args.onSignInSuccess
 
     -- Auto sign-in se configurado
     if auto_signin and playgames and playgames.isEnabled() then
@@ -266,6 +272,14 @@ if playgames then
             time = 0.0
         end
         time = time + dt
+
+        if not is_signed and self:isSignedIn() then
+            is_signed = true
+            if onSignInSuccess then
+                love.timer.sleep(0.5)
+                onSignInSuccess()
+            end
+        end
     end
 
     ---

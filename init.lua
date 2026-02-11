@@ -225,6 +225,9 @@ JM.Admob = require(string.gsub(path, "init", "modules.jm_admob_manager"))
 ---@type JM.PlayGamesManager
 JM.PlayGames = require(string.gsub(path, "init", "modules.jm_playgames_manager"))
 
+---@type JM.CloudSaveManager
+JM.CloudSave = require(string.gsub(path, "init", "modules.jm_cloudsave_manager"))
+
 ---@type JM.Group
 JM.Group = require(string.gsub(path, "init", "modules.jm_group"))
 
@@ -462,6 +465,8 @@ function JM:update(dt)
     self.Admob:update(dt)
 
     self.PlayGames:update(dt)
+
+    self.CloudSave:update(dt)
 
     if thread_save_shot then
         local error_msg = thread_save_shot:getError()
