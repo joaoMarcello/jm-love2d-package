@@ -27,7 +27,7 @@ local time = 0.0
 
 ---@type function?
 local onSignInSuccess = nil
-local is_signed = false
+local is_signed = -1
 
 ---@param args {normalLeaderboardId:string, hardLeaderboardId:string, autoSignIn:boolean, onSignInSuccess:function|nil}|nil
 function PlayGames:init(args)
@@ -273,13 +273,26 @@ if playgames then
         end
         time = time + dt
 
-        if not is_signed and self:isSignedIn() then
-            is_signed = true
-            if onSignInSuccess then
-                love.timer.sleep(0.5)
-                onSignInSuccess()
+        if is_signed ~= 0.0 then
+            if is_signed == -1 and self:isSignedIn() then
+                is_signed = 1.0
+            elseif is_signed > 0.0 then
+                is_signed = is_signed - dt
+                if is_signed <= 0.0 then
+                    is_signed = 0.0
+                    if onSignInSuccess then
+                        onSignInSuccess()
+                    end
+                end
             end
         end
+        -- if not is_signed and self:isSignedIn() then
+        --     is_signed = true
+        --     if onSignInSuccess then
+        --         love.timer.sleep(1.0)
+        --         onSignInSuccess()
+        --     end
+        -- end
     end
 
     ---
