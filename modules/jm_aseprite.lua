@@ -139,6 +139,24 @@ local function unsign(n)
 end
 
 ---@private
+---Blend new pixel over existing pixel using alpha blending
+local function blendPixel(spriteData, x, y, r_new, g_new, b_new, a_new)
+    local r_old, g_old, b_old, a_old = spriteData:getPixel(x, y)
+
+    -- Alpha blend: out = new + old * (1 - alpha_new)
+    local a_out = a_new + a_old * (1 - a_new)
+
+    if a_out == 0 then
+        spriteData:setPixel(x, y, 0, 0, 0, 0)
+    else
+        local r_out = (r_new * a_new + r_old * a_old * (1 - a_new)) / a_out
+        local g_out = (g_new * a_new + g_old * a_old * (1 - a_new)) / a_out
+        local b_out = (b_new * a_new + b_old * a_old * (1 - a_new)) / a_out
+        spriteData:setPixel(x, y, r_out, g_out, b_out, a_out)
+    end
+end
+
+---@private
 local function readByte(openFile)
     local byte_val = openFile:read(1)
     return byte_val and string.byte(byte_val) or 0
@@ -206,12 +224,19 @@ local function processCel(sprite, openFile, cel, frameIndex, chunkLength, read_f
             elseif sprite.colorDepth == ColorDepths.grayscale then
                 for i = 1, #str / 2 do
                     local i2 = i * 2
-                    local n, a = string.byte(str:sub(i2 - 1, i2 - 1)) / 255, string.byte(str:sub(i2, i2))
+                    local n = string.byte(str:sub(i2 - 1, i2 - 1)) / 255
+                    local a = string.byte(str:sub(i2, i2))
+
+                    -- Apply cel and layer opacity to pixel alpha
+                    local celOpacity = cel.opacity / 255
+                    local layerOpacity = layer.opacity / 255
+                    local finalAlpha = (a / 255) * celOpacity * layerOpacity
+
                     local x = (i - 1) % cel.width + (frameIndex - 1) * sprite.width + cel.x
                     local y = math.floor((i - 1) / cel.width) + cel.y
 
-                    if a > 0 and x >= 0 and x < w and y >= 0 and y < h then
-                        spriteData:setPixel(x, y, n, n, n, 1)
+                    if finalAlpha > 0 and x >= 0 and x < w and y >= 0 and y < h then
+                        blendPixel(spriteData, x, y, n, n, n, finalAlpha)
                     end
                 end
             elseif sprite.colorDepth == ColorDepths.rgba then
@@ -222,11 +247,16 @@ local function processCel(sprite, openFile, cel, frameIndex, chunkLength, read_f
                     local b = string.byte(str:sub(i2 - 1, i2 - 1))
                     local a = string.byte(str:sub(i2, i2))
 
+                    -- Apply cel and layer opacity to pixel alpha
+                    local celOpacity = cel.opacity / 255
+                    local layerOpacity = layer.opacity / 255
+                    local finalAlpha = (a / 255) * celOpacity * layerOpacity
+
                     local x = (i - 1) % cel.width + (frameIndex - 1) * sprite.width + cel.x
                     local y = math.floor((i - 1) / cel.width) + cel.y
 
-                    if a > 0 and x >= 0 and x < w and y >= 0 and y < h then
-                        spriteData:setPixel(x, y, r / 255, g / 255, b / 255, 1)
+                    if finalAlpha > 0 and x >= 0 and x < w and y >= 0 and y < h then
+                        blendPixel(spriteData, x, y, r / 255, g / 255, b / 255, finalAlpha)
                     end
                 end
             end
