@@ -29,6 +29,10 @@ JM_Affectable = JM.Affectable
 JM.Anima = require(string.gsub(path, "init", "modules.jm_animation"))
 JM_Anima = JM.Anima
 
+---@type JM.Aseprite
+JM.Aseprite = require(string.gsub(path, "init", "modules.jm_aseprite"))
+JM_Aseprite = JM.Aseprite
+
 ---@type JM.Font.Generator
 JM.FontGenerator = require(string.gsub(path, "init", "modules.jm_font_generator"))
 
